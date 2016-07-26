@@ -26,8 +26,8 @@ impl Scene {
         self.objects.push(o);
     }
 
-    pub fn push_sphere(&mut self, point: Point, r: f32, sc: Colourf, ec: Option<Colourf>, tr: f32, rf: f32) {
-        self.push(Instance::new(Rc::new(Sphere::new(point, r)), Material::new(sc, ec, tr, rf)));
+    pub fn push_sphere(&mut self, point: Point, r: f32, sc: Colourf, tr: f32, rf: f32) {
+        self.push(Instance::new(Rc::new(Sphere::new(point, r)), Material::new(sc, tr, rf)));
     }
 
     pub fn push_light(&mut self, pos: Point, ec: Colourf) {
