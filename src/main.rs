@@ -1,34 +1,18 @@
+extern crate raytracer;
+
 use std::io;
 use std::fs::File;
 use std::io::prelude::*;
 
-mod vector;
-mod ray;
-mod sphere;
-mod intersection;
-mod scene;
-mod colour;
-mod camera;
-mod image;
-mod point;
-mod geometry;
-mod instance;
-mod material;
-mod light;
+use raytracer::ray::Ray;
+use raytracer::scene::Scene;
+use raytracer::colour::Colourf;
+use raytracer::camera::Camera;
+use raytracer::image::Image;
+use raytracer::point::Point;
+use raytracer::*;
 
-use ray::Ray;
-use scene::Scene;
-use colour::Colourf;
-use camera::Camera;
-use image::Image;
-use point::Point;
-
-const MAX_RAY_DEPTH: u8 = 5;
-fn mix(a: f32, b: f32, mix: f32) -> f32 {
-    b*mix + a*(1.0 - mix)
-}
-
-pub type Dim = (u32, u32);
+pub const MAX_RAY_DEPTH: u8 = 5;
 
 fn trace(ray: &mut Ray, scene: &Scene, depth: u32) -> Colourf {
 
