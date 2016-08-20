@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["Antoine Busch <abusch@atlassian.com>"]
 
 [dependencies]
+nalgebra = "0.8.*"
+image = "0.10.*"

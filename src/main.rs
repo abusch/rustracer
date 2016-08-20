@@ -1,8 +1,8 @@
+extern crate image;
 extern crate raytracer;
 
 use std::io;
-use std::fs::File;
-use std::io::prelude::*;
+use std::path::Path;
 
 use raytracer::ray::Ray;
 use raytracer::scene::Scene;
@@ -10,7 +10,7 @@ use raytracer::colour::Colourf;
 use raytracer::camera::Camera;
 use raytracer::image::Image;
 use raytracer::point::Point;
-use raytracer::*;
+use raytracer::{mix, Dim};
 
 pub const MAX_RAY_DEPTH: u8 = 5;
 
@@ -82,19 +82,22 @@ fn render(scene: &Scene) {
         }
     }
 
-    write_file(dim, image.buffer()).expect("Could not write file");
+    write_png(dim, image.buffer()).expect("Could not write file");
 }
 
-fn write_file(dim: Dim, image: &[Colourf]) -> Result<(), io::Error> {
+fn write_png(dim: Dim, image: &[Colourf]) -> io::Result<()> {
     let (w, h) = dim;
-    let mut f = try!(File::create("image.ppm"));
+    let mut buffer = Vec::new();
 
-    try!(write!(&mut f, "P6\n{} {}\n255\n", w, h));
     for i in 0..w*h {
         let bytes: [u8; 3] = image[i as usize].into();
-        try!(f.write(&bytes));
+        buffer.push(bytes[0]);
+        buffer.push(bytes[1]);
+        buffer.push(bytes[2]);
     }
-    Ok(())
+
+    // Save the buffer as "image.png"
+    image::save_buffer(&Path::new("image.png"), &buffer, w, h, image::RGB(8))
 }
 
 fn main() {
@@ -113,5 +116,5 @@ fn main() {
     let now = std::time::Instant::now();
     render(&scene);
     let duration = now.elapsed();
-    println!("Scene rendered in {}s and {}ms)", duration.as_secs(), duration.subsec_nanos() / 1000000);
+    println!("Scene rendered in {}s and {}ms", duration.as_secs(), duration.subsec_nanos() / 1000000);
 }
