@@ -5,7 +5,7 @@ use intersection::Intersection;
 use ray::Ray;
 use instance::Instance;
 use material::Material;
-use point::Point;
+use Point;
 use colour::Colourf;
 use light::Light;
 

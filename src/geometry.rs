@@ -1,6 +1,5 @@
+use {Vector, Point};
 use ray::Ray;
-use point::Point;
-use vector::Vector;
 
 pub trait Geometry {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry>;

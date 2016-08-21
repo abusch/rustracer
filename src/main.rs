@@ -1,16 +1,17 @@
+extern crate nalgebra as na;
 extern crate image;
 extern crate raytracer;
 
 use std::io;
 use std::path::Path;
+use na::{Norm, Dot, Origin};
 
 use raytracer::ray::Ray;
 use raytracer::scene::Scene;
 use raytracer::colour::Colourf;
 use raytracer::camera::Camera;
 use raytracer::image::Image;
-use raytracer::point::Point;
-use raytracer::{mix, Dim};
+use raytracer::{mix, Dim, Point};
 
 pub const MAX_RAY_DEPTH: u8 = 5;
 
@@ -33,7 +34,7 @@ fn trace(ray: &mut Ray, scene: &Scene, depth: u32) -> Colourf {
             let facingratio = -ray.dir.dot(&nhit);
             let fresnel_effect = mix((1.0 - facingratio).powi(3), 1.0, 0.1);
             let refldir = (ray.dir - nhit * 2.0 * ray.dir.dot(&nhit)).normalize();
-            let mut newray = Ray::new((phit + nhit*bias).as_point(), refldir);
+            let mut newray = Ray::new((phit + nhit*bias), refldir);
             let reflection = trace(&mut newray, scene, depth + 1);
             let mut refraction = Colourf::black();
             if mat.transparency > 0.0 {
@@ -42,7 +43,7 @@ fn trace(ray: &mut Ray, scene: &Scene, depth: u32) -> Colourf {
                 let cosi = -nhit.dot(&ray.dir);
                 let k = 1.0 - eta * eta * (1.0 - cosi * cosi);
                 let refrdir = (ray.dir * eta + nhit * (eta * cosi - k.sqrt())).normalize();
-                let mut newray = Ray::new((phit - nhit * bias).as_point(), refrdir);
+                let mut newray = Ray::new((phit - nhit * bias), refrdir);
                 refraction = trace(&mut newray, scene, depth + 1);
             }
 
@@ -53,7 +54,7 @@ fn trace(ray: &mut Ray, scene: &Scene, depth: u32) -> Colourf {
                 let light_direction = (l.pos - phit).normalize();
                 // Check if this light is "visible" from the hit point
                 for o in &scene.objects {
-                    let mut new_ray = Ray::new((phit + nhit * bias).as_point(), light_direction);
+                    let mut new_ray = Ray::new((phit + nhit * bias), light_direction);
                     if o.intersect(&mut new_ray).is_some() {
                         transmission = Colourf::black();
                         break;

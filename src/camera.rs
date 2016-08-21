@@ -1,9 +1,10 @@
 use std::f32::consts::PI;
 
-use vector::Vector;
-use ray::Ray;
+use Vector;
 use Dim;
-use point::Point;
+use Point;
+use ray::Ray;
+use na::Norm;
 
 
 pub struct Camera {

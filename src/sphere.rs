@@ -1,6 +1,7 @@
 use ray::Ray;
-use point::Point;
+use Point;
 use geometry::{Geometry, DifferentialGeometry};
+use na::{Norm, Dot};
 
 #[derive(Debug, PartialEq)]
 pub struct Sphere {

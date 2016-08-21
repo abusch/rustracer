@@ -1,6 +1,5 @@
+use {Vector, Point};
 use std::f32::INFINITY;
-use vector::Vector;
-use point::Point;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ray {
@@ -16,7 +15,7 @@ impl Ray {
     }
 
     pub fn at(&self, t: f32) -> Point {
-        (self.origin + t * self.dir).as_point()
+        self.origin + t * self.dir
     }
 }
 

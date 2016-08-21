@@ -1,4 +1,4 @@
-use point::Point;
+use Point;
 use colour::Colourf;
 
 pub struct Light {
