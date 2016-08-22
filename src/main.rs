@@ -34,7 +34,7 @@ fn trace(ray: &mut Ray, scene: &Scene, depth: u32) -> Colourf {
             let facingratio = -ray.dir.dot(&nhit);
             let fresnel_effect = mix((1.0 - facingratio).powi(3), 1.0, 0.1);
             let refldir = (ray.dir - nhit * 2.0 * ray.dir.dot(&nhit)).normalize();
-            let mut newray = Ray::new((phit + nhit*bias), refldir);
+            let mut newray = Ray::new(phit + nhit*bias, refldir);
             let reflection = trace(&mut newray, scene, depth + 1);
             let mut refraction = Colourf::black();
             if mat.transparency > 0.0 {
@@ -43,7 +43,7 @@ fn trace(ray: &mut Ray, scene: &Scene, depth: u32) -> Colourf {
                 let cosi = -nhit.dot(&ray.dir);
                 let k = 1.0 - eta * eta * (1.0 - cosi * cosi);
                 let refrdir = (ray.dir * eta + nhit * (eta * cosi - k.sqrt())).normalize();
-                let mut newray = Ray::new((phit - nhit * bias), refrdir);
+                let mut newray = Ray::new(phit - nhit * bias, refrdir);
                 refraction = trace(&mut newray, scene, depth + 1);
             }
 
@@ -54,7 +54,7 @@ fn trace(ray: &mut Ray, scene: &Scene, depth: u32) -> Colourf {
                 let light_direction = (l.pos - phit).normalize();
                 // Check if this light is "visible" from the hit point
                 for o in &scene.objects {
-                    let mut new_ray = Ray::new((phit + nhit * bias), light_direction);
+                    let mut new_ray = Ray::new(phit + nhit * bias, light_direction);
                     if o.intersect(&mut new_ray).is_some() {
                         transmission = Colourf::black();
                         break;
@@ -75,11 +75,16 @@ fn render(scene: &Scene) {
     let mut image = Image::new(dim);
 
     let camera = Camera::new(Point::origin(), dim, 30.0);
+    let samples = [(0.25, 0.25), (0.25, 0.75), (0.75, 0.75), (0.75, 0.25)];
 
     for y in 0..dim.1 {
         for x in 0..dim.0 {
-            let mut ray = camera.ray_for(x as f32, y as f32);
-            image.write(x as u32, y as u32, trace(&mut ray, scene, 0));
+            let mut c = Colourf::black();
+            for s in &samples {
+                let mut ray = camera.ray_for(x as f32 + s.0, y as f32 + s.1);
+                c += trace(&mut ray, scene, 0);
+            }
+            image.write(x as u32, y as u32, c / 4.0);
         }
     }
 

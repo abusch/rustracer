@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Index, IndexMut};
+use std::ops::{Add, AddAssign, Div, Mul, Index, IndexMut};
 
 #[derive(Debug,Copy,PartialEq,Clone)]
 pub struct Colourf {
@@ -45,6 +45,14 @@ impl Add<Colourf> for Colourf {
     }
 }
 
+impl AddAssign<Colourf> for Colourf {
+    fn add_assign(&mut self, rhs: Colourf) {
+        self.r += rhs.r;
+        self.g += rhs.g;
+        self.b += rhs.b;
+    }
+}
+
 impl Mul<Colourf> for Colourf {
     type Output = Colourf;
 
@@ -58,6 +66,14 @@ impl Mul<f32> for Colourf {
 
     fn mul(self, rhs: f32) -> Colourf {
         Colourf::rgb(self.r * rhs, self.g * rhs, self.b * rhs)
+    }
+}
+
+impl Div<f32> for Colourf {
+    type Output = Colourf;
+
+    fn div(self, rhs: f32) -> Colourf {
+        Colourf::rgb(self.r / rhs, self.g / rhs, self.b / rhs)
     }
 }
 
