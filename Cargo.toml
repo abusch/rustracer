@@ -6,3 +6,4 @@ authors = ["Antoine Busch <abusch@atlassian.com>"]
 [dependencies]
 nalgebra = "0.8.*"
 image = "0.10.*"
+rand = "0.3.*"

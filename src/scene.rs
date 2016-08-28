@@ -1,17 +1,19 @@
 use std::rc::Rc;
 
 use sphere::Sphere;
+use plane::Plane;
 use intersection::Intersection;
 use ray::Ray;
 use instance::Instance;
 use material::Material;
 use Point;
+use Vector;
 use colour::Colourf;
-use light::Light;
+use light::{Light, PointLight, DistantLight};
 
 pub struct Scene {
     pub objects: Vec<Instance>,
-    pub lights: Vec<Light>,
+    pub lights: Vec<Box<Light>>,
 }
 
 impl Scene {
@@ -30,8 +32,16 @@ impl Scene {
         self.push(Instance::new(Rc::new(Sphere::new(point, r)), Material::new(sc, tr, rf)));
     }
 
-    pub fn push_light(&mut self, pos: Point, ec: Colourf) {
-        self.lights.push(Light::new(pos, ec));
+    pub fn push_plane(&mut self, point: Point, n: Vector, sc: Colourf, tr: f32, rf: f32) {
+        self.push(Instance::new(Rc::new(Plane::new(point, n)), Material::new(sc, tr, rf)));
+    }
+
+    pub fn push_point_light(&mut self, pos: Point, ec: Colourf) {
+        self.lights.push(Box::new(PointLight::new(pos, ec)));
+    }
+
+    pub fn push_distant_light(&mut self, dir: Vector, ec: Colourf) {
+        self.lights.push(Box::new(DistantLight::new(dir, ec)));
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<Intersection> {

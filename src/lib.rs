@@ -4,6 +4,7 @@ use na::{Vector3, Point3};
 
 pub mod ray;
 pub mod sphere;
+pub mod plane;
 pub mod intersection;
 pub mod scene;
 pub mod colour;
@@ -13,6 +14,7 @@ pub mod geometry;
 pub mod instance;
 pub mod material;
 pub mod light;
+pub mod integrator;
 
 
 pub fn mix(a: f32, b: f32, mix: f32) -> f32 {

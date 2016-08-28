@@ -13,6 +13,10 @@ impl Colourf {
         Colourf {r: r, g: g, b: b, a: 0.0}
     }
 
+    pub fn grey(v: f32) -> Colourf {
+        Colourf {r: v, g: v, b: v, a: 0.0}
+    }
+
     pub fn white() -> Colourf {
         Colourf::rgb(1.0, 1.0, 1.0)
     }
