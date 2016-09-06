@@ -30,7 +30,6 @@ fn render(scene: &Scene) {
             let mut c = Colourf::black();
             for s in &samples {
                 let mut ray = camera.ray_for(x as f32 + s.0, y as f32 + s.1);
-                // c += trace(&mut ray, scene, 0);
                 c += integrator.illumination(scene, &mut ray);
             }
             image.write(x as u32, y as u32, c / spp);
@@ -59,15 +58,15 @@ fn main() {
     let mut scene = Scene::new();
 
     // scene.push_sphere(Point::new( 0.0, -10004.0, -20.0), 10000.0, Colourf::rgb(0.20, 0.20, 0.20), 0.0, 0.0);
-    scene.push_sphere(Point::new( 0.0,      0.0, -20.0),     4.0, Colourf::rgb(1.00, 0.32, 0.36), 1.0, 0.5);
-    scene.push_sphere(Point::new( 5.0,     -1.0, -15.0),     2.0, Colourf::rgb(0.90, 0.76, 0.46), 1.0, 0.0);
-    scene.push_sphere(Point::new( 5.0,      0.0, -25.0),     3.0, Colourf::rgb(0.65, 0.77, 0.97), 1.0, 0.0);
-    scene.push_sphere(Point::new(-5.5,      0.0, -15.0),     3.0, Colourf::rgb(0.90, 0.90, 0.90), 1.0, 0.0);
-    scene.push_plane(Point::new(0.0, -50.0, 0.0), Vector::new(0.0, 1.0, 0.0), Colourf::rgb(1.0, 1.0, 1.0), 0.0, 0.0);
+    scene.push_sphere(Point::new( 0.0,      0.0, -20.0),     4.0, Colourf::rgb(1.00, 0.32, 0.36), 0.0, 0.0);
+    scene.push_sphere(Point::new( 5.0,     -1.0, -15.0),     2.0, Colourf::rgb(0.90, 0.76, 0.46), 0.0, 0.0);
+    scene.push_sphere(Point::new( 5.0,      0.0, -25.0),     3.0, Colourf::rgb(0.65, 0.77, 0.97), 0.0, 0.0);
+    scene.push_sphere(Point::new(-5.5,      0.0, -15.0),     3.0, Colourf::rgb(0.90, 0.90, 0.90), 0.2, 0.8);
+    scene.push_plane(Point::new(0.0, -4.0, 0.0), Vector::new(0.0, 1.0, 0.0), Colourf::rgb(1.0, 1.0, 1.0), 0.8, 0.0);
     //ight
     // scene.push_sphere(Point::new( 0.0,     20.0, -30.0),     3.0, Colourf::black(),               Some(Colourf::rgb(3.0, 3.0, 3.0)), 0.0, 0.0);
     scene.push_point_light(Point::new(-10.0, 10.0, -5.0), Colourf::rgb(3000.0, 0.0, 3000.0));
-    scene.push_distant_light(Vector::new(-1.0, -1.0, -1.0), Colourf::rgb(3.0, 3.0, 3.0));
+    scene.push_distant_light(Vector::new(0.0, 0.0, -1.0), Colourf::rgb(3.0, 3.0, 3.0));
 
     println!("Rendering scene...");
     let now = std::time::Instant::now();

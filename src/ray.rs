@@ -1,6 +1,8 @@
 use {Vector, Point};
 use std::f32::INFINITY;
 
+const BIAS: f32 = 1e-4;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ray {
     pub origin: Point,
@@ -20,7 +22,7 @@ impl Ray {
     }
 
     pub fn spawn(&self, o: Point, d: Vector) -> Ray {
-        Ray {origin: o, dir: d, t_min: 0.0, t_max: INFINITY, depth: self.depth + 1}
+        Ray {origin: o, dir: d, t_min: BIAS, t_max: INFINITY, depth: self.depth + 1}
     }
 }
 
