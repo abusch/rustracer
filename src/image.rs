@@ -4,7 +4,7 @@ use colour::Colourf;
 pub struct Image {
     pub width: u32,
     pub height: u32,
-    pixels: Vec<Colourf>
+    pixels: Vec<Colourf>,
 }
 
 impl Image {
@@ -17,7 +17,7 @@ impl Image {
         Image {
             width: w,
             height: h,
-            pixels: buffer
+            pixels: buffer,
         }
     }
 
@@ -29,5 +29,3 @@ impl Image {
         &self.pixels
     }
 }
-
-

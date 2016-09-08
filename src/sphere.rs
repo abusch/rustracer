@@ -11,10 +11,10 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(r: f32, ) -> Sphere {
+    pub fn new(r: f32) -> Sphere {
         Sphere {
             radius: r,
-            radius_2: r*r,
+            radius_2: r * r,
         }
     }
 }
@@ -34,7 +34,7 @@ impl Geometry for Sphere {
 
         let (t0, t1) = match (tca - thc, tca + thc) {
             (x, y) if x < y => (x, y),
-            (x, y)          => (y, x)
+            (x, y) => (y, x),
         };
 
         if t1 < ray.t_min || t0 > ray.t_max {
@@ -62,6 +62,6 @@ impl Geometry for Sphere {
             phi * FRAC_1_PI
         };
         let v = theta * FRAC_1_PI;
-        Some(DifferentialGeometry::new(phit, nhit, TextureCoordinate { u: u, v: v}, self))
+        Some(DifferentialGeometry::new(phit, nhit, TextureCoordinate { u: u, v: v }, self))
     }
 }

@@ -12,7 +12,10 @@ impl Geometry for Plane {
             if t >= ray.t_min && t <= ray.t_max {
                 ray.t_max = t;
                 let phit = ray.at(ray.t_max);
-                Some(DifferentialGeometry::new(phit, Vector::new(0.0, 0.0, 1.0), TextureCoordinate { u: 0.0, v: 0.0}, self))
+                Some(DifferentialGeometry::new(phit,
+                                               Vector::new(0.0, 0.0, 1.0),
+                                               TextureCoordinate { u: 0.0, v: 0.0 },
+                                               self))
             } else {
                 None
             }
@@ -21,4 +24,3 @@ impl Geometry for Plane {
         }
     }
 }
-

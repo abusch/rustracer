@@ -5,16 +5,26 @@ pub struct Colourf {
     pub r: f32,
     pub g: f32,
     pub b: f32,
-    pub a: f32
+    pub a: f32,
 }
 
 impl Colourf {
     pub fn rgb(r: f32, g: f32, b: f32) -> Colourf {
-        Colourf {r: r, g: g, b: b, a: 0.0}
+        Colourf {
+            r: r,
+            g: g,
+            b: b,
+            a: 0.0,
+        }
     }
 
     pub fn grey(v: f32) -> Colourf {
-        Colourf {r: v, g: v, b: v, a: 0.0}
+        Colourf {
+            r: v,
+            g: v,
+            b: v,
+            a: 0.0,
+        }
     }
 
     pub fn white() -> Colourf {
@@ -38,14 +48,18 @@ impl Colourf {
         }
         srgb
     }
-
 }
 
 impl Add<Colourf> for Colourf {
     type Output = Colourf;
 
     fn add(self, rhs: Colourf) -> Colourf {
-        Colourf {r: self.r + rhs.r, g: self.g + rhs.g, b: self.b + rhs.b, a: self.a + rhs.a}
+        Colourf {
+            r: self.r + rhs.r,
+            g: self.g + rhs.g,
+            b: self.b + rhs.b,
+            a: self.a + rhs.a,
+        }
     }
 }
 
@@ -83,18 +97,16 @@ impl Div<f32> for Colourf {
 
 impl From<Colourf> for [u8; 3] {
     fn from(c: Colourf) -> [u8; 3] {
-        [
-            (f32::min(1.0, c.r) * 255.0) as u8,
-            (f32::min(1.0, c.g) * 255.0) as u8,
-            (f32::min(1.0, c.b) * 255.0) as u8
-        ]
+        [(f32::min(1.0, c.r) * 255.0) as u8,
+         (f32::min(1.0, c.g) * 255.0) as u8,
+         (f32::min(1.0, c.b) * 255.0) as u8]
     }
 }
 
 impl Index<usize> for Colourf {
     type Output = f32;
     /// Access the channels by index
-    /// 
+    ///
     /// - 0 = r
     /// - 1 = g
     /// - 2 = b
@@ -112,7 +124,7 @@ impl Index<usize> for Colourf {
 
 impl IndexMut<usize> for Colourf {
     /// Access the channels by index
-    /// 
+    ///
     /// - 0 = r
     /// - 1 = g
     /// - 2 = b
@@ -127,5 +139,3 @@ impl IndexMut<usize> for Colourf {
         }
     }
 }
-
-

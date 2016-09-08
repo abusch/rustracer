@@ -15,7 +15,13 @@ pub struct Ray {
 
 impl Ray {
     pub fn new(o: Point, d: Vector) -> Ray {
-        Ray {origin: o, dir: d, t_min: 0.0, t_max: INFINITY, depth: 0}
+        Ray {
+            origin: o,
+            dir: d,
+            t_min: 0.0,
+            t_max: INFINITY,
+            depth: 0,
+        }
     }
 
     pub fn at(&self, t: f32) -> Point {
@@ -23,7 +29,13 @@ impl Ray {
     }
 
     pub fn spawn(&self, o: Point, d: Vector) -> Ray {
-        Ray {origin: o, dir: d, t_min: BIAS, t_max: INFINITY, depth: self.depth + 1}
+        Ray {
+            origin: o,
+            dir: d,
+            t_min: BIAS,
+            t_max: INFINITY,
+            depth: self.depth + 1,
+        }
     }
 }
 

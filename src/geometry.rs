@@ -19,8 +19,17 @@ pub struct DifferentialGeometry<'a> {
 }
 
 impl<'a> DifferentialGeometry<'a> {
-    pub fn new(p: Point, n: Vector, tex_coord: TextureCoordinate, geom: &Geometry) -> DifferentialGeometry {
-        DifferentialGeometry { phit: p, nhit: n, tex_coord: tex_coord, geom: geom }
+    pub fn new(p: Point,
+               n: Vector,
+               tex_coord: TextureCoordinate,
+               geom: &Geometry)
+               -> DifferentialGeometry {
+        DifferentialGeometry {
+            phit: p,
+            nhit: n,
+            tex_coord: tex_coord,
+            geom: geom,
+        }
     }
 
     pub fn transform(&mut self, transform: Transform) {

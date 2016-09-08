@@ -18,7 +18,7 @@ pub mod integrator;
 
 
 pub fn mix(a: f32, b: f32, mix: f32) -> f32 {
-    b*mix + a*(1.0 - mix)
+    b * mix + a * (1.0 - mix)
 }
 
 pub type Dim = (u32, u32);

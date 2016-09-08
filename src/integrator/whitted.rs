@@ -29,7 +29,7 @@ fn fmod(x: f32) -> f32 {
 
 fn pattern(tex_coord: &TextureCoordinate, scale_u: f32, scale_v: f32) -> f32 {
     let p = (fmod(tex_coord.u * scale_u) < 0.5) ^ (fmod(tex_coord.v * scale_v) < 0.5);
-    if p { 1.0 } else {0.5}
+    if p { 1.0 } else { 0.5 }
 }
 
 impl Integrator for Whitted {
@@ -55,7 +55,9 @@ impl Integrator for Whitted {
                     let mut shadow_ray = ray.spawn(p, shading_info.w_i);
                     shadow_ray.t_max = shading_info.light_distance;
                     if let None = scene.intersect(&mut shadow_ray) {
-                        let diffuse = mat.surface_colour * FRAC_1_PI * shading_info.l_i * shading_info.w_i.dot(&n).max(0.0) * pattern(&intersection.dg.tex_coord, 10.0, 10.0);
+                        let diffuse = mat.surface_colour * FRAC_1_PI * shading_info.l_i *
+                                      shading_info.w_i.dot(&n).max(0.0) *
+                                      pattern(&intersection.dg.tex_coord, 10.0, 10.0);
                         colour += diffuse;
                     }
                 }

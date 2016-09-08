@@ -28,7 +28,9 @@ impl Scene {
     }
 
     pub fn push_sphere(&mut self, r: f32, sc: Colourf, tr: f32, rf: f32, transform: Transform) {
-        self.push(Instance::new(Rc::new(Sphere::new(r)), Material::new(sc, tr, rf), transform));
+        self.push(Instance::new(Rc::new(Sphere::new(r)),
+                                Material::new(sc, tr, rf),
+                                transform));
     }
 
     pub fn push_plane(&mut self, sc: Colourf, tr: f32, rf: f32, transform: Transform) {

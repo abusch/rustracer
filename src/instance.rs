@@ -15,7 +15,12 @@ pub struct Instance {
 
 impl Instance {
     pub fn new(g: Rc<Geometry>, material: Material, transform: Transform) -> Instance {
-        Instance {geom: g, material: material, transform: transform, transform_inv: transform.inverse().unwrap()}
+        Instance {
+            geom: g,
+            material: material,
+            transform: transform,
+            transform_inv: transform.inverse().unwrap(),
+        }
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<Intersection> {

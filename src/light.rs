@@ -17,7 +17,10 @@ pub struct PointLight {
 
 impl PointLight {
     pub fn new(p: Point, ec: Colourf) -> PointLight {
-        PointLight {pos: p, emission_colour: ec}
+        PointLight {
+            pos: p,
+            emission_colour: ec,
+        }
     }
 }
 
@@ -28,7 +31,11 @@ impl Light for PointLight {
         let w_i = light_dir.normalize();
         let l_i = self.emission_colour / (4.0 * PI * r2);
 
-        ShadingInfo { l_i: l_i, w_i: w_i, light_distance: r2.sqrt() }
+        ShadingInfo {
+            l_i: l_i,
+            w_i: w_i,
+            light_distance: r2.sqrt(),
+        }
     }
 }
 
@@ -39,13 +46,20 @@ pub struct DistantLight {
 
 impl DistantLight {
     pub fn new(dir: Vector, ec: Colourf) -> DistantLight {
-        DistantLight {dir: dir.normalize(), emission_colour: ec}
+        DistantLight {
+            dir: dir.normalize(),
+            emission_colour: ec,
+        }
     }
 }
 
 impl Light for DistantLight {
     fn shading_info(&self, _: &Point) -> ShadingInfo {
-        ShadingInfo { l_i: self.emission_colour, w_i: -self.dir, light_distance: f32::INFINITY }
+        ShadingInfo {
+            l_i: self.emission_colour,
+            w_i: -self.dir,
+            light_distance: f32::INFINITY,
+        }
     }
 }
 

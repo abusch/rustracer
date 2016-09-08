@@ -14,7 +14,7 @@ pub struct Camera {
     inv_width: f32,
     inv_height: f32,
     aspect_ratio: f32,
-    angle: f32
+    angle: f32,
 }
 
 impl Camera {
@@ -27,7 +27,7 @@ impl Camera {
             inv_width: 1.0 / w as f32,
             inv_height: 1.0 / h as f32,
             aspect_ratio: w as f32 / h as f32,
-            angle: (PI * 0.5 * fov / 180.0).tan()
+            angle: (PI * 0.5 * fov / 180.0).tan(),
         }
     }
 
@@ -38,4 +38,3 @@ impl Camera {
         Ray::new(self.origin, raydir)
     }
 }
-

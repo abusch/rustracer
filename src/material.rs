@@ -11,7 +11,7 @@ impl Material {
         Material {
             surface_colour: sc,
             transparency: tr,
-            reflection: rf
+            reflection: rf,
         }
     }
 }

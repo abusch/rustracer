@@ -8,6 +8,6 @@ pub struct Intersection<'a, 'b> {
 
 impl<'a, 'b> Intersection<'a, 'b> {
     pub fn new(dg: DifferentialGeometry<'a>, o: &'b Instance) -> Intersection<'a, 'b> {
-        Intersection {dg: dg, hit: o}
+        Intersection { dg: dg, hit: o }
     }
 }
