@@ -1,5 +1,5 @@
+use Point;
 use ray::Ray;
-use {Point, Vector};
 use geometry::*;
 use na::{Norm, Dot, origin};
 use std::f32::consts::FRAC_1_PI;

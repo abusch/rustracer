@@ -9,7 +9,6 @@ use material::Material;
 use ::{Point, Transform, Vector};
 use colour::Colourf;
 use light::{Light, PointLight, DistantLight};
-use na::{Inverse, one};
 
 pub struct Scene {
     pub objects: Vec<Instance>,

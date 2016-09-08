@@ -1,8 +1,6 @@
-use ray::Ray;
-use Point;
 use Vector;
+use ray::Ray;
 use geometry::*;
-use na::{Norm, Dot};
 
 #[derive(Debug, PartialEq)]
 pub struct Plane;
