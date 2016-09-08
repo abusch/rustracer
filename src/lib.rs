@@ -1,6 +1,6 @@
 extern crate nalgebra as na;
 
-use na::{Vector3, Point3};
+use na::{Vector3, Point3, Similarity3};
 
 pub mod ray;
 pub mod sphere;
@@ -25,3 +25,4 @@ pub type Dim = (u32, u32);
 
 pub type Vector = Vector3<f32>;
 pub type Point = Point3<f32>;
+pub type Transform = Similarity3<f32>;

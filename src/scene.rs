@@ -6,10 +6,10 @@ use intersection::Intersection;
 use ray::Ray;
 use instance::Instance;
 use material::Material;
-use Point;
-use Vector;
+use ::{Point, Transform, Vector};
 use colour::Colourf;
 use light::{Light, PointLight, DistantLight};
+use na::{Inverse, one};
 
 pub struct Scene {
     pub objects: Vec<Instance>,
@@ -28,12 +28,12 @@ impl Scene {
         self.objects.push(o);
     }
 
-    pub fn push_sphere(&mut self, point: Point, r: f32, sc: Colourf, tr: f32, rf: f32) {
-        self.push(Instance::new(Rc::new(Sphere::new(point, r)), Material::new(sc, tr, rf)));
+    pub fn push_sphere(&mut self, r: f32, sc: Colourf, tr: f32, rf: f32, transform: Transform) {
+        self.push(Instance::new(Rc::new(Sphere::new(r)), Material::new(sc, tr, rf), transform));
     }
 
-    pub fn push_plane(&mut self, point: Point, n: Vector, sc: Colourf, tr: f32, rf: f32) {
-        self.push(Instance::new(Rc::new(Plane::new(point, n)), Material::new(sc, tr, rf)));
+    pub fn push_plane(&mut self, sc: Colourf, tr: f32, rf: f32, transform: Transform) {
+        self.push(Instance::new(Rc::new(Plane), Material::new(sc, tr, rf), transform));
     }
 
     pub fn push_point_light(&mut self, pos: Point, ec: Colourf) {
@@ -47,13 +47,10 @@ impl Scene {
     pub fn intersect(&self, ray: &mut Ray) -> Option<Intersection> {
         let mut result: Option<Intersection> = None;
 
-        for i in 0..self.objects.len() {
-            let s = &self.objects[i];
+        for s in &self.objects {
             result = s.intersect(ray).or(result)
         }
 
         result
     }
 }
-
-

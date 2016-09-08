@@ -1,19 +1,18 @@
 use ray::Ray;
-use Point;
-use geometry::{Geometry, DifferentialGeometry};
-use na::{Norm, Dot};
+use {Point, Vector};
+use geometry::*;
+use na::{Norm, Dot, origin};
+use std::f32::consts::FRAC_1_PI;
 
 #[derive(Debug, PartialEq)]
 pub struct Sphere {
-    pub center: Point,
     radius: f32,
     radius_2: f32,
 }
 
 impl Sphere {
-    pub fn new(c: Point, r: f32, ) -> Sphere {
+    pub fn new(r: f32, ) -> Sphere {
         Sphere {
-            center: c,
             radius: r,
             radius_2: r*r,
         }
@@ -22,7 +21,7 @@ impl Sphere {
 
 impl Geometry for Sphere {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
-        let l = self.center - ray.origin;
+        let l = origin::<Point>() - ray.origin;
         let tca = l.dot(&ray.dir);
         if tca < 0.0 {
             return None;
@@ -54,7 +53,15 @@ impl Geometry for Sphere {
         ray.t_max = t_hit;
 
         let phit = ray.at(ray.t_max);
-        let nhit = (phit - self.center).normalize();
-        Some(DifferentialGeometry::new(phit, nhit, self))
+        let nhit = phit.to_vector().normalize();
+        let phi = f32::atan2(phit.z, phit.x);
+        let theta = f32::acos(phit.y / self.radius);
+        let u = if phi < 0.0 {
+            phi * FRAC_1_PI + 1.0
+        } else {
+            phi * FRAC_1_PI
+        };
+        let v = theta * FRAC_1_PI;
+        Some(DifferentialGeometry::new(phit, nhit, TextureCoordinate { u: u, v: v}, self))
     }
 }
