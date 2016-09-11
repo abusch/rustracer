@@ -9,10 +9,13 @@ use material::Material;
 use ::{Point, Transform, Vector};
 use colour::Colourf;
 use light::{Light, PointLight, DistantLight};
+use skydome::Atmosphere;
+use na::Norm;
 
 pub struct Scene {
     pub objects: Vec<Instance>,
     pub lights: Vec<Box<Light>>,
+    pub atmosphere: Atmosphere,
 }
 
 impl Scene {
@@ -20,6 +23,7 @@ impl Scene {
         Scene {
             objects: Vec::new(),
             lights: Vec::new(),
+            atmosphere: Atmosphere::earth((-Vector::z()).normalize()),
         }
     }
 

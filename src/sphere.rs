@@ -10,6 +10,31 @@ pub struct Sphere {
     radius_2: f32,
 }
 
+fn solve_quadratic(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
+    let discr = b * b - 4.0 * a * c;
+
+    if discr < 0.0 {
+        return None;
+    } else if discr == 0.0 {
+        let x = -0.5 * b / a;
+        return Some((x, x));
+    } else {
+        let q = if b > 0.0 {
+            -0.5 * (b + discr.sqrt())
+        } else {
+            -0.5 * (b - discr.sqrt())
+        };
+        let x0 = q / a;
+        let x1 = c / q;
+
+        if x0 > x1 {
+            return Some((x1, x0));
+        } else {
+            return Some((x0, x1));
+        }
+    }
+}
+
 impl Sphere {
     pub fn new(r: f32) -> Sphere {
         Sphere {
@@ -17,51 +42,47 @@ impl Sphere {
             radius_2: r * r,
         }
     }
+
+    pub fn intersect_sphere(&self, ray: &Ray) -> Option<(f32, f32)> {
+        let l = ray.origin.to_vector();
+        let a = 1.0;
+        let b = 2.0 * ray.dir.dot(&l);
+        let c = l.dot(&l) - self.radius_2;
+
+        return solve_quadratic(a, b, c);
+    }
 }
 
 impl Geometry for Sphere {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
-        let l = origin::<Point>() - ray.origin;
-        let tca = l.dot(&ray.dir);
-        if tca < 0.0 {
-            return None;
-        }
-        let d2 = l.dot(&l) - tca * tca;
-        if d2 > self.radius_2 {
-            return None;
-        }
-        let thc = f32::sqrt(self.radius_2 - d2);
+        self.intersect_sphere(ray).and_then(|(t0, t1)| {
+            if t1 < ray.t_min || t0 > ray.t_max {
+                return None;
+            }
 
-        let (t0, t1) = match (tca - thc, tca + thc) {
-            (x, y) if x < y => (x, y),
-            (x, y) => (y, x),
-        };
+            let t_hit;
+            if t0 >= ray.t_min {
+                t_hit = t0;
+            } else if t1 <= ray.t_max {
+                t_hit = t1;
+            } else {
+                return None;
+            }
 
-        if t1 < ray.t_min || t0 > ray.t_max {
-            return None;
-        }
+            ray.t_max = t_hit;
 
-        let t_hit;
-        if t0 >= ray.t_min {
-            t_hit = t0;
-        } else if t1 <= ray.t_max {
-            t_hit = t1;
-        } else {
-            return None;
-        }
+            let phit = ray.at(ray.t_max);
+            let nhit = phit.to_vector().normalize();
+            let phi = f32::atan2(phit.z, phit.x);
+            let theta = f32::acos(phit.y / self.radius);
+            let u = if phi < 0.0 {
+                phi * FRAC_1_PI + 1.0
+            } else {
+                phi * FRAC_1_PI
+            };
+            let v = theta * FRAC_1_PI;
+            Some(DifferentialGeometry::new(phit, nhit, TextureCoordinate { u: u, v: v }, self))
+        })
 
-        ray.t_max = t_hit;
-
-        let phit = ray.at(ray.t_max);
-        let nhit = phit.to_vector().normalize();
-        let phi = f32::atan2(phit.z, phit.x);
-        let theta = f32::acos(phit.y / self.radius);
-        let u = if phi < 0.0 {
-            phi * FRAC_1_PI + 1.0
-        } else {
-            phi * FRAC_1_PI
-        };
-        let v = theta * FRAC_1_PI;
-        Some(DifferentialGeometry::new(phit, nhit, TextureCoordinate { u: u, v: v }, self))
     }
 }

@@ -15,6 +15,7 @@ pub mod instance;
 pub mod material;
 pub mod light;
 pub mod integrator;
+pub mod skydome;
 
 
 pub fn mix(a: f32, b: f32, mix: f32) -> f32 {

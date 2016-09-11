@@ -86,7 +86,8 @@ impl Integrator for Whitted {
                 }
             }
         } else {
-            return Colourf::rgb(0.0, 0.0, 0.5);
+            // return Colourf::rgb(0.0, 0.0, 0.5);
+            return scene.atmosphere.compute_incident_light(ray);
         }
 
         return colour;
