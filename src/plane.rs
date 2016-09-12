@@ -13,7 +13,7 @@ impl Geometry for Plane {
                 ray.t_max = t;
                 let phit = ray.at(ray.t_max);
                 Some(DifferentialGeometry::new(phit,
-                                               Vector::new(0.0, 0.0, 1.0),
+                                               Vector::z(),
                                                TextureCoordinate { u: 0.0, v: 0.0 },
                                                self))
             } else {

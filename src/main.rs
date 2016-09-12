@@ -4,8 +4,7 @@ extern crate raytracer;
 
 use std::io;
 use std::path::Path;
-use std::f32::consts::*;
-use na::{zero, origin};
+use na::zero;
 
 use raytracer::scene::Scene;
 use raytracer::colour::Colourf;
@@ -15,7 +14,7 @@ use raytracer::integrator::{Integrator, Whitted};
 use raytracer::{Dim, Point, Vector, Transform};
 
 pub const MAX_RAY_DEPTH: u8 = 8;
-pub const RADIUS_EARTH: f32 = 6360e3;
+pub const RADIUS_EARTH: f32 = 0.0; //6360e3;
 
 fn render(scene: &Scene) {
     let dim = (640, 480);
@@ -63,7 +62,7 @@ fn main() {
     // scene.push_sphere(Point::new( 0.0, -10004.0, -20.0), 10000.0, Colourf::rgb(0.20, 0.20, 0.20), 0.0, 0.0);
     scene.push_sphere(4.0,
                       Colourf::rgb(1.00, 0.32, 0.36),
-                      0.0,
+                      1.0,
                       0.0,
                       Transform::new(Vector::new(0.0, height, -20.0), zero(), 1.0));
     scene.push_sphere(2.0,
@@ -78,19 +77,19 @@ fn main() {
                       Transform::new(Vector::new(5.0, height, -25.0), zero(), 1.0));
     scene.push_sphere(3.0,
                       Colourf::rgb(0.90, 0.90, 0.90),
-                      0.2,
-                      0.8,
+                      0.0,
+                      0.0,
                       Transform::new(Vector::new(-5.5, height, -15.0), zero(), 1.0));
-    scene.push_plane(Colourf::rgb(1.0, 1.0, 1.0),
-                     0.8,
-                     0.0,
-                     Transform::new(Vector::new(0.0, height - 4.0, 0.0),
-                                    Vector::new(FRAC_PI_2, 0.0, 0.0),
-                                    1.0));
+    // scene.push_plane(Colourf::rgb(1.0, 1.0, 1.0),
+    //                  0.8,
+    //                  0.0,
+    //                  Transform::new(Vector::new(0.0, height - 4.0, 0.0),
+    //                                 Vector::new(FRAC_PI_2, 0.0, 0.0),
+    //                                 1.0));
     // Light
     // scene.push_sphere(Point::new( 0.0,     20.0, -30.0),     3.0, Colourf::black(),               Some(Colourf::rgb(3.0, 3.0, 3.0)), 0.0, 0.0);
-    scene.push_point_light(Point::new(-10.0, 10.0, -5.0),
-                           Colourf::rgb(3000.0, 0.0, 3000.0));
+    // scene.push_point_light(Point::new(-10.0, 10.0, -5.0),
+    //                        Colourf::rgb(3000.0, 0.0, 3000.0));
     scene.push_distant_light(Vector::new(0.0, 0.0, -1.0), Colourf::rgb(3.0, 3.0, 3.0));
 
     println!("Rendering scene...");

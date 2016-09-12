@@ -10,6 +10,7 @@ pub trait Light {
     fn shading_info(&self, p: &Point) -> ShadingInfo;
 }
 
+#[derive(Debug)]
 pub struct PointLight {
     pub pos: Point,
     pub emission_colour: Colourf,
@@ -39,6 +40,7 @@ impl Light for PointLight {
     }
 }
 
+#[derive(Debug)]
 pub struct DistantLight {
     pub dir: Vector,
     pub emission_colour: Colourf,

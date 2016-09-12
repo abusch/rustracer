@@ -1,10 +1,11 @@
 use std::f32::consts::PI;
 
 use Vector;
+use Transform;
 use ray::Ray;
 use sphere::Sphere;
 use colour::Colourf;
-use na::{Norm, Dot};
+use na::{Norm, Dot, zero, Inverse};
 
 const beta_r: Colourf = Colourf {
     r: 5.5e-6,
@@ -23,11 +24,11 @@ pub struct Atmosphere {
     hr: f32,
     hm: f32,
     radius_earth: f32,
-    radius_atm: f32,
     sun_direction: Vector,
     sun_intensity: f32,
     g: f32,
     atmosphere: Sphere,
+    transform_inv: Transform,
 }
 
 impl Atmosphere {
@@ -36,16 +37,19 @@ impl Atmosphere {
             hr: 7994.0,
             hm: 1200.0,
             radius_earth: 6360e3,
-            radius_atm: 6420e3,
             sun_direction: sd,
             sun_intensity: 20.0,
             g: 0.76,
             atmosphere: Sphere::new(6420e3),
+            transform_inv: Transform::new(Vector::new(0.0, -6360e3, 0.0), zero(), 1.0)
+                .inverse()
+                .unwrap(),
         }
     }
 
-    pub fn compute_incident_light(&self, r: &mut Ray) -> Colourf {
-        match self.atmosphere.intersect_sphere(r) {
+    pub fn compute_incident_light(&self, ray: &mut Ray) -> Colourf {
+        let mut r = self.transform_inv * *ray;
+        match self.atmosphere.intersect_sphere(&r) {
             None => {
                 return Colourf::black();
             }
@@ -74,7 +78,7 @@ impl Atmosphere {
                 let phase_m = 3.0 / (8.0 * PI) * ((1.0 - self.g * self.g) * (1.0 + mu * mu)) /
                               ((2.0 + self.g * self.g) *
                                (1.0 + self.g * self.g - 2.0 * self.g * mu).powf(1.5));
-                for i in 0..num_samples {
+                for _ in 0..num_samples {
                     let sample_position = r.at(t_current + 0.5 * segment_length);
                     let height = sample_position.to_vector().norm() - self.radius_earth;
                     // compute optical depth for light
@@ -89,13 +93,13 @@ impl Atmosphere {
                         break;
                     }
 
-                    let (tl0, tl1) = res.unwrap();
+                    let (_, tl1) = res.unwrap();
                     let segment_length_light = tl1 / num_samples_light as f32;
                     let mut t_current_light = 0.0;
                     let mut optical_depth_light_r = 0.0;
                     let mut optical_depth_light_m = 0.0;
                     let mut exit_early = false;
-                    for j in 0..num_samples_light {
+                    for _ in 0..num_samples_light {
                         let sample_position_light =
                             light_ray.at(t_current_light + 0.5 * segment_length_light);
                         let height_light = sample_position_light.to_vector().norm() -

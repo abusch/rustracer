@@ -1,7 +1,7 @@
-use Point;
 use ray::Ray;
 use geometry::*;
-use na::{Norm, Dot, origin};
+use na::{Norm, Dot};
+use na::clamp;
 use std::f32::consts::FRAC_1_PI;
 
 #[derive(Debug, PartialEq)]
@@ -45,7 +45,7 @@ impl Sphere {
 
     pub fn intersect_sphere(&self, ray: &Ray) -> Option<(f32, f32)> {
         let l = ray.origin.to_vector();
-        let a = 1.0;
+        let a = ray.dir.dot(&ray.dir); // 1.0;
         let b = 2.0 * ray.dir.dot(&l);
         let c = l.dot(&l) - self.radius_2;
 
@@ -74,7 +74,7 @@ impl Geometry for Sphere {
             let phit = ray.at(ray.t_max);
             let nhit = phit.to_vector().normalize();
             let phi = f32::atan2(phit.z, phit.x);
-            let theta = f32::acos(phit.y / self.radius);
+            let theta = f32::acos(clamp(phit.y / self.radius, -1.0, 1.0));
             let u = if phi < 0.0 {
                 phi * FRAC_1_PI + 1.0
             } else {
