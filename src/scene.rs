@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
-use sphere::Sphere;
-use plane::Plane;
+use geometry::*;
 use intersection::Intersection;
 use ray::Ray;
 use instance::Instance;
@@ -23,7 +22,7 @@ impl Scene {
         Scene {
             objects: Vec::new(),
             lights: Vec::new(),
-            atmosphere: Atmosphere::earth((-Vector::z()).normalize()),
+            atmosphere: Atmosphere::earth((Vector::y()).normalize()),
         }
     }
 

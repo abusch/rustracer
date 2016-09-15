@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use Vector;
 use Transform;
 use ray::Ray;
-use sphere::Sphere;
+use geometry::Sphere;
 use colour::Colourf;
 use na::{Norm, Dot, zero, Inverse};
 

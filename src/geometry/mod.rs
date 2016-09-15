@@ -2,6 +2,12 @@ use {Vector, Point, Transform};
 use ray::Ray;
 use na::Norm;
 
+pub use self::sphere::*;
+pub use self::plane::*;
+
+mod sphere;
+mod plane;
+
 pub struct TextureCoordinate {
     pub u: f32,
     pub v: f32,

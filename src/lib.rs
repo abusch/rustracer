@@ -3,8 +3,6 @@ extern crate nalgebra as na;
 use na::{Vector3, Point3, Similarity3};
 
 pub mod ray;
-pub mod sphere;
-pub mod plane;
 pub mod intersection;
 pub mod scene;
 pub mod colour;
