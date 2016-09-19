@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::num;
 
 use geometry::*;
 use intersection::Intersection;
@@ -9,7 +10,7 @@ use ::{Point, Transform, Vector};
 use colour::Colourf;
 use light::{Light, PointLight, DistantLight};
 use skydome::Atmosphere;
-use na::Norm;
+use na::{Norm, one};
 
 pub struct Scene {
     pub objects: Vec<Instance>,
@@ -38,6 +39,12 @@ impl Scene {
 
     pub fn push_plane(&mut self, sc: Colourf, tr: f32, rf: f32, transform: Transform) {
         self.push(Instance::new(Rc::new(Plane), Material::new(sc, tr, rf), transform));
+    }
+
+    pub fn push_triangle(&mut self, v0: Point, v1: Point, v2: Point) {
+        self.push(Instance::new(Rc::new(Triangle::new(v0, v1, v2)),
+                                Material::new(Colourf::rgb(0.4, 0.5, 0.6), 0.0, 0.0),
+                                one()))
     }
 
     pub fn push_point_light(&mut self, pos: Point, ec: Colourf) {

@@ -21,7 +21,7 @@ fn render(scene: &Scene) {
     let mut image = Image::new(dim);
 
     let integrator = Whitted::new(8);
-    let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 30.0);
+    let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
     // let samples = [(0.25, 0.25), (0.25, 0.75), (0.75, 0.75), (0.75, 0.25)];
     let samples = [(0.5, 0.5)];
     let spp = 1.0;
@@ -80,6 +80,9 @@ fn main() {
                       0.0,
                       0.0,
                       Transform::new(Vector::new(-5.5, height, -15.0), zero(), 1.0));
+    // scene.push_triangle(Point::new(-1.0, height - 1.0, -5.0),
+    //                     Point::new(1.0, height - 1.0, -5.0),
+    //                     Point::new(0.0, height + 0.0, -8.0));
     scene.push_plane(Colourf::rgb(1.0, 1.0, 1.0),
                      0.0,
                      0.0,
@@ -88,9 +91,9 @@ fn main() {
                                     1.0));
     // Light
     // scene.push_sphere(Point::new( 0.0,     20.0, -30.0),     3.0, Colourf::black(),               Some(Colourf::rgb(3.0, 3.0, 3.0)), 0.0, 0.0);
-    // scene.push_point_light(Point::new(-10.0, 10.0, -5.0),
-    //                        Colourf::rgb(3000.0, 0.0, 3000.0));
-    scene.push_distant_light(-Vector::y(), Colourf::rgb(3.0, 3.0, 3.0));
+    scene.push_point_light(Point::new(-10.0, 10.0, -5.0),
+                           Colourf::rgb(3000.0, 0.0, 3000.0));
+    scene.push_distant_light(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0));
 
     println!("Rendering scene...");
     let now = std::time::Instant::now();

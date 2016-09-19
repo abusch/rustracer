@@ -4,9 +4,11 @@ use na::Norm;
 
 pub use self::sphere::*;
 pub use self::plane::*;
+pub use self::triangle::*;
 
 mod sphere;
 mod plane;
+mod triangle;
 
 pub struct TextureCoordinate {
     pub u: f32,
