@@ -1,4 +1,5 @@
 use {Vector, Point, Transform};
+use stats;
 use std::f32::INFINITY;
 use std::ops::Mul;
 
@@ -15,6 +16,7 @@ pub struct Ray {
 
 impl Ray {
     pub fn new(o: Point, d: Vector) -> Ray {
+        stats::inc_primary_ray();
         Ray {
             origin: o,
             dir: d,
@@ -29,6 +31,7 @@ impl Ray {
     }
 
     pub fn spawn(&self, o: Point, d: Vector) -> Ray {
+        stats::inc_secondary_ray();
         Ray {
             origin: o,
             dir: d,

@@ -14,8 +14,6 @@ use raytracer::image::Image;
 use raytracer::integrator::{Integrator, Whitted};
 use raytracer::{Dim, Point, Vector, Transform};
 
-pub const MAX_RAY_DEPTH: u8 = 8;
-
 fn render(scene: &Scene) {
     let dim = (640, 480);
     let mut image = Image::new(dim);
@@ -62,7 +60,7 @@ fn main() {
     // scene.push_sphere(Point::new( 0.0, -10004.0, -20.0), 10000.0, Colourf::rgb(0.20, 0.20, 0.20), 0.0, 0.0);
     scene.push_sphere(4.0,
                       Colourf::rgb(1.00, 0.32, 0.36),
-                      1.0,
+                      0.8,
                       0.0,
                       Transform::new(Vector::new(0.0, height, -20.0), zero(), 1.0));
     scene.push_sphere(2.0,
@@ -104,7 +102,10 @@ fn main() {
     let now = std::time::Instant::now();
     render(&scene);
     let duration = now.elapsed();
-    println!("Scene rendered in {}s and {}ms",
+    let stats = raytracer::stats::get_stats();
+    println!("Render time    : {}s and {}ms",
              duration.as_secs(),
              duration.subsec_nanos() / 1000000);
+    println!("Primary rays   : {}", stats.primary_rays);
+    println!("Secondary rays : {}", stats.secondary_rays);
 }
