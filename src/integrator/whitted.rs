@@ -6,7 +6,7 @@ use ray::Ray;
 use colour::Colourf;
 use integrator::Integrator;
 use geometry::TextureCoordinate;
-use na::{Norm, Dot};
+use na::{Norm, Dot, zero};
 use na;
 
 pub struct Whitted {
@@ -17,9 +17,47 @@ impl Whitted {
     pub fn new(n: u8) -> Whitted {
         Whitted { max_ray_depth: n }
     }
+}
 
-    fn reflect(&self, i: &Vector, n: &Vector) -> Vector {
-        (*i - *n * 2.0 * n.dot(i)).normalize()
+/// Compute the reflection direction
+fn reflect(i: &Vector, n: &Vector) -> Vector {
+    (*i - *n * 2.0 * n.dot(i)).normalize()
+}
+
+/// Compute the refraction direction
+fn refract(i: &Vector, n: &Vector, ior: f32) -> Vector {
+    let mut cos_i = na::clamp(i.dot(&n), -1.0, 1.0);
+    let (etai, etat, n_refr) = if cos_i < 0.0 {
+        cos_i = -cos_i;
+        (1.0, ior, *n)
+    } else {
+        (ior, 1.0, -*n)
+    };
+
+    let eta = etai / etat;
+    let k = 1.0 - eta * eta * (1.0 - cos_i * cos_i);
+
+    if k > 0.0 {
+        *i * eta + n_refr * (eta * cos_i - k.sqrt())
+    } else {
+        zero()
+    }
+}
+
+/// Compute the Fresnel coefficient
+fn fresnel(i: &Vector, n: &Vector, ior: f32) -> f32 {
+    let mut cosi = na::clamp(i.dot(&n), -1.0, 1.0);
+    let (etai, etat) = if cosi > 0.0 { (ior, 1.0) } else { (1.0, ior) };
+
+    let sint = etai / etat * (1.0 - cosi * cosi).max(0.0).sqrt();
+    if sint >= 1.0 {
+        return 1.0;
+    } else {
+        let cost = (1.0 - sint * sint).max(0.0).sqrt();
+        cosi = cosi.abs();
+        let r_s = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+        let r_p = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+        return (r_s * r_s + r_p * r_p) / 2.0;
     }
 }
 
@@ -43,7 +81,6 @@ impl Integrator for Whitted {
         if let Some(intersection) = scene.intersect(ray) {
             let hit = intersection.hit;
             let ref mat = hit.material;
-            let w_o = -ray.dir;
             let n = intersection.dg.nhit;
             let p = intersection.dg.phit;
 
@@ -61,30 +98,29 @@ impl Integrator for Whitted {
                         colour += diffuse;
                     }
                 }
+            } else {
+                // Fresnel reflection / refraction
+                let kr = fresnel(&ray.dir, &n, 1.5);
+                let bias = if ray.dir.dot(&n) < 0.0 {
+                    // outside
+                    1e-4 * n
+                } else {
+                    // inside
+                    -1e-4 * n
+                };
+
+                if kr < 1.0 {
+                    // refraction
+                    let refr_dir = refract(&ray.dir, &n, 1.5);
+                    let mut refr_ray = ray.spawn(p - bias, refr_dir);
+                    colour += self.illumination(scene, &mut refr_ray) * (1.0 - kr);
+                }
+                // Reflection
+                let mut refl_ray = ray.spawn(p + bias, reflect(&ray.dir, &n));
+                let refl = self.illumination(scene, &mut refl_ray);
+                colour += refl * kr;
             }
 
-            if mat.reflection > 0.0 {
-                let mut refl_ray = ray.spawn(p, self.reflect(&ray.dir, &n));
-                let refl = self.illumination(scene, &mut refl_ray);
-                colour += refl * mat.reflection;
-                if mat.transparency > 0.0 {
-                    let mut cos_i = na::clamp(ray.dir.dot(&n), -1.0, 1.0);
-                    let mut eta = 1.5;
-                    let mut n_refl = n;
-                    if cos_i < 0.0 {
-                        cos_i = -cos_i;
-                    } else {
-                        eta = 1.0 / eta;
-                        n_refl = -n_refl;
-                    }
-                    let k = 1.0 - eta * eta * (1.0 - cos_i * cos_i);
-                    if k > 0.0 {
-                        let refl_dir = eta * ray.dir + (eta * cos_i - k.sqrt()) * n_refl;
-                        let mut refl_ray = ray.spawn(p, refl_dir.normalize());
-                        colour += self.illumination(scene, &mut refl_ray) * mat.transparency;
-                    }
-                }
-            }
         } else {
             // return Colourf::rgb(0.0, 0.0, 0.5);
             return scene.atmosphere.compute_incident_light(ray);
