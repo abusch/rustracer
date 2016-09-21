@@ -5,10 +5,12 @@ use na::Norm;
 pub use self::sphere::*;
 pub use self::plane::*;
 pub use self::triangle::*;
+pub use self::mesh::*;
 
 mod sphere;
 mod plane;
 mod triangle;
+mod mesh;
 
 pub struct TextureCoordinate {
     pub u: f32,

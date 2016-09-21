@@ -7,3 +7,4 @@ authors = ["Antoine Busch <abusch@atlassian.com>"]
 nalgebra = "0.8.*"
 image = "0.10.*"
 rand = "0.3.*"
+tobj = "0.1.1"

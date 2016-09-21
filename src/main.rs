@@ -83,6 +83,11 @@ fn main() {
     // scene.push_triangle(Point::new(-1.0, height - 1.0, -5.0),
     //                     Point::new(1.0, height - 1.0, -5.0),
     //                     Point::new(0.0, height + 0.0, -8.0));
+    // scene.push_mesh(Path::new("models/smooth_suzanne.obj"),
+    //                 "Suzanne",
+    //                 Transform::new(Vector::new(0.0, height, -8.0),
+    //                                Vector::new(0.0, 0.0, 0.0),
+    //                                2.0));
     scene.push_plane(Colourf::rgb(1.0, 1.0, 1.0),
                      0.0,
                      0.0,

@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::num;
+use std::path::Path;
 
 use geometry::*;
 use intersection::Intersection;
@@ -45,6 +46,13 @@ impl Scene {
         self.push(Instance::new(Rc::new(Triangle::new(v0, v1, v2)),
                                 Material::new(Colourf::rgb(0.4, 0.5, 0.6), 0.0, 0.0),
                                 one()))
+    }
+
+    pub fn push_mesh(&mut self, file: &Path, name: &str, transform: Transform) {
+        let mesh = Mesh::load(file, name);
+        self.push(Instance::new(Rc::new(mesh),
+                                Material::new(Colourf::rgb(0.4, 0.5, 0.6), 0.0, 0.0),
+                                transform));
     }
 
     pub fn push_point_light(&mut self, pos: Point, ec: Colourf) {
