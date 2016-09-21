@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use Point;
 use Vector;
+use stats;
 use geometry::{Geometry, TextureCoordinate, DifferentialGeometry};
 use ray::Ray;
 use na::{Vector2, Norm, Dot, Cross};
@@ -42,6 +43,7 @@ impl Mesh {
             .indices
             .chunks(3)
             .map(|i| {
+                stats::inc_num_triangles();
                 MeshTriangle {
                     a: i[0] as usize,
                     b: i[1] as usize,
@@ -80,6 +82,7 @@ pub struct MeshTriangle {
 
 impl Geometry for MeshTriangle {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
+        stats::inc_triangle_test();
         let v0 = self.p[self.a];
         let v1 = self.p[self.b];
         let v2 = self.p[self.c];
@@ -124,6 +127,7 @@ impl Geometry for MeshTriangle {
         let uv = u * ta + v * tb + w * tc;
         let texcoord = TextureCoordinate { u: uv.x, v: uv.y };
 
+        stats::inc_triangle_isect();
         return Some(DifferentialGeometry::new(ray.at(ray.t_max), nhit, texcoord, self));
     }
 }

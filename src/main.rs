@@ -63,11 +63,16 @@ fn main() {
                       0.8,
                       0.0,
                       Transform::new(Vector::new(0.0, height, -20.0), zero(), 1.0));
-    scene.push_sphere(2.0,
-                      Colourf::rgb(0.90, 0.76, 0.46),
-                      0.0,
-                      0.0,
-                      Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
+    // scene.push_sphere(2.0,
+    //                   Colourf::rgb(0.90, 0.76, 0.46),
+    //                   0.0,
+    //                   0.0,
+    //                   Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
+    scene.push_mesh(Path::new("models/cone.obj"),
+                    "Cone",
+                    Transform::new(Vector::new(5.0, height, -15.0),
+                                   Vector::new(0.0, 0.0, 0.0),
+                                   2.0));
     scene.push_sphere(3.0,
                       Colourf::rgb(0.65, 0.77, 0.97),
                       0.0,
@@ -81,11 +86,6 @@ fn main() {
     // scene.push_triangle(Point::new(-1.0, height - 1.0, -5.0),
     //                     Point::new(1.0, height - 1.0, -5.0),
     //                     Point::new(0.0, height + 0.0, -8.0));
-    // scene.push_mesh(Path::new("models/smooth_suzanne.obj"),
-    //                 "Suzanne",
-    //                 Transform::new(Vector::new(0.0, height, -8.0),
-    //                                Vector::new(0.0, 0.0, 0.0),
-    //                                2.0));
     scene.push_plane(Colourf::rgb(1.0, 1.0, 1.0),
                      0.0,
                      0.0,
@@ -103,9 +103,12 @@ fn main() {
     render(&scene);
     let duration = now.elapsed();
     let stats = raytracer::stats::get_stats();
-    println!("Render time    : {}s and {}ms",
+    println!("Render time                : {}.{}s",
              duration.as_secs(),
              duration.subsec_nanos() / 1000000);
-    println!("Primary rays   : {}", stats.primary_rays);
-    println!("Secondary rays : {}", stats.secondary_rays);
+    println!("Primary rays               : {}", stats.primary_rays);
+    println!("Secondary rays             : {}", stats.secondary_rays);
+    println!("Num triangles              : {}", stats.triangles);
+    println!("Ray-triangle tests         : {}", stats.ray_triangle_tests);
+    println!("Ray-triangle intersections : {}", stats.ray_triangle_isect);
 }
