@@ -7,11 +7,13 @@ use Point;
 use Vector;
 use stats;
 use geometry::{Geometry, TextureCoordinate, DifferentialGeometry};
+use geometry::bbox::BBox;
 use ray::Ray;
 use na::{Vector2, Norm, Dot, Cross};
 
 pub struct Mesh {
     pub tris: Vec<MeshTriangle>,
+    bbox: BBox,
 }
 
 impl Mesh {
@@ -55,13 +57,25 @@ impl Mesh {
             })
             .collect();
 
-        Mesh { tris: tris }
+        let mut bbox = BBox::new();
+        for p in &*positions {
+            bbox.extend(p);
+        }
+
+        Mesh {
+            tris: tris,
+            bbox: bbox,
+        }
     }
 }
 
 impl Geometry for Mesh {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
         let mut result: Option<DifferentialGeometry> = None;
+
+        if !self.bbox.intersect(ray) {
+            return None;
+        }
 
         for t in &self.tris {
             result = t.intersect(ray).or(result)

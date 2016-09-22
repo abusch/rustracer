@@ -11,6 +11,7 @@ mod sphere;
 mod plane;
 mod triangle;
 mod mesh;
+mod bbox;
 
 pub struct TextureCoordinate {
     pub u: f32,

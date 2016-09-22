@@ -68,8 +68,8 @@ fn main() {
     //                   0.0,
     //                   0.0,
     //                   Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
-    scene.push_mesh(Path::new("models/cone.obj"),
-                    "Cone",
+    scene.push_mesh(Path::new("models/smooth_suzanne.obj"),
+                    "Suzanne",
                     Transform::new(Vector::new(5.0, height, -15.0),
                                    Vector::new(0.0, 0.0, 0.0),
                                    2.0));

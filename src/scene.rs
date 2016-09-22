@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use std::num;
 use std::path::Path;
 
 use geometry::*;
