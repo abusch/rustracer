@@ -10,31 +10,37 @@ use na::zero;
 use raytracer::scene::Scene;
 use raytracer::colour::Colourf;
 use raytracer::camera::Camera;
+use raytracer::filter::mitchell::MitchellNetravali;
 use raytracer::image::Image;
 use raytracer::integrator::{Integrator, Whitted};
 use raytracer::{Dim, Point, Vector, Transform};
+use raytracer::sampling::{Sampler, LowDiscrepancy};
 
 fn render(scene: &Scene) {
-    let dim = (640, 480);
-    let mut image = Image::new(dim);
+    let dim = (1200, 1080);
+    let mut image = Image::new(dim,
+                               Box::new(MitchellNetravali::new(2.0, 2.0, 1.0 / 3.0, 1.0 / 3.0)));
 
     let integrator = Whitted::new(8);
     let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
     // let samples = [(0.25, 0.25), (0.25, 0.75), (0.75, 0.75), (0.75, 0.25)];
-    let samples = [(0.5, 0.5)];
-    let spp = 1.0;
+    let spp = 4;
+    let mut samples = Vec::new();
+    samples.resize(spp, (0.0, 0.0));
+    let sampler = LowDiscrepancy::new(4);
 
     for y in 0..dim.1 {
         for x in 0..dim.0 {
-            let mut c = Colourf::black();
+            sampler.get_samples(x as f32, y as f32, &mut samples);
             for s in &samples {
-                let mut ray = camera.ray_for(x as f32 + s.0, y as f32 + s.1);
-                c += integrator.illumination(scene, &mut ray);
+                let mut ray = camera.ray_for(s.0, s.1);
+                let sample_colour = integrator.illumination(scene, &mut ray);
+                image.add_sample(s.0, s.1, sample_colour);
             }
-            image.write(x as u32, y as u32, c / spp);
         }
     }
 
+    image.render();
     write_png(dim, image.buffer()).expect("Could not write file");
 }
 
@@ -50,7 +56,11 @@ fn write_png(dim: Dim, image: &[Colourf]) -> io::Result<()> {
     }
 
     // Save the buffer as "image.png"
-    image::save_buffer(&Path::new("image.png"), &buffer, w, h, image::RGB(8))
+    image::save_buffer(&Path::new("image.png"),
+                       &buffer,
+                       w as u32,
+                       h as u32,
+                       image::RGB(8))
 }
 
 fn main() {
@@ -68,11 +78,11 @@ fn main() {
     //                   0.0,
     //                   0.0,
     //                   Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
-    scene.push_mesh(Path::new("models/smooth_suzanne.obj"),
-                    "Suzanne",
-                    Transform::new(Vector::new(5.0, height, -15.0),
-                                   Vector::new(0.0, 0.0, 0.0),
-                                   2.0));
+    // scene.push_mesh(Path::new("models/bunny.obj"),
+    //                 "bunny",
+    //                 Transform::new(Vector::new(5.0, height, -15.0),
+    //                                Vector::new(0.0, 0.0, 0.0),
+    //                                2.0));
     scene.push_sphere(3.0,
                       Colourf::rgb(0.65, 0.77, 0.97),
                       0.0,

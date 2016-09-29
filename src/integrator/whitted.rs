@@ -26,7 +26,7 @@ fn reflect(i: &Vector, n: &Vector) -> Vector {
 
 /// Compute the refraction direction
 fn refract(i: &Vector, n: &Vector, ior: f32) -> Vector {
-    let mut cos_i = na::clamp(i.dot(&n), -1.0, 1.0);
+    let mut cos_i = na::clamp(i.dot(n), -1.0, 1.0);
     let (etai, etat, n_refr) = if cos_i < 0.0 {
         cos_i = -cos_i;
         (1.0, ior, *n)
@@ -46,18 +46,18 @@ fn refract(i: &Vector, n: &Vector, ior: f32) -> Vector {
 
 /// Compute the Fresnel coefficient
 fn fresnel(i: &Vector, n: &Vector, ior: f32) -> f32 {
-    let mut cosi = na::clamp(i.dot(&n), -1.0, 1.0);
+    let mut cosi = na::clamp(i.dot(n), -1.0, 1.0);
     let (etai, etat) = if cosi > 0.0 { (ior, 1.0) } else { (1.0, ior) };
 
     let sint = etai / etat * (1.0 - cosi * cosi).max(0.0).sqrt();
     if sint >= 1.0 {
-        return 1.0;
+        1.0
     } else {
         let cost = (1.0 - sint * sint).max(0.0).sqrt();
         cosi = cosi.abs();
         let r_s = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
         let r_p = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-        return (r_s * r_s + r_p * r_p) / 2.0;
+        (r_s * r_s + r_p * r_p) / 2.0
     }
 }
 
@@ -80,7 +80,7 @@ impl Integrator for Whitted {
 
         if let Some(intersection) = scene.intersect(ray) {
             let hit = intersection.hit;
-            let ref mat = hit.material;
+            let mat = &hit.material;
             let n = intersection.dg.nhit;
             let p = intersection.dg.phit;
 
@@ -126,6 +126,6 @@ impl Integrator for Whitted {
             return scene.atmosphere.compute_incident_light(ray);
         }
 
-        return colour;
+        colour
     }
 }

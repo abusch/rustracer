@@ -142,7 +142,7 @@ impl Geometry for MeshTriangle {
         let texcoord = TextureCoordinate { u: uv.x, v: uv.y };
 
         stats::inc_triangle_isect();
-        return Some(DifferentialGeometry::new(ray.at(ray.t_max), nhit, texcoord, self));
+        Some(DifferentialGeometry::new(ray.at(ray.t_max), nhit, texcoord, self))
     }
 }
 

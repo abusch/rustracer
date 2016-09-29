@@ -52,7 +52,7 @@ impl BBox {
             return false;
         }
 
-        return true;
+        true
     }
 
     pub fn extend(&mut self, p: &Point) {

@@ -14,10 +14,10 @@ fn solve_quadratic(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
     let discr = b * b - 4.0 * a * c;
 
     if discr < 0.0 {
-        return None;
+        None
     } else if discr == 0.0 {
         let x = -0.5 * b / a;
-        return Some((x, x));
+        Some((x, x))
     } else {
         let q = if b > 0.0 {
             -0.5 * (b + discr.sqrt())
@@ -28,9 +28,9 @@ fn solve_quadratic(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
         let x1 = c / q;
 
         if x0 > x1 {
-            return Some((x1, x0));
+            Some((x1, x0))
         } else {
-            return Some((x0, x1));
+            Some((x0, x1))
         }
     }
 }
@@ -49,7 +49,7 @@ impl Sphere {
         let b = 2.0 * ray.dir.dot(&l);
         let c = l.dot(&l) - self.radius_2;
 
-        return solve_quadratic(a, b, c);
+        solve_quadratic(a, b, c)
     }
 }
 

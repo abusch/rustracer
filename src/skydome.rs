@@ -7,13 +7,13 @@ use geometry::Sphere;
 use colour::Colourf;
 use na::{Norm, Dot, zero, Inverse};
 
-const beta_r: Colourf = Colourf {
+const BETA_R: Colourf = Colourf {
     r: 5.5e-6,
     g: 13e-6,
     b: 22.4e-6,
     a: 1.0,
 };
-const beta_m: Colourf = Colourf {
+const BETA_M: Colourf = Colourf {
     r: 21e-6,
     g: 21e-6,
     b: 21e-6,
@@ -50,9 +50,7 @@ impl Atmosphere {
     pub fn compute_incident_light(&self, ray: &mut Ray) -> Colourf {
         let mut r = self.transform_inv * *ray;
         match self.atmosphere.intersect_sphere(&r) {
-            None => {
-                return Colourf::black();
-            }
+            None => Colourf::black(),
             Some((t0, t1)) => {
                 if t1 < 0.0 {
                     return Colourf::black();
@@ -115,8 +113,8 @@ impl Atmosphere {
                         t_current_light += segment_length_light;
                     }
                     if !exit_early {
-                        let tau = beta_r * (optical_depth_r + optical_depth_light_r) +
-                                  beta_m * 1.1 * (optical_depth_m + optical_depth_light_m);
+                        let tau = BETA_R * (optical_depth_r + optical_depth_light_r) +
+                                  BETA_M * 1.1 * (optical_depth_m + optical_depth_light_m);
                         let attenuation =
                             Colourf::rgb((-tau.r).exp(), (-tau.g).exp(), (-tau.b).exp());
                         sum_r += attenuation * h_r;
@@ -125,7 +123,7 @@ impl Atmosphere {
                     t_current += segment_length;
                 }
 
-                return (sum_r * phase_r * beta_r + sum_m * phase_m * beta_m) * self.sun_intensity;
+                (sum_r * phase_r * BETA_R + sum_m * phase_m * BETA_M) * self.sun_intensity
             }
         }
 

@@ -45,9 +45,9 @@ impl Geometry for Triangle {
 
         ray.t_max = v0v2.dot(&qvec) * inv_det;
 
-        return Some(DifferentialGeometry::new(ray.at(ray.t_max),
-                                              v0v1.cross(&v0v2).normalize(),
-                                              TextureCoordinate { u: u, v: v },
-                                              self));
+        Some(DifferentialGeometry::new(ray.at(ray.t_max),
+                                       v0v1.cross(&v0v2).normalize(),
+                                       TextureCoordinate { u: u, v: v },
+                                       self))
     }
 }
