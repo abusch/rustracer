@@ -1,5 +1,5 @@
 extern crate nalgebra as na;
-
+extern crate rand;
 
 use na::{Vector3, Point3, Similarity3};
 

@@ -1,3 +1,5 @@
+use rand::{thread_rng, Rng};
+
 pub trait Sampler {
     fn get_samples(&self, x: f32, y: f32, samples: &mut Vec<(f32, f32)>);
 }
@@ -14,16 +16,17 @@ impl LowDiscrepancy {
 
 impl Sampler for LowDiscrepancy {
     fn get_samples(&self, x: f32, y: f32, samples: &mut Vec<(f32, f32)>) {
+        let scramble: (u32, u32) = (thread_rng().gen(), thread_rng().gen());
         for i in 0..self.spp {
-            let s = zero_two_sequence(i as u32, 0);
+            let s = zero_two_sequence(i as u32, scramble);
             samples[i].0 = s.0 + x;
             samples[i].1 = s.1 + y;
         }
     }
 }
 
-pub fn zero_two_sequence(n: u32, scramble: u32) -> (f32, f32) {
-    (van_der_corput(n, scramble), sobol(n, scramble))
+pub fn zero_two_sequence(n: u32, scramble: (u32, u32)) -> (f32, f32) {
+    (van_der_corput(n, scramble.0), sobol(n, scramble.1))
 }
 
 fn van_der_corput(n: u32, scramble: u32) -> f32 {

@@ -23,11 +23,10 @@ fn render(scene: &Scene) {
 
     let integrator = Whitted::new(8);
     let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
-    // let samples = [(0.25, 0.25), (0.25, 0.75), (0.75, 0.75), (0.75, 0.25)];
-    let spp = 4;
+    let spp = 2;
     let mut samples = Vec::new();
     samples.resize(spp, (0.0, 0.0));
-    let sampler = LowDiscrepancy::new(4);
+    let sampler = LowDiscrepancy::new(spp);
 
     for y in 0..dim.1 {
         for x in 0..dim.0 {
