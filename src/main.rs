@@ -1,20 +1,20 @@
 extern crate nalgebra as na;
 extern crate image;
-extern crate raytracer;
+extern crate raytracer as rt;
 
 use std::io;
 use std::f32::consts::*;
 use std::path::Path;
 use na::zero;
 
-use raytracer::scene::Scene;
-use raytracer::colour::Colourf;
-use raytracer::camera::Camera;
-use raytracer::filter::mitchell::MitchellNetravali;
-use raytracer::image::Image;
-use raytracer::integrator::{Integrator, Whitted};
-use raytracer::{Dim, Point, Vector, Transform};
-use raytracer::sampling::{Sampler, LowDiscrepancy};
+use rt::scene::Scene;
+use rt::colour::Colourf;
+use rt::camera::Camera;
+use rt::filter::mitchell::MitchellNetravali;
+use rt::image::Image;
+use rt::integrator::{Integrator, Whitted};
+use rt::{Dim, Point, Vector, Transform};
+use rt::sampling::{Sampler, LowDiscrepancy};
 
 fn render(scene: &Scene) {
     let dim = (1200, 1080);
@@ -112,7 +112,7 @@ fn main() {
     let now = std::time::Instant::now();
     render(&scene);
     let duration = now.elapsed();
-    let stats = raytracer::stats::get_stats();
+    let stats = rt::stats::get_stats();
     println!("Render time                : {}.{}s",
              duration.as_secs(),
              duration.subsec_nanos() / 1000000);
