@@ -1,7 +1,8 @@
-use std::rc::Rc;
 use std::path::Path;
 
+use camera::Camera;
 use geometry::*;
+use integrator::Integrator;
 use intersection::Intersection;
 use ray::Ray;
 use instance::Instance;
@@ -13,17 +14,21 @@ use skydome::Atmosphere;
 use na::{Norm, one};
 
 pub struct Scene {
+    pub camera: Camera,
     pub objects: Vec<Instance>,
-    pub lights: Vec<Box<Light>>,
+    pub lights: Vec<Box<Light + Sync + Send>>,
     pub atmosphere: Atmosphere,
+    pub integrator: Box<Integrator + Sync + Send>,
 }
 
 impl Scene {
-    pub fn new() -> Scene {
+    pub fn new(camera: Camera, integrator: Box<Integrator + Sync + Send>) -> Scene {
         Scene {
+            camera: camera,
             objects: Vec::new(),
             lights: Vec::new(),
             atmosphere: Atmosphere::earth((Vector::y()).normalize()),
+            integrator: integrator,
         }
     }
 
@@ -32,24 +37,24 @@ impl Scene {
     }
 
     pub fn push_sphere(&mut self, r: f32, sc: Colourf, tr: f32, rf: f32, transform: Transform) {
-        self.push(Instance::new(Rc::new(Sphere::new(r)),
+        self.push(Instance::new(Box::new(Sphere::new(r)),
                                 Material::new(sc, tr, rf),
                                 transform));
     }
 
     pub fn push_plane(&mut self, sc: Colourf, tr: f32, rf: f32, transform: Transform) {
-        self.push(Instance::new(Rc::new(Plane), Material::new(sc, tr, rf), transform));
+        self.push(Instance::new(Box::new(Plane), Material::new(sc, tr, rf), transform));
     }
 
     pub fn push_triangle(&mut self, v0: Point, v1: Point, v2: Point) {
-        self.push(Instance::new(Rc::new(Triangle::new(v0, v1, v2)),
+        self.push(Instance::new(Box::new(Triangle::new(v0, v1, v2)),
                                 Material::new(Colourf::rgb(0.4, 0.5, 0.6), 0.0, 0.0),
                                 one()))
     }
 
     pub fn push_mesh(&mut self, file: &Path, name: &str, transform: Transform) {
         let mesh = Mesh::load(file, name);
-        self.push(Instance::new(Rc::new(mesh),
+        self.push(Instance::new(Box::new(mesh),
                                 Material::new(Colourf::rgb(0.4, 0.5, 0.6), 0.0, 0.0),
                                 transform));
     }

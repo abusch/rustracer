@@ -3,18 +3,20 @@ use geometry::Geometry;
 use ray::Ray;
 use intersection::Intersection;
 use material::Material;
-use std::rc::Rc;
 use na::Inverse;
 
 pub struct Instance {
-    pub geom: Rc<Geometry>,
+    pub geom: Box<Geometry + Sync + Send>,
     pub material: Material,
     pub transform: Transform,
     pub transform_inv: Transform,
 }
 
 impl Instance {
-    pub fn new(g: Rc<Geometry>, material: Material, transform: Transform) -> Instance {
+    pub fn new(g: Box<Geometry + Sync + Send>,
+               material: Material,
+               transform: Transform)
+               -> Instance {
         Instance {
             geom: g,
             material: material,

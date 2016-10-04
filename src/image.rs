@@ -10,7 +10,7 @@ pub struct Image {
     pixels: Vec<Colourf>,
     samples: Vec<PixelSample>,
     filter_table: Vec<f32>,
-    filter: Box<Filter>,
+    filter: Box<Filter + Sync + Send>,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -33,7 +33,7 @@ impl PixelSample {
 }
 
 impl Image {
-    pub fn new(dim: Dim, filter: Box<Filter>) -> Image {
+    pub fn new(dim: Dim, filter: Box<Filter + Sync + Send>) -> Image {
         let (w, h) = dim;
         let size = w as usize * h as usize;
         let filter_size = FILTER_SIZE * FILTER_SIZE;
