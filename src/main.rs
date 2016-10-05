@@ -8,6 +8,7 @@ use std::f32::consts::*;
 use std::path::Path;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 use na::{zero, Point2};
 use tp::ThreadPool;
 
@@ -27,26 +28,75 @@ struct ImageSample {
     c: Colourf,
 }
 
-// struct Block {
-//     start: na::Point2<usize>,
-//     size: usize,
-//     current: usize,
-// }
+#[derive(Debug)]
+struct Block {
+    start: na::Point2<usize>,
+    current: na::Point2<usize>,
+    end: na::Point2<usize>,
+}
 
-// impl Block {
-//     fn new(start: Point2<usize>, size: usize) -> Block {
-//         Block {
-//             start: start,
-//             size: size,
-//             current: 0,
-//         }
-//     }
+impl Block {
+    fn new(start: (usize, usize), size: usize) -> Block {
+        Block {
+            start: na::Point2::new(start.0, start.1),
+            current: na::Point2::new(start.0, start.1),
+            end: na::Point2::new(start.0 + size - 1, start.1 + size - 1),
+        }
+    }
+}
 
-//     fn values(&self) ->  {
-//         (0..self.size * self.size)
-//             .map(|i| (self.start.x + i % self.size, self.start.y + i / self.size))
-//     }
-// }
+impl Iterator for Block {
+    type Item = na::Point2<usize>;
+
+
+    fn next(&mut self) -> Option<Point2<usize>> {
+        if self.current.x > self.end.x || self.current.y > self.end.y {
+            None
+        } else {
+
+            let cur = self.current;
+
+            if self.current.x == self.end.x {
+                self.current.x = self.start.x;
+                self.current.y += 1;
+            } else {
+                self.current.x += 1;
+            }
+
+            Some(cur)
+        }
+    }
+}
+
+struct BlockQueue {
+    dims: (usize, usize),
+    block_size: usize,
+    counter: AtomicUsize,
+    num_blocks: usize,
+}
+
+impl BlockQueue {
+    pub fn new(dims: (usize, usize), block_size: usize) -> BlockQueue {
+        BlockQueue {
+            dims: dims,
+            block_size: block_size,
+            counter: ATOMIC_USIZE_INIT,
+            num_blocks: (dims.0 / block_size) * (dims.1 / block_size),
+        }
+    }
+
+    fn next(&self) -> Option<Block> {
+        let c = self.counter.fetch_add(1, Ordering::AcqRel);
+        if c >= self.num_blocks {
+            None
+        } else {
+            let num_blocks_width = self.dims.0 / self.block_size;
+            Some(Block::new((c % num_blocks_width * self.block_size,
+                             c / num_blocks_width * self.block_size),
+                            self.block_size))
+        }
+    }
+}
 
 fn render(scene: Arc<Scene>, dim: Dim) {
     let mut image = Image::new(dim,
@@ -54,21 +104,23 @@ fn render(scene: Arc<Scene>, dim: Dim) {
 
     let spp = 4;
     let num_blocks = 8;
+    let block_size = 10;
+    let block_queue = Arc::new(BlockQueue::new(dim, block_size));
     let pool = ThreadPool::new(num_blocks);
     let (tx, rx) = channel();
     for i in 0..num_blocks {
         let scene = scene.clone();
         let tx = tx.clone();
+        let block_queue = block_queue.clone();
         pool.execute(move || {
             println!("Thread {} starting", i);
+            let mut blocks_rendered = 0;
             let mut samples = Vec::new();
             samples.resize(spp, (0.0, 0.0));
             let sampler = LowDiscrepancy::new(spp);
-            let y_start = i * (dim.1 / 8);
-            let y_end = (i + 1) * (dim.1 / 8);
-            for y in y_start..y_end {
-                for x in 0..dim.0 {
-                    sampler.get_samples(x as f32, y as f32, &mut samples);
+            while let Some(block) = block_queue.next() {
+                for p in block {
+                    sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
                     for s in &samples {
                         let mut ray = scene.camera.ray_for(s.0, s.1);
                         let sample_colour = scene.integrator.illumination(&scene, &mut ray);
@@ -78,16 +130,17 @@ fn render(scene: Arc<Scene>, dim: Dim) {
                             c: sample_colour,
                         };
                         tx.send(image_sample)
-                            // .unwrap();
-                        .expect(&format!("Failed to send sample {:?}", image_sample));
+                            .expect(&format!("Failed to send sample {:?}", image_sample));
                     }
+                    blocks_rendered += 1
                 }
             }
-            println!("Thread {} finishing", i);
+            println!("Thread {} finished rendering {} blocks", i, blocks_rendered);
         });
     }
 
-    for s in rx.iter().take(dim.0 * dim.1 * spp) {
+    for s in rx.iter().take(// dim.0 * dim.1
+                            block_queue.num_blocks * block_size * block_size * spp) {
         image.add_sample(s.x, s.y, s.c);
     }
     image.render();
