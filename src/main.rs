@@ -2,6 +2,7 @@ extern crate nalgebra as na;
 extern crate image;
 extern crate raytracer as rt;
 extern crate threadpool as tp;
+extern crate chrono;
 
 use std::io;
 use std::f32::consts::*;
@@ -11,6 +12,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 use na::{zero, Point2};
 use tp::ThreadPool;
+use chrono::*;
 
 use rt::scene::Scene;
 use rt::colour::Colourf;
@@ -100,15 +102,15 @@ impl BlockQueue {
 
 fn render(scene: Arc<Scene>, dim: Dim) {
     let mut image = Image::new(dim,
-                               Box::new(MitchellNetravali::new(2.0, 2.0, 1.0 / 3.0, 1.0 / 3.0)));
+                               Box::new(MitchellNetravali::new(1.0, 1.0, 1.0 / 3.0, 1.0 / 3.0)));
 
     let spp = 4;
-    let num_blocks = 8;
-    let block_size = 10;
+    let num_workers = 8;
+    let block_size = 32;
     let block_queue = Arc::new(BlockQueue::new(dim, block_size));
-    let pool = ThreadPool::new(num_blocks);
+    let pool = ThreadPool::new(num_workers);
     let (tx, rx) = channel();
-    for i in 0..num_blocks {
+    for i in 0..num_workers {
         let scene = scene.clone();
         let tx = tx.clone();
         let block_queue = block_queue.clone();
@@ -139,8 +141,7 @@ fn render(scene: Arc<Scene>, dim: Dim) {
         });
     }
 
-    for s in rx.iter().take(// dim.0 * dim.1
-                            block_queue.num_blocks * block_size * block_size * spp) {
+    for s in rx.iter().take(block_queue.num_blocks * block_size * block_size * spp) {
         image.add_sample(s.x, s.y, s.c);
     }
     image.render();
@@ -167,7 +168,7 @@ fn write_png(dim: Dim, image: &[Colourf]) -> io::Result<()> {
 }
 
 fn main() {
-    let dim = (1200, 1080);
+    let dim = (800, 480);
     let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
     let integrator = Whitted::new(8);
     let mut scene = Scene::new(camera, Box::new(integrator));
@@ -211,17 +212,13 @@ fn main() {
     // Light
     // scene.push_sphere(Point::new( 0.0,     20.0, -30.0),     3.0, Colourf::black(),               Some(Colourf::rgb(3.0, 3.0, 3.0)), 0.0, 0.0);
     scene.push_point_light(Point::new(-10.0, 10.0, -5.0),
-                           Colourf::rgb(3000.0, 0.0, 3000.0));
+                           Colourf::rgb(3000.0, 2000.0, 2000.0));
     scene.push_distant_light(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0));
 
     println!("Rendering scene...");
-    let now = std::time::Instant::now();
-    render(Arc::new(scene), dim);
-    let duration = now.elapsed();
+    let duration = Duration::span(|| render(Arc::new(scene), dim));
     let stats = rt::stats::get_stats();
-    println!("Render time                : {}.{}s",
-             duration.as_secs(),
-             duration.subsec_nanos() / 1000000);
+    println!("Render time                : {}", duration);
     println!("Primary rays               : {}", stats.primary_rays);
     println!("Secondary rays             : {}", stats.secondary_rays);
     println!("Num triangles              : {}", stats.triangles);

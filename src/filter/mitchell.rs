@@ -22,7 +22,7 @@ impl MitchellNetravali {
     }
 
     fn mitchell_1d(&self, x: f32) -> f32 {
-        let fx = (x * 2.0).abs();
+        let fx = x.abs();
         if fx < 1.0 {
             ((12.0 - 9.0 * self.b - 6.0 * self.c) * fx * fx * fx +
              (-18.0 + 12.0 * self.b + 6.0 * self.c) * fx * fx + (6.0 - 2.0 * self.b)) *
@@ -39,7 +39,7 @@ impl MitchellNetravali {
 
 impl Filter for MitchellNetravali {
     fn evaluate(&self, x: f32, y: f32) -> f32 {
-        self.mitchell_1d(x * self.inv_width) * self.mitchell_1d(y * self.inv_height)
+        self.mitchell_1d(2.0 * x * self.inv_width) * self.mitchell_1d(2.0 * y * self.inv_height)
     }
 
     fn width(&self) -> (f32, f32) {
