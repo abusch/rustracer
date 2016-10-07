@@ -95,50 +95,58 @@ pub struct MeshTriangle {
 }
 
 impl Geometry for MeshTriangle {
+    //  Moller-Trumbore intersection algorithm
+    //  See http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
         stats::inc_triangle_test();
         let v0 = self.p[self.a];
         let v1 = self.p[self.b];
         let v2 = self.p[self.c];
-        let v0v1 = v1 - v0;
-        let v0v2 = v2 - v0;
-        let pvec = ray.dir.cross(&v0v2);
-        let det = v0v1.dot(&pvec);
+        let edge1 = v1 - v0;
+        let edge2 = v2 - v0;
+        let pvec = ray.dir.cross(&edge2);
+        let det = edge1.dot(&pvec);
 
-        if det.abs() < 1e-4 {
+        // Back face culling
+        if det < 1e-6 {
             return None;
         }
 
-        let inv_det = 1.0 / det;
         let tvec = ray.origin - v0;
-        let v = tvec.dot(&pvec) * inv_det;
-        if v < 0.0 || v > 1.0 {
+        let mut u = tvec.dot(&pvec);
+        if u < 0.0 || u > det {
             return None;
         }
 
-        let qvec = tvec.cross(&v0v1);
-        let w = ray.dir.dot(&qvec) * inv_det;
-        if w < 0.0 || v + w > 1.0 {
+        let qvec = tvec.cross(&edge1);
+        let mut v = ray.dir.dot(&qvec);
+        if v < 0.0 || u + v > det {
             return None;
         }
 
-        let thit = v0v2.dot(&qvec) * inv_det;
-        if thit < ray.t_min || thit > ray.t_max {
+        let mut t = edge2.dot(&qvec);
+        let inv_det = 1.0 / det;
+
+        t *= inv_det;
+        u *= inv_det;
+        v *= inv_det;
+
+        if t < ray.t_min || t > ray.t_max {
             return None;
         } else {
-            ray.t_max = thit;
+            ray.t_max = t;
         }
 
-        let u = 1.0 - v - w;
+        let w = 1.0 - u - v;
         let na = self.n[self.a];
         let nb = self.n[self.b];
         let nc = self.n[self.c];
-        let nhit = (u * na + v * nb + w * nc).normalize();
+        let nhit = (w * na + u * nb + v * nc).normalize();
 
         let ta = self.t[self.a];
         let tb = self.t[self.b];
         let tc = self.t[self.c];
-        let uv = u * ta + v * tb + w * tc;
+        let uv = w * ta + u * tb + v * tc;
         let texcoord = TextureCoordinate { u: uv.x, v: uv.y };
 
         stats::inc_triangle_isect();
