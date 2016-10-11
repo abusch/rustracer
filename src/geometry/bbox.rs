@@ -1,9 +1,12 @@
+use std::ops::Index;
 use Vector;
 use Point;
 use ray::Ray;
+use stats;
 use na::origin;
 
 /// Axis Aligned Bounding Box
+#[derive(Debug, Copy, Clone)]
 pub struct BBox {
     pub bounds: [Point; 2],
 }
@@ -55,6 +58,38 @@ impl BBox {
         true
     }
 
+    pub fn intersect_p(&self, ray: &mut Ray, inv_dir: &Vector, dir_is_neg: &[usize; 3]) -> bool {
+        stats::inc_fast_bbox_isect();
+        // Check intersection with X and Y slab
+        let mut tmin = (self.bounds[dir_is_neg[0]].x - ray.origin.x) * inv_dir.x;
+        let mut tmax = (self.bounds[1 - dir_is_neg[0]].x - ray.origin.x) * inv_dir.x;
+        let tymin = (self.bounds[dir_is_neg[1]].y - ray.origin.y) * inv_dir.y;
+        let tymax = (self.bounds[1 - dir_is_neg[1]].y - ray.origin.y) * inv_dir.y;
+        if (tmin > tymax) || (tymin > tmax) {
+            return false;
+        }
+        if tymin > tmin {
+            tmin = tymin;
+        }
+        if tymax < tmax {
+            tmax = tymax;
+        }
+        // Check intersection with Z slab
+        let tzmin = (self.bounds[dir_is_neg[2]].z - ray.origin.z) * inv_dir.z;
+        let tzmax = (self.bounds[1 - dir_is_neg[2]].z - ray.origin.z) * inv_dir.z;
+        if (tmin > tzmax) || (tzmin > tmax) {
+            return false;
+        }
+        if tzmin > tmin {
+            tmin = tzmin;
+        }
+        if tzmax < tmax {
+            tmax = tzmax;
+        }
+
+        return tmin < ray.t_max && tmax > ray.t_min;
+    }
+
     pub fn extend(&mut self, p: &Point) {
         if p.x < self.bounds[0].x {
             self.bounds[0].x = p.x
@@ -73,6 +108,56 @@ impl BBox {
         }
         if p.z > self.bounds[1].z {
             self.bounds[1].z = p.z
+        }
+    }
+
+    pub fn maximum_extent(&self) -> Axis {
+        let v = self.bounds[1] - self.bounds[0];
+        if v.x > v.y {
+            if v.x > v.z { Axis::X } else { Axis::Z }
+        } else {
+            if v.y > v.z { Axis::Y } else { Axis::Z }
+        }
+    }
+
+
+    pub fn union(bbox1: &BBox, bbox2: &BBox) -> BBox {
+        let min = Point::new(bbox1.bounds[0].x.min(bbox2.bounds[0].x),
+                             bbox1.bounds[0].y.min(bbox2.bounds[0].y),
+                             bbox1.bounds[0].z.min(bbox2.bounds[0].z));
+        let max = Point::new(bbox1.bounds[1].x.max(bbox2.bounds[1].x),
+                             bbox1.bounds[1].y.max(bbox2.bounds[1].y),
+                             bbox1.bounds[1].z.max(bbox2.bounds[1].z));
+
+        BBox { bounds: [min, max] }
+    }
+
+    pub fn union_point(bbox: &BBox, p: &Point) -> BBox {
+        let mut b = *bbox;
+        b.extend(p);
+        b
+    }
+}
+
+pub trait Bounded {
+    fn get_world_bounds(&self) -> BBox;
+}
+
+#[derive(Copy, Clone)]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+
+impl Index<Axis> for Point {
+    type Output = f32;
+
+    fn index(&self, axis: Axis) -> &f32 {
+        match axis {
+            Axis::X => &self.x,
+            Axis::Y => &self.y,
+            Axis::Z => &self.z,
         }
     }
 }

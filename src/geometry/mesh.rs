@@ -6,14 +6,16 @@ use std::sync::Arc;
 use Point;
 use Vector;
 use stats;
+use bvh::BVH;
 use geometry::{Geometry, TextureCoordinate, DifferentialGeometry};
-use geometry::bbox::BBox;
+use geometry::bbox::{BBox, Bounded};
 use ray::Ray;
 use na::{Vector2, Norm, Dot, Cross};
 
 pub struct Mesh {
-    pub tris: Vec<MeshTriangle>,
-    bbox: BBox,
+    // pub tris: Vec<MeshTriangle>,
+    bvh: BVH<MeshTriangle>,
+    pub bbox: BBox,
 }
 
 impl Mesh {
@@ -46,14 +48,14 @@ impl Mesh {
             .chunks(3)
             .map(|i| {
                 stats::inc_num_triangles();
-                MeshTriangle {
+                Arc::new(MeshTriangle {
                     a: i[0] as usize,
                     b: i[1] as usize,
                     c: i[2] as usize,
                     p: positions.clone(),
                     n: normals.clone(),
                     t: uv.clone(),
-                }
+                })
             })
             .collect();
 
@@ -61,9 +63,10 @@ impl Mesh {
         for p in &*positions {
             bbox.extend(p);
         }
+        println!("Mesh bounding box: {:?}", bbox);
 
         Mesh {
-            tris: tris,
+            bvh: BVH::new(16, tris),
             bbox: bbox,
         }
     }
@@ -71,21 +74,25 @@ impl Mesh {
 
 impl Geometry for Mesh {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
-        let mut result: Option<DifferentialGeometry> = None;
-
-        if !self.bbox.intersect(ray) {
-            return None;
-        }
-
-        for t in &self.tris {
-            result = t.intersect(ray).or(result)
-        }
-
-        result
+        self.bvh.intersect(ray)
     }
+
+    // fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
+    //     let mut result: Option<DifferentialGeometry> = None;
+
+    //     if !self.bbox.intersect(ray) {
+    //         return None;
+    //     }
+
+    //     for t in &self.tris {
+    //         result = t.intersect(ray).or(result)
+    //     }
+
+    //     result
+    // }
 }
 
-pub struct MeshTriangle {
+struct MeshTriangle {
     a: usize,
     b: usize,
     c: usize,
@@ -154,9 +161,20 @@ impl Geometry for MeshTriangle {
     }
 }
 
-#[test]
-fn testObj() {
-    let mesh = Mesh::load(&Path::new("models/cone.obj"), "Cone");
+impl Bounded for MeshTriangle {
+    fn get_world_bounds(&self) -> BBox {
+        let mut bbox = BBox::new();
+        bbox.extend(&self.p[self.a]);
+        bbox.extend(&self.p[self.b]);
+        bbox.extend(&self.p[self.c]);
 
-    assert_eq!(mesh.tris.is_empty(), false);
+        bbox
+    }
 }
+
+// #[test]
+// fn testObj() {
+//     let mesh = Mesh::load(&Path::new("models/cone.obj"), "Cone");
+
+//     assert_eq!(mesh.tris.is_empty(), false);
+// }

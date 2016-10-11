@@ -2,6 +2,7 @@ use {Vector, Point, Transform};
 use ray::Ray;
 use na::Norm;
 
+pub use self::bbox::*;
 pub use self::sphere::*;
 pub use self::plane::*;
 pub use self::triangle::*;

@@ -3,6 +3,7 @@ extern crate rand;
 
 use na::{Vector3, Point3, Similarity3};
 
+pub mod bvh;
 pub mod camera;
 pub mod colour;
 pub mod filter;
@@ -13,6 +14,7 @@ pub mod integrator;
 pub mod intersection;
 pub mod light;
 pub mod material;
+mod partition;
 pub mod ray;
 pub mod sampling;
 pub mod scene;

@@ -5,6 +5,7 @@ static NUM_SECONDARY_RAYS: AtomicUsize = ATOMIC_USIZE_INIT;
 static NUM_TRIANGLES: AtomicUsize = ATOMIC_USIZE_INIT;
 static NUM_RAY_TRI_TEST: AtomicUsize = ATOMIC_USIZE_INIT;
 static NUM_RAY_TRI_ISECT: AtomicUsize = ATOMIC_USIZE_INIT;
+static NUM_FAST_BBOX_ISECT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 pub struct Stats {
     pub primary_rays: usize,
@@ -12,6 +13,7 @@ pub struct Stats {
     pub triangles: usize,
     pub ray_triangle_tests: usize,
     pub ray_triangle_isect: usize,
+    pub fast_bbox_isect: usize,
 }
 
 pub fn inc_primary_ray() {
@@ -29,6 +31,9 @@ pub fn inc_triangle_test() {
 pub fn inc_triangle_isect() {
     inc_counter(&NUM_RAY_TRI_ISECT);
 }
+pub fn inc_fast_bbox_isect() {
+    inc_counter(&NUM_FAST_BBOX_ISECT);
+}
 
 pub fn get_stats() -> Stats {
     Stats {
@@ -37,6 +42,7 @@ pub fn get_stats() -> Stats {
         triangles: get_counter(&NUM_TRIANGLES),
         ray_triangle_tests: get_counter(&NUM_RAY_TRI_TEST),
         ray_triangle_isect: get_counter(&NUM_RAY_TRI_ISECT),
+        fast_bbox_isect: get_counter(&NUM_FAST_BBOX_ISECT),
     }
 }
 
