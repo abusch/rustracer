@@ -38,6 +38,7 @@ impl<T: Bounded + Geometry> BVH<T> {
         for i in ordered_prims {
             ordered_primitives.push(prims[i].clone());
         }
+        assert!(prims.len() == ordered_primitives.len());
 
         println!("Created {} nodes", total_nodes);
 
@@ -45,6 +46,7 @@ impl<T: Bounded + Geometry> BVH<T> {
         println!("Flattening tree");
         let mut nodes = Vec::with_capacity(total_nodes);
         BVH::<T>::flatten_bvh(&root, &mut nodes);
+        assert!(nodes.len() == total_nodes);
 
         BVH {
             max_prims_per_node: min(max_prims_per_node, 255),
@@ -66,14 +68,15 @@ impl<T: Bounded + Geometry> BVH<T> {
         //          total_nodes);
         *total_nodes += 1;
         let n_primitives = end - start;
-        let first_prim_offset = ordered_prims.len();
+        assert!(start != end);
         // Compute bounds of all primitives in node
         let bbox = build_data.iter()
             .fold(BBox::new(), |b, pi| BBox::union(&b, &pi.bounds));
         // println!("bbox = {:?}", bbox);
-        if n_primitives <= max_prims_per_node {
+        if n_primitives == 1 {
             // println!("Creating leaf");
             // Create leaf
+            let first_prim_offset = ordered_prims.len();
             for pi in build_data[start..end].iter() {
                 ordered_prims.push(pi.prim_number);
             }
@@ -88,7 +91,11 @@ impl<T: Bounded + Geometry> BVH<T> {
             let dimension = centroids_bounds.maximum_extent();
             // Partition primitives into 2 sets and build children
             // let mid = (start + end) / 2;
-            if centroids_bounds.bounds[0] == centroids_bounds.bounds[1] {
+            if centroids_bounds.bounds[0][dimension] == centroids_bounds.bounds[1][dimension] {
+                let first_prim_offset = ordered_prims.len();
+                for pi in build_data[start..end].iter() {
+                    ordered_prims.push(pi.prim_number);
+                }
                 return BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox);
             }
             // Partition primitives based on split method
@@ -170,52 +177,52 @@ impl<T: Bounded + Geometry> Geometry for BVH<T> {
         let mut result = None;
         // let origin = ray.at(ray.t_min);
 
-        let mut todo_offset = 0;
-        let mut node_num = 0;
-        let mut todo = [0; 64];
+        let mut to_visit_offset = 0;
+        let mut current_node_idx = 0;
+        let mut nodes_to_visit = [0; 64];
         let inv_dir = Vector::new(1.0 / ray.dir.x, 1.0 / ray.dir.y, 1.0 / ray.dir.z);
         let dir_is_neg =
             [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
         loop {
-            let ref linear_node = self.nodes[node_num];
+            let ref linear_node = self.nodes[current_node_idx];
             if linear_node.bounds.intersect_p(ray, &inv_dir, &dir_is_neg) {
                 match linear_node.data {
+                    LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
+                        for i in 0..num_prims {
+                            if let Some(isect) = self.primitives[primitives_offset + i]
+                                .intersect(ray) {
+                                result = Some(isect);
+                            }
+                        }
+                        if to_visit_offset == 0 {
+                            break;
+                        }
+                        to_visit_offset -= 1;
+                        current_node_idx = nodes_to_visit[to_visit_offset];
+                    }
                     LinearBVHNodeData::Interior { axis, second_child_offset, .. } => {
                         let axis_num = match axis {
                             Axis::X => 0,
                             Axis::Y => 1,
                             Axis::Z => 2,
                         };
-                        if dir_is_neg[axis_num] == 1 {
-                            todo[todo_offset] = node_num + 1;
-                            todo_offset += 1;
-                            node_num = second_child_offset;
+                        if dir_is_neg[axis_num] != 0 {
+                            nodes_to_visit[to_visit_offset] = current_node_idx + 1;
+                            to_visit_offset += 1;
+                            current_node_idx = second_child_offset;
                         } else {
-                            todo[todo_offset] = second_child_offset;
-                            todo_offset += 1;
-                            node_num += 1;
+                            nodes_to_visit[to_visit_offset] = second_child_offset;
+                            to_visit_offset += 1;
+                            current_node_idx += 1;
                         }
-                    }
-                    LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
-                        for i in 0..num_prims {
-                            if let Some(isect) = self.primitives[primitives_offset + i]
-                                .intersect(ray) {
-                                return Some(isect);
-                            }
-                        }
-                        if todo_offset == 0 {
-                            break;
-                        }
-                        todo_offset -= 1;
-                        node_num = todo[todo_offset];
                     }
                 }
             } else {
-                if todo_offset == 0 {
+                if to_visit_offset == 0 {
                     break;
                 }
-                todo_offset -= 1;
-                node_num = todo[todo_offset];
+                to_visit_offset -= 1;
+                current_node_idx = nodes_to_visit[to_visit_offset];
             }
 
         }

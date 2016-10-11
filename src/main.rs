@@ -121,11 +121,12 @@ fn render(scene: Arc<Scene>, dim: Dim) {
             samples.resize(spp, (0.0, 0.0));
             let sampler = LowDiscrepancy::new(spp);
             while let Some(block) = block_queue.next() {
-                println!("Rendering block ({}, {}) -> ({}, {})",
-                         block.start.x,
-                         block.start.y,
-                         block.end.x,
-                         block.end.y);
+                print!(".");
+                // println!("Rendering block ({}, {}) -> ({}, {})",
+                // block.start.x,
+                // block.start.y,
+                // block.end.x,
+                // block.end.y);
                 for p in block {
                     sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
                     for s in &samples {
@@ -148,6 +149,7 @@ fn render(scene: Arc<Scene>, dim: Dim) {
     for s in rx.iter().take(block_queue.num_blocks * block_size * block_size * spp) {
         image.add_sample(s.x, s.y, s.c);
     }
+    print!("\n");
     image.render();
     write_png(dim, image.buffer()).expect("Could not write file");
 }
@@ -191,7 +193,7 @@ fn main() {
     //                   Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
     scene.push_mesh(Path::new("models/smooth_suzanne.obj"),
                     "Suzanne",
-                    Transform::new(Vector::new(5.0, height, -15.0),
+                    Transform::new(Vector::new(0.0, height, -15.0),
                                    Vector::new(0.0, 0.0, 0.0),
                                    2.0));
     // scene.push_sphere(3.0,
