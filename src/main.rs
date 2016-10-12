@@ -52,7 +52,6 @@ impl Block {
 impl Iterator for Block {
     type Item = na::Point2<usize>;
 
-
     fn next(&mut self) -> Option<Point2<usize>> {
         if self.current.x > self.end.x || self.current.y > self.end.y {
             None
@@ -102,10 +101,10 @@ impl BlockQueue {
     }
 
     pub fn report_progress(&self) {
-        print!("\rRendering block {}/{}...        ",
+        print!("\rRendering block {}/{}...  ",
                self.counter.load(Ordering::Relaxed),
                self.num_blocks);
-        io::stdout().flush();
+        io::stdout().flush().expect("Could not flush stdout");;
     }
 }
 
@@ -120,24 +119,16 @@ fn render(scene: Arc<Scene>, dim: Dim) {
     println!("Using {} threads", num_workers);
     let pool = ThreadPool::new(num_workers);
     let (tx, rx) = channel();
-    for i in 0..num_workers {
+    for _ in 0..num_workers {
         let scene = scene.clone();
         let tx = tx.clone();
         let block_queue = block_queue.clone();
         pool.execute(move || {
-            let mut blocks_rendered = 0;
             let mut samples = Vec::new();
             samples.resize(spp, (0.0, 0.0));
             let sampler = LowDiscrepancy::new(spp);
             while let Some(block) = block_queue.next() {
                 block_queue.report_progress();
-                // print!(".");
-                // io::stdout().flush();
-                // println!("Rendering block ({}, {}) -> ({}, {})",
-                // block.start.x,
-                // block.start.y,
-                // block.end.x,
-                // block.end.y);
                 for p in block {
                     sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
                     for s in &samples {
@@ -151,7 +142,6 @@ fn render(scene: Arc<Scene>, dim: Dim) {
                         tx.send(image_sample)
                             .expect(&format!("Failed to send sample {:?}", image_sample));
                     }
-                    blocks_rendered += 1
                 }
             }
         });

@@ -4,7 +4,6 @@ use Vector;
 use Point;
 use ray::Ray;
 use stats;
-use na::origin;
 
 /// Axis Aligned Bounding Box
 #[derive(Debug, Copy, Clone)]
@@ -30,42 +29,6 @@ impl BBox {
             [(ray.dir.x < 0.0) as usize, (ray.dir.y < 0.0) as usize, (ray.dir.z < 0.0) as usize];
 
         self.intersect_p(ray, &invdir, &sign)
-
-        // let mut tmin = (self.bounds[sign[0]].x - ray.origin.x) * invdir.x;
-        // let mut tmax = (self.bounds[1 - sign[0]].x - ray.origin.x) * invdir.x;
-        // let tymin = (self.bounds[sign[1]].y - ray.origin.y) * invdir.y;
-        // let tymax = (self.bounds[1 - sign[1]].y - ray.origin.y) * invdir.y;
-
-        // if (tmin > tymax) || (tymin > tmax) {
-        //     return false;
-        // }
-
-        // if tymin > tmin {
-        //     tmin = tymin;
-        // }
-        // if tymax < tmax {
-        //     tmax = tymax;
-        // }
-
-        // let tzmin = (self.bounds[sign[2]].z - ray.origin.z) * invdir.z;
-        // let tzmax = (self.bounds[1 - sign[2]].z - ray.origin.z) * invdir.z;
-
-        // if (tmin > tzmax) || (tzmin > tmax) {
-        //     return false;
-        // }
-
-        // if tzmin > tmin {
-        //     tmin = tzmin;
-        // }
-        // if tzmax < tmax {
-        //     tmax = tzmax;
-        // }
-
-        // if tmin < 0.0 && tmax < 0.0 {
-        //     return false;
-        // }
-
-        // true
     }
 
     pub fn intersect_p(&self, ray: &mut Ray, inv_dir: &Vector, dir_is_neg: &[usize; 3]) -> bool {

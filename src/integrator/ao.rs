@@ -1,6 +1,5 @@
 use std::f32;
 use std::iter;
-use rand;
 
 use Vector;
 use colour::Colourf;
@@ -38,11 +37,8 @@ impl Integrator for AmbientOcclusion {
         let sampler = LowDiscrepancy::new(self.n_samples);
 
         if let Some(intersection) = scene.intersect(ray) {
-            let hit = intersection.hit;
-            let mat = &hit.material;
             let n = intersection.dg.nhit;
             let p = intersection.dg.phit;
-            // let mut samples = Vec::with_capacity(self.n_samples);
             let mut samples = iter::repeat((0.0, 0.0)).take(self.n_samples).collect();
 
             sampler.get_samples(0.0, 0.0, &mut samples);

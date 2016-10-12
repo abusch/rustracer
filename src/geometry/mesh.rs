@@ -63,7 +63,6 @@ impl Mesh {
         for p in &*positions {
             bbox.extend(p);
         }
-        println!("Mesh bounding box: {:?}", bbox);
 
         Mesh {
             bvh: BVH::new(16, tris),
@@ -76,20 +75,6 @@ impl Geometry for Mesh {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
         self.bvh.intersect(ray)
     }
-
-    // fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
-    //     let mut result: Option<DifferentialGeometry> = None;
-
-    //     if !self.bbox.intersect(ray) {
-    //         return None;
-    //     }
-
-    //     for t in &self.tris {
-    //         result = t.intersect(ray).or(result)
-    //     }
-
-    //     result
-    // }
 }
 
 struct MeshTriangle {
