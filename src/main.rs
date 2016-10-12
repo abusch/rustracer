@@ -99,6 +99,13 @@ impl BlockQueue {
                             self.block_size))
         }
     }
+
+    pub fn report_progress(&self) {
+        print!("\rRendering block {}/{}...        ",
+               self.counter.load(Ordering::Relaxed),
+               self.num_blocks);
+        io::stdout().flush();
+    }
 }
 
 fn render(scene: Arc<Scene>, dim: Dim) {
@@ -122,8 +129,9 @@ fn render(scene: Arc<Scene>, dim: Dim) {
             samples.resize(spp, (0.0, 0.0));
             let sampler = LowDiscrepancy::new(spp);
             while let Some(block) = block_queue.next() {
-                print!(".");
-                io::stdout().flush();
+                block_queue.report_progress();
+                // print!(".");
+                // io::stdout().flush();
                 // println!("Rendering block ({}, {}) -> ({}, {})",
                 // block.start.x,
                 // block.start.y,
@@ -197,7 +205,7 @@ fn main() {
                     "Suzanne",
                     Transform::new(Vector::new(0.0, height, -15.0),
                                    Vector::new(0.0, 0.0, 0.0),
-                                   2.0));
+                                   6.0));
     // scene.push_sphere(3.0,
     //                   Colourf::rgb(0.65, 0.77, 0.97),
     //                   0.0,
