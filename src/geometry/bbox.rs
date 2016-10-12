@@ -1,3 +1,4 @@
+use std::f32;
 use std::ops::Index;
 use Vector;
 use Point;
@@ -13,7 +14,14 @@ pub struct BBox {
 
 impl BBox {
     pub fn new() -> BBox {
-        BBox { bounds: [origin(), origin()] }
+        BBox {
+            bounds: [Point::new(f32::INFINITY, f32::INFINITY, f32::INFINITY),
+                     Point::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY)],
+        }
+    }
+
+    pub fn from_point(point: &Point) -> BBox {
+        BBox { bounds: [*point, *point] }
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> bool {
@@ -145,7 +153,7 @@ pub trait Bounded {
     fn get_world_bounds(&self) -> BBox;
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Axis {
     X,
     Y,

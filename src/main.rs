@@ -5,6 +5,7 @@ extern crate threadpool as tp;
 extern crate chrono;
 
 use std::io;
+use std::io::Write;
 use std::f32::consts::*;
 use std::path::Path;
 use std::sync::mpsc::channel;
@@ -122,6 +123,7 @@ fn render(scene: Arc<Scene>, dim: Dim) {
             let sampler = LowDiscrepancy::new(spp);
             while let Some(block) = block_queue.next() {
                 print!(".");
+                io::stdout().flush();
                 // println!("Rendering block ({}, {}) -> ({}, {})",
                 // block.start.x,
                 // block.start.y,
