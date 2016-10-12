@@ -55,7 +55,7 @@ impl Scene {
     pub fn push_mesh(&mut self, file: &Path, name: &str, transform: Transform) {
         let mesh = Mesh::load(file, name);
         self.push(Instance::new(Box::new(mesh),
-                                Material::new(Colourf::rgb(0.4, 0.5, 0.6), 0.0, 0.0),
+                                Material::new(Colourf::rgb(0.4, 0.5, 0.6), 1.0, 1.0),
                                 transform));
     }
 

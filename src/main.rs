@@ -7,6 +7,7 @@ extern crate chrono;
 use std::io;
 use std::io::Write;
 use std::f32::consts::*;
+use std::f32;
 use std::path::Path;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
@@ -20,7 +21,7 @@ use rt::colour::Colourf;
 use rt::camera::Camera;
 use rt::filter::mitchell::MitchellNetravali;
 use rt::image::Image;
-use rt::integrator::Whitted;
+use rt::integrator::{Whitted, AmbientOcclusion};
 use rt::{Dim, Point, Vector, Transform};
 use rt::sampling::{Sampler, LowDiscrepancy};
 
@@ -186,7 +187,8 @@ fn write_png(dim: Dim, image: &[Colourf]) -> io::Result<()> {
 fn main() {
     let dim = (800, 480);
     let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
-    let integrator = Whitted::new(8);
+    // let integrator = Whitted::new(8);
+    let integrator = AmbientOcclusion::new(128, f32::INFINITY);
     let mut scene = Scene::new(camera, Box::new(integrator));
     let height = 5.0;
 
@@ -203,19 +205,19 @@ fn main() {
     //                   Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
     scene.push_mesh(Path::new("models/smooth_suzanne.obj"),
                     "Suzanne",
-                    Transform::new(Vector::new(0.0, height, -15.0),
+                    Transform::new(Vector::new(2.0, height, -15.0),
                                    Vector::new(0.0, 0.0, 0.0),
-                                   6.0));
+                                   4.0));
     // scene.push_sphere(3.0,
     //                   Colourf::rgb(0.65, 0.77, 0.97),
     //                   0.0,
     //                   0.0,
     //                   Transform::new(Vector::new(5.0, height, -25.0), zero(), 1.0));
-    // scene.push_sphere(3.0,
-    //                   Colourf::rgb(0.90, 0.90, 0.90),
-    //                   0.0,
-    //                   0.0,
-    //                   Transform::new(Vector::new(-5.5, height, -15.0), zero(), 1.0));
+    scene.push_sphere(3.0,
+                      Colourf::rgb(0.90, 0.90, 0.90),
+                      0.0,
+                      0.0,
+                      Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0));
     // scene.push_triangle(Point::new(-1.0, height - 1.0, -5.0),
     //                     Point::new(1.0, height - 1.0, -5.0),
     //                     Point::new(0.0, height + 0.0, -8.0));
