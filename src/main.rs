@@ -1,6 +1,7 @@
 extern crate nalgebra as na;
 extern crate rustracer as rt;
 extern crate chrono;
+extern crate docopt;
 
 use std::f32::consts::*;
 use std::f32;
@@ -8,20 +9,38 @@ use std::path::Path;
 use std::sync::Arc;
 use na::zero;
 use chrono::*;
+use docopt::Docopt;
 
 use rt::scene::Scene;
 use rt::colour::Colourf;
 use rt::camera::Camera;
 use rt::integrator::{Whitted, AmbientOcclusion};
 use rt::{Point, Vector, Transform};
-use rt::renderer::Renderer;
+use rt::renderer;
+
+const USAGE: &'static str = "
+Toy Ray-Tracer in Rust
+
+Usage:
+  rustracer [options]
+
+Options:
+  -o <file>, --output=<file>  Output file name [default: image.png].
+";
 
 fn main() {
+    // Parse args
+    let args = Docopt::new(USAGE)
+        .and_then(|d| d.parse())
+        .unwrap_or_else(|e| e.exit());
+
+    let filename = args.get_str("-o");
+
     // let dim = (1216, 1088);
     let dim = (800, 480);
     let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
     // let integrator = Whitted::new(8);
-    let integrator = AmbientOcclusion::new(1024, f32::INFINITY);
+    let integrator = AmbientOcclusion::new(64, f32::INFINITY);
     let mut scene = Scene::new(camera, Box::new(integrator));
     let height = 5.0;
 
@@ -66,7 +85,7 @@ fn main() {
                            Colourf::rgb(3000.0, 2000.0, 2000.0));
     scene.push_distant_light(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0));
 
-    let duration = Duration::span(|| Renderer::render(Arc::new(scene), dim));
+    let duration = Duration::span(|| renderer::render(Arc::new(scene), dim, filename));
     let stats = rt::stats::get_stats();
     println!("Render time                : {}", duration);
     println!("Primary rays               : {}", stats.primary_rays);
