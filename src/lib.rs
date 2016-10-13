@@ -1,8 +1,11 @@
+extern crate image as img;
 extern crate nalgebra as na;
 extern crate rand;
+extern crate threadpool as tp;
 
 use na::{Vector3, Point3, Similarity3};
 
+mod block_queue;
 pub mod bvh;
 pub mod camera;
 pub mod colour;
@@ -16,6 +19,7 @@ pub mod light;
 pub mod material;
 mod partition;
 pub mod ray;
+pub mod renderer;
 pub mod sampling;
 pub mod scene;
 pub mod skydome;
