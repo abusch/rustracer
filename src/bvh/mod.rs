@@ -75,7 +75,7 @@ impl<T: Bounded + Geometry> BVH<T> {
             for pi in build_data[start..end].iter() {
                 ordered_prims.push(pi.prim_number);
             }
-            return BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox);
+            BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox)
         } else {
             // Compute bounds of primitive centroids
             let centroids_bounds = build_data[start..end]
@@ -108,19 +108,19 @@ impl<T: Bounded + Geometry> BVH<T> {
                 mid = (start + end) / 2;
             }
 
-            return BVHBuildNode::interior(dimension,
-                                          Box::new(BVH::<T>::recursive_build(build_data,
-                                                                             start,
-                                                                             mid,
-                                                                             max_prims_per_node,
-                                                                             total_nodes,
-                                                                             ordered_prims)),
-                                          Box::new(BVH::<T>::recursive_build(build_data,
-                                                                             mid,
-                                                                             end,
-                                                                             max_prims_per_node,
-                                                                             total_nodes,
-                                                                             ordered_prims)));
+            BVHBuildNode::interior(dimension,
+                                   Box::new(BVH::<T>::recursive_build(build_data,
+                                                                      start,
+                                                                      mid,
+                                                                      max_prims_per_node,
+                                                                      total_nodes,
+                                                                      ordered_prims)),
+                                   Box::new(BVH::<T>::recursive_build(build_data,
+                                                                      mid,
+                                                                      end,
+                                                                      max_prims_per_node,
+                                                                      total_nodes,
+                                                                      ordered_prims)))
 
 
         }
@@ -129,8 +129,8 @@ impl<T: Bounded + Geometry> BVH<T> {
     fn flatten_bvh(node: &BVHBuildNode, nodes: &mut Vec<LinearBVHNode>) -> usize {
         let offset = nodes.len();
 
-        match node {
-            &BVHBuildNode::Leaf { first_prim_offset, num_prims, .. } => {
+        match *node {
+            BVHBuildNode::Leaf { first_prim_offset, num_prims, .. } => {
                 let linear_node = LinearBVHNode {
                     bounds: *node.bounds(),
                     data: LinearBVHNodeData::Leaf {
@@ -140,7 +140,7 @@ impl<T: Bounded + Geometry> BVH<T> {
                 };
                 nodes.push(linear_node);
             }
-            &BVHBuildNode::Interior { split_axis, ref children, .. } => {
+            BVHBuildNode::Interior { split_axis, ref children, .. } => {
                 let linear_node = LinearBVHNode {
                     bounds: *node.bounds(),
                     data: LinearBVHNodeData::Interior {
@@ -159,7 +159,7 @@ impl<T: Bounded + Geometry> BVH<T> {
             }
         }
 
-        return offset;
+        offset
     }
 }
 
@@ -254,7 +254,7 @@ enum BVHBuildNode {
 
 impl BVHBuildNode {
     fn interior(axis: Axis, child1: Box<BVHBuildNode>, child2: Box<BVHBuildNode>) -> BVHBuildNode {
-        let bbox = BBox::union(&child1.bounds(), &child2.bounds());
+        let bbox = BBox::union(child1.bounds(), child2.bounds());
         BVHBuildNode::Interior {
             bounds: bbox,
             children: [child1, child2],
@@ -272,7 +272,7 @@ impl BVHBuildNode {
 
     fn bounds(&self) -> &BBox {
         match *self {
-            BVHBuildNode::Interior { ref bounds, .. } => bounds,
+            BVHBuildNode::Interior { ref bounds, .. } |
             BVHBuildNode::Leaf { ref bounds, .. } => bounds,
         }
     }

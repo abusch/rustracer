@@ -28,7 +28,7 @@ fn uniform_sample_sphere(x: f32, y: f32) -> Vector {
     let r = f32::sqrt(f32::max(0.0, 1.0 - z * z));
     let phi = 2.0 * f32::consts::PI * y;
 
-    return Vector::new(r * f32::cos(phi), r * f32::sin(phi), z);
+    Vector::new(r * f32::cos(phi), r * f32::sin(phi), z)
 }
 
 impl Integrator for AmbientOcclusion {

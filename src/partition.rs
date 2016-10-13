@@ -1,5 +1,5 @@
 //! Provides a general partitioning function that implements C++'s
-//! [std::partition](http://en.cppreference.com/w/cpp/algorithm/partition)
+//! [`std::partition`](http://en.cppreference.com/w/cpp/algorithm/partition)
 use std::mem;
 
 /// Re-orders elements in the range yielded by `it` based on `pred`. All elements

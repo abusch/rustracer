@@ -60,7 +60,7 @@ impl Renderer {
         for s in rx.iter().take(block_queue.num_blocks * block_size * block_size * spp) {
             image.add_sample(s.x, s.y, s.c);
         }
-        print!("\n");
+        println!("");
         image.render();
         Renderer::write_png(dim, image.buffer()).expect("Could not write file");
     }

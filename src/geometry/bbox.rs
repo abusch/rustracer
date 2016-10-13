@@ -60,7 +60,7 @@ impl BBox {
             tmax = tzmax;
         }
 
-        return tmin < ray.t_max && tmax > ray.t_min;
+        tmin < ray.t_max && tmax > ray.t_min
     }
 
     pub fn extend(&mut self, p: &Point) {
@@ -88,8 +88,10 @@ impl BBox {
         let v = self.bounds[1] - self.bounds[0];
         if v.x > v.y {
             if v.x > v.z { Axis::X } else { Axis::Z }
+        } else if v.y > v.z {
+            Axis::Y
         } else {
-            if v.y > v.z { Axis::Y } else { Axis::Z }
+            Axis::Z
         }
     }
 
