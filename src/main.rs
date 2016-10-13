@@ -1,5 +1,5 @@
 extern crate nalgebra as na;
-extern crate raytracer as rt;
+extern crate rustracer as rt;
 extern crate chrono;
 
 use std::f32::consts::*;

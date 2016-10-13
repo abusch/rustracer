@@ -1,5 +1,5 @@
 [package]
-name = "raytracer"
+name = "rustracer"
 version = "0.1.0"
 authors = ["Antoine Busch <antoine.busch@gmail.com>"]
 
