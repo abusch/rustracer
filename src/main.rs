@@ -25,7 +25,8 @@ Usage:
   rustracer [options]
 
 Options:
-  -o <file>, --output=<file>  Output file name [default: image.png].
+  -o <file>, --output=<file>  Output file name [default: image.png]
+  -t N, --threads=N           Number of worker threads to start [default: 8]
 ";
 
 fn main() {
@@ -35,12 +36,14 @@ fn main() {
         .unwrap_or_else(|e| e.exit());
 
     let filename = args.get_str("-o");
+    let num_threads = usize::from_str_radix(args.get_str("-t"), 10)
+        .expect("invalid number of threads");
 
     // let dim = (1216, 1088);
     let dim = (800, 480);
     let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
     // let integrator = Whitted::new(8);
-    let integrator = AmbientOcclusion::new(64, f32::INFINITY);
+    let integrator = AmbientOcclusion::new(32, f32::INFINITY);
     let mut scene = Scene::new(camera, Box::new(integrator));
     let height = 5.0;
 
@@ -85,7 +88,7 @@ fn main() {
                            Colourf::rgb(3000.0, 2000.0, 2000.0));
     scene.push_distant_light(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0));
 
-    let duration = Duration::span(|| renderer::render(Arc::new(scene), dim, filename));
+    let duration = Duration::span(|| renderer::render(Arc::new(scene), dim, filename, num_threads));
     let stats = rt::stats::get_stats();
     println!("Render time                : {}", duration);
     println!("Primary rays               : {}", stats.primary_rays);

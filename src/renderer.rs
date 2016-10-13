@@ -13,18 +13,17 @@ use sampling::{Sampler, LowDiscrepancy};
 use scene::Scene;
 use tp::ThreadPool;
 
-pub fn render(scene: Arc<Scene>, dim: Dim, filename: &str) {
+pub fn render(scene: Arc<Scene>, dim: Dim, filename: &str, num_threads: usize) {
     let mut image = Image::new(dim,
                                Box::new(MitchellNetravali::new(1.0, 1.0, 1.0 / 3.0, 1.0 / 3.0)));
 
     let spp = 4;
-    let num_workers = 8;
     let block_size = 32;
     let block_queue = Arc::new(BlockQueue::new(dim, block_size));
-    println!("Rendering scene using {} threads", num_workers);
-    let pool = ThreadPool::new(num_workers);
+    println!("Rendering scene using {} threads", num_threads);
+    let pool = ThreadPool::new(num_threads);
     let (tx, rx) = channel();
-    for _ in 0..num_workers {
+    for _ in 0..num_threads {
         let scene = scene.clone();
         let tx = tx.clone();
         let block_queue = block_queue.clone();
