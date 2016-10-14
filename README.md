@@ -1,6 +1,7 @@
 This is a toy [raytracer](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) written in Rust.
 
 The code is based on the following resources:
+
 * [Scratchapixel](http://www.scratchapixel.com)
 * [Physically-Based Ray Tracing](http://www.pbrt.org)
 * [tray_rust](http://github.com/TwinkleBear/tray_rust)
