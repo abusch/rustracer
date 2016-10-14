@@ -1,0 +1,8 @@
+image: jimmycuadra/rust:latest
+
+pipelines:
+  branches:
+    master:
+      - step:
+        script:
+          - echo "Build project"; cargo build --release
