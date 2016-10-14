@@ -1,7 +1,8 @@
 image: jimmycuadra/rust
+
 pipelines:
   branches:
     master:
       - step:
-        script:
-          - echo "Build project"; cargo build --release
+          script:
+            - echo "Build project"; cargo build --release
