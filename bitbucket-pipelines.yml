@@ -1,4 +1,4 @@
-image: jimmycuadra/rust:latest
+image: jimmycuadra/rust
 
 pipelines:
   branches:
