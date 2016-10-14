@@ -19,17 +19,26 @@ use rt::integrator::{Integrator, Whitted, AmbientOcclusion};
 use rt::{Point, Vector, Transform};
 use rt::renderer;
 
-const USAGE: &'static str = "
+const USAGE: &'static str =
+    "
 Toy Ray-Tracer in Rust
 
 Usage:
   rustracer [options]
 
 Options:
-  -o <file>, --output=<file>                  Output file name [default: image.png]
-  -t N, --threads=N                           Number of worker threads to start [default: 8]
-  -i <integrator>, --integrator=<integrator>  Integrator to use [default: whitted].
-                                              Valid values: whitted, ao.
+  -o <file>, --output=<file>                  \
+     Output file name [default: image.png]
+  -t N, --threads=N                           Number \
+     of worker threads to start [default: 8]
+  -i <integrator>, --integrator=<integrator>  \
+     Integrator to use [default: whitted].
+                                              Valid \
+     values: whitted, ao.
+  --whitted-max-ray-depth=N                   Maximum ray depth for \
+     Whitted integrator. [default: 8]
+  --ao-samples=N                              Number of \
+     samples for ambient occlusion integrator [default: 16]
 ";
 
 #[derive(RustcDecodable)]
@@ -37,6 +46,8 @@ struct Args {
     flag_output: String,
     flag_threads: usize,
     flag_integrator: IntegratorType,
+    flag_whitted_max_ray_depth: u8,
+    flag_ao_samples: usize,
 }
 
 #[derive(RustcDecodable)]
@@ -55,8 +66,16 @@ fn main() {
     let dim = (800, 480);
     let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
     let integrator: Box<Integrator + Send + Sync> = match args.flag_integrator {
-        IntegratorType::Whitted => Box::new(Whitted::new(8)),
-        IntegratorType::Ao => Box::new(AmbientOcclusion::new(32, f32::INFINITY)),
+        IntegratorType::Whitted => {
+            println!("Using Whitted integrator with max ray depth of {}",
+                     args.flag_whitted_max_ray_depth);
+            Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
+        }
+        IntegratorType::Ao => {
+            println!("Using Ambient Occlusion integrator with {} samples",
+                     args.flag_ao_samples);
+            Box::new(AmbientOcclusion::new(args.flag_ao_samples, f32::INFINITY))
+        }
     };
 
     let mut scene = Scene::new(camera, integrator);
