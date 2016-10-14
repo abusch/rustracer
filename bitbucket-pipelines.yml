@@ -1,5 +1,4 @@
 image: jimmycuadra/rust
-
 pipelines:
   branches:
     master:
