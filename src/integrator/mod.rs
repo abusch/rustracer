@@ -4,9 +4,11 @@ use colour::Colourf;
 
 mod whitted;
 mod ao;
+mod normal;
 
 pub use self::whitted::Whitted;
 pub use self::ao::AmbientOcclusion;
+pub use self::normal::Normal;
 
 pub trait Integrator {
     fn illumination(&self, scene: &Scene, ray: &mut Ray) -> Colourf;

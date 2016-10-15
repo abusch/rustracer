@@ -15,7 +15,7 @@ use docopt::Docopt;
 use rt::scene::Scene;
 use rt::colour::Colourf;
 use rt::camera::Camera;
-use rt::integrator::{Integrator, Whitted, AmbientOcclusion};
+use rt::integrator::{Integrator, Whitted, AmbientOcclusion, Normal};
 use rt::{Point, Vector, Transform};
 use rt::renderer;
 
@@ -34,7 +34,7 @@ Options:
   -i <integrator>, --integrator=<integrator>  \
      Integrator to use [default: whitted].
                                               Valid \
-     values: whitted, ao.
+     values: whitted, ao, normal.
   --whitted-max-ray-depth=N                   Maximum ray depth for \
      Whitted integrator. [default: 8]
   --ao-samples=N                              Number of \
@@ -54,6 +54,7 @@ struct Args {
 enum IntegratorType {
     Whitted,
     Ao,
+    Normal,
 }
 
 fn main() {
@@ -76,6 +77,10 @@ fn main() {
                      args.flag_ao_samples);
             Box::new(AmbientOcclusion::new(args.flag_ao_samples, f32::INFINITY))
         }
+        IntegratorType::Normal => {
+            println!("Using normal facing ratio integrator");
+            Box::new(Normal {})
+        }
     };
 
     let mut scene = Scene::new(camera, integrator);
@@ -92,11 +97,16 @@ fn main() {
     //                   0.0,
     //                   0.0,
     //                   Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
-    scene.push_mesh(Path::new("models/smooth_suzanne.obj"),
-                    "Suzanne",
-                    Transform::new(Vector::new(2.0, height, -15.0),
+    scene.push_mesh(Path::new("models/bunny.obj"),
+                    "bunny",
+                    Transform::new(Vector::new(1.0, 2.0, -15.0),
                                    Vector::new(0.0, 0.0, 0.0),
-                                   4.0));
+                                   2.0));
+    scene.push_mesh(Path::new("models/gargoyle.obj"),
+                    "Gargoyle",
+                    Transform::new(Vector::new(4.0, 1.0, -10.0),
+                                   Vector::new(0.0, -FRAC_PI_2, 0.0),
+                                   2.0));
     // scene.push_sphere(3.0,
     //                   Colourf::rgb(0.65, 0.77, 0.97),
     //                   0.0,
