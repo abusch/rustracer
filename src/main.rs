@@ -1,6 +1,5 @@
 extern crate nalgebra as na;
 extern crate rustracer as rt;
-extern crate chrono;
 extern crate docopt;
 extern crate rustc_serialize;
 extern crate num_cpus;
@@ -10,7 +9,6 @@ use std::path::Path;
 use std::sync::Arc;
 use std::num::ParseIntError;
 use na::zero;
-use chrono::*;
 use docopt::Docopt;
 
 use rt::{Point, Vector, Transform, Dim};
@@ -90,16 +88,15 @@ fn main() {
 
     let scene = bunny_buddah(dim, &args);
 
-    let duration = Duration::span(|| {
-        renderer::render(Arc::new(scene),
-                         dim,
-                         &args.flag_output,
-                         args.flag_threads.unwrap_or(num_cpus::get()),
-                         args.flag_spp,
-                         args.flag_block_size)
-    });
-    let stats = rt::stats::get_stats();
-    println!("Render time                : {}", duration);
+    let start_time = std::time::Instant::now();
+    let stats = renderer::render(Arc::new(scene),
+                                 dim,
+                                 &args.flag_output,
+                                 args.flag_threads.unwrap_or(num_cpus::get()),
+                                 args.flag_spp,
+                                 args.flag_block_size);
+    let duration = start_time.elapsed();
+    println!("Render time                : {}", duration.human_display());
     println!("Primary rays               : {}", stats.primary_rays);
     println!("Secondary rays             : {}", stats.secondary_rays);
     println!("Num triangles              : {}", stats.triangles);
@@ -161,4 +158,26 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0))));
 
     Scene::new(camera, integrator, &mut objs, lights)
+}
+
+
+trait HumanDisplay {
+    fn human_display(&self) -> String;
+}
+impl HumanDisplay for std::time::Duration {
+    fn human_display(&self) -> String {
+        let mut hours = 0;
+        let mut minutes = 0;
+        let mut seconds = self.as_secs();
+        if seconds >= 60 {
+            seconds = seconds % 60;
+            minutes = seconds / 60;
+        }
+        if minutes >= 60 {
+            minutes = minutes % 60;
+            hours = minutes / 60;
+        }
+        let millis = self.subsec_nanos() / 1000000;
+        format!("{}:{}:{}.{}", hours, minutes, seconds, millis)
+    }
 }

@@ -95,7 +95,7 @@ impl MeshTriangle {
     ///  Moller-Trumbore intersection algorithm
     ///  See http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
     fn intersect_mt(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
-        // stats::inc_triangle_test();
+        stats::inc_triangle_test();
         let v0 = self.p[self.a];
         let v1 = self.p[self.b];
         let v2 = self.p[self.c];
@@ -141,7 +141,7 @@ impl MeshTriangle {
         let uv = w * ta + u * tb + v * tc;
         let texcoord = TextureCoordinate { u: uv.x, v: uv.y };
 
-        // stats::inc_triangle_isect();
+        stats::inc_triangle_isect();
         Some(DifferentialGeometry::new(ray.at(ray.t_max), nhit, texcoord, self))
     }
 }
