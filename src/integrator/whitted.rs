@@ -84,7 +84,6 @@ impl Integrator for Whitted {
             let n = intersection.dg.nhit;
             let p = intersection.dg.phit;
 
-            // colour += Colourf::grey(w_o.dot(&n));
             if mat.reflection == 0.0 && mat.transparency == 0.0 {
                 // Diffuse material
                 for light in &scene.lights {
@@ -113,7 +112,8 @@ impl Integrator for Whitted {
                     // refraction
                     let refr_dir = refract(&ray.dir, &n, 1.5);
                     let mut refr_ray = ray.spawn(p - bias, refr_dir);
-                    colour += self.illumination(scene, &mut refr_ray) * (1.0 - kr);
+                    let refr = self.illumination(scene, &mut refr_ray) * (1.0 - kr);
+                    colour += refr;
                 }
                 // Reflection
                 let mut refl_ray = ray.spawn(p + bias, reflect(&ray.dir, &n));
@@ -122,7 +122,6 @@ impl Integrator for Whitted {
             }
 
         } else {
-            // return Colourf::rgb(0.0, 0.0, 0.5);
             return scene.atmosphere.compute_incident_light(ray);
         }
 

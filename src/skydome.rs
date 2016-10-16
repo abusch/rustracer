@@ -76,6 +76,7 @@ impl Atmosphere {
                 let phase_m = 3.0 / (8.0 * PI) * ((1.0 - self.g * self.g) * (1.0 + mu * mu)) /
                               ((2.0 + self.g * self.g) *
                                (1.0 + self.g * self.g - 2.0 * self.g * mu).powf(1.5));
+
                 for _ in 0..num_samples {
                     let sample_position = r.at(t_current + 0.5 * segment_length);
                     let height = sample_position.to_vector().norm() - self.radius_earth;

@@ -48,6 +48,14 @@ impl Colourf {
         }
         srgb
     }
+
+    pub fn is_nan(&self) -> bool {
+        self.r.is_nan() || self.g.is_nan() || self.b.is_nan()
+    }
+
+    pub fn is_infinite(&self) -> bool {
+        self.r.is_infinite() || self.g.is_infinite() || self.b.is_infinite()
+    }
 }
 
 impl Add<Colourf> for Colourf {

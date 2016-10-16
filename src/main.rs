@@ -97,16 +97,21 @@ fn main() {
     //                   0.0,
     //                   0.0,
     //                   Transform::new(Vector::new(5.0, height - 1.0, -15.0), zero(), 1.0));
-    scene.push_mesh(Path::new("models/bunny.obj"),
-                    "bunny",
-                    Transform::new(Vector::new(1.0, 2.0, -15.0),
-                                   Vector::new(0.0, 0.0, 0.0),
-                                   2.0));
-    scene.push_mesh(Path::new("models/gargoyle.obj"),
-                    "Gargoyle",
-                    Transform::new(Vector::new(4.0, 1.0, -10.0),
-                                   Vector::new(0.0, -FRAC_PI_2, 0.0),
-                                   2.0));
+    // scene.push_mesh(Path::new("models/bunny.obj"),
+    //                 "bunny",
+    //                 Transform::new(Vector::new(1.0, 2.0, -15.0),
+    //                                Vector::new(0.0, 0.0, 0.0),
+    //                                2.0));
+    // scene.push_mesh(Path::new("models/gargoyle.obj"),
+    //                 "Gargoyle",
+    //                 Transform::new(Vector::new(4.0, 1.0, -10.0),
+    //                                Vector::new(0.0, -FRAC_PI_2, 0.0),
+    //                                2.0));
+    scene.push_mesh(Path::new("models/lucy.obj"),
+                    "lucy",
+                    Transform::new(Vector::new(4.0, 5.0, -10.0),
+                                   Vector::new(FRAC_PI_2, 0.0, 0.0),
+                                   4.0));
     // scene.push_sphere(3.0,
     //                   Colourf::rgb(0.65, 0.77, 0.97),
     //                   0.0,
