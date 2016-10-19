@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate approx;
 extern crate image as img;
 extern crate nalgebra as na;
 extern crate rand;

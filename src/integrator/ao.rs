@@ -11,15 +11,11 @@ use na::Dot;
 
 pub struct AmbientOcclusion {
     n_samples: usize,
-    max_dist: f32,
 }
 
 impl AmbientOcclusion {
-    pub fn new(n_samples: usize, max_dist: f32) -> AmbientOcclusion {
-        AmbientOcclusion {
-            n_samples: n_samples,
-            max_dist: max_dist,
-        }
+    pub fn new(n_samples: usize) -> AmbientOcclusion {
+        AmbientOcclusion { n_samples: n_samples }
     }
 }
 

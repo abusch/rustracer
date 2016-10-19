@@ -5,7 +5,6 @@ extern crate docopt;
 extern crate rustc_serialize;
 
 use std::f32::consts::*;
-use std::f32;
 use std::path::Path;
 use std::sync::Arc;
 use na::zero;
@@ -64,8 +63,8 @@ fn main() {
         .unwrap_or_else(|e| e.exit());
 
     // let dim = (1216, 1088);
-    let dim = (800, 480);
-    let camera = Camera::new(Point::new(0.0, 4.0, 0.0), dim, 50.0);
+    let dim = (800, 600);
+    let camera = Camera::new(Point::new(0.0, 4.0, 3.0), dim, 50.0);
     let integrator: Box<Integrator + Send + Sync> = match args.flag_integrator {
         IntegratorType::Whitted => {
             println!("Using Whitted integrator with max ray depth of {}",
@@ -75,7 +74,7 @@ fn main() {
         IntegratorType::Ao => {
             println!("Using Ambient Occlusion integrator with {} samples",
                      args.flag_ao_samples);
-            Box::new(AmbientOcclusion::new(args.flag_ao_samples, f32::INFINITY))
+            Box::new(AmbientOcclusion::new(args.flag_ao_samples))
         }
         IntegratorType::Normal => {
             println!("Using normal facing ratio integrator");
@@ -102,16 +101,16 @@ fn main() {
     //                 Transform::new(Vector::new(1.0, 2.0, -15.0),
     //                                Vector::new(0.0, 0.0, 0.0),
     //                                2.0));
-    // scene.push_mesh(Path::new("models/gargoyle.obj"),
-    //                 "Gargoyle",
-    //                 Transform::new(Vector::new(4.0, 1.0, -10.0),
-    //                                Vector::new(0.0, -FRAC_PI_2, 0.0),
-    //                                2.0));
-    scene.push_mesh(Path::new("models/lucy.obj"),
-                    "lucy",
-                    Transform::new(Vector::new(4.0, 5.0, -10.0),
-                                   Vector::new(FRAC_PI_2, 0.0, 0.0),
-                                   4.0));
+    scene.push_mesh(Path::new("models/buddha.obj"),
+                    "buddha",
+                    Transform::new(Vector::new(4.0, 6.0, -15.0),
+                                   Vector::new(0.0, PI, 0.0),
+                                   10.0));
+    // scene.push_mesh(Path::new("models/lucy.obj"),
+    //                 "lucy",
+    //                 Transform::new(Vector::new(4.0, 5.0, -10.0),
+    //                                Vector::new(FRAC_PI_2, 0.0, 0.0),
+    //                                4.0));
     // scene.push_sphere(3.0,
     //                   Colourf::rgb(0.65, 0.77, 0.97),
     //                   0.0,
@@ -129,8 +128,8 @@ fn main() {
                      0.0,
                      0.0,
                      Transform::new(Vector::new(0.0, height - 4.0, 0.0),
-                                    Vector::new(-FRAC_PI_2, 0.0, 0.0),
-                                    1.0));
+                                    Vector::new(FRAC_PI_2, 0.0, 0.0),
+                                    10.0));
     // Light
     // scene.push_sphere(Point::new( 0.0,     20.0, -30.0),     3.0, Colourf::black(),               Some(Colourf::rgb(3.0, 3.0, 3.0)), 0.0, 0.0);
     scene.push_point_light(Point::new(-10.0, 10.0, -5.0),

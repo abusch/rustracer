@@ -29,8 +29,7 @@ impl Instance {
         let mut local = self.transform_inv * *ray;
         self.geom.intersect(&mut local).map(|mut dg| {
             ray.t_max = local.t_max;
-            dg.phit = self.transform * dg.phit;
-            dg.nhit = self.transform * dg.nhit;
+            dg.transform(self.transform, self.transform_inv);
             Intersection::new(dg, self)
         })
     }

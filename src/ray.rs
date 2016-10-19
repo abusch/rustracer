@@ -2,7 +2,6 @@ use {Vector, Point, Transform};
 use stats;
 use std::f32::INFINITY;
 use std::ops::Mul;
-use na::Norm;
 
 const BIAS: f32 = 1e-4;
 
@@ -49,7 +48,7 @@ impl Mul<Ray> for Transform {
     fn mul(self, rhs: Ray) -> Ray {
         let mut new_ray = rhs;
         new_ray.origin = self * rhs.origin;
-        new_ray.dir = (self * rhs.dir).normalize();
+        new_ray.dir = self * rhs.dir;
 
         new_ray
     }
