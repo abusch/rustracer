@@ -13,7 +13,7 @@ use ray::Ray;
 use na::{Vector2, Norm, Dot, Cross};
 
 pub struct Mesh {
-    // pub tris: Vec<MeshTriangle>,
+    // pub tris: Vec<Arc<MeshTriangle>>,
     bvh: BVH<MeshTriangle>,
     pub bbox: BBox,
 }
@@ -66,6 +66,7 @@ impl Mesh {
 
         Mesh {
             bvh: BVH::new(16, tris),
+            // tris: tris,
             bbox: bbox,
         }
     }
@@ -73,11 +74,12 @@ impl Mesh {
 
 impl Geometry for Mesh {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
+        // self.tris.iter().fold(None, |r, t| t.intersect(ray).or(r))
         self.bvh.intersect(ray)
     }
 }
 
-struct MeshTriangle {
+pub struct MeshTriangle {
     a: usize,
     b: usize,
     c: usize,
@@ -86,10 +88,10 @@ struct MeshTriangle {
     t: Arc<Vec<Vector2<f32>>>,
 }
 
-impl Geometry for MeshTriangle {
-    //  Moller-Trumbore intersection algorithm
-    //  See http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
-    fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
+impl MeshTriangle {
+    ///  Moller-Trumbore intersection algorithm
+    ///  See http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+    fn intersect_mt(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
         // stats::inc_triangle_test();
         let v0 = self.p[self.a];
         let v1 = self.p[self.b];
@@ -99,29 +101,24 @@ impl Geometry for MeshTriangle {
         let pvec = ray.dir.cross(&edge2);
         let det = edge1.dot(&pvec);
 
-        // Back face culling
-        if det < 1e-6 {
+        if det.abs() == 0.0 {
             return None;
         }
+        let inv_det = 1.0 / det;
 
         let tvec = ray.origin - v0;
-        let mut u = tvec.dot(&pvec);
-        if u < 0.0 || u > det {
+        let u = tvec.dot(&pvec) * inv_det;
+        if u < 0.0 || u > 1.0 {
             return None;
         }
 
         let qvec = tvec.cross(&edge1);
-        let mut v = ray.dir.dot(&qvec);
-        if v < 0.0 || u + v > det {
+        let v = ray.dir.dot(&qvec) * inv_det;
+        if v < 0.0 || u + v > 1.0 {
             return None;
         }
 
-        let mut t = edge2.dot(&qvec);
-        let inv_det = 1.0 / det;
-
-        t *= inv_det;
-        u *= inv_det;
-        v *= inv_det;
+        let t = edge2.dot(&qvec) * inv_det;
 
         if t < ray.t_min || t > ray.t_max {
             return None;
@@ -143,6 +140,12 @@ impl Geometry for MeshTriangle {
 
         // stats::inc_triangle_isect();
         Some(DifferentialGeometry::new(ray.at(ray.t_max), nhit, texcoord, self))
+    }
+}
+
+impl Geometry for MeshTriangle {
+    fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
+        self.intersect_mt(ray)
     }
 }
 
