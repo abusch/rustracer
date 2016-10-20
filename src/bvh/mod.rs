@@ -177,7 +177,7 @@ impl<T: Bounded + Geometry> Geometry for BVH<T> {
         let dir_is_neg =
             [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
         loop {
-            let ref linear_node = self.nodes[current_node_idx];
+            let linear_node = &self.nodes[current_node_idx];
             if linear_node.bounds.intersect_p(ray, &inv_dir, &dir_is_neg) {
                 match linear_node.data {
                     LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {

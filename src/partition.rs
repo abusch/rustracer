@@ -1,4 +1,4 @@
-//! Note: this file is "stolen" from [tray_rust](https://github.com/TwinkleBear/tray_rust)
+//! Note: this file is "stolen" from [`tray_rust`](https://github.com/TwinkleBear/tray_rust)
 //! Provides a general partitioning function that implements C++'s
 //! [`std::partition`](http://en.cppreference.com/w/cpp/algorithm/partition)
 use std::mem;
