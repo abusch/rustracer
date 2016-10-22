@@ -49,7 +49,7 @@ impl Colourf {
         srgb
     }
 
-    pub fn is_nan(&self) -> bool {
+    pub fn has_nan(&self) -> bool {
         self.r.is_nan() || self.g.is_nan() || self.b.is_nan()
     }
 
