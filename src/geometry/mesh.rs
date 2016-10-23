@@ -61,7 +61,7 @@ impl Mesh {
 
         let mut bbox = BBox::new();
         for p in &*positions {
-            bbox.extend(p);
+            bbox.extend(*p);
         }
 
         Mesh {
@@ -76,6 +76,12 @@ impl Geometry for Mesh {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
         // self.tris.iter().fold(None, |r, t| t.intersect(ray).or(r))
         self.bvh.intersect(ray)
+    }
+}
+
+impl Bounded for Mesh {
+    fn get_world_bounds(&self) -> BBox {
+        self.bbox
     }
 }
 
@@ -152,9 +158,9 @@ impl Geometry for MeshTriangle {
 impl Bounded for MeshTriangle {
     fn get_world_bounds(&self) -> BBox {
         let mut bbox = BBox::new();
-        bbox.extend(&self.p[self.a]);
-        bbox.extend(&self.p[self.b]);
-        bbox.extend(&self.p[self.c]);
+        bbox.extend(self.p[self.a]);
+        bbox.extend(self.p[self.b]);
+        bbox.extend(self.p[self.c]);
 
         bbox
     }

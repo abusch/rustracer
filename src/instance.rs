@@ -1,27 +1,43 @@
+use Point;
 use Transform;
-use geometry::Geometry;
+use geometry::BoundedGeometry;
+use geometry::{BBox, Bounded};
 use ray::Ray;
 use intersection::Intersection;
 use material::Material;
 use na::Inverse;
 
 pub struct Instance {
-    pub geom: Box<Geometry + Sync + Send>,
+    pub geom: Box<BoundedGeometry + Sync + Send>,
     pub material: Material,
     pub transform: Transform,
     pub transform_inv: Transform,
+    bounds: BBox,
 }
 
 impl Instance {
-    pub fn new(g: Box<Geometry + Sync + Send>,
+    pub fn new(g: Box<BoundedGeometry + Sync + Send>,
                material: Material,
                transform: Transform)
                -> Instance {
+
+        let b = g.get_world_bounds();
+        let mut bbox = BBox::new();
+        bbox.extend(transform * Point::new(b.bounds[0].x, b.bounds[0].y, b.bounds[0].z));
+        bbox.extend(transform * Point::new(b.bounds[1].x, b.bounds[0].y, b.bounds[0].z));
+        bbox.extend(transform * Point::new(b.bounds[0].x, b.bounds[1].y, b.bounds[0].z));
+        bbox.extend(transform * Point::new(b.bounds[0].x, b.bounds[0].y, b.bounds[1].z));
+        bbox.extend(transform * Point::new(b.bounds[1].x, b.bounds[1].y, b.bounds[0].z));
+        bbox.extend(transform * Point::new(b.bounds[1].x, b.bounds[0].y, b.bounds[1].z));
+        bbox.extend(transform * Point::new(b.bounds[0].x, b.bounds[1].y, b.bounds[1].z));
+        bbox.extend(transform * Point::new(b.bounds[1].x, b.bounds[1].y, b.bounds[1].z));
+
         Instance {
             geom: g,
             material: material,
             transform: transform,
             transform_inv: transform.inverse().unwrap(),
+            bounds: bbox,
         }
     }
 
@@ -32,5 +48,11 @@ impl Instance {
             dg.transform(self.transform, self.transform_inv);
             Intersection::new(dg, self)
         })
+    }
+}
+
+impl Bounded for Instance {
+    fn get_world_bounds(&self) -> BBox {
+        self.bounds
     }
 }
