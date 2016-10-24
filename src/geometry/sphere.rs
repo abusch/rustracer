@@ -1,13 +1,15 @@
+use Point;
 use ray::Ray;
 use geometry::*;
 use na::{Norm, Dot};
 use na::clamp;
 use std::f32::consts::FRAC_1_PI;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Sphere {
     radius: f32,
     radius_2: f32,
+    bounds: BBox,
 }
 
 fn solve_quadratic(a: f32, b: f32, c: f32) -> Option<(f32, f32)> {
@@ -40,6 +42,7 @@ impl Sphere {
         Sphere {
             radius: r,
             radius_2: r * r,
+            bounds: BBox::from_points(&Point::new(-r, -r, -r), &Point::new(r, r, r)),
         }
     }
 
@@ -84,5 +87,11 @@ impl Geometry for Sphere {
             Some(DifferentialGeometry::new(phit, nhit, TextureCoordinate { u: u, v: v }, self))
         })
 
+    }
+}
+
+impl Bounded for Sphere {
+    fn get_world_bounds(&self) -> BBox {
+        self.bounds
     }
 }

@@ -1,11 +1,6 @@
 use {Vector, Point, Transform};
 use ray::Ray;
-use na::Norm;
-use na::ToHomogeneous;
-use na::FromHomogeneous;
-use na::Transpose;
-use na::Matrix3;
-use na::Matrix4;
+use na::{Norm, Dot, ToHomogeneous, FromHomogeneous, Transpose, Matrix3, Matrix4, Inverse};
 
 pub use self::bbox::*;
 pub use self::sphere::*;
@@ -61,6 +56,9 @@ fn transform_normal(normal: &Vector, transform: &Transform) -> Vector {
     let m_transp = m.transpose();
     *normal * m_transp
 }
+
+pub trait BoundedGeometry: Geometry + Bounded {}
+impl<T> BoundedGeometry for T where T: Geometry + Bounded {}
 
 #[test]
 fn test_normal_transform() {

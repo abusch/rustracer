@@ -23,6 +23,12 @@ impl BBox {
         BBox { bounds: [*point, *point] }
     }
 
+    pub fn from_points(min: &Point, max: &Point) -> BBox {
+        assert!(min.x <= max.x && min.y <= max.y && min.z <= max.z,
+                "Invalid bounds");
+        BBox { bounds: [*min, *max] }
+    }
+
     pub fn intersect(&self, ray: &mut Ray) -> bool {
         let invdir = Vector::new(1.0 / ray.dir.x, 1.0 / ray.dir.y, 1.0 / ray.dir.z);
         let sign =
@@ -63,7 +69,7 @@ impl BBox {
         tmin < ray.t_max && tmax > ray.t_min
     }
 
-    pub fn extend(&mut self, p: &Point) {
+    pub fn extend(&mut self, p: Point) {
         if p.x < self.bounds[0].x {
             self.bounds[0].x = p.x
         }
@@ -109,7 +115,7 @@ impl BBox {
 
     pub fn union_point(bbox: &BBox, p: &Point) -> BBox {
         let mut b = *bbox;
-        b.extend(p);
+        b.extend(*p);
         b
     }
 }

@@ -12,11 +12,15 @@ use na::zero;
 use chrono::*;
 use docopt::Docopt;
 
+use rt::{Point, Vector, Transform};
 use rt::scene::Scene;
 use rt::colour::Colourf;
 use rt::camera::Camera;
+use rt::geometry::*;
+use rt::instance::Instance;
 use rt::integrator::{Integrator, Whitted, AmbientOcclusion, Normal};
-use rt::{Point, Vector, Transform};
+use rt::light::{Light, PointLight, DistantLight};
+use rt::material::Material;
 use rt::renderer;
 
 const USAGE: &'static str =
@@ -101,19 +105,26 @@ fn main() {
         }
     };
 
-    let mut scene = Scene::new(camera, integrator);
+    let mut objs = Vec::new();
+    let mut lights: Vec<Box<Light + Send + Sync>> = Vec::new();
     let height = 5.0;
 
-    scene.push_mesh(Path::new("models/bunny.obj"),
-                    "bunny",
-                    Transform::new(Vector::new(1.0, 2.0, -15.0),
-                                   Vector::new(0.0, 0.0, 0.0),
-                                   2.0));
-    scene.push_mesh(Path::new("models/buddha.obj"),
-                    "buddha",
-                    Transform::new(Vector::new(6.0, 6.0, -15.0),
-                                   Vector::new(0.0, PI, 0.0),
-                                   10.0));
+    {
+        let mesh = Mesh::load(Path::new("models/bunny.obj"), "bunny");
+        objs.push(Instance::new(Box::new(mesh),
+                                Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0),
+                                Transform::new(Vector::new(1.0, 2.0, -15.0),
+                                               Vector::new(0.0, 0.0, 0.0),
+                                               2.0)));
+    }
+    {
+        let mesh = Mesh::load(Path::new("models/buddha.obj"), "buddha");
+        objs.push(Instance::new(Box::new(mesh),
+                                Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0),
+                                Transform::new(Vector::new(6.0, 6.0, -15.0),
+                                               Vector::new(0.0, PI, 0.0),
+                                               10.0)));
+    }
     // scene.push_mesh(Path::new("models/lucy.obj"),
     //                 "lucy",
     //                 Transform::new(Vector::new(4.0, 5.0, -10.0),
@@ -124,21 +135,20 @@ fn main() {
     //                   0.0,
     //                   0.0,
     //                   Transform::new(Vector::new(5.0, height, -25.0), zero(), 1.0));
-    scene.push_sphere(3.0,
-                      Colourf::rgb(0.90, 0.90, 0.90),
-                      1.0,
-                      1.0,
-                      Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0));
-    scene.push_plane(Colourf::rgb(1.0, 1.0, 1.0),
-                     0.0,
-                     0.0,
-                     Transform::new(Vector::new(0.0, height - 4.0, 0.0),
-                                    Vector::new(FRAC_PI_2, 0.0, 0.0),
-                                    10.0));
+    objs.push(Instance::new(Box::new(Sphere::new(3.0)),
+                            Material::new(Colourf::rgb(0.90, 0.90, 0.90), 1.0, 1.0),
+                            Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0)));
+    objs.push(Instance::new(Box::new(Plane),
+                            Material::new(Colourf::rgb(1.0, 1.0, 1.0), 0.0, 0.0),
+                            Transform::new(Vector::new(0.0, height - 4.0, 0.0),
+                                           Vector::new(FRAC_PI_2, 0.0, 0.0),
+                                           20.0)));
     // Light
-    scene.push_point_light(Point::new(-10.0, 10.0, -5.0),
-                           Colourf::rgb(3000.0, 2000.0, 2000.0));
-    scene.push_distant_light(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0));
+    lights.push(Box::new(PointLight::new(Point::new(-10.0, 10.0, -5.0),
+                                         Colourf::rgb(3000.0, 2000.0, 2000.0))));
+    lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0))));
+
+    let scene = Scene::new(camera, integrator, &mut objs, lights);
 
     let duration = Duration::span(|| {
         renderer::render(Arc::new(scene),
