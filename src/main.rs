@@ -148,7 +148,7 @@ fn main() {
                                          Colourf::rgb(3000.0, 2000.0, 2000.0))));
     lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0))));
 
-    let scene = Scene::new(camera, integrator, objs, lights);
+    let scene = Scene::new(camera, integrator, &mut objs, lights);
 
     let duration = Duration::span(|| {
         renderer::render(Arc::new(scene),

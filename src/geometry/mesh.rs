@@ -13,7 +13,6 @@ use ray::Ray;
 use na::{Vector2, Norm, Dot, Cross};
 
 pub struct Mesh {
-    // pub tris: Vec<Arc<MeshTriangle>>,
     bvh: BVH<MeshTriangle>,
     pub bbox: BBox,
 }
@@ -43,19 +42,19 @@ impl Mesh {
             .map(|t| Vector2::new(t[0], t[1]))
             .collect());
 
-        let tris = model.mesh
+        let mut tris = model.mesh
             .indices
             .chunks(3)
             .map(|i| {
                 stats::inc_num_triangles();
-                Arc::new(MeshTriangle {
+                MeshTriangle {
                     a: i[0] as usize,
                     b: i[1] as usize,
                     c: i[2] as usize,
                     p: positions.clone(),
                     n: normals.clone(),
                     t: uv.clone(),
-                })
+                }
             })
             .collect();
 
@@ -65,8 +64,7 @@ impl Mesh {
         }
 
         Mesh {
-            bvh: BVH::new(16, tris),
-            // tris: tris,
+            bvh: BVH::new(16, &mut tris),
             bbox: bbox,
         }
     }
@@ -74,8 +72,7 @@ impl Mesh {
 
 impl Geometry for Mesh {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
-        // self.tris.iter().fold(None, |r, t| t.intersect(ray).or(r))
-        self.bvh.intersect(ray)
+        self.bvh.intersect(ray, |r, tri| tri.intersect(r))
     }
 }
 

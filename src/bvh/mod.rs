@@ -1,20 +1,19 @@
-use std::sync::Arc;
 use std::cmp::min;
 use std::mem::replace;
 
 use ::{Point, Vector};
-use geometry::{Axis, Geometry, BBox, Bounded, DifferentialGeometry};
+use geometry::{Axis, BBox, Bounded};
 use partition;
 use ray::Ray;
 
-pub struct BVH<T: Bounded + Geometry> {
+pub struct BVH<T: Bounded> {
     max_prims_per_node: usize,
-    primitives: Vec<Arc<T>>,
+    primitives: Vec<T>,
     nodes: Vec<LinearBVHNode>,
 }
 
-impl<T: Bounded + Geometry> BVH<T> {
-    pub fn new(max_prims_per_node: usize, prims: Vec<Arc<T>>) -> BVH<T> {
+impl<T: Bounded> BVH<T> {
+    pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
         println!("Generating BVH...");
 
         // 1. Get bounds info
@@ -25,22 +24,31 @@ impl<T: Bounded + Geometry> BVH<T> {
             .collect();
 
         // 2. Build tree
-        println!("\tBuilding tree...");
+        println!("\tBuilding tree for {} primitives...", prims.len());
         let mut total_nodes = 0;
-        let mut ordered_prims = Vec::with_capacity(prims.len());
+        let mut ordered_prims_idx = Vec::with_capacity(prims.len());
         let root: BVHBuildNode = BVH::<T>::recursive_build(&mut build_data,
                                                            0usize,
                                                            prims.len(),
                                                            max_prims_per_node,
                                                            &mut total_nodes,
-                                                           &mut ordered_prims);
-        let mut ordered_primitives = Vec::with_capacity(prims.len());
-        for i in ordered_prims {
-            ordered_primitives.push(prims[i].clone());
-        }
-        assert!(prims.len() == ordered_primitives.len());
+                                                           &mut ordered_prims_idx);
+
+        // Sort the primitives according to the indices in ordered_prims_idx. This is made tricky
+        // due to the fact that a vector owns its elements, which means we can't easily move
+        // elements from one vector to another. We have to use drain() instead. Also, zip() and
+        // enumerate() are defined on Iterator, and sort_by_key() is defined on Vector, causing a
+        // lot of iter()/collect() shennanigans...
+        let mut sorted_idx: Vec<(usize, &usize)> = ordered_prims_idx.iter().enumerate().collect();
+        sorted_idx.sort_by_key(|i| i.1);
+
+        let mut prims_with_idx: Vec<(T, usize)> =
+            prims.drain(..).zip(sorted_idx.iter().map(|i| i.0)).collect();
+        prims_with_idx.sort_by_key(|i| i.1);
+        let ordered_prims: Vec<T> = prims_with_idx.drain(..).map(|i| i.0).collect();
 
         println!("\tCreated {} nodes", total_nodes);
+        println!("\tOrdered {} primitives", ordered_prims.len());
 
         // 3. Build flatten representation
         println!("\tFlattening tree");
@@ -50,7 +58,7 @@ impl<T: Bounded + Geometry> BVH<T> {
 
         BVH {
             max_prims_per_node: min(max_prims_per_node, 255),
-            primitives: ordered_primitives,
+            primitives: ordered_prims,
             nodes: nodes,
         }
     }
@@ -161,10 +169,10 @@ impl<T: Bounded + Geometry> BVH<T> {
 
         offset
     }
-}
 
-impl<T: Bounded + Geometry> Geometry for BVH<T> {
-    fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
+    pub fn intersect<'a, R, F>(&'a self, ray: &mut Ray, f: F) -> Option<R>
+        where F: Fn(&mut Ray, &'a T) -> Option<R>
+    {
         if self.nodes.is_empty() {
             return None;
         }
@@ -182,10 +190,10 @@ impl<T: Bounded + Geometry> Geometry for BVH<T> {
                 match linear_node.data {
                     LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
                         for i in 0..num_prims {
-                            if let Some(isect) = self.primitives[primitives_offset + i]
-                                .intersect(ray) {
-                                result = Some(isect);
-                            }
+                            result = f(ray, &self.primitives[primitives_offset + i]).or(result);
+                            // if let Some(isect) = f(ray, &self.primitives[primitives_offset + i]) {
+                            //     result = Some(isect);
+                            // }
                         }
                         if to_visit_offset == 0 {
                             break;
@@ -222,6 +230,7 @@ impl<T: Bounded + Geometry> Geometry for BVH<T> {
         result
     }
 }
+
 
 struct BVHPrimitiveInfo {
     pub prim_number: usize,
