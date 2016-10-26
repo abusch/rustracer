@@ -48,7 +48,7 @@ impl Sphere {
 
     pub fn intersect_sphere(&self, ray: &Ray) -> Option<(f32, f32)> {
         let l = ray.origin.to_vector();
-        let a = ray.dir.dot(&ray.dir); // 1.0;
+        let a = ray.dir.dot(&ray.dir);
         let b = 2.0 * ray.dir.dot(&l);
         let c = l.dot(&l) - self.radius_2;
 
