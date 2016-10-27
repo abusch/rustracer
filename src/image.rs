@@ -65,7 +65,7 @@ impl Image {
     }
 
     pub fn add_sample(&mut self, x: f32, y: f32, colour: Colourf) {
-        if (colour.has_nan()) {
+        if colour.has_nan() {
             println!("WARN: colour has NaNs! Ignoring");
             return;
         }

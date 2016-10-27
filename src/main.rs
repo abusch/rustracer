@@ -3,6 +3,7 @@ extern crate rustracer as rt;
 extern crate chrono;
 extern crate docopt;
 extern crate rustc_serialize;
+extern crate num_cpus;
 
 use std::f32::consts::*;
 use std::path::Path;
@@ -35,7 +36,7 @@ Options:
   -o <file>, --output=<file>                  \
      Output file name [default: image.png].
   -t N, --threads=N                           Number \
-     of worker threads to start [default: 8].
+     of worker threads to start.
   -d <dim>, --dimension=<dim>                 \
      Dimension of the output image [default: 800x600].
   --spp N                                     \
@@ -55,7 +56,7 @@ Options:
 #[derive(RustcDecodable)]
 struct Args {
     flag_output: String,
-    flag_threads: usize,
+    flag_threads: Option<usize>,
     flag_integrator: IntegratorType,
     flag_whitted_max_ray_depth: u8,
     flag_ao_samples: usize,
@@ -154,7 +155,7 @@ fn main() {
         renderer::render(Arc::new(scene),
                          dim,
                          &args.flag_output,
-                         args.flag_threads,
+                         args.flag_threads.unwrap_or(num_cpus::get()),
                          args.flag_spp,
                          args.flag_block_size)
     });
