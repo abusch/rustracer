@@ -13,7 +13,7 @@ use na::zero;
 use chrono::*;
 use docopt::Docopt;
 
-use rt::{Point, Vector, Transform};
+use rt::{Point, Vector, Transform, Dim};
 use rt::scene::Scene;
 use rt::colour::Colourf;
 use rt::camera::Camera;
@@ -88,6 +88,27 @@ fn main() {
     }
     let dim = (dims[0], dims[1]);
 
+    let scene = bunny_buddah(dim, &args);
+
+    let duration = Duration::span(|| {
+        renderer::render(Arc::new(scene),
+                         dim,
+                         &args.flag_output,
+                         args.flag_threads.unwrap_or(num_cpus::get()),
+                         args.flag_spp,
+                         args.flag_block_size)
+    });
+    let stats = rt::stats::get_stats();
+    println!("Render time                : {}", duration);
+    println!("Primary rays               : {}", stats.primary_rays);
+    println!("Secondary rays             : {}", stats.secondary_rays);
+    println!("Num triangles              : {}", stats.triangles);
+    println!("Ray-triangle tests         : {}", stats.ray_triangle_tests);
+    println!("Ray-triangle intersections : {}", stats.ray_triangle_isect);
+    println!("Fast bounding-box test     : {}", stats.fast_bbox_isect);
+}
+
+fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     let camera = Camera::new(Point::new(0.0, 4.0, 3.0), dim, 50.0);
     let integrator: Box<Integrator + Send + Sync> = match args.flag_integrator {
         IntegratorType::Whitted => {
@@ -126,16 +147,6 @@ fn main() {
                                                Vector::new(0.0, PI, 0.0),
                                                10.0)));
     }
-    // scene.push_mesh(Path::new("models/lucy.obj"),
-    //                 "lucy",
-    //                 Transform::new(Vector::new(4.0, 5.0, -10.0),
-    //                                Vector::new(FRAC_PI_2, 0.0, 0.0),
-    //                                4.0));
-    // scene.push_sphere(3.0,
-    //                   Colourf::rgb(0.65, 0.77, 0.97),
-    //                   0.0,
-    //                   0.0,
-    //                   Transform::new(Vector::new(5.0, height, -25.0), zero(), 1.0));
     objs.push(Instance::new(Box::new(Sphere::new(3.0)),
                             Material::new(Colourf::rgb(0.90, 0.90, 0.90), 1.0, 1.0),
                             Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0)));
@@ -149,22 +160,5 @@ fn main() {
                                          Colourf::rgb(3000.0, 2000.0, 2000.0))));
     lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(), Colourf::rgb(3.0, 3.0, 3.0))));
 
-    let scene = Scene::new(camera, integrator, &mut objs, lights);
-
-    let duration = Duration::span(|| {
-        renderer::render(Arc::new(scene),
-                         dim,
-                         &args.flag_output,
-                         args.flag_threads.unwrap_or(num_cpus::get()),
-                         args.flag_spp,
-                         args.flag_block_size)
-    });
-    let stats = rt::stats::get_stats();
-    println!("Render time                : {}", duration);
-    println!("Primary rays               : {}", stats.primary_rays);
-    println!("Secondary rays             : {}", stats.secondary_rays);
-    println!("Num triangles              : {}", stats.triangles);
-    println!("Ray-triangle tests         : {}", stats.ray_triangle_tests);
-    println!("Ray-triangle intersections : {}", stats.ray_triangle_isect);
-    println!("Fast bounding-box test     : {}", stats.fast_bbox_isect);
+    Scene::new(camera, integrator, &mut objs, lights)
 }
