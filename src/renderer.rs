@@ -3,22 +3,25 @@ use std::sync::Arc;
 use std::path::Path;
 use std::sync::mpsc::channel;
 
-use block_queue::BlockQueue;
+use tp::ThreadPool;
+use img;
+
 use Dim;
+use block_queue::BlockQueue;
 use colour::Colourf;
 use filter::mitchell::MitchellNetravali;
 use image::Image;
-use img;
 use sampling::{Sampler, LowDiscrepancy};
 use scene::Scene;
-use tp::ThreadPool;
+use stats;
 
 pub fn render(scene: Arc<Scene>,
               dim: Dim,
               filename: &str,
               num_threads: usize,
               spp: usize,
-              bs: usize) {
+              bs: usize)
+              -> stats::Stats {
     let mut image = Image::new(dim,
                                Box::new(MitchellNetravali::new(1.0, 1.0, 1.0 / 3.0, 1.0 / 3.0)));
 
@@ -26,10 +29,12 @@ pub fn render(scene: Arc<Scene>,
     let block_queue = Arc::new(BlockQueue::new(dim, block_size));
     println!("Rendering scene using {} threads", num_threads);
     let pool = ThreadPool::new(num_threads);
-    let (tx, rx) = channel();
+    let (pixel_tx, pixel_rx) = channel();
+    let (stats_tx, stats_rx) = channel();
     for _ in 0..num_threads {
         let scene = scene.clone();
-        let tx = tx.clone();
+        let pixel_tx = pixel_tx.clone();
+        let stats_tx = stats_tx.clone();
         let block_queue = block_queue.clone();
         pool.execute(move || {
             let mut samples = Vec::new();
@@ -47,21 +52,27 @@ pub fn render(scene: Arc<Scene>,
                             y: s.1,
                             c: sample_colour,
                         };
-                        tx.send(image_sample)
+                        pixel_tx.send(image_sample)
                             .expect(&format!("Failed to send sample {:?}", image_sample));
                     }
                 }
             }
+            stats_tx.send(stats::get_stats()).expect("Failed to send thread stats");
         });
     }
 
-    for s in rx.iter().take(block_queue.num_blocks * block_size * block_size * spp) {
+    // Write all pixels to the image
+    for s in pixel_rx.iter().take(block_queue.num_blocks * block_size * block_size * spp) {
         image.add_sample(s.x, s.y, s.c);
     }
+    // Collect all the stats from the threads
+    let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
     println!("");
     image.render();
     write_png(dim, image.buffer(), filename)
         .expect(&format!("Could not write image to file {}", filename));
+
+    global_stats
 }
 
 fn write_png(dim: Dim, image: &[Colourf], filename: &str) -> io::Result<()> {

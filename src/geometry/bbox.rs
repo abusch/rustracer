@@ -38,7 +38,7 @@ impl BBox {
     }
 
     pub fn intersect_p(&self, ray: &mut Ray, inv_dir: &Vector, dir_is_neg: &[usize; 3]) -> bool {
-        // stats::inc_fast_bbox_isect();
+        stats::inc_fast_bbox_isect();
         // Check intersection with X and Y slab
         let mut tmin = (self.bounds[dir_is_neg[0]].x - ray.origin.x) * inv_dir.x;
         let mut tmax = (self.bounds[1 - dir_is_neg[0]].x - ray.origin.x) * inv_dir.x;
