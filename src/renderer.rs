@@ -10,7 +10,7 @@ use Dim;
 use block_queue::BlockQueue;
 use colour::Colourf;
 use filter::mitchell::MitchellNetravali;
-use image::Image;
+use film::Film;
 use sampling::{Sampler, LowDiscrepancy};
 use scene::Scene;
 use stats;
@@ -22,8 +22,8 @@ pub fn render(scene: Arc<Scene>,
               spp: usize,
               bs: usize)
               -> stats::Stats {
-    let mut image = Image::new(dim,
-                               Box::new(MitchellNetravali::new(1.0, 1.0, 1.0 / 3.0, 1.0 / 3.0)));
+    let mut film = Film::new(dim,
+                             Box::new(MitchellNetravali::new(1.0, 1.0, 1.0 / 3.0, 1.0 / 3.0)));
 
     let block_size = bs;
     let block_queue = Arc::new(BlockQueue::new(dim, block_size));
@@ -47,13 +47,13 @@ pub fn render(scene: Arc<Scene>,
                     for s in &samples {
                         let mut ray = scene.camera.ray_for(s.0, s.1);
                         let sample_colour = scene.integrator.illumination(&scene, &mut ray);
-                        let image_sample = ImageSample {
+                        let film_sample = FilmSample {
                             x: s.0,
                             y: s.1,
                             c: sample_colour,
                         };
-                        pixel_tx.send(image_sample)
-                            .expect(&format!("Failed to send sample {:?}", image_sample));
+                        pixel_tx.send(film_sample)
+                            .expect(&format!("Failed to send sample {:?}", film_sample));
                     }
                 }
             }
@@ -63,13 +63,13 @@ pub fn render(scene: Arc<Scene>,
 
     // Write all pixels to the image
     for s in pixel_rx.iter().take(block_queue.num_blocks * block_size * block_size * spp) {
-        image.add_sample(s.x, s.y, s.c);
+        film.add_sample(s.x, s.y, s.c);
     }
     // Collect all the stats from the threads
     let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
     println!("");
-    image.render();
-    write_png(dim, image.buffer(), filename)
+    film.render();
+    write_png(dim, film.buffer(), filename)
         .expect(&format!("Could not write image to file {}", filename));
 
     global_stats
@@ -95,7 +95,7 @@ fn write_png(dim: Dim, image: &[Colourf], filename: &str) -> io::Result<()> {
 }
 
 #[derive(Debug, Copy, Clone)]
-struct ImageSample {
+struct FilmSample {
     x: f32,
     y: f32,
     c: Colourf,

@@ -4,7 +4,7 @@ use filter::Filter;
 
 const FILTER_SIZE: usize = 16;
 
-pub struct Image {
+pub struct Film {
     pub width: usize,
     pub height: usize,
     pixels: Vec<Colourf>,
@@ -32,8 +32,8 @@ impl PixelSample {
     }
 }
 
-impl Image {
-    pub fn new(dim: Dim, filter: Box<Filter + Sync + Send>) -> Image {
+impl Film {
+    pub fn new(dim: Dim, filter: Box<Filter + Sync + Send>) -> Film {
         let (w, h) = dim;
         let size = w as usize * h as usize;
         let filter_size = FILTER_SIZE * FILTER_SIZE;
@@ -54,7 +54,7 @@ impl Image {
             }
         }
 
-        Image {
+        Film {
             width: w,
             height: h,
             pixels: buffer,

@@ -13,7 +13,7 @@ pub mod camera;
 pub mod colour;
 pub mod filter;
 pub mod geometry;
-pub mod image;
+pub mod film;
 pub mod instance;
 pub mod integrator;
 pub mod intersection;
