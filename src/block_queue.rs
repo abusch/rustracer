@@ -12,12 +12,16 @@ pub struct Block {
 }
 
 impl Block {
-    fn new(start: (usize, usize), size: usize) -> Block {
+    pub fn new(start: (usize, usize), size: usize) -> Block {
         Block {
             start: Point2::new(start.0, start.1),
             current: Point2::new(start.0, start.1),
-            end: Point2::new(start.0 + size - 1, start.1 + size - 1),
+            end: Point2::new(start.0 + size, start.1 + size),
         }
+    }
+
+    pub fn area(&self) -> usize {
+        (self.end.x - self.start.x) * (self.end.y - self.start.y)
     }
 }
 
@@ -25,13 +29,13 @@ impl Iterator for Block {
     type Item = Point2<usize>;
 
     fn next(&mut self) -> Option<Point2<usize>> {
-        if self.current.x > self.end.x || self.current.y > self.end.y {
+        if self.current.x >= self.end.x || self.current.y >= self.end.y {
             None
         } else {
 
             let cur = self.current;
 
-            if self.current.x == self.end.x {
+            if self.current.x == self.end.x - 1 {
                 self.current.x = self.start.x;
                 self.current.y += 1;
             } else {
@@ -78,4 +82,22 @@ impl BlockQueue {
                self.num_blocks);
         io::stdout().flush().expect("Could not flush stdout");;
     }
+}
+
+#[test]
+fn test_area() {
+    let block = Block::new((12, 12), 8);
+    assert_eq!(block.area(), 64);
+}
+
+#[test]
+fn test_iter() {
+    let block = Block::new((12, 12), 8);
+    let pixels: Vec<Point2<usize>> = block.into_iter().collect();
+
+    assert_eq!(pixels.len(), 64);
+    assert_eq!(pixels[0].x, 12);
+    assert_eq!(pixels[0].y, 12);
+    assert_eq!(pixels[63].x, 19);
+    assert_eq!(pixels[63].y, 19);
 }
