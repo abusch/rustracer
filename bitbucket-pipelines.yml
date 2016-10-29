@@ -6,3 +6,4 @@ pipelines:
       - step:
           script:
             - echo "Build project"; cargo build --release
+            - echo "Running tests"; cargo test --release
