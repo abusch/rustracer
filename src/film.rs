@@ -65,15 +65,17 @@ impl Film {
             println!("WARN: colour has NaNs! Ignoring");
             return;
         }
-        // compute sample raster extent (i.e. how many pixels are affected)
         let (xwidth, ywidth) = self.filter.width();
+        // Convert to discrete pixel space
         let (dimagex, dimagey) = (x - 0.5, y - 0.5);
+        // compute sample raster extent (i.e. how many pixels are affected)
         // (x0, y0) -> (x1, y1) is the zone of the image affected by the sample
         let (x0, y0) = ((dimagex - xwidth).ceil().max(0.0) as usize,
                         (dimagey - ywidth).ceil().max(0.0) as usize);
         let (x1, y1) = ((dimagex + xwidth + 1.0).floor().min(self.width as f32) as usize,
                         (dimagey + ywidth + 1.0).floor().min(self.height as f32) as usize);
 
+        // Degenerate case (sample is on or past the image bounds?)
         if x0 >= x1 || y0 >= y1 {
             return;
         }
