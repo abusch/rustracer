@@ -59,11 +59,13 @@ pub struct BlockQueue {
 
 impl BlockQueue {
     pub fn new(dims: (usize, usize), block_size: usize) -> BlockQueue {
+        let xblocks = (dims.0 as f32 / block_size as f32).ceil() as usize;
+        let yblocks = (dims.1 as f32 / block_size as f32).ceil() as usize;
         BlockQueue {
             dims: dims,
             block_size: block_size,
             counter: ATOMIC_USIZE_INIT,
-            num_blocks: (dims.0 / block_size) * (dims.1 / block_size),
+            num_blocks: xblocks * yblocks,
         }
     }
 
@@ -87,6 +89,14 @@ impl BlockQueue {
     }
 }
 
+impl Iterator for BlockQueue {
+    type Item = Block;
+
+    fn next(&mut self) -> Option<Block> {
+        BlockQueue::next(self)
+    }
+}
+
 #[test]
 fn test_area() {
     let block = Block::new((12, 12), 8);
@@ -103,4 +113,14 @@ fn test_iter() {
     assert_eq!(pixels[0].y, 12);
     assert_eq!(pixels[63].x, 19);
     assert_eq!(pixels[63].y, 19);
+}
+
+#[test]
+fn test_queue_iter() {
+    let queue = BlockQueue::new((100, 100), 8);
+    let blocks: Vec<Block> = queue.into_iter().collect();
+
+    // 100 is not a multiple of 8, so make sure we generate enough blocks to cover the whole image.
+    // In this case, we need 13 * 13.
+    assert_eq!(blocks.len(), 169);
 }
