@@ -19,29 +19,34 @@ pub struct Mesh {
 
 impl Mesh {
     pub fn load(file: &Path, model_name: &str) -> Mesh {
+        println!("Loading {} model from OBJ file:", model_name);
         let (models, _) = tobj::load_obj(file).unwrap();
         let model = models.iter()
             .find(|m| m.name == model_name)
             .unwrap();
 
+        println!("\tProcessing vertices");
         let positions: Arc<Vec<Point>> = Arc::new(model.mesh
             .positions
             .chunks(3)
             .map(|p| Point::new(p[0], p[1], p[2]))
             .collect());
 
+        println!("\tProcessing normals");
         let normals: Arc<Vec<Vector>> = Arc::new(model.mesh
             .normals
             .chunks(3)
             .map(|n| Vector::new(n[0], n[1], n[2]))
             .collect());
 
+        println!("\tProcessing UV coordinates");
         let uv: Arc<Vec<Vector2<f32>>> = Arc::new(model.mesh
             .texcoords
             .chunks(2)
             .map(|t| Vector2::new(t[0], t[1]))
             .collect());
 
+        println!("\tBuilding triangles");
         let mut tris = model.mesh
             .indices
             .chunks(3)

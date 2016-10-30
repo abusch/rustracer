@@ -14,17 +14,17 @@ pub struct BVH<T: Bounded> {
 
 impl<T: Bounded> BVH<T> {
     pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
-        println!("Generating BVH...");
+        println!("Generating BVH:");
 
         // 1. Get bounds info
-        println!("\tGenerating primitive info...");
+        println!("\tGenerating primitive info");
         let mut build_data: Vec<BVHPrimitiveInfo> = prims.iter()
             .enumerate()
             .map(|(i, p)| BVHPrimitiveInfo::new(i, p.get_world_bounds()))
             .collect();
 
         // 2. Build tree
-        println!("\tBuilding tree for {} primitives...", prims.len());
+        println!("\tBuilding tree for {} primitives", prims.len());
         let mut total_nodes = 0;
         let mut ordered_prims_idx = Vec::with_capacity(prims.len());
         let root: BVHBuildNode = BVH::<T>::recursive_build(&mut build_data,
