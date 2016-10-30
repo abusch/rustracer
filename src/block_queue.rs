@@ -4,6 +4,7 @@ use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 
 use na::Point2;
 
+/// A block of pixels that a thread is responsible for rendering (i.e a bucket).
 #[derive(Debug)]
 pub struct Block {
     start: Point2<usize>,
@@ -20,6 +21,8 @@ impl Block {
         }
     }
 
+    /// Return the area of this block in pixels (i.e. number of pixels this
+    /// block covers)
     pub fn area(&self) -> usize {
         (self.end.x - self.start.x) * (self.end.y - self.start.y)
     }

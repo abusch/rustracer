@@ -12,7 +12,6 @@ use skydome::Atmosphere;
 
 pub struct Scene {
     pub camera: Camera,
-    // pub objects: Vec<Instance>,
     bvh: BVH<Instance>,
     pub lights: Vec<Box<Light + Sync + Send>>,
     pub atmosphere: Atmosphere,
@@ -38,12 +37,5 @@ impl Scene {
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<Intersection> {
         self.bvh.intersect(ray, |r, i| i.intersect(r))
-        // let mut result: Option<Intersection> = None;
-
-        // for s in &self.objects {
-        //     result = s.intersect(ray).or(result)
-        // }
-
-        // result
     }
 }

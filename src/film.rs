@@ -75,15 +75,15 @@ impl Film {
         // (x0, y0) -> (x1, y1) is the zone of the image affected by the sample
         let (x0, y0) = ((dimagex - xwidth).ceil().max(0.0) as usize,
                         (dimagey - ywidth).ceil().max(0.0) as usize);
-        let (x1, y1) = ((dimagex + xwidth).floor().min(self.width as f32 - 1.0) as usize,
-                        (dimagey + ywidth).floor().min(self.height as f32 - 1.0) as usize);
+        let (x1, y1) = ((dimagex + xwidth + 1.0).floor().min(self.width as f32 - 1.0) as usize,
+                        (dimagey + ywidth + 1.0).floor().min(self.height as f32 - 1.0) as usize);
 
         // Add this sample's contribution to all the affected pixels
         let (inv_filter_x, inv_filter_y) = self.filter.inv_width();
-        for fy in y0..y1 + 1 {
+        for fy in y0..y1 {
             // compute the y-index in the filter table
             let fy_idx = ((fy as f32 - dimagey).abs() * inv_filter_y) as usize;
-            for fx in x0..x1 + 1 {
+            for fx in x0..x1 {
                 let fx_idx = ((fx as f32 - dimagex).abs() * inv_filter_x) as usize;
                 let idx = fy_idx * FILTER_SIZE + fx_idx;
                 let pidx = fy * self.width + fx;
