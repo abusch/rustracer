@@ -68,8 +68,7 @@ pub fn render(scene: Arc<Scene>,
     // Collect all the stats from the threads
     let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
     println!("");
-    film.render();
-    write_png(dim, film.buffer(), filename)
+    write_png(dim, &film.render(), filename)
         .expect(&format!("Could not write image to file {}", filename));
 
     global_stats

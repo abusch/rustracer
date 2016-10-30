@@ -7,7 +7,6 @@ const FILTER_SIZE: usize = 16;
 pub struct Film {
     pub width: usize,
     pub height: usize,
-    pixels: Vec<Colourf>,
     samples: Vec<PixelSample>,
     filter_table: Vec<f32>,
     filter: Box<Filter + Sync + Send>,
@@ -37,8 +36,6 @@ impl Film {
         let (w, h) = dim;
         let size = w as usize * h as usize;
         let filter_size = FILTER_SIZE * FILTER_SIZE;
-        let mut buffer = Vec::with_capacity(size);
-        buffer.resize(size, Colourf::black());
         let mut samples = Vec::with_capacity(size);
         samples.resize(size, PixelSample::new());
         let mut filter_table = Vec::with_capacity(filter_size);
@@ -57,7 +54,6 @@ impl Film {
         Film {
             width: w,
             height: h,
-            pixels: buffer,
             samples: samples,
             filter_table: filter_table,
             filter: filter,
@@ -93,17 +89,7 @@ impl Film {
         }
     }
 
-    pub fn write(&mut self, x: usize, y: usize, colour: Colourf) {
-        self.pixels[y * self.width + x] = colour;
-    }
-
-    pub fn buffer(&self) -> &[Colourf] {
-        &self.pixels
-    }
-
-    pub fn render(&mut self) {
-        for s in self.samples.iter().enumerate() {
-            self.pixels[s.0] = s.1.render();
-        }
+    pub fn render(&self) -> Vec<Colourf> {
+        self.samples.iter().map(|s| s.render()).collect()
     }
 }
