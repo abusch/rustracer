@@ -23,7 +23,7 @@ pub fn render(scene: Arc<Scene>,
               bs: usize)
               -> stats::Stats {
     let mut film = Film::new(dim,
-                             Box::new(MitchellNetravali::new(1.0, 1.0, 1.0 / 3.0, 1.0 / 3.0)));
+                             Box::new(MitchellNetravali::new(2.0, 2.0, 1.0 / 3.0, 1.0 / 3.0)));
 
     let block_size = bs;
     let block_queue = Arc::new(BlockQueue::new(dim, block_size));

@@ -1,4 +1,5 @@
 use std::ops::{Add, AddAssign, Div, Mul, Index, IndexMut};
+use na;
 
 #[derive(Debug,Copy,PartialEq,Clone)]
 pub struct Colourf {
@@ -105,9 +106,9 @@ impl Div<f32> for Colourf {
 
 impl From<Colourf> for [u8; 3] {
     fn from(c: Colourf) -> [u8; 3] {
-        [(f32::min(1.0, c.r) * 255.0) as u8,
-         (f32::min(1.0, c.g) * 255.0) as u8,
-         (f32::min(1.0, c.b) * 255.0) as u8]
+        [(na::clamp(c.r, 0.0, 1.0) * 255.0) as u8,
+         (na::clamp(c.g, 0.0, 1.0) * 255.0) as u8,
+         (na::clamp(c.b, 0.0, 1.0) * 255.0) as u8]
     }
 }
 

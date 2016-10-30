@@ -27,7 +27,7 @@ impl PixelSample {
     }
 
     pub fn render(&self) -> Colourf {
-        self.c / self.weighted_sum
+        (self.c / self.weighted_sum)
     }
 }
 
@@ -74,17 +74,33 @@ impl Film {
         let (x1, y1) = ((dimagex + xwidth + 1.0).floor().min(self.width as f32) as usize,
                         (dimagey + ywidth + 1.0).floor().min(self.height as f32) as usize);
 
-        // Add this sample's contribution to all the affected pixels
+        if x0 >= x1 || y0 >= y1 {
+            return;
+        }
+
         let (inv_filter_x, inv_filter_y) = self.filter.inv_width();
-        for fy in y0..y1 {
-            // compute the y-index in the filter table
-            let fy_idx = ((fy as f32 - dimagey).abs() * inv_filter_y) as usize;
-            for fx in x0..x1 {
-                let fx_idx = ((fx as f32 - dimagex).abs() * inv_filter_x) as usize;
-                let idx = fy_idx * FILTER_SIZE + fx_idx;
-                let pidx = fy * self.width + fx;
-                self.samples[pidx].c += colour * self.filter_table[idx];
-                self.samples[pidx].weighted_sum += self.filter_table[idx];
+        let filter_table_size = FILTER_SIZE as f32;
+
+        // Precompute x and y filter table offset
+        let mut ifx = Vec::with_capacity(x1 - x0);
+        for x in x0..x1 {
+            let fx = ((x as f32 - dimagex) * inv_filter_x * filter_table_size).abs();
+            ifx.push(fx.floor().min(filter_table_size - 1.0) as usize);
+        }
+        let mut ify = Vec::with_capacity(y1 - y0);
+        for y in y0..y1 {
+            let fy = ((y as f32 - dimagey) * inv_filter_y * filter_table_size).abs();
+            ify.push(fy.floor().min(filter_table_size - 1.0) as usize);
+        }
+
+        // Add this sample's contribution to all the affected pixels
+        for y in y0..y1 {
+            for x in x0..x1 {
+                let offset = ify[y - y0] * FILTER_SIZE + ifx[x - x0];
+                let filter_weight = self.filter_table[offset];
+                let pidx = y * self.width + x;
+                self.samples[pidx].c += colour * filter_weight;
+                self.samples[pidx].weighted_sum += filter_weight;
             }
         }
     }
