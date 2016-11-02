@@ -4,6 +4,8 @@ extern crate image as img;
 extern crate nalgebra as na;
 extern crate rand;
 extern crate threadpool as tp;
+extern crate bitflags;
+extern crate itertools as it;
 
 use na::{Vector3, Point3, Similarity3};
 
@@ -19,7 +21,6 @@ pub mod integrator;
 pub mod intersection;
 pub mod light;
 pub mod material;
-mod partition;
 pub mod ray;
 pub mod renderer;
 pub mod sampling;

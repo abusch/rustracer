@@ -1,9 +1,9 @@
 use std::cmp::min;
 use std::mem::replace;
+use it;
 
 use ::{Point, Vector};
 use geometry::{Axis, BBox, Bounded};
-use partition;
 use ray::Ray;
 
 pub struct BVH<T: Bounded> {
@@ -103,8 +103,8 @@ impl<T: Bounded> BVH<T> {
             let pmid = 0.5 *
                        (centroids_bounds.bounds[0][dimension] +
                         centroids_bounds.bounds[1][dimension]);
-            let mut mid = partition::partition(build_data[start..end].iter_mut(),
-                                               |pi| pi.centroid[dimension] < pmid) +
+            let mut mid = it::partition(build_data[start..end].iter_mut(),
+                                        |pi| pi.centroid[dimension] < pmid) +
                           start;
             if mid == start || mid == end {
                 // If partition failed, used Split Equal method
