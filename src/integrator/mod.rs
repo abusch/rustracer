@@ -10,6 +10,6 @@ pub use self::whitted::Whitted;
 pub use self::ao::AmbientOcclusion;
 pub use self::normal::Normal;
 
-pub trait Integrator {
-    fn illumination(&self, scene: &Scene, ray: &mut Ray) -> Colourf;
+pub trait SamplerIntegrator {
+    fn li(&self, scene: &Scene, ray: &mut Ray) -> Colourf;
 }

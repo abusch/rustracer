@@ -46,7 +46,7 @@ pub fn render(scene: Arc<Scene>,
                     sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
                     for s in &samples {
                         let mut ray = scene.camera.ray_for(s.0, s.1);
-                        let sample_colour = scene.integrator.illumination(&scene, &mut ray);
+                        let sample_colour = scene.integrator.li(&scene, &mut ray);
                         let film_sample = FilmSample {
                             x: s.0,
                             y: s.1,

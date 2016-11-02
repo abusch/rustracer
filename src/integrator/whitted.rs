@@ -4,7 +4,7 @@ use Vector;
 use scene::Scene;
 use ray::Ray;
 use colour::Colourf;
-use integrator::Integrator;
+use integrator::SamplerIntegrator;
 use geometry::TextureCoordinate;
 use na::{Norm, Dot, zero};
 use na;
@@ -70,8 +70,8 @@ fn pattern(tex_coord: &TextureCoordinate, scale_u: f32, scale_v: f32) -> f32 {
     if p { 1.0 } else { 0.5 }
 }
 
-impl Integrator for Whitted {
-    fn illumination(&self, scene: &Scene, ray: &mut Ray) -> Colourf {
+impl SamplerIntegrator for Whitted {
+    fn li(&self, scene: &Scene, ray: &mut Ray) -> Colourf {
         let mut colour = Colourf::black();
 
         if ray.depth > self.max_ray_depth {
@@ -112,12 +112,12 @@ impl Integrator for Whitted {
                     // refraction
                     let refr_dir = refract(&ray.dir, &n, 1.5);
                     let mut refr_ray = ray.spawn(p - bias, refr_dir);
-                    let refr = self.illumination(scene, &mut refr_ray) * (1.0 - kr);
+                    let refr = self.li(scene, &mut refr_ray) * (1.0 - kr);
                     colour += refr;
                 }
                 // Reflection
                 let mut refl_ray = ray.spawn(p + bias, reflect(&ray.dir, &n));
-                let refl = self.illumination(scene, &mut refl_ray);
+                let refl = self.li(scene, &mut refl_ray);
                 colour += refl * kr;
             }
 

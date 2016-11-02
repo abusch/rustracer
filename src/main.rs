@@ -17,7 +17,7 @@ use rt::colour::Colourf;
 use rt::camera::Camera;
 use rt::geometry::*;
 use rt::instance::Instance;
-use rt::integrator::{Integrator, Whitted, AmbientOcclusion, Normal};
+use rt::integrator::{SamplerIntegrator, Whitted, AmbientOcclusion, Normal};
 use rt::light::{Light, PointLight, DistantLight};
 use rt::material::Material;
 use rt::renderer;
@@ -41,7 +41,7 @@ Options:
      Samples per pixel [default: 4].
   --block-size=N                              Block size \
      used for rendering [default: 32].
-  -i <integrator>, --integrator=<integrator>  Integrator \
+  -i <integrator>, --integrator=<integrator>  SamplerIntegrator \
      to use [default: whitted].
                                               Valid values: \
      whitted, ao, normal.
@@ -55,7 +55,7 @@ Options:
 struct Args {
     flag_output: String,
     flag_threads: Option<usize>,
-    flag_integrator: IntegratorType,
+    flag_integrator: SamplerIntegratorType,
     flag_whitted_max_ray_depth: u8,
     flag_ao_samples: usize,
     flag_dimension: String,
@@ -64,7 +64,7 @@ struct Args {
 }
 
 #[derive(RustcDecodable)]
-enum IntegratorType {
+enum SamplerIntegratorType {
     Whitted,
     Ao,
     Normal,
@@ -107,18 +107,18 @@ fn main() {
 
 fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     let camera = Camera::new(Point::new(0.0, 4.0, 3.0), dim, 50.0);
-    let integrator: Box<Integrator + Send + Sync> = match args.flag_integrator {
-        IntegratorType::Whitted => {
+    let integrator: Box<SamplerIntegrator + Send + Sync> = match args.flag_integrator {
+        SamplerIntegratorType::Whitted => {
             println!("Using Whitted integrator with max ray depth of {}",
                      args.flag_whitted_max_ray_depth);
             Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
         }
-        IntegratorType::Ao => {
+        SamplerIntegratorType::Ao => {
             println!("Using Ambient Occlusion integrator with {} samples",
                      args.flag_ao_samples);
             Box::new(AmbientOcclusion::new(args.flag_ao_samples))
         }
-        IntegratorType::Normal => {
+        SamplerIntegratorType::Normal => {
             println!("Using normal facing ratio integrator");
             Box::new(Normal {})
         }

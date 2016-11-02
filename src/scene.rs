@@ -4,7 +4,7 @@ use ::Vector;
 use bvh::BVH;
 use camera::Camera;
 use instance::Instance;
-use integrator::Integrator;
+use integrator::SamplerIntegrator;
 use intersection::Intersection;
 use light::Light;
 use ray::Ray;
@@ -15,12 +15,12 @@ pub struct Scene {
     bvh: BVH<Instance>,
     pub lights: Vec<Box<Light + Sync + Send>>,
     pub atmosphere: Atmosphere,
-    pub integrator: Box<Integrator + Sync + Send>,
+    pub integrator: Box<SamplerIntegrator + Sync + Send>,
 }
 
 impl Scene {
     pub fn new(camera: Camera,
-               integrator: Box<Integrator + Sync + Send>,
+               integrator: Box<SamplerIntegrator + Sync + Send>,
                objects: &mut Vec<Instance>,
                lights: Vec<Box<Light + Sync + Send>>)
                -> Scene {

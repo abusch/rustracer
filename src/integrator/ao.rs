@@ -3,7 +3,7 @@ use std::iter;
 
 use Vector;
 use colour::Colourf;
-use integrator::Integrator;
+use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampling::{Sampler, LowDiscrepancy};
 use scene::Scene;
@@ -27,8 +27,8 @@ fn uniform_sample_sphere(x: f32, y: f32) -> Vector {
     Vector::new(r * f32::cos(phi), r * f32::sin(phi), z)
 }
 
-impl Integrator for AmbientOcclusion {
-    fn illumination(&self, scene: &Scene, ray: &mut Ray) -> Colourf {
+impl SamplerIntegrator for AmbientOcclusion {
+    fn li(&self, scene: &Scene, ray: &mut Ray) -> Colourf {
         let mut n_clear: usize = 0;
         let sampler = LowDiscrepancy::new(self.n_samples);
 
