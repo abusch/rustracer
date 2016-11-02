@@ -49,6 +49,11 @@ impl Instance {
             Intersection::new(dg, self)
         })
     }
+
+    pub fn intersect_p(&self, ray: &mut Ray) -> bool {
+        let mut local = self.transform_inv * *ray;
+        self.geom.intersect_p(&mut local)
+    }
 }
 
 impl Bounded for Instance {

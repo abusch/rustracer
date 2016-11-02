@@ -21,6 +21,10 @@ pub struct TextureCoordinate {
 
 pub trait Geometry {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry>;
+
+    fn intersect_p(&self, ray: &mut Ray) -> bool {
+        self.intersect(ray).is_some()
+    }
 }
 
 pub struct DifferentialGeometry<'a> {

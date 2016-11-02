@@ -38,4 +38,8 @@ impl Scene {
     pub fn intersect(&self, ray: &mut Ray) -> Option<Intersection> {
         self.bvh.intersect(ray, |r, i| i.intersect(r))
     }
+
+    pub fn intersect_p(&self, ray: &mut Ray) -> bool {
+        self.intersect(ray).is_some()
+    }
 }

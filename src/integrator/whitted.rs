@@ -90,7 +90,7 @@ impl Integrator for Whitted {
                     let shading_info = light.shading_info(&p);
                     let mut shadow_ray = ray.spawn(p, shading_info.w_i);
                     shadow_ray.t_max = shading_info.light_distance;
-                    if let None = scene.intersect(&mut shadow_ray) {
+                    if !scene.intersect_p(&mut shadow_ray) {
                         let diffuse = mat.surface_colour * FRAC_1_PI * shading_info.l_i *
                                       shading_info.w_i.dot(&n).max(0.0) *
                                       pattern(&intersection.dg.tex_coord, 10.0, 10.0);
