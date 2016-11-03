@@ -15,7 +15,7 @@ pub trait Light {
     ///  * the pdf for that direction
     fn sample_li(&self,
                  isect: &Intersection,
-                 wo: Vector,
+                 wo: &Vector,
                  sample: (f32, f32))
                  -> (Colourf, Vector, f32);
 }
@@ -38,7 +38,7 @@ impl PointLight {
 impl Light for PointLight {
     fn sample_li(&self,
                  isect: &Intersection,
-                 wo: Vector,
+                 wo: &Vector,
                  sample: (f32, f32))
                  -> (Colourf, Vector, f32) {
         let wi = isect.dg.phit - self.pos;
@@ -67,7 +67,7 @@ impl DistantLight {
 impl Light for DistantLight {
     fn sample_li(&self,
                  isect: &Intersection,
-                 wo: Vector,
+                 wo: &Vector,
                  sample: (f32, f32))
                  -> (Colourf, Vector, f32) {
         (self.emission_colour, self.dir, 1.0)

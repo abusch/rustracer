@@ -2,6 +2,7 @@ use rand::{thread_rng, Rng};
 
 pub trait Sampler {
     fn get_samples(&self, x: f32, y: f32, samples: &mut Vec<(f32, f32)>);
+    // fn get_2d(&self) -> (f32, f32);
 }
 
 pub struct LowDiscrepancy {

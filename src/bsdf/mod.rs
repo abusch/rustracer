@@ -1,4 +1,5 @@
 use std::mem;
+use na;
 
 use ::Vector;
 use colour::Colourf;
@@ -38,8 +39,13 @@ impl BSDF {
         Colourf::rgb(0.7, 0.7, 0.7)
     }
 
-    pub fn sample_f(&self, wo: &Vector, flags: BxDFType) -> (Colourf, Vector, f32) {
-        unimplemented!();
+    pub fn sample_f(&self,
+                    wo: &Vector,
+                    sample: (f32, f32),
+                    flags: BxDFType)
+                    -> (Colourf, Vector, f32) {
+        // TODO implement
+        (Colourf::black(), na::zero(), 0.0)
         // for bxdf in self.bxdfs {
         //     if bxdf.matches(&flags) {
         //     }

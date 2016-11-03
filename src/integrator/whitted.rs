@@ -1,6 +1,7 @@
 use std::f32::consts::*;
 
 use Vector;
+use bsdf;
 use colour::Colourf;
 use geometry::TextureCoordinate;
 use integrator::SamplerIntegrator;
@@ -72,14 +73,14 @@ fn pattern(tex_coord: &TextureCoordinate, scale_u: f32, scale_v: f32) -> f32 {
 }
 
 impl SamplerIntegrator for Whitted {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler) -> Colourf {
+    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Colourf {
         let mut colour = Colourf::black();
 
         match scene.intersect(ray) {
             Some(intersection) => {
                 let n = intersection.dg.nhit;
                 let p = intersection.dg.phit;
-                let wo = -ray.dir;
+                let wo = intersection.wo;
 
                 // Compute scattering functions for surface interaction
                 // TODO
@@ -89,7 +90,7 @@ impl SamplerIntegrator for Whitted {
 
                 // Add contribution of each light source
                 for light in &scene.lights {
-                    let (li, wi, pdf) = light.sample_li(&intersection, wo, (0.0, 0.0));
+                    let (li, wi, pdf) = light.sample_li(&intersection, &wo, (0.0, 0.0));
                     if li.is_black() || pdf == 0.0 {
                         continue;
                     }
@@ -104,6 +105,8 @@ impl SamplerIntegrator for Whitted {
                         colour += diffuse;
                     }
                 }
+
+                colour += self.specular_reflection(ray, &intersection, scene, sampler, depth);
 
                 // TODO // Fresnel reflection / refraction
                 // let kr = fresnel(&ray.dir, &n, 1.5);

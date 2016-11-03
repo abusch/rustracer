@@ -28,7 +28,7 @@ fn uniform_sample_sphere(x: f32, y: f32) -> Vector {
 }
 
 impl SamplerIntegrator for AmbientOcclusion {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler) -> Colourf {
+    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, _: u32) -> Colourf {
         let mut n_clear: usize = 0;
 
         if let Some(intersection) = scene.intersect(ray) {
