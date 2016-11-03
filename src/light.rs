@@ -70,6 +70,6 @@ impl Light for DistantLight {
                  wo: Vector,
                  sample: (f32, f32))
                  -> (Colourf, Vector, f32) {
-        (self.emission_colour, -self.dir, 1.0)
+        (self.emission_colour, self.dir, 1.0)
     }
 }

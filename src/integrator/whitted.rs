@@ -97,15 +97,15 @@ impl SamplerIntegrator for Whitted {
                     // TODO VisibilityTester
                     let mut shadow_ray = ray.spawn(p, -wi);
                     // shadow_ray.t_max = shading_info.light_distance;
-                    if !scene.intersect_p(&mut shadow_ray) {
-                        let diffuse = Colourf::rgb(0.7, 0.7, 0.7) * FRAC_1_PI * li *
-                                      wi.dot(&n).abs() *
-                                      pattern(&intersection.dg.tex_coord, 10.0, 10.0);
+                    let f = intersection.bsdf.f(&wi, &wo);
+                    if !f.is_black() && !scene.intersect_p(&mut shadow_ray) {
+                        let diffuse = f * li * wi.dot(&n).abs() * FRAC_1_PI / pdf;
+                        // pattern(&intersection.dg.tex_coord, 10.0, 10.0);
                         colour += diffuse;
                     }
                 }
 
-                // // Fresnel reflection / refraction
+                // TODO // Fresnel reflection / refraction
                 // let kr = fresnel(&ray.dir, &n, 1.5);
                 // let bias = if ray.dir.dot(&n) < 0.0 {
                 //     // outside
