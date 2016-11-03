@@ -21,48 +21,6 @@ impl Whitted {
     }
 }
 
-/// Compute the reflection direction
-fn reflect(i: &Vector, n: &Vector) -> Vector {
-    (*i - *n * 2.0 * n.dot(i)).normalize()
-}
-
-/// Compute the refraction direction
-fn refract(i: &Vector, n: &Vector, ior: f32) -> Vector {
-    let mut cos_i = na::clamp(i.dot(n), -1.0, 1.0);
-    let (etai, etat, n_refr) = if cos_i < 0.0 {
-        cos_i = -cos_i;
-        (1.0, ior, *n)
-    } else {
-        (ior, 1.0, -*n)
-    };
-
-    let eta = etai / etat;
-    let k = 1.0 - eta * eta * (1.0 - cos_i * cos_i);
-
-    if k > 0.0 {
-        *i * eta + n_refr * (eta * cos_i - k.sqrt())
-    } else {
-        zero()
-    }
-}
-
-/// Compute the Fresnel coefficient
-fn fresnel(i: &Vector, n: &Vector, ior: f32) -> f32 {
-    let mut cosi = na::clamp(i.dot(n), -1.0, 1.0);
-    let (etai, etat) = if cosi > 0.0 { (ior, 1.0) } else { (1.0, ior) };
-
-    let sint = etai / etat * (1.0 - cosi * cosi).max(0.0).sqrt();
-    if sint >= 1.0 {
-        1.0
-    } else {
-        let cost = (1.0 - sint * sint).max(0.0).sqrt();
-        cosi = cosi.abs();
-        let r_s = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-        let r_p = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
-        (r_s * r_s + r_p * r_p) / 2.0
-    }
-}
-
 fn fmod(x: f32) -> f32 {
     x - x.floor()
 }
@@ -100,13 +58,14 @@ impl SamplerIntegrator for Whitted {
                     // shadow_ray.t_max = shading_info.light_distance;
                     let f = intersection.bsdf.f(&wi, &wo);
                     if !f.is_black() && !scene.intersect_p(&mut shadow_ray) {
-                        let diffuse = f * li * wi.dot(&n).abs() * FRAC_1_PI / pdf;
-                        // pattern(&intersection.dg.tex_coord, 10.0, 10.0);
-                        colour += diffuse;
+                        // TODO Why do I still have to divide by PI?
+                        colour += f * li * wi.dot(&n).abs() * FRAC_1_PI / pdf;
                     }
                 }
 
-                colour += self.specular_reflection(ray, &intersection, scene, sampler, depth);
+                if depth + 1 < self.max_ray_depth as u32 {
+                    colour += self.specular_reflection(ray, &intersection, scene, sampler, depth);
+                }
 
                 // TODO // Fresnel reflection / refraction
                 // let kr = fresnel(&ray.dir, &n, 1.5);

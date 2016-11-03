@@ -30,7 +30,8 @@ pub trait SamplerIntegrator {
         let (f, wi, pdf) = isect.bsdf.sample_f(&isect.wo, (0.0, 0.0), flags);
         let ns = isect.dg.nhit;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
-            f * self.li(scene, ray, sampler, depth + 1) * wi.dot(&ns).abs() / pdf
+            let mut r = ray.spawn(isect.dg.phit, wi);
+            f * self.li(scene, &mut r, sampler, depth + 1) * wi.dot(&ns).abs() / pdf
         } else {
             Colourf::black()
         }
