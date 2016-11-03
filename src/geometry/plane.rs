@@ -7,11 +7,11 @@ pub struct Plane;
 
 impl Geometry for Plane {
     fn intersect(&self, ray: &mut Ray) -> Option<DifferentialGeometry> {
-        if f32::abs(ray.dir.z) < 1e-8 {
+        if f32::abs(ray.d.z) < 1e-8 {
             return None;
         }
 
-        let t = -ray.origin.z / ray.dir.z;
+        let t = -ray.o.z / ray.d.z;
         if t < ray.t_min || t > ray.t_max {
             return None;
         }

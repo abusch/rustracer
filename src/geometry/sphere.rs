@@ -47,9 +47,9 @@ impl Sphere {
     }
 
     pub fn intersect_sphere(&self, ray: &Ray) -> Option<(f32, f32)> {
-        let l = ray.origin.to_vector();
-        let a = ray.dir.dot(&ray.dir);
-        let b = 2.0 * ray.dir.dot(&l);
+        let l = ray.o.to_vector();
+        let a = ray.d.dot(&ray.d);
+        let b = 2.0 * ray.d.dot(&l);
         let c = l.dot(&l) - self.radius_2;
 
         solve_quadratic(a, b, c)

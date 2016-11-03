@@ -181,7 +181,7 @@ impl<T: Bounded> BVH<T> {
         let mut to_visit_offset = 0;
         let mut current_node_idx = 0;
         let mut nodes_to_visit = [0; 64];
-        let inv_dir = Vector::new(1.0 / ray.dir.x, 1.0 / ray.dir.y, 1.0 / ray.dir.z);
+        let inv_dir = Vector::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
         let dir_is_neg =
             [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
         loop {

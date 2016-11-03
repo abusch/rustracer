@@ -71,7 +71,7 @@ impl Atmosphere {
                 let mut sum_m = Colourf::black();
                 let mut optical_depth_r = 0.0;
                 let mut optical_depth_m = 0.0;
-                let mu = r.dir.dot(&self.sun_direction);
+                let mu = r.d.dot(&self.sun_direction);
                 let phase_r = 3.0 / (16.0 * PI) * (1.0 + mu * mu);
                 let phase_m = 3.0 / (8.0 * PI) * ((1.0 - self.g * self.g) * (1.0 + mu * mu)) /
                               ((2.0 + self.g * self.g) *

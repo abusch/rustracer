@@ -46,7 +46,7 @@ impl Instance {
         self.geom.intersect(&mut local).map(|mut dg| {
             ray.t_max = local.t_max;
             dg.transform(self.transform, self.transform_inv);
-            Intersection::new(dg, -ray.dir)
+            Intersection::new(dg, -ray.d)
         })
     }
 

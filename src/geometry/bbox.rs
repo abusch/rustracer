@@ -30,9 +30,8 @@ impl BBox {
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> bool {
-        let invdir = Vector::new(1.0 / ray.dir.x, 1.0 / ray.dir.y, 1.0 / ray.dir.z);
-        let sign =
-            [(ray.dir.x < 0.0) as usize, (ray.dir.y < 0.0) as usize, (ray.dir.z < 0.0) as usize];
+        let invdir = Vector::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
+        let sign = [(ray.d.x < 0.0) as usize, (ray.d.y < 0.0) as usize, (ray.d.z < 0.0) as usize];
 
         self.intersect_p(ray, &invdir, &sign)
     }
@@ -40,10 +39,10 @@ impl BBox {
     pub fn intersect_p(&self, ray: &mut Ray, inv_dir: &Vector, dir_is_neg: &[usize; 3]) -> bool {
         stats::inc_fast_bbox_isect();
         // Check intersection with X and Y slab
-        let mut tmin = (self.bounds[dir_is_neg[0]].x - ray.origin.x) * inv_dir.x;
-        let mut tmax = (self.bounds[1 - dir_is_neg[0]].x - ray.origin.x) * inv_dir.x;
-        let tymin = (self.bounds[dir_is_neg[1]].y - ray.origin.y) * inv_dir.y;
-        let tymax = (self.bounds[1 - dir_is_neg[1]].y - ray.origin.y) * inv_dir.y;
+        let mut tmin = (self.bounds[dir_is_neg[0]].x - ray.o.x) * inv_dir.x;
+        let mut tmax = (self.bounds[1 - dir_is_neg[0]].x - ray.o.x) * inv_dir.x;
+        let tymin = (self.bounds[dir_is_neg[1]].y - ray.o.y) * inv_dir.y;
+        let tymax = (self.bounds[1 - dir_is_neg[1]].y - ray.o.y) * inv_dir.y;
         if (tmin > tymax) || (tymin > tmax) {
             return false;
         }
@@ -54,8 +53,8 @@ impl BBox {
             tmax = tymax;
         }
         // Check intersection with Z slab
-        let tzmin = (self.bounds[dir_is_neg[2]].z - ray.origin.z) * inv_dir.z;
-        let tzmax = (self.bounds[1 - dir_is_neg[2]].z - ray.origin.z) * inv_dir.z;
+        let tzmin = (self.bounds[dir_is_neg[2]].z - ray.o.z) * inv_dir.z;
+        let tzmax = (self.bounds[1 - dir_is_neg[2]].z - ray.o.z) * inv_dir.z;
         if (tmin > tzmax) || (tzmin > tmax) {
             return false;
         }

@@ -106,7 +106,7 @@ impl MeshTriangle {
         let v2 = self.p[self.c];
         let edge1 = v1 - v0;
         let edge2 = v2 - v0;
-        let pvec = ray.dir.cross(&edge2);
+        let pvec = ray.d.cross(&edge2);
         let det = edge1.dot(&pvec);
 
         if det.abs() == 0.0 {
@@ -114,14 +114,14 @@ impl MeshTriangle {
         }
         let inv_det = 1.0 / det;
 
-        let tvec = ray.origin - v0;
+        let tvec = ray.o - v0;
         let u = tvec.dot(&pvec) * inv_det;
         if u < 0.0 || u > 1.0 {
             return None;
         }
 
         let qvec = tvec.cross(&edge1);
-        let v = ray.dir.dot(&qvec) * inv_det;
+        let v = ray.d.dot(&qvec) * inv_det;
         if v < 0.0 || u + v > 1.0 {
             return None;
         }
