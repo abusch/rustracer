@@ -5,9 +5,19 @@ use na::Norm;
 use Point;
 use Vector;
 use colour::Colourf;
+use intersection::Intersection;
 
 pub trait Light {
-    fn shading_info(&self, p: &Point) -> ShadingInfo;
+    /// Sample the light source for an outgoing direction wo.
+    /// Return a triplet of:
+    ///  * emitted light in the sampled direction
+    ///  * the sampled direction wi
+    ///  * the pdf for that direction
+    fn sample_li(&self,
+                 isect: &Intersection,
+                 wo: Vector,
+                 sample: (f32, f32))
+                 -> (Colourf, Vector, f32);
 }
 
 #[derive(Debug)]
@@ -26,17 +36,16 @@ impl PointLight {
 }
 
 impl Light for PointLight {
-    fn shading_info(&self, p: &Point) -> ShadingInfo {
-        let light_dir = self.pos - *p;
-        let r2 = light_dir.norm_squared();
-        let w_i = light_dir.normalize();
+    fn sample_li(&self,
+                 isect: &Intersection,
+                 wo: Vector,
+                 sample: (f32, f32))
+                 -> (Colourf, Vector, f32) {
+        let wi = isect.dg.phit - self.pos;
+        let r2 = wi.norm_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);
 
-        ShadingInfo {
-            l_i: l_i,
-            w_i: w_i,
-            light_distance: r2.sqrt(),
-        }
+        (l_i, wi.normalize(), 1.0)
     }
 }
 
@@ -56,18 +65,11 @@ impl DistantLight {
 }
 
 impl Light for DistantLight {
-    fn shading_info(&self, _: &Point) -> ShadingInfo {
-        ShadingInfo {
-            l_i: self.emission_colour,
-            w_i: -self.dir,
-            light_distance: f32::INFINITY,
-        }
+    fn sample_li(&self,
+                 isect: &Intersection,
+                 wo: Vector,
+                 sample: (f32, f32))
+                 -> (Colourf, Vector, f32) {
+        (self.emission_colour, -self.dir, 1.0)
     }
-}
-
-#[derive(Debug)]
-pub struct ShadingInfo {
-    pub l_i: Colourf,
-    pub w_i: Vector,
-    pub light_distance: f32,
 }

@@ -39,14 +39,14 @@ pub fn render(scene: Arc<Scene>,
         pool.execute(move || {
             let mut samples = Vec::new();
             samples.resize(spp, (0.0, 0.0));
-            let sampler = LowDiscrepancy::new(spp);
+            let mut sampler = LowDiscrepancy::new(spp);
             while let Some(block) = block_queue.next() {
                 block_queue.report_progress();
                 for p in block {
                     sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
                     for s in &samples {
                         let mut ray = scene.camera.ray_for(s.0, s.1);
-                        let sample_colour = scene.integrator.li(&scene, &mut ray);
+                        let sample_colour = scene.integrator.li(&scene, &mut ray, &mut sampler);
                         let film_sample = FilmSample {
                             x: s.0,
                             y: s.1,

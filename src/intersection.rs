@@ -1,13 +1,17 @@
+use Vector;
+use colour::Colourf;
 use geometry::DifferentialGeometry;
-use instance::Instance;
 
-pub struct Intersection<'a, 'b> {
+pub struct Intersection<'a> {
     pub dg: DifferentialGeometry<'a>,
-    pub hit: &'b Instance,
 }
 
-impl<'a, 'b> Intersection<'a, 'b> {
-    pub fn new(dg: DifferentialGeometry<'a>, o: &'b Instance) -> Intersection<'a, 'b> {
-        Intersection { dg: dg, hit: o }
+impl<'a> Intersection<'a> {
+    pub fn new(dg: DifferentialGeometry) -> Intersection {
+        Intersection { dg: dg }
+    }
+
+    pub fn le(&self, wo: Vector) -> Colourf {
+        Colourf::black()
     }
 }

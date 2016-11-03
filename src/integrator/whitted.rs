@@ -1,11 +1,12 @@
 use std::f32::consts::*;
 
 use Vector;
-use scene::Scene;
-use ray::Ray;
 use colour::Colourf;
-use integrator::SamplerIntegrator;
 use geometry::TextureCoordinate;
+use integrator::SamplerIntegrator;
+use ray::Ray;
+use sampling::Sampler;
+use scene::Scene;
 use na::{Norm, Dot, zero};
 use na;
 
@@ -71,58 +72,65 @@ fn pattern(tex_coord: &TextureCoordinate, scale_u: f32, scale_v: f32) -> f32 {
 }
 
 impl SamplerIntegrator for Whitted {
-    fn li(&self, scene: &Scene, ray: &mut Ray) -> Colourf {
+    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler) -> Colourf {
         let mut colour = Colourf::black();
 
-        if ray.depth > self.max_ray_depth {
-            return Colourf::rgb(0.0, 0.0, 0.5);
-        }
+        match scene.intersect(ray) {
+            Some(intersection) => {
+                let n = intersection.dg.nhit;
+                let p = intersection.dg.phit;
+                let wo = -ray.dir;
 
-        if let Some(intersection) = scene.intersect(ray) {
-            let hit = intersection.hit;
-            let mat = &hit.material;
-            let n = intersection.dg.nhit;
-            let p = intersection.dg.phit;
+                // Compute scattering functions for surface interaction
+                // TODO
 
-            if mat.reflection == 0.0 && mat.transparency == 0.0 {
-                // Diffuse material
+                // Compute emitted light if ray hit an area light source
+                colour += intersection.le(wo);
+
+                // Add contribution of each light source
                 for light in &scene.lights {
-                    let shading_info = light.shading_info(&p);
-                    let mut shadow_ray = ray.spawn(p, shading_info.w_i);
-                    shadow_ray.t_max = shading_info.light_distance;
+                    let (li, wi, pdf) = light.sample_li(&intersection, wo, (0.0, 0.0));
+                    if li.is_black() || pdf == 0.0 {
+                        continue;
+                    }
+
+                    // TODO VisibilityTester
+                    let mut shadow_ray = ray.spawn(p, -wi);
+                    // shadow_ray.t_max = shading_info.light_distance;
                     if !scene.intersect_p(&mut shadow_ray) {
-                        let diffuse = mat.surface_colour * FRAC_1_PI * shading_info.l_i *
-                                      shading_info.w_i.dot(&n).max(0.0) *
+                        let diffuse = Colourf::rgb(0.7, 0.7, 0.7) * FRAC_1_PI * li *
+                                      wi.dot(&n).abs() *
                                       pattern(&intersection.dg.tex_coord, 10.0, 10.0);
                         colour += diffuse;
                     }
                 }
-            } else {
-                // Fresnel reflection / refraction
-                let kr = fresnel(&ray.dir, &n, 1.5);
-                let bias = if ray.dir.dot(&n) < 0.0 {
-                    // outside
-                    1e-4 * n
-                } else {
-                    // inside
-                    -1e-4 * n
-                };
 
-                if kr < 1.0 {
-                    // refraction
-                    let refr_dir = refract(&ray.dir, &n, 1.5);
-                    let mut refr_ray = ray.spawn(p - bias, refr_dir);
-                    let refr = self.li(scene, &mut refr_ray) * (1.0 - kr);
-                    colour += refr;
-                }
-                // Reflection
-                let mut refl_ray = ray.spawn(p + bias, reflect(&ray.dir, &n));
-                let refl = self.li(scene, &mut refl_ray);
-                colour += refl * kr;
+                // // Fresnel reflection / refraction
+                // let kr = fresnel(&ray.dir, &n, 1.5);
+                // let bias = if ray.dir.dot(&n) < 0.0 {
+                //     // outside
+                //     1e-4 * n
+                // } else {
+                //     // inside
+                //     -1e-4 * n
+                // };
+
+                // if kr < 1.0 {
+                //     // refraction
+                //     let refr_dir = refract(&ray.dir, &n, 1.5);
+                //     let mut refr_ray = ray.spawn(p - bias, refr_dir);
+                //     let refr = self.li(scene, &mut refr_ray) * (1.0 - kr);
+                //     colour += refr;
+                // }
+                // // Reflection
+                // let mut refl_ray = ray.spawn(p + bias, reflect(&ray.dir, &n));
+                // let refl = self.li(scene, &mut refl_ray);
+                // colour += refl * kr;
+
             }
-
-        } else {
-            return scene.atmosphere.compute_incident_light(ray);
+            None => {
+                return scene.atmosphere.compute_incident_light(ray);
+            }
         }
 
         colour

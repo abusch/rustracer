@@ -28,9 +28,8 @@ fn uniform_sample_sphere(x: f32, y: f32) -> Vector {
 }
 
 impl SamplerIntegrator for AmbientOcclusion {
-    fn li(&self, scene: &Scene, ray: &mut Ray) -> Colourf {
+    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler) -> Colourf {
         let mut n_clear: usize = 0;
-        let sampler = LowDiscrepancy::new(self.n_samples);
 
         if let Some(intersection) = scene.intersect(ray) {
             let n = intersection.dg.nhit;
