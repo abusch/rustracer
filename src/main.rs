@@ -131,24 +131,24 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     {
         let mesh = Mesh::load(Path::new("models/bunny.obj"), "bunny");
         objs.push(Instance::new(Box::new(mesh),
-                                Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0),
+                                Arc::new(Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0)),
                                 Transform::new(Vector::new(1.0, 2.0, -15.0),
                                                Vector::new(0.0, 0.0, 0.0),
                                                2.0)));
     }
-    {
-        let mesh = Mesh::load(Path::new("models/buddha.obj"), "buddha");
-        objs.push(Instance::new(Box::new(mesh),
-                                Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0),
-                                Transform::new(Vector::new(6.0, 6.0, -15.0),
-                                               Vector::new(0.0, PI, 0.0),
-                                               10.0)));
-    }
+    // {
+    //     let mesh = Mesh::load(Path::new("models/buddha.obj"), "buddha");
+    //     objs.push(Instance::new(Box::new(mesh),
+    //                             Arc::new(Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0)),
+    //                             Transform::new(Vector::new(6.0, 6.0, -15.0),
+    //                                            Vector::new(0.0, PI, 0.0),
+    //                                            10.0)));
+    // }
     objs.push(Instance::new(Box::new(Sphere::new(3.0)),
-                            Material::new(Colourf::rgb(0.90, 0.90, 0.90), 1.0, 1.0),
+                            Arc::new(Material::new(Colourf::rgb(0.90, 0.90, 0.90), 1.0, 1.0)),
                             Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0)));
     objs.push(Instance::new(Box::new(Plane),
-                            Material::new(Colourf::rgb(1.0, 1.0, 1.0), 0.0, 0.0),
+                            Arc::new(Material::new(Colourf::rgb(1.0, 1.0, 1.0), 0.0, 0.0)),
                             Transform::new(Vector::new(0.0, height - 4.0, 0.0),
                                            Vector::new(FRAC_PI_2, 0.0, 0.0),
                                            20.0)));

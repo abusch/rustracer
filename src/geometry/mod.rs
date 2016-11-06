@@ -5,12 +5,12 @@ use na::{Norm, Dot, ToHomogeneous, FromHomogeneous, Transpose, Matrix3, Matrix4,
 pub use self::bbox::*;
 pub use self::sphere::*;
 pub use self::plane::*;
-pub use self::triangle::*;
+// pub use self::triangle::*;
 pub use self::mesh::*;
 
 mod sphere;
 mod plane;
-mod triangle;
+// mod triangle;
 mod mesh;
 mod bbox;
 
@@ -30,6 +30,8 @@ pub trait Geometry {
 pub struct DifferentialGeometry<'a> {
     pub phit: Point,
     pub nhit: Vector,
+    pub dpdu: Vector,
+    pub dpdv: Vector,
     pub tex_coord: TextureCoordinate,
     pub geom: &'a Geometry,
 }
@@ -37,12 +39,16 @@ pub struct DifferentialGeometry<'a> {
 impl<'a> DifferentialGeometry<'a> {
     pub fn new(p: Point,
                n: Vector,
+               dpdu: Vector,
+               dpdv: Vector,
                tex_coord: TextureCoordinate,
                geom: &Geometry)
                -> DifferentialGeometry {
         DifferentialGeometry {
             phit: p,
             nhit: n,
+            dpdu: dpdu,
+            dpdv: dpdv,
             tex_coord: tex_coord,
             geom: geom,
         }

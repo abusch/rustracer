@@ -1,8 +1,9 @@
 use std::mem;
-use na::{Dot, zero, Norm, clamp};
+use na::{Cross, Dot, zero, Norm, clamp};
 
 use ::Vector;
 use colour::Colourf;
+use intersection::Intersection;
 use ray::Ray;
 
 bitflags! {
@@ -23,25 +24,31 @@ pub struct BSDF {
     /// Shading normal (i.e. potentially affected by bump-mapping)
     ns: Vector,
     /// Geometry normal
-    ng: Vector, // bxdfs: BxDFType,
+    ng: Vector,
+    ss: Vector,
+    ts: Vector, // bxdfs: BxDFType,
 }
 
 impl BSDF {
-    pub fn new(n: Vector) -> Self {
+    pub fn new(isect: &Intersection, eta: f32) -> Self {
+        let n = isect.dg.nhit;
+        let ss = isect.dg.dpdu.normalize();
         BSDF {
-            eta: 1.0,
+            eta: eta,
             ns: n,
             ng: n,
+            ss: ss,
+            ts: n.cross(&ss),
         }
     }
 
     /// Evaluate the BSDF for the given incoming light direction and outgoing light direction.
-    pub fn f(&self, wi: &Vector, wo: &Vector) -> Colourf {
+    pub fn f(&self, _wi_w: &Vector, _wo_w: &Vector) -> Colourf {
         Colourf::black()
     }
 
     pub fn sample_f(&self,
-                    wo: &Vector,
+                    wo_w: &Vector,
                     sample: (f32, f32),
                     flags: BxDFType)
                     -> (Colourf, Vector, f32) {
@@ -50,14 +57,27 @@ impl BSDF {
         }
 
         if flags.contains(REFLECTION) {
-            let dir = -(*wo);
-            let kr = fresnel(&dir, &self.ns, 1.5);
-            let wi = reflect(&dir, &self.ns);
+            let wo = self.world_to_local(&wo_w);
+            let wi = Vector::new(-wo.x, -wo.y, wo.z);
+            let cos_theta_i = wi.z;
+            let kr = fresnel(cos_theta_i, 1.0, self.eta);
+            let colour = Colourf::rgb(1.0, 1.0, 1.0) * kr / cos_theta_i.abs();
 
-            return (Colourf::rgb(1.0, 1.0, 1.0), -wi, 1.0);
+            assert!(!colour.has_nan());
+            return (colour, self.local_to_world(&wi), 1.0);
         }
 
         (Colourf::black(), zero(), 0.0)
+    }
+
+    fn world_to_local(&self, v: &Vector) -> Vector {
+        Vector::new(v.dot(&self.ss), v.dot(&self.ts), v.dot(&self.ns))
+    }
+
+    fn local_to_world(&self, v: &Vector) -> Vector {
+        Vector::new(self.ss.x * v.x + self.ts.x * v.y + self.ns.x * v.z,
+                    self.ss.y * v.x + self.ts.y * v.y + self.ns.y * v.z,
+                    self.ss.z * v.z + self.ts.z * v.y + self.ns.z * v.z)
     }
 }
 
@@ -67,8 +87,8 @@ trait BxDF {
 
 
 /// Compute the reflection direction
-fn reflect(i: &Vector, n: &Vector) -> Vector {
-    (*i - *n * 2.0 * n.dot(i)).normalize()
+fn reflect(wo: &Vector, n: &Vector) -> Vector {
+    (-(*wo) + *n * 2.0 * wo.dot(n)).normalize()
 }
 
 /// Compute the refraction direction
@@ -92,18 +112,24 @@ fn refract(i: &Vector, n: &Vector, ior: f32) -> Vector {
 }
 
 /// Compute the Fresnel coefficient
-fn fresnel(i: &Vector, n: &Vector, ior: f32) -> f32 {
-    let mut cosi = clamp(i.dot(n), -1.0, 1.0);
-    let (etai, etat) = if cosi > 0.0 { (ior, 1.0) } else { (1.0, ior) };
+fn fresnel(cos_theta_i: f32, eta_i: f32, eta_t: f32) -> f32 {
+    let mut cos_theta_i = clamp(cos_theta_i, -1.0, 1.0);
+    let (mut eta_i, mut eta_t) = (eta_i, eta_t);
+    if cos_theta_i <= 0.0 {
+        // If leaving the surface, swap the indices of refraction
+        mem::swap(&mut eta_i, &mut eta_t);
+        cos_theta_i = cos_theta_i.abs();
+    }
 
-    let sint = etai / etat * (1.0 - cosi * cosi).max(0.0).sqrt();
-    if sint >= 1.0 {
+    let sin_theta_t = eta_i / eta_t * (1.0 - cos_theta_i * cos_theta_i).max(0.0).sqrt();
+    if sin_theta_t >= 1.0 {
         1.0
     } else {
-        let cost = (1.0 - sint * sint).max(0.0).sqrt();
-        cosi = cosi.abs();
-        let r_s = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
-        let r_p = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+        let cos_theta_t = (1.0 - sin_theta_t * sin_theta_t).max(0.0).sqrt();
+        let r_s = ((eta_t * cos_theta_i) - (eta_i * cos_theta_t)) /
+                  ((eta_t * cos_theta_i) + (eta_i * cos_theta_t));
+        let r_p = ((eta_i * cos_theta_i) - (eta_t * cos_theta_t)) /
+                  ((eta_i * cos_theta_i) + (eta_t * cos_theta_t));
         (r_s * r_s + r_p * r_p) / 2.0
     }
 }

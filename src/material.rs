@@ -1,4 +1,6 @@
+use bsdf::BSDF;
 use colour::Colourf;
+use intersection::Intersection;
 
 pub struct Material {
     pub surface_colour: Colourf,
@@ -13,5 +15,9 @@ impl Material {
             transparency: tr,
             reflection: rf,
         }
+    }
+
+    pub fn bsdf(&self, isect: &Intersection) -> BSDF {
+        BSDF::new(isect, 1.5)
     }
 }

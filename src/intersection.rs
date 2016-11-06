@@ -1,21 +1,22 @@
+use std::sync::Arc;
+
 use Vector;
-use bsdf::BSDF;
 use colour::Colourf;
 use geometry::DifferentialGeometry;
+use material::Material;
 
 pub struct Intersection<'a> {
     pub dg: DifferentialGeometry<'a>,
     pub wo: Vector,
-    pub bsdf: BSDF,
+    pub material: Arc<Material>,
 }
 
 impl<'a> Intersection<'a> {
-    pub fn new(dg: DifferentialGeometry, wo: Vector) -> Intersection {
-        let n = dg.nhit;
+    pub fn new(dg: DifferentialGeometry, wo: Vector, material: Arc<Material>) -> Intersection {
         Intersection {
             dg: dg,
             wo: wo,
-            bsdf: BSDF::new(n),
+            material: material,
         }
     }
 

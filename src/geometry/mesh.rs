@@ -146,9 +146,34 @@ impl MeshTriangle {
         let uv = w * ta + u * tb + v * tc;
         let texcoord = TextureCoordinate { u: uv.x, v: uv.y };
 
+        // Compute partial derivative
+        let duv02 = ta - tc;
+        let duv12 = ta - tb;
+        let dp02 = v0 - v2;
+        let dp12 = v1 - v2;
+        let determinant = duv02.dot(&duv12);
+        let (dpdu, dpdv) = if determinant == 0.0 {
+            coordinateSystem(&edge2.cross(&edge1).normalize())
+        } else {
+            let inv_determinant = 1.0 / determinant;
+            let dpdu = (duv12.y * dp02 - duv02.y * dp12) * inv_determinant;
+            let dpdv = (-duv12.x * dp02 + duv02.x * dp12) * inv_determinant;
+            (dpdu, dpdv)
+        };
+
         stats::inc_triangle_isect();
-        Some(DifferentialGeometry::new(ray.at(ray.t_max), nhit, texcoord, self))
+        Some(DifferentialGeometry::new(ray.at(ray.t_max), nhit, dpdu, dpdv, texcoord, self))
     }
+}
+
+fn coordinateSystem(v1: &Vector) -> (Vector, Vector) {
+    let v2 = if v1.x.abs() > v1.y.abs() {
+        Vector::new(-v1.z, 0.0, v1.x) / (v1.x * v1.x + v1.z * v1.z).sqrt()
+    } else {
+        Vector::new(0.0, v1.z, -v1.y) / (v1.y * v1.y + v1.z * v1.z).sqrt()
+    };
+    let v3 = v1.cross(&v2);
+    (v2, v3)
 }
 
 impl Geometry for MeshTriangle {

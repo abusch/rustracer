@@ -47,6 +47,7 @@ impl SamplerIntegrator for Whitted {
                 colour += intersection.le(wo);
 
                 // Add contribution of each light source
+                let bsdf = intersection.material.bsdf(&intersection);
                 for light in &scene.lights {
                     let (li, wi, pdf) = light.sample_li(&intersection, &wo, (0.0, 0.0));
                     if li.is_black() || pdf == 0.0 {
@@ -56,7 +57,7 @@ impl SamplerIntegrator for Whitted {
                     // TODO VisibilityTester
                     let mut shadow_ray = ray.spawn(p, -wi);
                     // shadow_ray.t_max = shading_info.light_distance;
-                    let f = intersection.bsdf.f(&wi, &wo);
+                    let f = bsdf.f(&wi, &wo);
                     if !f.is_black() && !scene.intersect_p(&mut shadow_ray) {
                         // TODO Why do I still have to divide by PI?
                         colour += f * li * wi.dot(&n).abs() * FRAC_1_PI / pdf;
@@ -64,7 +65,8 @@ impl SamplerIntegrator for Whitted {
                 }
 
                 if depth + 1 < self.max_ray_depth as u32 {
-                    colour += self.specular_reflection(ray, &intersection, scene, sampler, depth);
+                    colour +=
+                        self.specular_reflection(ray, &intersection, scene, &bsdf, sampler, depth);
                 }
 
                 // TODO // Fresnel reflection / refraction
@@ -91,7 +93,8 @@ impl SamplerIntegrator for Whitted {
 
             }
             None => {
-                return scene.atmosphere.compute_incident_light(ray);
+                colour = scene.atmosphere.compute_incident_light(ray);
+                // colour = Colourf::black();
             }
         }
 

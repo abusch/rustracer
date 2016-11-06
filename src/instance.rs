@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use Point;
 use Transform;
 use geometry::BoundedGeometry;
@@ -9,7 +11,7 @@ use na::Inverse;
 
 pub struct Instance {
     pub geom: Box<BoundedGeometry + Sync + Send>,
-    pub material: Material,
+    pub material: Arc<Material>,
     pub transform: Transform,
     pub transform_inv: Transform,
     bounds: BBox,
@@ -17,7 +19,7 @@ pub struct Instance {
 
 impl Instance {
     pub fn new(g: Box<BoundedGeometry + Sync + Send>,
-               material: Material,
+               material: Arc<Material>,
                transform: Transform)
                -> Instance {
 
@@ -34,7 +36,7 @@ impl Instance {
 
         Instance {
             geom: g,
-            material: material,
+            material: material.clone(),
             transform: transform,
             transform_inv: transform.inverse().unwrap(),
             bounds: bbox,
@@ -46,7 +48,7 @@ impl Instance {
         self.geom.intersect(&mut local).map(|mut dg| {
             ray.t_max = local.t_max;
             dg.transform(self.transform, self.transform_inv);
-            Intersection::new(dg, -ray.d)
+            Intersection::new(dg, -ray.d, self.material.clone())
         })
     }
 

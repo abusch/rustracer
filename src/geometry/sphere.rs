@@ -1,9 +1,9 @@
-use Point;
+use {Point, Vector};
 use ray::Ray;
 use geometry::*;
 use na::{Norm, Dot};
 use na::clamp;
-use std::f32::consts::FRAC_1_PI;
+use std::f32::consts::{PI, FRAC_1_PI};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -74,17 +74,33 @@ impl Geometry for Sphere {
 
             ray.t_max = t_hit;
 
+            let phi_max = 2.0 * PI;
             let phit = ray.at(ray.t_max);
             let nhit = phit.to_vector().normalize();
-            let phi = f32::atan2(phit.z, phit.x);
-            let theta = f32::acos(clamp(phit.y / self.radius, -1.0, 1.0));
-            let u = if phi < 0.0 {
-                phi * FRAC_1_PI + 1.0
-            } else {
-                phi * FRAC_1_PI
-            };
+            let mut phi = f32::atan2(phit.y, phit.x);
+            if phi < 0.0 {
+                phi += 2.0 * PI;
+            }
+            let theta = f32::acos(clamp(phit.z / self.radius, -1.0, 1.0));
+            // Compute parameterization coordinates
+            let u = phi / phi_max;
             let v = theta * FRAC_1_PI;
-            Some(DifferentialGeometry::new(phit, nhit, TextureCoordinate { u: u, v: v }, self))
+            // Compute dpdu and dpdv
+            let z_radius = (phit.x * phit.x + phit.y * phit.y).sqrt();
+            let inv_z_radius = 1.0 / z_radius;
+            let cos_phi = phit.x * inv_z_radius;
+            let sin_phi = phit.y * inv_z_radius;
+            let dpdu = Vector::new(-phi_max * phit.y, phi_max * phit.x, 0.0);
+            let dpdv = PI *
+                       Vector::new(phit.z * cos_phi,
+                                   phit.z * sin_phi,
+                                   -self.radius * theta.sin());
+            Some(DifferentialGeometry::new(phit,
+                                           nhit,
+                                           dpdu,
+                                           dpdv,
+                                           TextureCoordinate { u: u, v: v },
+                                           self))
         })
 
     }

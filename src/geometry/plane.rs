@@ -21,6 +21,8 @@ impl Geometry for Plane {
             ray.t_max = t;
             Some(DifferentialGeometry::new(phit,
                                            Vector::z(),
+                                           2.0 * Vector::x(),
+                                           2.0 * Vector::y(),
                                            TextureCoordinate {
                                                u: phit.x,
                                                v: phit.y,
