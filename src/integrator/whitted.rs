@@ -3,7 +3,6 @@ use std::f32::consts::*;
 use Vector;
 use bsdf;
 use colour::Colourf;
-use geometry::TextureCoordinate;
 use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampling::Sampler;
@@ -19,15 +18,6 @@ impl Whitted {
     pub fn new(n: u8) -> Whitted {
         Whitted { max_ray_depth: n }
     }
-}
-
-fn fmod(x: f32) -> f32 {
-    x - x.floor()
-}
-
-fn pattern(tex_coord: &TextureCoordinate, scale_u: f32, scale_v: f32) -> f32 {
-    let p = (fmod(tex_coord.u * scale_u) < 0.5) ^ (fmod(tex_coord.v * scale_v) < 0.5);
-    if p { 1.0 } else { 0.5 }
 }
 
 impl SamplerIntegrator for Whitted {
@@ -67,34 +57,17 @@ impl SamplerIntegrator for Whitted {
                 if depth + 1 < self.max_ray_depth as u32 {
                     colour +=
                         self.specular_reflection(ray, &intersection, scene, &bsdf, sampler, depth);
+                    colour +=
+                        self.specular_transmission(ray,
+                                                   &intersection,
+                                                   scene,
+                                                   &bsdf,
+                                                   sampler,
+                                                   depth);
                 }
-
-                // TODO // Fresnel reflection / refraction
-                // let kr = fresnel(&ray.dir, &n, 1.5);
-                // let bias = if ray.dir.dot(&n) < 0.0 {
-                //     // outside
-                //     1e-4 * n
-                // } else {
-                //     // inside
-                //     -1e-4 * n
-                // };
-
-                // if kr < 1.0 {
-                //     // refraction
-                //     let refr_dir = refract(&ray.dir, &n, 1.5);
-                //     let mut refr_ray = ray.spawn(p - bias, refr_dir);
-                //     let refr = self.li(scene, &mut refr_ray) * (1.0 - kr);
-                //     colour += refr;
-                // }
-                // // Reflection
-                // let mut refl_ray = ray.spawn(p + bias, reflect(&ray.dir, &n));
-                // let refl = self.li(scene, &mut refl_ray);
-                // colour += refl * kr;
-
             }
             None => {
                 colour = scene.atmosphere.compute_incident_light(ray);
-                // colour = Colourf::black();
             }
         }
 

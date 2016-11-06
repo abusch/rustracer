@@ -65,6 +65,29 @@ impl BSDF {
 
             assert!(!colour.has_nan());
             return (colour, self.local_to_world(&wi), 1.0);
+        } else if flags.contains(TRANSMISSION) {
+            let wo = self.world_to_local(&wo_w);
+            let entering = wo.z > 0.0;
+            let (eta_i, eta_t) = if entering {
+                (1.0, self.eta)
+            } else {
+                (self.eta, 1.0)
+            };
+            let n = if wo.z < 0.0 {
+                -Vector::z()
+            } else {
+                Vector::z()
+            };
+            return refract(&wo, &n, eta_i / eta_t)
+                .map(|wi| {
+                    let cos_theta_i = wi.z;
+                    let kr = fresnel(cos_theta_i, 1.0, self.eta);
+                    let colour = Colourf::rgb(1.0, 1.0, 1.0) * (1.0 - kr) / cos_theta_i.abs();
+
+                    assert!(!colour.has_nan());
+                    (colour, self.local_to_world(&wi), 1.0)
+                })
+                .unwrap_or((Colourf::black(), zero(), 0.0));
         }
 
         (Colourf::black(), zero(), 0.0)
@@ -92,22 +115,16 @@ fn reflect(wo: &Vector, n: &Vector) -> Vector {
 }
 
 /// Compute the refraction direction
-fn refract(i: &Vector, n: &Vector, ior: f32) -> Vector {
-    let mut cos_i = clamp(i.dot(n), -1.0, 1.0);
-    let (etai, etat, n_refr) = if cos_i < 0.0 {
-        cos_i = -cos_i;
-        (1.0, ior, *n)
-    } else {
-        (ior, 1.0, -*n)
-    };
+fn refract(i: &Vector, n: &Vector, eta: f32) -> Option<Vector> {
+    let mut cos_theta_i = n.dot(i);
+    let sin2theta_i = (1.0 - cos_theta_i * cos_theta_i).max(0.0);
+    let sin2theta_t = eta * eta * sin2theta_i;
 
-    let eta = etai / etat;
-    let k = 1.0 - eta * eta * (1.0 - cos_i * cos_i);
-
-    if k > 0.0 {
-        *i * eta + n_refr * (eta * cos_i - k.sqrt())
+    if sin2theta_t >= 1.0 {
+        None
     } else {
-        zero()
+        let cos_theta_t = (1.0 - sin2theta_t).sqrt();
+        Some(eta * -*i + (eta * cos_theta_i - cos_theta_t) * *n)
     }
 }
 
