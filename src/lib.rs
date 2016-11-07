@@ -30,6 +30,7 @@ mod ray;
 pub mod renderer;
 mod sampling;
 pub mod scene;
+pub mod shapes;
 mod skydome;
 mod stats;
 
