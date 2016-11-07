@@ -1,10 +1,12 @@
 use std::ops::{Add, Mul, Sub, Div};
 use std::f32;
+use std::mem;
 use fp::Ieee754;
 
-use super::gamma;
+use super::MACHINE_EPSILON;
 
-struct EFloat {
+#[derive(Clone, Copy)]
+pub struct EFloat {
     v: f32,
     low: f32,
     high: f32,
@@ -32,6 +34,18 @@ impl EFloat {
     pub fn upper_bound(&self) -> f32 {
         self.high
     }
+
+    pub fn absolute_error(&self) -> f32 {
+        self.high - self.low
+    }
+
+    pub fn sqrt(&self) -> EFloat {
+        EFloat {
+            v: self.v.sqrt(),
+            low: self.lower_bound().sqrt().prev(),
+            high: self.upper_bound().sqrt().next(),
+        }
+    }
 }
 
 impl Default for EFloat {
@@ -39,6 +53,33 @@ impl Default for EFloat {
         EFloat::new(0.0, 0.0)
     }
 }
+
+// Quadratic solver
+pub fn solve_quadratic(a: EFloat, b: EFloat, c: EFloat) -> Option<(EFloat, EFloat)> {
+    let discrim: f64 = b.v as f64 * b.v as f64 - 4f64 * a.v as f64 * c.v as f64;
+    if discrim < 0.0 {
+        return None;
+    }
+
+    let root_discrim = discrim.sqrt();
+    let float_root_discrim = EFloat::new(root_discrim as f32,
+                                         MACHINE_EPSILON * root_discrim as f32);
+
+    let q = if b.v < 0.0 {
+        -0.5 * (b - float_root_discrim)
+    } else {
+        -0.5 * (b + float_root_discrim)
+    };
+    let mut t0 = q / a;
+    let mut t1 = c / q;
+    if t0.v > t1.v {
+        mem::swap(&mut t0, &mut t1);
+    }
+
+    return Some((t0, t1));
+}
+
+// Operator overloads
 
 impl Add<EFloat> for EFloat {
     type Output = EFloat;
@@ -135,5 +176,37 @@ impl Div<f32> for EFloat {
     type Output = EFloat;
     fn div(self, f: f32) -> EFloat {
         self / EFloat::from(f)
+    }
+}
+
+impl Add<EFloat> for f32 {
+    type Output = EFloat;
+
+    fn add(self, f: EFloat) -> EFloat {
+        EFloat::from(self) + f
+    }
+}
+
+impl Sub<EFloat> for f32 {
+    type Output = EFloat;
+
+    fn sub(self, f: EFloat) -> EFloat {
+        EFloat::from(self) - f
+    }
+}
+
+impl Mul<EFloat> for f32 {
+    type Output = EFloat;
+
+    fn mul(self, f: EFloat) -> EFloat {
+        EFloat::from(self) * f
+    }
+}
+
+impl Div<EFloat> for f32 {
+    type Output = EFloat;
+
+    fn div(self, f: EFloat) -> EFloat {
+        EFloat::from(self) / f
     }
 }
