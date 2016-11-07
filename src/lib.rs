@@ -17,6 +17,7 @@ mod bsdf;
 mod bvh;
 pub mod camera;
 pub mod colour;
+mod efloat;
 mod filter;
 pub mod geometry;
 mod film;
