@@ -15,6 +15,7 @@ approx = "0.1"
 num_cpus = "1.1"
 bitflags = "0.7"
 itertools = "0.5"
+ieee754 = "0.2"
 
 [profile.release]
 # How to send extra compiler flag for -march=native equivalent in Rust

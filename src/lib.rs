@@ -7,8 +7,10 @@ extern crate itertools as it;
 extern crate nalgebra as na;
 extern crate rand;
 extern crate threadpool as tp;
+extern crate ieee754 as fp;
 
 use na::{Vector3, Point3, Similarity3};
+use std::f32;
 
 mod block_queue;
 mod bsdf;
@@ -40,3 +42,8 @@ pub type Dim = (usize, usize);
 pub type Vector = Vector3<f32>;
 pub type Point = Point3<f32>;
 pub type Transform = Similarity3<f32>;
+
+pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
+pub fn gamma(n: u32) -> f32 {
+    (n as f32 * MACHINE_EPSILON) / (1.0 - n as f32 * MACHINE_EPSILON)
+}
