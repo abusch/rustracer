@@ -1,6 +1,7 @@
-use super::{Shape, SurfaceInteraction, Bounds3f};
 use ::{Transform, Point};
+use super::{Shape, SurfaceInteraction};
 use ray::Ray;
+use bounds::Bounds3f;
 
 use na::{self, Inverse};
 
@@ -51,6 +52,21 @@ impl Shape for Sphere {
             p_min: Point::new(-self.radius, -self.radius, self.z_min),
             p_max: Point::new(self.radius, self.radius, self.z_max),
         }
+    }
+
+    fn world_bounds(&self) -> Bounds3f {
+        let mut bounds = Bounds3f::new();
+        let b = self.object_bounds();
+        bounds.extend(self.object_to_world * Point::new(b[0].x, b[0].y, b[0].z));
+        bounds.extend(self.object_to_world * Point::new(b[1].x, b[0].y, b[0].z));
+        bounds.extend(self.object_to_world * Point::new(b[0].x, b[1].y, b[0].z));
+        bounds.extend(self.object_to_world * Point::new(b[0].x, b[0].y, b[1].z));
+        bounds.extend(self.object_to_world * Point::new(b[1].x, b[1].y, b[0].z));
+        bounds.extend(self.object_to_world * Point::new(b[1].x, b[0].y, b[1].z));
+        bounds.extend(self.object_to_world * Point::new(b[0].x, b[1].y, b[1].z));
+        bounds.extend(self.object_to_world * Point::new(b[1].x, b[1].y, b[1].z));
+
+        bounds
     }
 }
 

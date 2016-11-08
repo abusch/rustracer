@@ -8,11 +8,13 @@ extern crate nalgebra as na;
 extern crate rand;
 extern crate threadpool as tp;
 extern crate ieee754 as fp;
+extern crate num;
 
 use na::{Vector3, Point3, Similarity3};
 use std::f32;
 
 mod block_queue;
+mod bounds;
 mod bsdf;
 mod bvh;
 pub mod camera;
@@ -26,6 +28,7 @@ pub mod integrator;
 mod intersection;
 pub mod light;
 pub mod material;
+mod primitive;
 mod ray;
 pub mod renderer;
 mod sampling;

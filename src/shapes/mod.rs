@@ -1,14 +1,10 @@
 use ::Point;
 use ray::Ray;
+use bounds::Bounds3f;
 
 pub mod sphere;
 
 pub struct SurfaceInteraction {
-}
-
-pub struct Bounds3f {
-    p_min: Point,
-    p_max: Point,
 }
 
 pub trait Shape {
@@ -23,4 +19,6 @@ pub trait Shape {
     }
 
     fn object_bounds(&self) -> Bounds3f;
+
+    fn world_bounds(&self) -> Bounds3f;
 }
