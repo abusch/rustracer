@@ -1,4 +1,3 @@
-use ::Point;
 use ray::Ray;
 use bounds::Bounds3f;
 
