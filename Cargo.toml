@@ -3,6 +3,10 @@ name = "rustracer"
 version = "0.1.0"
 authors = ["Antoine Busch <antoine.busch@gmail.com>"]
 
+[[bin]]
+name = "main"
+doc = false
+
 [dependencies]
 approx = "0.1"
 bitflags = "0.7"
