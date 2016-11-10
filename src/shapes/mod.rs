@@ -1,10 +1,5 @@
-use std::sync::Arc;
-
-use ::{Vector, Point, Point2f};
-use bsdf::BSDF;
 use ray::Ray;
 use bounds::Bounds3f;
-use primitive::Primitive;
 use interaction::SurfaceInteraction;
 
 pub mod sphere;

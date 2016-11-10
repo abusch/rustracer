@@ -18,6 +18,7 @@ bitflags! {
 
 /// Represents the Bidirectional Scattering Distribution Function.
 /// It represents the properties of a material at a given point.
+#[derive(Copy, Clone, Debug)]
 pub struct BSDF {
     /// Index of refraction of the surface
     eta: f32,

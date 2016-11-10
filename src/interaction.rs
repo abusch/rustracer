@@ -1,7 +1,8 @@
-use ::{Point, Point2f, Vector};
+use ::{Point, Point2f, Vector, Transform};
 use bsdf::BSDF;
 use primitive::Primitive;
 use shapes::Shape;
+use transform;
 use na::{self, Cross, Norm};
 
 pub struct SurfaceInteraction<'a> {
@@ -64,7 +65,31 @@ impl<'a> SurfaceInteraction<'a> {
             },
             bsdf: None,
         }
+    }
 
+    pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {
+        let (p, p_err) = transform::transform_point_with_error(t, &self.p, &self.p_error);
+        SurfaceInteraction {
+            p: p,
+            p_error: p_err,
+            n: transform::transform_normal(&self.n, t),
+            uv: self.uv,
+            wo: *t * self.wo,
+            dpdu: *t * self.dpdu,
+            dpdv: *t * self.dpdv,
+            dndu: na::zero(),
+            dndv: na::zero(),
+            shape: self.shape,
+            primitive: self.primitive,
+            shading: Shading {
+                n: transform::transform_normal(&self.n, t),
+                dpdu: *t * self.dpdu,
+                dpdv: *t * self.dpdv,
+                dndu: na::zero(),
+                dndv: na::zero(),
+            },
+            bsdf: self.bsdf,
+        }
     }
 }
 

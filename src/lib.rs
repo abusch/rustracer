@@ -37,6 +37,7 @@ pub mod scene;
 pub mod shapes;
 mod skydome;
 mod stats;
+mod transform;
 
 
 pub fn mix(a: f32, b: f32, mix: f32) -> f32 {
