@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
 use ::{Vector, Point, Point2f};
+use bsdf::BSDF;
 use ray::Ray;
 use bounds::Bounds3f;
+use primitive::Primitive;
 use na::{self, Cross, Norm};
 
 pub mod sphere;
@@ -26,8 +28,12 @@ pub struct SurfaceInteraction<'a> {
     pub dndv: Vector,
     /// Hit shape
     pub shape: &'a Shape,
+    /// Hit primitive
+    pub primitive: Option<&'a Primitive>,
     /// Shading information
     pub shading: Shading,
+    /// BSDF of the surface at the intersection point
+    pub bsdf: Option<BSDF>,
 }
 
 impl<'a> SurfaceInteraction<'a> {
@@ -52,6 +58,7 @@ impl<'a> SurfaceInteraction<'a> {
             dndu: na::zero(),
             dndv: na::zero(),
             shape: shape,
+            primitive: None,
             // Initialize shading geometry from true geometry
             shading: Shading {
                 n: n,
@@ -60,6 +67,7 @@ impl<'a> SurfaceInteraction<'a> {
                 dndu: na::zero(),
                 dndv: na::zero(),
             },
+            bsdf: None,
         }
 
     }
@@ -88,7 +96,7 @@ impl Default for Shading {
 }
 
 pub trait Shape {
-    fn intersect(&self, ray: &Ray) -> Option<SurfaceInteraction>;
+    fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
 
     fn intersect_p(&self, ray: &Ray) -> bool {
         self.intersect(ray).is_some()

@@ -42,7 +42,7 @@ impl Sphere {
 }
 
 impl Shape for Sphere {
-    fn intersect(&self, ray: &Ray) -> Option<SurfaceInteraction> {
+    fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
         // Transform ray into object space
         let (r, o_err, d_err) = ray.transform(&self.world_to_object);
 
@@ -127,13 +127,9 @@ impl Shape for Sphere {
                                    -self.radius * theta.sin());
             // Comput dn/du and dn/dv
             // TODO
-            Some(SurfaceInteraction::new(p_hit,
-                                         p_error,
-                                         Point2f::new(u, v),
-                                         dpdu,
-                                         dpdv,
-                                         -r.d,
-                                         self))
+            let isect =
+                SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), dpdu, dpdv, -r.d, self);
+            Some((isect, t_shape_hit.into()))
         })
     }
 
