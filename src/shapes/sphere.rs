@@ -4,7 +4,7 @@ use ray::Ray;
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
 
-use na::{self, Inverse};
+use na::{self, Inverse, Norm};
 
 use std::f32::consts;
 
@@ -95,7 +95,7 @@ impl Shape for Sphere {
                 // Compute sphere hit position and phi
                 p_hit = r.at(t_shape_hit.into());
                 // Refine sphere intersection point
-                // TODO
+                p_hit *= self.radius / p_hit.to_vector().norm();
                 if p_hit.x == 0.0 && p_hit.y == 0.0 {
                     p_hit.x = 1e-5 * self.radius;
                 }
