@@ -2,7 +2,7 @@ use {Vector, Point, Transform};
 use stats;
 use std::f32::INFINITY;
 use std::ops::Mul;
-use na::{self, ToHomogeneous, Matrix4, Norm, Dot, Absolute};
+use na::{self, ToHomogeneous, Matrix4, Norm, Dot};
 use ::gamma;
 
 const BIAS: f32 = 1e-4;

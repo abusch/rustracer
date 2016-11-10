@@ -55,7 +55,7 @@ impl Default for EFloat {
 }
 
 // Quadratic solver
-pub fn solve_quadratic(a: EFloat, b: EFloat, c: EFloat) -> Option<(EFloat, EFloat)> {
+pub fn solve_quadratic(a: &EFloat, b: &EFloat, c: &EFloat) -> Option<(EFloat, EFloat)> {
     let discrim: f64 = b.v as f64 * b.v as f64 - 4f64 * a.v as f64 * c.v as f64;
     if discrim < 0.0 {
         return None;
@@ -66,17 +66,23 @@ pub fn solve_quadratic(a: EFloat, b: EFloat, c: EFloat) -> Option<(EFloat, EFloa
                                          MACHINE_EPSILON * root_discrim as f32);
 
     let q = if b.v < 0.0 {
-        -0.5 * (b - float_root_discrim)
+        -0.5 * (*b - float_root_discrim)
     } else {
-        -0.5 * (b + float_root_discrim)
+        -0.5 * (*b + float_root_discrim)
     };
-    let mut t0 = q / a;
-    let mut t1 = c / q;
+    let mut t0 = q / *a;
+    let mut t1 = *c / q;
     if t0.v > t1.v {
         mem::swap(&mut t0, &mut t1);
     }
 
     return Some((t0, t1));
+}
+
+impl PartialEq for EFloat {
+    fn eq(&self, other: &Self) -> bool {
+        self.v == other.v
+    }
 }
 
 // Operator overloads
@@ -148,6 +154,12 @@ impl Div<EFloat> for EFloat {
 impl From<f32> for EFloat {
     fn from(v: f32) -> EFloat {
         EFloat::new(v, 0.0)
+    }
+}
+
+impl From<EFloat> for f32 {
+    fn from(v: EFloat) -> f32 {
+        v.v
     }
 }
 
