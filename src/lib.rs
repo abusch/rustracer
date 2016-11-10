@@ -25,6 +25,7 @@ pub mod geometry;
 mod film;
 pub mod instance;
 pub mod integrator;
+mod interaction;
 mod intersection;
 pub mod light;
 pub mod material;

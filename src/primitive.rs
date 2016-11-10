@@ -1,7 +1,8 @@
 use std::sync::Arc;
 use ray::Ray;
 use bounds::Bounds3f;
-use shapes::{Shape, SurfaceInteraction};
+use interaction::SurfaceInteraction;
+use shapes::Shape;
 
 
 pub trait AreaLight {}

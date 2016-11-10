@@ -1,7 +1,8 @@
 use ::{gamma, Transform, Point2f, Point, Vector};
-use super::{Shape, SurfaceInteraction};
+use super::Shape;
 use ray::Ray;
 use bounds::Bounds3f;
+use interaction::SurfaceInteraction;
 use efloat::{self, EFloat};
 
 use na::{self, Inverse, Norm, Absolute};
