@@ -6,7 +6,6 @@ use ray::Ray;
 use bounds::Bounds3f;
 use primitive::Primitive;
 use interaction::SurfaceInteraction;
-use na::{self, Cross, Norm};
 
 pub mod sphere;
 
