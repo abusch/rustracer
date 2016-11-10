@@ -1,10 +1,10 @@
-use ::{Transform, Point, Vector};
+use ::{gamma, Transform, Point2f, Point, Vector};
 use super::{Shape, SurfaceInteraction};
 use ray::Ray;
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
 
-use na::{self, Inverse, Norm};
+use na::{self, Inverse, Norm, Absolute};
 
 use std::f32::consts;
 
@@ -113,6 +113,8 @@ impl Shape for Sphere {
             let u = phi / self.phi_max;
             let theta = na::clamp(p_hit.z / self.radius, -1.0, 1.0).acos();
             let v = (theta - self.theta_min) / (self.theta_max - self.theta_min);
+            // Compute error bound for sphere intersection
+            let p_error = gamma(5) * na::abs(&p_hit.to_vector());
             // Compute dp/du and dp/dv
             let z_radius = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
             let inv_z_radius = 1.0 / z_radius;
@@ -125,7 +127,13 @@ impl Shape for Sphere {
                                    -self.radius * theta.sin());
             // Comput dn/du and dn/dv
             // TODO
-            Some(SurfaceInteraction {})
+            Some(SurfaceInteraction::new(p_hit,
+                                         p_error,
+                                         Point2f::new(u, v),
+                                         dpdu,
+                                         dpdv,
+                                         -r.d,
+                                         self))
         })
     }
 

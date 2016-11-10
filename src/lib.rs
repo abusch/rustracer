@@ -10,7 +10,7 @@ extern crate threadpool as tp;
 extern crate ieee754 as fp;
 extern crate num;
 
-use na::{Vector3, Point3, Similarity3};
+use na::{Vector3, Point2, Point3, Similarity3};
 use std::f32;
 
 mod block_queue;
@@ -46,6 +46,7 @@ pub type Dim = (usize, usize);
 
 pub type Vector = Vector3<f32>;
 pub type Point = Point3<f32>;
+pub type Point2f = Point2<f32>;
 pub type Transform = Similarity3<f32>;
 
 pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
