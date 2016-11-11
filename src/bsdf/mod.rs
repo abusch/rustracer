@@ -5,7 +5,6 @@ use ::Vector;
 use colour::Colourf;
 use intersection::Intersection;
 use interaction::SurfaceInteraction;
-use ray::Ray;
 
 bitflags! {
     pub flags BxDFType: u32 {
@@ -129,7 +128,7 @@ fn reflect(wo: &Vector, n: &Vector) -> Vector {
 
 /// Compute the refraction direction
 fn refract(i: &Vector, n: &Vector, eta: f32) -> Option<Vector> {
-    let mut cos_theta_i = n.dot(i);
+    let cos_theta_i = n.dot(i);
     let sin2theta_i = (1.0 - cos_theta_i * cos_theta_i).max(0.0);
     let sin2theta_t = eta * eta * sin2theta_i;
 

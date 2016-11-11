@@ -5,7 +5,7 @@ use Vector;
 use colour::Colourf;
 use integrator::SamplerIntegrator;
 use ray::Ray;
-use sampling::{Sampler, LowDiscrepancy};
+use sampling::Sampler;
 use scene::Scene;
 use na::Dot;
 
@@ -43,7 +43,7 @@ impl SamplerIntegrator for AmbientOcclusion {
                     w = -w;
                 }
                 let mut ao_ray = ray.spawn(p, w);
-                if let None = scene.intersect(&mut ao_ray) {
+                if scene.intersect(&mut ao_ray).is_none() {
                     n_clear += 1;
                 }
 

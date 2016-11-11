@@ -88,7 +88,7 @@ impl Atmosphere {
                     // light optical depth
                     let light_ray = Ray::new(sample_position, self.sun_direction);
                     let res = self.atmosphere.intersect_sphere(&light_ray);
-                    if let None = res {
+                    if res.is_none() {
                         break;
                     }
 

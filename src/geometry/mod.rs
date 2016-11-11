@@ -1,7 +1,7 @@
 use {Vector, Point, Transform};
 use ray::Ray;
 use transform;
-use na::{Norm, Dot, ToHomogeneous, FromHomogeneous, Transpose, Matrix3, Matrix4, Inverse};
+use na::Norm;
 
 pub use self::bbox::*;
 pub use self::sphere::*;

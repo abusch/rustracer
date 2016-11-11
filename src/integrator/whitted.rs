@@ -1,14 +1,12 @@
 use std::f32::consts::*;
 
-use Vector;
 use bsdf;
 use colour::Colourf;
 use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampling::Sampler;
 use scene::Scene;
-use na::{Norm, Dot, zero};
-use na;
+use na::Dot;
 
 pub struct Whitted {
     pub max_ray_depth: u8,

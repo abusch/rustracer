@@ -92,7 +92,7 @@ fn main() {
     let stats = renderer::render(Arc::new(scene),
                                  dim,
                                  &args.flag_output,
-                                 args.flag_threads.unwrap_or(num_cpus::get()),
+                                 args.flag_threads.unwrap_or_else(num_cpus::get),
                                  args.flag_spp,
                                  args.flag_block_size);
     let duration = start_time.elapsed();
@@ -170,11 +170,11 @@ impl HumanDisplay for std::time::Duration {
         let mut minutes = 0;
         let mut seconds = self.as_secs();
         if seconds >= 60 {
-            seconds = seconds % 60;
+            seconds %= 60;
             minutes = seconds / 60;
         }
         if minutes >= 60 {
-            minutes = minutes % 60;
+            minutes %= 60;
             hours = minutes / 60;
         }
         let millis = self.subsec_nanos() / 1000000;

@@ -5,7 +5,7 @@ use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
 use efloat::{self, EFloat};
 
-use na::{self, Inverse, Norm, Dot, Cross};
+use na::{self, Inverse, Norm};
 
 use std::f32::consts;
 
@@ -130,7 +130,7 @@ impl Shape for Sphere {
             // TODO
             let isect =
                 SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, self);
-            Some((isect /* .transform(&self.object_to_world) */, t_shape_hit.into()))
+            Some((isect.transform(&self.object_to_world), t_shape_hit.into()))
         })
     }
 

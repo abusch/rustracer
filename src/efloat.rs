@@ -76,7 +76,7 @@ pub fn solve_quadratic(a: &EFloat, b: &EFloat, c: &EFloat) -> Option<(EFloat, EF
         mem::swap(&mut t0, &mut t1);
     }
 
-    return Some((t0, t1));
+    Some((t0, t1))
 }
 
 impl PartialEq for EFloat {

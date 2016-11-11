@@ -1,5 +1,5 @@
 use std::f32;
-use std::ops::{Index, Sub, Mul};
+use std::ops::Index;
 use std::cmp::PartialOrd;
 use Vector;
 use na::Point3;

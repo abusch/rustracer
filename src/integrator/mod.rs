@@ -2,7 +2,6 @@ use na::Dot;
 
 use bsdf;
 use colour::Colourf;
-use intersection::Intersection;
 use interaction::SurfaceInteraction;
 use ray::Ray;
 use sampling::Sampler;
