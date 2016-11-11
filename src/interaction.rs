@@ -1,5 +1,6 @@
 use ::{Point, Point2f, Vector, Transform};
 use bsdf::BSDF;
+use colour::Colourf;
 use primitive::Primitive;
 use shapes::Shape;
 use transform;
@@ -65,6 +66,10 @@ impl<'a> SurfaceInteraction<'a> {
             },
             bsdf: None,
         }
+    }
+
+    pub fn le(&self, wo: Vector) -> Colourf {
+        Colourf::black()
     }
 
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {

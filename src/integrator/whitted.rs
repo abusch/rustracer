@@ -24,22 +24,22 @@ impl SamplerIntegrator for Whitted {
     fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Colourf {
         let mut colour = Colourf::black();
 
-        match scene.intersect(ray) {
-            Some(intersection) => {
-                let n = intersection.dg.nhit;
-                let p = intersection.dg.phit;
-                let wo = intersection.wo;
+        match scene.intersect2(ray) {
+            Some(isect) => {
+                let n = isect.shading.n;
+                let p = isect.p;
+                let wo = isect.wo;
 
                 // Compute scattering functions for surface interaction
-                // TODO
 
                 // Compute emitted light if ray hit an area light source
-                colour += intersection.le(wo);
+                colour += isect.le(wo);
 
                 // Add contribution of each light source
-                let bsdf = intersection.material.bsdf(&intersection);
+                // let bsdf = isect.material.bsdf(&isect);
+                let bsdf = bsdf::BSDF::new2(&isect, 1.5);
                 for light in &scene.lights {
-                    let (li, wi, pdf) = light.sample_li(&intersection, &wo, (0.0, 0.0));
+                    let (li, wi, pdf) = light.sample_li(&isect, &wo, (0.0, 0.0));
                     if li.is_black() || pdf == 0.0 {
                         continue;
                     }
@@ -55,15 +55,8 @@ impl SamplerIntegrator for Whitted {
                 }
 
                 if depth + 1 < self.max_ray_depth as u32 {
-                    colour +=
-                        self.specular_reflection(ray, &intersection, scene, &bsdf, sampler, depth);
-                    colour +=
-                        self.specular_transmission(ray,
-                                                   &intersection,
-                                                   scene,
-                                                   &bsdf,
-                                                   sampler,
-                                                   depth);
+                    colour += self.specular_reflection(ray, &isect, scene, &bsdf, sampler, depth);
+                    colour += self.specular_transmission(ray, &isect, scene, &bsdf, sampler, depth);
                 }
             }
             None => {

@@ -4,6 +4,7 @@ use na::{Cross, Dot, zero, Norm, clamp};
 use ::Vector;
 use colour::Colourf;
 use intersection::Intersection;
+use interaction::SurfaceInteraction;
 use ray::Ray;
 
 bitflags! {
@@ -40,6 +41,17 @@ impl BSDF {
             ng: n,
             ss: ss,
             ts: n.cross(&ss),
+        }
+    }
+
+    pub fn new2(isect: &SurfaceInteraction, eta: f32) -> Self {
+        let ss = isect.dpdu.normalize();
+        BSDF {
+            eta: eta,
+            ns: isect.shading.n,
+            ng: isect.n,
+            ss: ss,
+            ts: isect.shading.n.cross(&ss),
         }
     }
 

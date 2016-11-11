@@ -24,9 +24,9 @@ pub trait Primitive {
 
     fn intersect_p(&self, ray: &mut Ray) -> bool;
 
-    fn area_light(&self) -> Option<Arc<AreaLight>>;
+    fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>>;
 
-    fn material(&self) -> Option<Arc<Material>>;
+    fn material(&self) -> Option<Arc<Material + Send + Sync>>;
     fn compute_scattering_functions(&self,
                                     isect: &mut SurfaceInteraction,
                                     mode: TransportMode,
@@ -34,9 +34,9 @@ pub trait Primitive {
 }
 
 pub struct GeometricPrimitive {
-    shape: Arc<Shape>,
-    area_light: Option<Arc<AreaLight>>,
-    material: Option<Arc<Material>>,
+    pub shape: Arc<Shape + Send + Sync>,
+    pub area_light: Option<Arc<AreaLight + Send + Sync>>,
+    pub material: Option<Arc<Material + Send + Sync>>,
 }
 
 impl Primitive for GeometricPrimitive {
@@ -56,11 +56,11 @@ impl Primitive for GeometricPrimitive {
         self.shape.intersect_p(ray)
     }
 
-    fn area_light(&self) -> Option<Arc<AreaLight>> {
+    fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>> {
         self.area_light.clone()
     }
 
-    fn material(&self) -> Option<Arc<Material>> {
+    fn material(&self) -> Option<Arc<Material + Send + Sync>> {
         self.material.clone()
     }
 

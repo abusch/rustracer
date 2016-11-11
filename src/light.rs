@@ -5,7 +5,7 @@ use na::Norm;
 use Point;
 use Vector;
 use colour::Colourf;
-use intersection::Intersection;
+use interaction::SurfaceInteraction;
 
 pub trait Light {
     /// Sample the light source for an outgoing direction wo.
@@ -14,7 +14,7 @@ pub trait Light {
     ///  * the sampled direction wi
     ///  * the pdf for that direction
     fn sample_li(&self,
-                 isect: &Intersection,
+                 isect: &SurfaceInteraction,
                  wo: &Vector,
                  sample: (f32, f32))
                  -> (Colourf, Vector, f32);
@@ -37,11 +37,11 @@ impl PointLight {
 
 impl Light for PointLight {
     fn sample_li(&self,
-                 isect: &Intersection,
+                 isect: &SurfaceInteraction,
                  wo: &Vector,
                  sample: (f32, f32))
                  -> (Colourf, Vector, f32) {
-        let wi = isect.dg.phit - self.pos;
+        let wi = isect.p - self.pos;
         let r2 = wi.norm_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);
 
@@ -66,9 +66,9 @@ impl DistantLight {
 
 impl Light for DistantLight {
     fn sample_li(&self,
-                 isect: &Intersection,
-                 wo: &Vector,
-                 sample: (f32, f32))
+                 _isect: &SurfaceInteraction,
+                 _wo: &Vector,
+                 _sample: (f32, f32))
                  -> (Colourf, Vector, f32) {
         (self.emission_colour, self.dir, 1.0)
     }

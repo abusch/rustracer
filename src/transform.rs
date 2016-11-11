@@ -22,18 +22,24 @@ pub fn transform_point_with_error(t: &Transform, p: &Point, p_error: &Vector) ->
     let (x, y, z) = (p.x, p.y, p.z);
     let tp = *t * *p;
     let m: Matrix4<f32> = t.to_homogeneous();
-    let x_abs_err =
-        (gamma(3) + 1.0) * (m[(0, 0)] * p_error.x).abs() + (m[(0, 1)] * p_error.y).abs() +
-        (m[(0, 2)] * p_error.z).abs() + gamma(3) * (m[(0, 0)] * x).abs() +
-        (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() + m[(0, 3)].abs();
-    let y_abs_err =
-        (gamma(3) + 1.0) * (m[(1, 0)] * p_error.x).abs() + (m[(1, 1)] * p_error.y).abs() +
-        (m[(1, 2)] * p_error.z).abs() + gamma(3) * (m[(1, 0)] * x).abs() +
-        (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() + m[(1, 3)].abs();
-    let z_abs_err =
-        (gamma(3) + 1.0) * (m[(2, 0)] * p_error.x).abs() + (m[(2, 1)] * p_error.y).abs() +
-        (m[(2, 2)] * p_error.z).abs() + gamma(3) * (m[(2, 0)] * x).abs() +
-        (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs() + m[(2, 3)].abs();
+    let x_abs_err = (gamma(3) + 1.0) *
+                    ((m[(0, 0)] * p_error.x).abs() + (m[(0, 1)] * p_error.y).abs() +
+                     (m[(0, 2)] * p_error.z).abs()) +
+                    gamma(3) *
+                    ((m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() +
+                     m[(0, 3)].abs());
+    let y_abs_err = (gamma(3) + 1.0) *
+                    ((m[(1, 0)] * p_error.x).abs() + (m[(1, 1)] * p_error.y).abs() +
+                     (m[(1, 2)] * p_error.z).abs()) +
+                    gamma(3) *
+                    ((m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() +
+                     m[(1, 3)].abs());
+    let z_abs_err = (gamma(3) + 1.0) *
+                    ((m[(2, 0)] * p_error.x).abs() + (m[(2, 1)] * p_error.y).abs() +
+                     (m[(2, 2)] * p_error.z).abs()) +
+                    gamma(3) *
+                    ((m[(2, 0)] * x).abs() + (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs() +
+                     m[(2, 3)].abs());
     let p_err = Vector::new(x_abs_err, y_abs_err, z_abs_err);
 
     (tp, p_err)

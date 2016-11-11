@@ -55,3 +55,11 @@ pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
 pub fn gamma(n: u32) -> f32 {
     (n as f32 * MACHINE_EPSILON) / (1.0 - n as f32 * MACHINE_EPSILON)
 }
+
+#[test]
+fn test_gamma() {
+    let g5 = gamma(5);
+    let p = Point::new(-0.4, 0.9, 0.2);
+    let v = g5 * na::abs(&p.to_vector());
+    println!("gamma(5) = {}, p={:?}, v={:?}", gamma(5), p, v);
+}

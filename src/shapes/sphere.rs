@@ -5,7 +5,7 @@ use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
 use efloat::{self, EFloat};
 
-use na::{self, Inverse, Norm};
+use na::{self, Inverse, Norm, Dot, Cross};
 
 use std::f32::consts;
 
@@ -54,9 +54,9 @@ impl Shape for Sphere {
         let dx = EFloat::new(r.d.x, d_err.x);
         let dy = EFloat::new(r.d.y, d_err.y);
         let dz = EFloat::new(r.d.z, d_err.z);
-        let a = EFloat::from(dx * dx + dy * dy + dz * dz);
-        let b = EFloat::from(2.0 * dx * ox + dy * oy + dz * oz);
-        let c = EFloat::from(ox * ox + oy * oy + oz * oz) -
+        let a = dx * dx + dy * dy + dz * dz;
+        let b = 2.0 * (dx * ox + dy * oy + dz * oz);
+        let c = (ox * ox + oy * oy + oz * oz) -
                 EFloat::from(self.radius) * EFloat::from(self.radius);
 
         // Solve quadratic equation for t values
@@ -126,11 +126,11 @@ impl Shape for Sphere {
                        Vector::new(p_hit.z * cos_phi,
                                    p_hit.z * sin_phi,
                                    -self.radius * theta.sin());
-            // Comput dn/du and dn/dv
+            // Compute dn/du and dn/dv
             // TODO
             let isect =
-                SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), dpdu, dpdv, -r.d, self);
-            Some((isect.transform(&self.object_to_world), t_shape_hit.into()))
+                SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, self);
+            Some((isect /* .transform(&self.object_to_world) */, t_shape_hit.into()))
         })
     }
 

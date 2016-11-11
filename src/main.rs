@@ -106,7 +106,7 @@ fn main() {
 }
 
 fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
-    let camera = Camera::new(Point::new(0.0, 4.0, 3.0), dim, 50.0);
+    let camera = Camera::new(Point::new(0.0, 0.0, 5.0), dim, 50.0);
     let integrator: Box<SamplerIntegrator + Send + Sync> = match args.flag_integrator {
         SamplerIntegratorType::Whitted => {
             println!("Using Whitted integrator with max ray depth of {}",
@@ -128,14 +128,14 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     let mut lights: Vec<Box<Light + Send + Sync>> = Vec::new();
     let height = 5.0;
 
-    {
-        let mesh = Mesh::load(Path::new("models/bunny.obj"), "bunny");
-        objs.push(Instance::new(Box::new(mesh),
-                                Arc::new(Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0)),
-                                Transform::new(Vector::new(1.0, 2.0, -15.0),
-                                               Vector::new(0.0, 0.0, 0.0),
-                                               2.0)));
-    }
+    // {
+    //     let mesh = Mesh::load(Path::new("models/bunny.obj"), "bunny");
+    //     objs.push(Instance::new(Box::new(mesh),
+    //                             Arc::new(Material::new(Colourf::rgb(0.0, 0.0, 0.5), 0.0, 0.0)),
+    //                             Transform::new(Vector::new(1.0, 2.0, -15.0),
+    //                                            Vector::new(0.0, 0.0, 0.0),
+    //                                            2.0)));
+    // }
     // {
     //     let mesh = Mesh::load(Path::new("models/buddha.obj"), "buddha");
     //     objs.push(Instance::new(Box::new(mesh),

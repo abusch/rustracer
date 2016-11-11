@@ -3,6 +3,7 @@ use na::Dot;
 use bsdf;
 use colour::Colourf;
 use intersection::Intersection;
+use interaction::SurfaceInteraction;
 use ray::Ray;
 use sampling::Sampler;
 use scene::Scene;
@@ -20,7 +21,7 @@ pub trait SamplerIntegrator {
 
     fn specular_reflection(&self,
                            ray: &mut Ray,
-                           isect: &Intersection,
+                           isect: &SurfaceInteraction,
                            scene: &Scene,
                            bsdf: &bsdf::BSDF,
                            sampler: &mut Sampler,
@@ -29,9 +30,9 @@ pub trait SamplerIntegrator {
         let flags = bsdf::REFLECTION | bsdf::SPECULAR;
         // TODO use sampler.get_2d()
         let (f, wi, pdf) = bsdf.sample_f(&isect.wo, (0.0, 0.0), flags);
-        let ns = isect.dg.nhit;
+        let ns = isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
-            let mut r = ray.spawn(isect.dg.phit, wi);
+            let mut r = ray.spawn(isect.p, wi);
             let refl = self.li(scene, &mut r, sampler, depth + 1);
             f * refl * wi.dot(&ns).abs() / pdf
         } else {
@@ -41,7 +42,7 @@ pub trait SamplerIntegrator {
 
     fn specular_transmission(&self,
                              ray: &mut Ray,
-                             isect: &Intersection,
+                             isect: &SurfaceInteraction,
                              scene: &Scene,
                              bsdf: &bsdf::BSDF,
                              sampler: &mut Sampler,
@@ -50,9 +51,9 @@ pub trait SamplerIntegrator {
         let flags = bsdf::TRANSMISSION | bsdf::SPECULAR;
         // TODO use sampler.get_2d()
         let (f, wi, pdf) = bsdf.sample_f(&isect.wo, (0.0, 0.0), flags);
-        let ns = isect.dg.nhit;
+        let ns = isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
-            let mut r = ray.spawn(isect.dg.phit, wi);
+            let mut r = ray.spawn(isect.p, wi);
             let refr = self.li(scene, &mut r, sampler, depth + 1);
             f * refr * wi.dot(&ns).abs() / pdf
         } else {
