@@ -1,5 +1,5 @@
 use {Vector, Point, Transform, gamma};
-use na::{self, FromHomogeneous, ToHomogeneous, Matrix3, Matrix4, Transpose};
+use na::{self, FromHomogeneous, ToHomogeneous, Matrix3, Matrix4, Transpose, Dot, Inverse};
 
 /// Transform the given point using the given transformation and also return a vector of the
 /// absolute error introduced for each coordinate.
