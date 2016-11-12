@@ -11,13 +11,11 @@ const BETA_R: Colourf = Colourf {
     r: 5.5e-6,
     g: 13e-6,
     b: 22.4e-6,
-    a: 1.0,
 };
 const BETA_M: Colourf = Colourf {
     r: 21e-6,
     g: 21e-6,
     b: 21e-6,
-    a: 1.0,
 };
 
 pub struct Atmosphere {

@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Div, Mul, Index, IndexMut};
+use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
 use na;
 
 #[derive(Debug,Copy,PartialEq,Clone)]
@@ -6,26 +6,15 @@ pub struct Colourf {
     pub r: f32,
     pub g: f32,
     pub b: f32,
-    pub a: f32,
 }
 
 impl Colourf {
     pub fn rgb(r: f32, g: f32, b: f32) -> Colourf {
-        Colourf {
-            r: r,
-            g: g,
-            b: b,
-            a: 0.0,
-        }
+        Colourf { r: r, g: g, b: b }
     }
 
     pub fn grey(v: f32) -> Colourf {
-        Colourf {
-            r: v,
-            g: v,
-            b: v,
-            a: 0.0,
-        }
+        Colourf { r: v, g: v, b: v }
     }
 
     pub fn white() -> Colourf {
@@ -61,6 +50,10 @@ impl Colourf {
     pub fn is_infinite(&self) -> bool {
         self.r.is_infinite() || self.g.is_infinite() || self.b.is_infinite()
     }
+
+    pub fn sqrt(&self) -> Colourf {
+        Colourf::rgb(self.r.sqrt(), self.g.sqrt(), self.b.sqrt())
+    }
 }
 
 impl Add<Colourf> for Colourf {
@@ -71,7 +64,18 @@ impl Add<Colourf> for Colourf {
             r: self.r + rhs.r,
             g: self.g + rhs.g,
             b: self.b + rhs.b,
-            a: self.a + rhs.a,
+        }
+    }
+}
+
+impl Sub<Colourf> for Colourf {
+    type Output = Colourf;
+
+    fn sub(self, rhs: Colourf) -> Colourf {
+        Colourf {
+            r: self.r - rhs.r,
+            g: self.g - rhs.g,
+            b: self.b - rhs.b,
         }
     }
 }
@@ -92,11 +96,51 @@ impl Mul<Colourf> for Colourf {
     }
 }
 
+impl Div<Colourf> for Colourf {
+    type Output = Colourf;
+
+    fn div(self, rhs: Colourf) -> Colourf {
+        Colourf::rgb(self.r / rhs.r, self.g / rhs.g, self.b / rhs.b)
+    }
+}
+
+impl Add<f32> for Colourf {
+    type Output = Colourf;
+
+    fn add(self, rhs: f32) -> Colourf {
+        Colourf {
+            r: self.r + rhs,
+            g: self.g + rhs,
+            b: self.b + rhs,
+        }
+    }
+}
+
+impl Sub<f32> for Colourf {
+    type Output = Colourf;
+
+    fn sub(self, rhs: f32) -> Colourf {
+        Colourf {
+            r: self.r - rhs,
+            g: self.g - rhs,
+            b: self.b - rhs,
+        }
+    }
+}
+
 impl Mul<f32> for Colourf {
     type Output = Colourf;
 
     fn mul(self, rhs: f32) -> Colourf {
         Colourf::rgb(self.r * rhs, self.g * rhs, self.b * rhs)
+    }
+}
+
+impl Mul<Colourf> for f32 {
+    type Output = Colourf;
+
+    fn mul(self, rhs: Colourf) -> Colourf {
+        Colourf::rgb(self * rhs.r, self * rhs.g, self * rhs.b)
     }
 }
 
@@ -123,13 +167,11 @@ impl Index<usize> for Colourf {
     /// - 0 = r
     /// - 1 = g
     /// - 2 = b
-    /// - 3 = a
     fn index(&self, i: usize) -> &f32 {
         match i {
             0 => &self.r,
             1 => &self.g,
             2 => &self.b,
-            3 => &self.a,
             _ => panic!("Invalid index into color"),
         }
     }
@@ -141,13 +183,11 @@ impl IndexMut<usize> for Colourf {
     /// - 0 = r
     /// - 1 = g
     /// - 2 = b
-    /// - 3 = a
     fn index_mut(&mut self, i: usize) -> &mut f32 {
         match i {
             0 => &mut self.r,
             1 => &mut self.g,
             2 => &mut self.b,
-            3 => &mut self.a,
             _ => panic!("Invalid index into color"),
         }
     }
