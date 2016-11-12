@@ -192,9 +192,9 @@ fn cos_d_phi(wa: &Vector, wb: &Vector) -> f32 {
 
 trait BxDF {
     fn f(&self, wo: &Vector, wi: &Vector) -> Colourf;
-    fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Vector, f32, BxDFType, Colourf);
-    fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Colourf);
-    fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Colourf);
+    fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Colourf);
+    // fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Colourf);
+    // fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Colourf);
     fn matches(&self, flags: BxDFType) -> bool;
 }
 
@@ -216,18 +216,18 @@ impl BxDF for ScaledBxDF {
     fn f(&self, wo: &Vector, wi: &Vector) -> Colourf {
         self.bxdf.f(wo, wi) * self.scale
     }
-    fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Vector, f32, BxDFType, Colourf) {
+    fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Colourf) {
         let (wi, pdf, bxdftype, spectrum) = self.bxdf.sample_f(wo, sample);
         (wi, pdf, bxdftype, spectrum * self.scale)
     }
-    fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Colourf) {
-        let (sample, spectrum) = self.bxdf.rho(wo, n_samples);
-        (sample, spectrum * self.scale)
-    }
-    fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Colourf) {
-        let (sample1, sample2, spectrum) = self.bxdf.rho_hh(n_samples);
-        (sample1, sample2, spectrum * self.scale)
-    }
+    // fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Colourf) {
+    //     let (sample, spectrum) = self.bxdf.rho(wo, n_samples);
+    //     (sample, spectrum * self.scale)
+    // }
+    // fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Colourf) {
+    //     let (sample1, sample2, spectrum) = self.bxdf.rho_hh(n_samples);
+    //     (sample1, sample2, spectrum * self.scale)
+    // }
     fn matches(&self, flags: BxDFType) -> bool {
         self.bxdf.matches(flags)
     }
@@ -331,5 +331,41 @@ struct FresnelDielectric {
 impl Fresnel for FresnelDielectric {
     fn evaluate(&self, cos_theta_i: f32) -> Colourf {
         Colourf::grey(fr_dielectric(cos_theta_i.abs(), self.eta_i, self.eta_t))
+    }
+}
+
+/// BRDF for perfect specular reflection
+struct SpecularReflection {
+    typ: BxDFType,
+    r: Colourf,
+    fresnel: Box<Fresnel>,
+}
+
+impl SpecularReflection {
+    fn new(r: Colourf, fresnel: Box<Fresnel>) -> SpecularReflection {
+        SpecularReflection {
+            typ: SPECULAR | REFLECTION,
+            r: r,
+            fresnel: fresnel,
+        }
+    }
+}
+
+impl BxDF for SpecularReflection {
+    fn f(&self, wo: &Vector, wi: &Vector) -> Colourf {
+        // The probability to call f() with the exact (wo, wi) for specular reflection is 0, so we
+        // return black here. Use sample_f() instead.
+        Colourf::black()
+    }
+
+    fn sample_f(&self, wo: &Vector, _sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Colourf) {
+        // There's only one possible wi for a given wo, so we always return it with a pdf of 1.
+        let wi = Vector::new(-wo.x, -wo.y, wo.z);
+        let spectrum = self.fresnel.evaluate(cos_theta(&wi)) * self.r / abs_cos_theta(&wi);
+        (wi, 1.0, None, spectrum)
+    }
+
+    fn matches(&self, flags: BxDFType) -> bool {
+        self.typ & flags == self.typ
     }
 }
