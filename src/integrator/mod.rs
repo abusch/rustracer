@@ -26,7 +26,7 @@ pub trait SamplerIntegrator {
                            sampler: &mut Sampler,
                            depth: u32)
                            -> Colourf {
-        let flags = bsdf::REFLECTION | bsdf::SPECULAR;
+        let flags = bsdf::BSDF_REFLECTION | bsdf::BSDF_SPECULAR;
         // TODO use sampler.get_2d()
         let (f, wi, pdf) = bsdf.sample_f(&isect.wo, (0.0, 0.0), flags);
         let ns = isect.shading.n;
@@ -47,7 +47,7 @@ pub trait SamplerIntegrator {
                              sampler: &mut Sampler,
                              depth: u32)
                              -> Colourf {
-        let flags = bsdf::TRANSMISSION | bsdf::SPECULAR;
+        let flags = bsdf::BSDF_TRANSMISSION | bsdf::BSDF_SPECULAR;
         // TODO use sampler.get_2d()
         let (f, wi, pdf) = bsdf.sample_f(&isect.wo, (0.0, 0.0), flags);
         let ns = isect.shading.n;

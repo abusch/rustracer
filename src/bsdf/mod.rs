@@ -8,11 +8,11 @@ use interaction::SurfaceInteraction;
 
 bitflags! {
     pub flags BxDFType: u32 {
-        const REFLECTION   = 0b_00000001,
-        const TRANSMISSION = 0b_00000010,
-        const DIFFUSE      = 0b_00000100,
-        const GLOSSY       = 0b_00001000,
-        const SPECULAR     = 0b_00010000,
+        const BSDF_REFLECTION   = 0b_00000001,
+        const BSDF_TRANSMISSION = 0b_00000010,
+        const BSDF_DIFFUSE      = 0b_00000100,
+        const BSDF_GLOSSY       = 0b_00001000,
+        const BSDF_SPECULAR     = 0b_00010000,
     }
 }
 
@@ -58,8 +58,8 @@ impl<'a> BSDF<'a> {
                 // Make sure we only evaluate reflection or transmission based on whether wi and wo
                 // lie in the same hemisphere.
                 b.matches(flags) &&
-                ((reflect && (b.get_type().contains(REFLECTION))) ||
-                 (!reflect && (b.get_type().contains(TRANSMISSION))))
+                ((reflect && (b.get_type().contains(BSDF_REFLECTION))) ||
+                 (!reflect && (b.get_type().contains(BSDF_TRANSMISSION))))
             })
             .fold(Colourf::black(), |c, b| c + b.f(&wi, &wo))
     }
@@ -69,11 +69,11 @@ impl<'a> BSDF<'a> {
                     sample: (f32, f32),
                     flags: BxDFType)
                     -> (Colourf, Vector, f32) {
-        if !flags.contains(SPECULAR) {
+        if !flags.contains(BSDF_SPECULAR) {
             unimplemented!();
         }
 
-        if flags.contains(REFLECTION) {
+        if flags.contains(BSDF_REFLECTION) {
             let wo = self.world_to_local(&wo_w);
             let wi = Vector::new(-wo.x, -wo.y, wo.z);
             let cos_theta_i = wi.z;
@@ -82,7 +82,7 @@ impl<'a> BSDF<'a> {
 
             assert!(!colour.has_nan());
             return (colour, self.local_to_world(&wi), 1.0);
-        } else if flags.contains(TRANSMISSION) {
+        } else if flags.contains(BSDF_TRANSMISSION) {
             let wo = self.world_to_local(&wo_w);
             let entering = wo.z > 0.0;
             let (eta_i, eta_t) = if entering {
@@ -383,6 +383,6 @@ impl BxDF for SpecularReflection {
     }
 
     fn get_type(&self) -> BxDFType {
-        SPECULAR | REFLECTION
+        BSDF_SPECULAR | BSDF_REFLECTION
     }
 }
