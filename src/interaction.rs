@@ -6,7 +6,7 @@ use shapes::Shape;
 use transform;
 use na::{self, Cross, Norm};
 
-pub struct SurfaceInteraction<'a> {
+pub struct SurfaceInteraction<'a, 'b> {
     /// The point where the ray hit the primitive
     pub p: Point,
     /// Error bound for the intersection point
@@ -30,10 +30,10 @@ pub struct SurfaceInteraction<'a> {
     /// Shading information
     pub shading: Shading,
     /// BSDF of the surface at the intersection point
-    pub bsdf: Option<BSDF>,
+    pub bsdf: Option<BSDF<'b>>,
 }
 
-impl<'a> SurfaceInteraction<'a> {
+impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     pub fn new(p: Point,
                p_error: Vector,
                uv: Point2f,
@@ -72,7 +72,7 @@ impl<'a> SurfaceInteraction<'a> {
         Colourf::black()
     }
 
-    pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {
+    pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a, 'b> {
         let (p, p_err) = transform::transform_point_with_error(t, &self.p, &self.p_error);
         SurfaceInteraction {
             p: p,

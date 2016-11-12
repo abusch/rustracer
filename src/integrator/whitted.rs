@@ -35,7 +35,13 @@ impl SamplerIntegrator for Whitted {
 
                 // Add contribution of each light source
                 // let bsdf = isect.material.bsdf(&isect);
-                let bsdf = bsdf::BSDF::new2(&isect, 1.5);
+                let bxdfs: Vec<Box<bsdf::BxDF + Send + Sync>> = vec![Box::new(bsdf::SpecularReflection::new(Colourf::rgb(1.0, 0.0, 0.0),
+                                                         Box::new(bsdf::FresnelConductor::new(
+                                                                 Colourf::white(),
+                                                                 Colourf::rgb(0.155265, 0.116723, 0.138381),
+                                                                 Colourf::rgb(4.82835, 3.12225, 2.14696),
+                                                                 ))))];
+                let bsdf = bsdf::BSDF::new(&isect, 1.5, &bxdfs[..]);
                 for light in &scene.lights {
                     let (li, wi, pdf) = light.sample_li(&isect, &wo, (0.0, 0.0));
                     if li.is_black() || pdf == 0.0 {
@@ -45,7 +51,7 @@ impl SamplerIntegrator for Whitted {
                     // TODO VisibilityTester
                     let mut shadow_ray = ray.spawn(p, -wi);
                     // shadow_ray.t_max = shading_info.light_distance;
-                    let f = bsdf.f(&wi, &wo);
+                    let f = bsdf.f(&wi, &wo, bsdf::BxDFType::all());
                     if !f.is_black() && !scene.intersect_p(&mut shadow_ray) {
                         // TODO Why do I still have to divide by PI?
                         colour += f * li * wi.dot(&n).abs() * FRAC_1_PI / pdf;

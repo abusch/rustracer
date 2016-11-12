@@ -8,18 +8,18 @@ use interaction::SurfaceInteraction;
 
 bitflags! {
     pub flags BxDFType: u32 {
-        const REFLECTION   = 0b_0000_0001,
-        const TRANSMISSION = 0b_0000_0010,
-        const DIFFUSE      = 0b_0000_0100,
-        const GLOSSY       = 0b_0000_1000,
-        const SPECULAR     = 0b_0001_0000,
+        const REFLECTION   = 0b_00000001,
+        const TRANSMISSION = 0b_00000010,
+        const DIFFUSE      = 0b_00000100,
+        const GLOSSY       = 0b_00001000,
+        const SPECULAR     = 0b_00010000,
     }
 }
 
 /// Represents the Bidirectional Scattering Distribution Function.
 /// It represents the properties of a material at a given point.
-#[derive(Copy, Clone, Debug)]
-pub struct BSDF {
+#[derive(Copy, Clone)]
+pub struct BSDF<'a> {
     /// Index of refraction of the surface
     eta: f32,
     /// Shading normal (i.e. potentially affected by bump-mapping)
@@ -27,23 +27,15 @@ pub struct BSDF {
     /// Geometry normal
     ng: Vector,
     ss: Vector,
-    ts: Vector, // bxdfs: BxDFType,
+    ts: Vector,
+    bxdfs: &'a [Box<BxDF + Sync + Send>],
 }
 
-impl BSDF {
-    pub fn new(isect: &Intersection, eta: f32) -> Self {
-        let n = isect.dg.nhit;
-        let ss = isect.dg.dpdu.normalize();
-        BSDF {
-            eta: eta,
-            ns: n,
-            ng: n,
-            ss: ss,
-            ts: n.cross(&ss),
-        }
-    }
-
-    pub fn new2(isect: &SurfaceInteraction, eta: f32) -> Self {
+impl<'a> BSDF<'a> {
+    pub fn new(isect: &SurfaceInteraction,
+               eta: f32,
+               bxdfs: &'a [Box<BxDF + Sync + Send>])
+               -> BSDF<'a> {
         let ss = isect.dpdu.normalize();
         BSDF {
             eta: eta,
@@ -51,12 +43,25 @@ impl BSDF {
             ng: isect.n,
             ss: ss,
             ts: isect.shading.n.cross(&ss),
+            bxdfs: bxdfs,
         }
     }
 
     /// Evaluate the BSDF for the given incoming light direction and outgoing light direction.
-    pub fn f(&self, _wi_w: &Vector, _wo_w: &Vector) -> Colourf {
-        Colourf::black()
+    pub fn f(&self, wi_w: &Vector, wo_w: &Vector, flags: BxDFType) -> Colourf {
+        let wi = self.world_to_local(wi_w);
+        let wo = self.world_to_local(wo_w);
+        let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
+        self.bxdfs
+            .iter()
+            .filter(|b| {
+                // Make sure we only evaluate reflection or transmission based on whether wi and wo
+                // lie in the same hemisphere.
+                b.matches(flags) &&
+                ((reflect && (b.get_type().contains(REFLECTION))) ||
+                 (!reflect && (b.get_type().contains(TRANSMISSION))))
+            })
+            .fold(Colourf::black(), |c, b| c + b.f(&wi, &wo))
     }
 
     pub fn sample_f(&self,
@@ -190,15 +195,19 @@ fn cos_d_phi(wa: &Vector, wb: &Vector) -> f32 {
               1.0)
 }
 
-trait BxDF {
+pub trait BxDF {
     fn f(&self, wo: &Vector, wi: &Vector) -> Colourf;
     fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Colourf);
     // fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Colourf);
     // fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Colourf);
-    fn matches(&self, flags: BxDFType) -> bool;
+    fn matches(&self, flags: BxDFType) -> bool {
+        self.get_type() & flags == self.get_type()
+    }
+
+    fn get_type(&self) -> BxDFType;
 }
 
-struct ScaledBxDF {
+pub struct ScaledBxDF {
     bxdf: Box<BxDF>,
     scale: Colourf,
 }
@@ -228,8 +237,8 @@ impl BxDF for ScaledBxDF {
     //     let (sample1, sample2, spectrum) = self.bxdf.rho_hh(n_samples);
     //     (sample1, sample2, spectrum * self.scale)
     // }
-    fn matches(&self, flags: BxDFType) -> bool {
-        self.bxdf.matches(flags)
+    fn get_type(&self) -> BxDFType {
+        self.bxdf.get_type()
     }
 }
 
@@ -305,15 +314,25 @@ fn fr_conductor(cos_theta_i: f32, eta_i: &Colourf, eta_t: &Colourf, k: &Colourf)
 }
 
 /// Trait for Fresnel materials
-trait Fresnel {
+pub trait Fresnel {
     fn evaluate(&self, cos_theta_i: f32) -> Colourf;
 }
 
 /// Fresnel for conductor materials
-struct FresnelConductor {
+pub struct FresnelConductor {
     eta_i: Colourf,
     eta_t: Colourf,
     k: Colourf,
+}
+
+impl FresnelConductor {
+    pub fn new(eta_i: Colourf, eta_t: Colourf, k: Colourf) -> FresnelConductor {
+        FresnelConductor {
+            eta_i: eta_i,
+            eta_t: eta_t,
+            k: k,
+        }
+    }
 }
 
 impl Fresnel for FresnelConductor {
@@ -323,7 +342,7 @@ impl Fresnel for FresnelConductor {
 }
 
 /// Fresnel for dielectric materials
-struct FresnelDielectric {
+pub struct FresnelDielectric {
     eta_i: f32,
     eta_t: f32,
 }
@@ -335,16 +354,14 @@ impl Fresnel for FresnelDielectric {
 }
 
 /// BRDF for perfect specular reflection
-struct SpecularReflection {
-    typ: BxDFType,
+pub struct SpecularReflection {
     r: Colourf,
-    fresnel: Box<Fresnel>,
+    fresnel: Box<Fresnel + Send + Sync>,
 }
 
 impl SpecularReflection {
-    fn new(r: Colourf, fresnel: Box<Fresnel>) -> SpecularReflection {
+    pub fn new(r: Colourf, fresnel: Box<Fresnel + Send + Sync>) -> SpecularReflection {
         SpecularReflection {
-            typ: SPECULAR | REFLECTION,
             r: r,
             fresnel: fresnel,
         }
@@ -365,7 +382,7 @@ impl BxDF for SpecularReflection {
         (wi, 1.0, None, spectrum)
     }
 
-    fn matches(&self, flags: BxDFType) -> bool {
-        self.typ & flags == self.typ
+    fn get_type(&self) -> BxDFType {
+        SPECULAR | REFLECTION
     }
 }
