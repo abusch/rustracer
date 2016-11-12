@@ -303,3 +303,33 @@ fn fr_conductor(cos_theta_i: f32, eta_i: &Colourf, eta_t: &Colourf, k: &Colourf)
 
     0.5 * (r_p + r_s)
 }
+
+/// Trait for Fresnel materials
+trait Fresnel {
+    fn evaluate(&self, cos_theta_i: f32) -> Colourf;
+}
+
+/// Fresnel for conductor materials
+struct FresnelConductor {
+    eta_i: Colourf,
+    eta_t: Colourf,
+    k: Colourf,
+}
+
+impl Fresnel for FresnelConductor {
+    fn evaluate(&self, cos_theta_i: f32) -> Colourf {
+        fr_conductor(cos_theta_i.abs(), &self.eta_i, &self.eta_t, &self.k)
+    }
+}
+
+/// Fresnel for dielectric materials
+struct FresnelDielectric {
+    eta_i: f32,
+    eta_t: f32,
+}
+
+impl Fresnel for FresnelDielectric {
+    fn evaluate(&self, cos_theta_i: f32) -> Colourf {
+        Colourf::grey(fr_dielectric(cos_theta_i.abs(), self.eta_i, self.eta_t))
+    }
+}
