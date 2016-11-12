@@ -1,5 +1,5 @@
 use std::mem;
-use na::{Cross, Dot, zero, Norm, clamp};
+use na::{self, Cross, Dot, zero, Norm, clamp};
 
 use ::Vector;
 use colour::Colourf;
@@ -114,6 +114,80 @@ impl BSDF {
                     self.ss.y * v.x + self.ts.y * v.y + self.ns.y * v.z,
                     self.ss.z * v.z + self.ts.z * v.y + self.ns.z * v.z)
     }
+}
+
+// Common geometric functions
+#[inline]
+fn cos_theta(w: &Vector) -> f32 {
+    w.z
+}
+
+#[inline]
+fn cos2_theta(w: &Vector) -> f32 {
+    w.z * w.z
+}
+
+#[inline]
+fn abs_cos_theta(w: &Vector) -> f32 {
+    w.z.abs()
+}
+
+#[inline]
+fn sin2_theta(w: &Vector) -> f32 {
+    (1.0 - cos2_theta(w)).max(0.0)
+}
+
+#[inline]
+fn sin_theta(w: &Vector) -> f32 {
+    sin2_theta(w).sqrt()
+}
+
+#[inline]
+fn tan_theta(w: &Vector) -> f32 {
+    sin_theta(w) / cos_theta(w)
+}
+
+#[inline]
+fn tan2_theta(w: &Vector) -> f32 {
+    sin2_theta(w) / cos2_theta(w)
+}
+
+#[inline]
+fn cos_phi(w: &Vector) -> f32 {
+    let sin_theta = sin_theta(w);
+    if sin_theta == 0.0 {
+        0.0
+    } else {
+        na::clamp(w.x / sin_theta, -1.0, 1.0)
+    }
+}
+
+#[inline]
+fn sin_phi(w: &Vector) -> f32 {
+    let sin_theta = sin_theta(w);
+    if sin_theta == 0.0 {
+        0.0
+    } else {
+        na::clamp(w.y / sin_theta, -1.0, 1.0)
+    }
+}
+
+#[inline]
+fn cos2_phi(w: &Vector) -> f32 {
+    cos_phi(w) / cos_phi(w)
+}
+
+#[inline]
+fn sin2_phi(w: &Vector) -> f32 {
+    sin_phi(w) / sin_phi(w)
+}
+
+#[inline]
+fn cos_d_phi(wa: &Vector, wb: &Vector) -> f32 {
+    na::clamp((wa.x * wb.x + wa.y * wa.y) /
+              ((wa.x * wa.x + wa.y * wa.y) * (wb.x * wb.x + wb.y * wb.y)).sqrt(),
+              -1.0,
+              1.0)
 }
 
 trait BxDF {
