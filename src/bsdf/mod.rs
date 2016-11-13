@@ -1,8 +1,10 @@
 mod bxdf;
 mod fresnel;
+mod lambertian;
 
 pub use self::bxdf::*;
 pub use self::fresnel::*;
+pub use self::lambertian::*;
 
 use std::mem;
 use na::{self, Cross, Dot, zero, Norm, clamp};
