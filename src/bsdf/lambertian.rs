@@ -7,6 +7,12 @@ pub struct LambertianReflection {
     r: Colourf,
 }
 
+impl LambertianReflection {
+    pub fn new(r: Colourf) -> LambertianReflection {
+        LambertianReflection { r: r }
+    }
+}
+
 impl BxDF for LambertianReflection {
     fn f(&self, wo: &Vector, wi: &Vector) -> Colourf {
         self.r * consts::FRAC_1_PI
