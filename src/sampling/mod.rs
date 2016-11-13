@@ -1,4 +1,30 @@
+use std::f32::consts;
 use rand::{thread_rng, Rng};
+use ::{Point2f, Vector};
+use na::{zero, Vector2};
+
+const FRAC_PI_4: f32 = consts::FRAC_PI_2 / 2.0;
+
+// Inline functions
+pub fn cosine_sample_hemisphere(u: &Point2f) -> Vector {
+    let d = concentric_sample_disk(u);
+    let z = (1.0 - d.x * d.x - d.y * d.y).max(0.0).sqrt();
+    Vector::new(d.x, d.y, z)
+}
+
+pub fn concentric_sample_disk(u: &Point2f) -> Point2f {
+    let u_offset = 2.0 * *u - Vector2::<f32>::new(1.0, 1.0);
+    if u_offset.x == 0.0 && u_offset.y == 0.0 {
+        return Point2f::new(0.0, 0.0);
+    }
+
+    let (r, theta) = if u_offset.x.abs() > u_offset.y.abs() {
+        (u_offset.x, FRAC_PI_4 * (u_offset.y / u_offset.x))
+    } else {
+        (u_offset.y, consts::FRAC_PI_2 - FRAC_PI_4 * (u_offset.x / u_offset.y))
+    };
+    r * Point2f::new(theta.cos(), theta.sin())
+}
 
 pub trait Sampler {
     fn get_samples(&self, x: f32, y: f32, samples: &mut Vec<(f32, f32)>);
