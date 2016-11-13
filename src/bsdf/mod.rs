@@ -200,3 +200,8 @@ pub fn cos_d_phi(wa: &Vector, wb: &Vector) -> f32 {
               -1.0,
               1.0)
 }
+
+#[inline]
+pub fn same_hemisphere(w: &Vector, wp: &Vector) -> bool {
+    w.z * wp.z > 0.0
+}
