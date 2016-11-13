@@ -1,12 +1,16 @@
+use std::sync::Arc;
 use ::{Point, Point2f, Vector, Transform};
 use bsdf::BSDF;
 use colour::Colourf;
 use primitive::Primitive;
+use ray::Ray;
 use shapes::Shape;
 use transform;
-use na::{self, Cross, Norm};
+use na::{self, Dot, Cross, Norm};
+use material::TransportMode;
+use fp::Ieee754;
 
-pub struct SurfaceInteraction<'a, 'b> {
+pub struct SurfaceInteraction<'a> {
     /// The point where the ray hit the primitive
     pub p: Point,
     /// Error bound for the intersection point
@@ -30,10 +34,10 @@ pub struct SurfaceInteraction<'a, 'b> {
     /// Shading information
     pub shading: Shading,
     /// BSDF of the surface at the intersection point
-    pub bsdf: Option<BSDF<'b>>,
+    pub bsdf: Option<Arc<BSDF>>,
 }
 
-impl<'a, 'b> SurfaceInteraction<'a, 'b> {
+impl<'a> SurfaceInteraction<'a> {
     pub fn new(p: Point,
                p_error: Vector,
                uv: Point2f,
@@ -72,7 +76,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         Colourf::black()
     }
 
-    pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a, 'b> {
+    pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {
         let (p, p_err) = transform::transform_point_with_error(t, &self.p, &self.p_error);
         SurfaceInteraction {
             p: p,
@@ -93,8 +97,39 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 dndu: na::zero(),
                 dndv: na::zero(),
             },
-            bsdf: self.bsdf,
+            bsdf: self.bsdf.clone(),
         }
+    }
+
+    pub fn compute_scattering_functions(&mut self,
+                                        _ray: &Ray,
+                                        transport: TransportMode,
+                                        allow_multiple_lobes: bool) {
+        if let Some(primitive) = self.primitive {
+            primitive.compute_scattering_functions(self, transport, allow_multiple_lobes);
+        }
+    }
+
+    pub fn spawn_ray(&self, dir: &Vector) -> Ray {
+        let o = self.offset_origin(&self.p, &self.p_error, &self.n, dir);
+        Ray::new(o, *dir)
+    }
+
+    fn offset_origin(&self, p: &Point, p_err: &Vector, n: &Vector, w: &Vector) -> Point {
+        let d = na::abs(n).dot(p_err);
+        let mut offset = d * *n;
+        if w.dot(n) < 0.0 {
+            offset = -offset;
+        }
+        let mut po = *p + offset;
+        for i in 0..3 {
+            if offset[i] > 0.0 {
+                po[i] = po[i].next();
+            } else {
+                po[i] = po[i].prev();
+            }
+        }
+        po
     }
 }
 

@@ -8,11 +8,14 @@ use material::Material;
 pub struct Intersection<'a> {
     pub dg: DifferentialGeometry<'a>,
     pub wo: Vector,
-    pub material: Arc<Material>,
+    pub material: Arc<Material + Send + Sync>,
 }
 
 impl<'a> Intersection<'a> {
-    pub fn new(dg: DifferentialGeometry, wo: Vector, material: Arc<Material>) -> Intersection {
+    pub fn new(dg: DifferentialGeometry<'a>,
+               wo: Vector,
+               material: Arc<Material + Send + Sync>)
+               -> Intersection<'a> {
         Intersection {
             dg: dg,
             wo: wo,

@@ -3,19 +3,9 @@ use ray::Ray;
 use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
 use shapes::Shape;
-
+use material::{Material, TransportMode};
 
 pub trait AreaLight {}
-
-pub trait Material {
-    fn compute_scattering_functions(&self,
-                                    isect: &mut SurfaceInteraction,
-                                    mode: TransportMode,
-                                    allow_multiple_lobes: bool);
-}
-
-pub enum TransportMode {
-}
 
 pub trait Primitive {
     fn world_bounds(&self) -> Bounds3f;
@@ -68,7 +58,7 @@ impl Primitive for GeometricPrimitive {
                                     isect: &mut SurfaceInteraction,
                                     mode: TransportMode,
                                     allow_multiple_lobes: bool) {
-        if let Some(ref material) = self.material {
+        if let Some(ref material) = self.material() {
             material.compute_scattering_functions(isect, mode, allow_multiple_lobes);
         }
     }

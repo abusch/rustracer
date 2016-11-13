@@ -6,6 +6,7 @@ use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampling::Sampler;
 use scene::Scene;
+use material::TransportMode;
 use na::Dot;
 
 pub struct Whitted {
@@ -23,25 +24,27 @@ impl SamplerIntegrator for Whitted {
         let mut colour = Colourf::black();
 
         match scene.intersect2(ray) {
-            Some(isect) => {
+            Some(mut isect) => {
                 let n = isect.shading.n;
                 let p = isect.p;
                 let wo = isect.wo;
 
                 // Compute scattering functions for surface interaction
+                isect.compute_scattering_functions(ray, TransportMode::RADIANCE, false);
 
                 // Compute emitted light if ray hit an area light source
                 colour += isect.le(wo);
 
                 // Add contribution of each light source
                 // let bsdf = isect.material.bsdf(&isect);
-                let bxdfs: Vec<Box<bsdf::BxDF + Send + Sync>> = vec![Box::new(bsdf::SpecularReflection::new(Colourf::rgb(1.0, 0.0, 0.0),
-                                                         Box::new(bsdf::FresnelConductor::new(
-                                                                 Colourf::white(),
-                                                                 Colourf::rgb(0.155265, 0.116723, 0.138381),
-                                                                 Colourf::rgb(4.82835, 3.12225, 2.14696),
-                                                                 ))))];
-                let bsdf = bsdf::BSDF::new(&isect, 1.5, &bxdfs[..]);
+
+
+                if isect.bsdf.is_none() {
+                    let mut r = isect.spawn_ray(&ray.d);
+                    return self.li(scene, &mut r, sampler, depth);
+                }
+                let bsdf = isect.bsdf.clone().unwrap();
+
                 for light in &scene.lights {
                     let (li, wi, pdf) = light.sample_li(&isect, &wo, (0.0, 0.0));
                     if li.is_black() || pdf == 0.0 {

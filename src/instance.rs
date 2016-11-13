@@ -11,7 +11,7 @@ use na::Inverse;
 
 pub struct Instance {
     pub geom: Box<BoundedGeometry + Sync + Send>,
-    pub material: Arc<Material>,
+    pub material: Arc<Material + Sync + Send>,
     pub transform: Transform,
     pub transform_inv: Transform,
     bounds: BBox,
@@ -19,7 +19,7 @@ pub struct Instance {
 
 impl Instance {
     pub fn new(g: Box<BoundedGeometry + Sync + Send>,
-               material: Arc<Material>,
+               material: Arc<Material + Send + Sync>,
                transform: Transform)
                -> Instance {
 

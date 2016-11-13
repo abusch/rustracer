@@ -17,7 +17,7 @@ use rt::colour::Colourf;
 use rt::camera::Camera;
 use rt::geometry::*;
 use rt::instance::Instance;
-use rt::integrator::{SamplerIntegrator, Whitted, AmbientOcclusion, Normal};
+use rt::integrator::{SamplerIntegrator, Whitted, Normal};
 use rt::light::{Light, PointLight, DistantLight};
 use rt::material::Material;
 use rt::renderer;
@@ -44,7 +44,7 @@ Options:
   -i <integrator>, --integrator=<integrator>  SamplerIntegrator \
      to use [default: whitted].
                                               Valid values: \
-     whitted, ao, normal.
+     whitted, normal.
   --whitted-max-ray-depth=N                   Maximum ray depth for \
      Whitted integrator. [default: 8].
   --ao-samples=N                              Number of \
@@ -66,7 +66,7 @@ struct Args {
 #[derive(RustcDecodable)]
 enum SamplerIntegratorType {
     Whitted,
-    Ao,
+    // Ao,
     Normal,
 }
 
@@ -113,11 +113,11 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
                      args.flag_whitted_max_ray_depth);
             Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
         }
-        SamplerIntegratorType::Ao => {
-            println!("Using Ambient Occlusion integrator with {} samples",
-                     args.flag_ao_samples);
-            Box::new(AmbientOcclusion::new(args.flag_ao_samples))
-        }
+        // SamplerIntegratorType::Ao => {
+        //     println!("Using Ambient Occlusion integrator with {} samples",
+        //              args.flag_ao_samples);
+        //     Box::new(AmbientOcclusion::new(args.flag_ao_samples))
+        // }
         SamplerIntegratorType::Normal => {
             println!("Using normal facing ratio integrator");
             Box::new(Normal {})
@@ -144,14 +144,14 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     //                                            Vector::new(0.0, PI, 0.0),
     //                                            10.0)));
     // }
-    objs.push(Instance::new(Box::new(Sphere::new(3.0)),
-                            Arc::new(Material::new(Colourf::rgb(0.90, 0.90, 0.90), 1.0, 1.0)),
-                            Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0)));
-    objs.push(Instance::new(Box::new(Plane),
-                            Arc::new(Material::new(Colourf::rgb(1.0, 1.0, 1.0), 0.0, 0.0)),
-                            Transform::new(Vector::new(0.0, height - 4.0, 0.0),
-                                           Vector::new(FRAC_PI_2, 0.0, 0.0),
-                                           20.0)));
+    // objs.push(Instance::new(Box::new(Sphere::new(3.0)),
+    //                         Arc::new(Material::new(Colourf::rgb(0.90, 0.90, 0.90), 1.0, 1.0)),
+    //                         Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0)));
+    // objs.push(Instance::new(Box::new(Plane),
+    //                         Arc::new(Material::new(Colourf::rgb(1.0, 1.0, 1.0), 0.0, 0.0)),
+    //                         Transform::new(Vector::new(0.0, height - 4.0, 0.0),
+    //                                        Vector::new(FRAC_PI_2, 0.0, 0.0),
+    //                                        20.0)));
     // Light
     lights.push(Box::new(PointLight::new(Point::new(-10.0, 10.0, -5.0),
                                          Colourf::rgb(3000.0, 2000.0, 2000.0))));
