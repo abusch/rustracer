@@ -1,10 +1,20 @@
-use super::BxDFType;
+use std::f32::consts;
+
+use super::{BxDFType, abs_cos_theta, same_hemisphere};
 use ::{Vector, Point2f};
+use sampling::cosine_sample_hemisphere;
 use colour::Colourf;
 
 pub trait BxDF {
     fn f(&self, wo: &Vector, wi: &Vector) -> Colourf;
-    fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Colourf);
+    fn sample_f(&self, wo: &Vector, u: &Point2f) -> (Vector, f32, Option<BxDFType>, Colourf) {
+        let mut wi = cosine_sample_hemisphere(u);
+        if wo.z < 0.0 {
+            wi.z *= -1.0;
+        }
+        let pdf = self.pdf(wo, &wi);
+        (wi, pdf, None, self.f(wo, &wi))
+    }
     // fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Colourf);
     // fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Colourf);
     fn matches(&self, flags: BxDFType) -> bool {
@@ -12,6 +22,14 @@ pub trait BxDF {
     }
 
     fn get_type(&self) -> BxDFType;
+
+    fn pdf(&self, wo: &Vector, wi: &Vector) -> f32 {
+        if same_hemisphere(wo, wi) {
+            abs_cos_theta(wi) * consts::FRAC_1_PI
+        } else {
+            0.0
+        }
+    }
 }
 
 pub struct ScaledBxDF {
