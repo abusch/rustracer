@@ -52,12 +52,12 @@ impl SamplerIntegrator for Whitted {
                     }
 
                     // TODO VisibilityTester
-                    let mut shadow_ray = ray.spawn(p, -wi);
+                    let mut shadow_ray = ray.spawn(p, wi);
                     // shadow_ray.t_max = shading_info.light_distance;
                     let f = bsdf.f(&wi, &wo, bsdf::BxDFType::all());
                     if !f.is_black() && !scene.intersect_p(&mut shadow_ray) {
                         // TODO Why do I still have to divide by PI?
-                        colour += f * li * wi.dot(&n).abs() * FRAC_1_PI / pdf;
+                        colour += f * li * wi.dot(&n).abs() / pdf;
                     }
                 }
 

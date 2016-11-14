@@ -73,43 +73,43 @@ impl BSDF {
                     sample: (f32, f32),
                     flags: BxDFType)
                     -> (Colourf, Vector, f32) {
-        if !flags.contains(BSDF_SPECULAR) {
-            unimplemented!();
-        }
+        // if !flags.contains(BSDF_SPECULAR) {
+        //     unimplemented!();
+        // }
 
-        if flags.contains(BSDF_REFLECTION) {
-            let wo = self.world_to_local(&wo_w);
-            let wi = Vector::new(-wo.x, -wo.y, wo.z);
-            let cos_theta_i = wi.z;
-            let kr = fr_dielectric(cos_theta_i, 1.0, self.eta);
-            let colour = Colourf::rgb(1.0, 1.0, 1.0) * kr / cos_theta_i.abs();
+        // if flags.contains(BSDF_REFLECTION) {
+        //     let wo = self.world_to_local(&wo_w);
+        //     let wi = Vector::new(-wo.x, -wo.y, wo.z);
+        //     let cos_theta_i = wi.z;
+        //     let kr = fr_dielectric(cos_theta_i, 1.0, self.eta);
+        //     let colour = Colourf::rgb(1.0, 1.0, 1.0) * kr / cos_theta_i.abs();
 
-            assert!(!colour.has_nan());
-            return (colour, self.local_to_world(&wi), 1.0);
-        } else if flags.contains(BSDF_TRANSMISSION) {
-            let wo = self.world_to_local(&wo_w);
-            let entering = wo.z > 0.0;
-            let (eta_i, eta_t) = if entering {
-                (1.0, self.eta)
-            } else {
-                (self.eta, 1.0)
-            };
-            let n = if wo.z < 0.0 {
-                -Vector::z()
-            } else {
-                Vector::z()
-            };
-            return refract(&wo, &n, eta_i / eta_t)
-                .map(|wi| {
-                    let cos_theta_i = wi.z;
-                    let kr = fr_dielectric(cos_theta_i, 1.0, self.eta);
-                    let colour = Colourf::rgb(1.0, 1.0, 1.0) * (1.0 - kr) / cos_theta_i.abs();
+        //     assert!(!colour.has_nan());
+        //     return (colour, self.local_to_world(&wi), 1.0);
+        // } else if flags.contains(BSDF_TRANSMISSION) {
+        //     let wo = self.world_to_local(&wo_w);
+        //     let entering = wo.z > 0.0;
+        //     let (eta_i, eta_t) = if entering {
+        //         (1.0, self.eta)
+        //     } else {
+        //         (self.eta, 1.0)
+        //     };
+        //     let n = if wo.z < 0.0 {
+        //         -Vector::z()
+        //     } else {
+        //         Vector::z()
+        //     };
+        //     return refract(&wo, &n, eta_i / eta_t)
+        //         .map(|wi| {
+        //             let cos_theta_i = wi.z;
+        //             let kr = fr_dielectric(cos_theta_i, 1.0, self.eta);
+        //             let colour = Colourf::rgb(1.0, 1.0, 1.0) * (1.0 - kr) / cos_theta_i.abs();
 
-                    assert!(!colour.has_nan());
-                    (colour, self.local_to_world(&wi), 1.0)
-                })
-                .unwrap_or((Colourf::black(), zero(), 0.0));
-        }
+        //             assert!(!colour.has_nan());
+        //             (colour, self.local_to_world(&wi), 1.0)
+        //         })
+        //         .unwrap_or((Colourf::black(), zero(), 0.0));
+        // }
 
         (Colourf::black(), zero(), 0.0)
     }

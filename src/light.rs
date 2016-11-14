@@ -41,7 +41,7 @@ impl Light for PointLight {
                  wo: &Vector,
                  sample: (f32, f32))
                  -> (Colourf, Vector, f32) {
-        let wi = isect.p - self.pos;
+        let wi = self.pos - isect.p;
         let r2 = wi.norm_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);
 
@@ -70,6 +70,6 @@ impl Light for DistantLight {
                  _wo: &Vector,
                  _sample: (f32, f32))
                  -> (Colourf, Vector, f32) {
-        (self.emission_colour, self.dir, 1.0)
+        (self.emission_colour, -self.dir, 1.0)
     }
 }
