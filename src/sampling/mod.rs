@@ -6,6 +6,14 @@ use na::{zero, Vector2};
 const FRAC_PI_4: f32 = consts::FRAC_PI_2 / 2.0;
 
 // Inline functions
+pub fn uniform_sample_sphere(u: &Point2f) -> Vector {
+    let z = 1.0 - 2.0 * u.x;
+    let r = (1.0 - z * z).max(0.0).sqrt();
+    let phi = 2.0 * consts::PI * u.y;
+
+    Vector::new(r * phi.cos(), r * phi.sin(), z)
+}
+
 pub fn cosine_sample_hemisphere(u: &Point2f) -> Vector {
     let d = concentric_sample_disk(u);
     let z = (1.0 - d.x * d.x - d.y * d.y).max(0.0).sqrt();
