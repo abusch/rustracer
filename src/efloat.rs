@@ -5,7 +5,7 @@ use fp::Ieee754;
 
 use super::MACHINE_EPSILON;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct EFloat {
     v: f32,
     low: f32,
@@ -44,6 +44,37 @@ impl EFloat {
             v: self.v.sqrt(),
             low: self.lower_bound().sqrt().prev(),
             high: self.upper_bound().sqrt().next(),
+        }
+    }
+
+    pub fn abs(&self) -> EFloat {
+        if self.low >= 0.0 {
+            // The entire interval is greater than 0: nothing to do!
+            *self
+        } else if self.high <= 0.0 {
+            // The entire interval is less than zero: just inverse everything
+            EFloat {
+                v: -self.v,
+                low: -self.high,
+                high: -self.low,
+            }
+        } else {
+            // The interval straddles zero
+            EFloat {
+                v: self.v.abs(),
+                low: 0.0,
+                high: (-self.low).max(self.high),
+            }
+        }
+    }
+
+    #[inline]
+    pub fn check(&self) {
+        if !self.low.is_infinite() && !self.low.is_nan() && !self.high.is_infinite() &&
+           !self.high.is_nan() {
+            assert!(self.low <= self.high);
+            assert!(self.low <= self.v);
+            assert!(self.v <= self.high);
         }
     }
 }
@@ -91,11 +122,13 @@ impl Add<EFloat> for EFloat {
     type Output = EFloat;
 
     fn add(self, f: EFloat) -> EFloat {
-        EFloat {
+        let r = EFloat {
             v: self.v + f.v,
             low: (self.lower_bound() + f.lower_bound()).prev(),
             high: (self.upper_bound() + f.upper_bound()).next(),
-        }
+        };
+        r.check();
+        r
     }
 }
 
@@ -103,11 +136,13 @@ impl Sub<EFloat> for EFloat {
     type Output = EFloat;
 
     fn sub(self, f: EFloat) -> EFloat {
-        EFloat {
+        let r = EFloat {
             v: self.v - f.v,
-            low: (self.lower_bound() - f.lower_bound()).prev(),
-            high: (self.upper_bound() - f.upper_bound()).next(),
-        }
+            low: (self.lower_bound() - f.upper_bound()).prev(),
+            high: (self.upper_bound() - f.lower_bound()).next(),
+        };
+        r.check();
+        r
     }
 }
 
@@ -120,11 +155,13 @@ impl Mul<EFloat> for EFloat {
                               self.lower_bound() * f.upper_bound(),
                               self.upper_bound() * f.upper_bound()];
 
-        EFloat {
+        let r = EFloat {
             v: self.v * f.v,
             low: f32::min(f32::min(prod[0], prod[1]), f32::min(prod[2], prod[3])).prev(),
             high: f32::max(f32::max(prod[0], prod[1]), f32::max(prod[2], prod[3])).next(),
-        }
+        };
+        r.check();
+        r
     }
 }
 
@@ -143,11 +180,13 @@ impl Div<EFloat> for EFloat {
              f32::max(f32::max(div[0], div[1]), f32::max(div[2], div[3])).next())
 
         };
-        EFloat {
+        let r = EFloat {
             v: self.v / f.v,
             low: low,
             high: high,
-        }
+        };
+        r.check();
+        r
     }
 }
 
