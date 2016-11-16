@@ -11,7 +11,8 @@ doc = false
 approx = "0.1"
 bitflags = "0.7"
 docopt = "0.6"
-ieee754 = "0.2"
+# ieee754 = "0.2"
+ieee754 = { git = "https://github.com/abusch/ieee754.git" }
 image = "0.10"
 itertools = "0.5"
 nalgebra = "0.8"
