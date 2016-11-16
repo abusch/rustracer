@@ -1,7 +1,7 @@
 use std::f32;
 use std::ops::Index;
 use std::cmp::PartialOrd;
-use Vector;
+use {Vector, Point, lerp};
 use na::Point3;
 use ray::Ray;
 use stats;
@@ -144,6 +144,13 @@ impl<T> Bounds3<T>
         }
 
         tmin < ray.t_max && tmax > ray.t_min
+    }
+
+    /// Linearly interpolate a point inside the bounds
+    pub fn lerp(&self, t: &Point3<T>) -> Point3<T> {
+        Point3::new(lerp(t.x, self.p_min.x, self.p_max.x),
+                    lerp(t.y, self.p_min.y, self.p_max.y),
+                    lerp(t.z, self.p_min.z, self.p_max.z))
     }
 }
 
