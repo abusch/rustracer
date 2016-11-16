@@ -20,11 +20,13 @@ impl EFloat {
             ((v - err).prev(), (v + err).next())
         };
 
-        EFloat {
+        let r = EFloat {
             v: v,
             low: low,
             high: high,
-        }
+        };
+        r.check();
+        r
     }
 
     pub fn lower_bound(&self) -> f32 {
@@ -40,15 +42,17 @@ impl EFloat {
     }
 
     pub fn sqrt(&self) -> EFloat {
-        EFloat {
+        let r = EFloat {
             v: self.v.sqrt(),
             low: self.lower_bound().sqrt().prev(),
             high: self.upper_bound().sqrt().next(),
-        }
+        };
+        r.check();
+        r
     }
 
     pub fn abs(&self) -> EFloat {
-        if self.low >= 0.0 {
+        let r = if self.low >= 0.0 {
             // The entire interval is greater than 0: nothing to do!
             *self
         } else if self.high <= 0.0 {
@@ -65,11 +69,16 @@ impl EFloat {
                 low: 0.0,
                 high: (-self.low).max(self.high),
             }
-        }
+        };
+        r.check();
+        r
     }
 
     #[inline]
     pub fn check(&self) {
+        assert!(!self.v.is_nan());
+        assert!(!self.low.is_nan());
+        assert!(!self.high.is_nan());
         if !self.low.is_infinite() && !self.low.is_nan() && !self.high.is_infinite() &&
            !self.high.is_nan() {
             assert!(self.low <= self.high);
