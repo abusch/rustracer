@@ -27,6 +27,7 @@ impl Sphere {
                z_max: f32,
                phi_max: f32)
                -> Self {
+        assert!(radius > 0.0);
         let zmin = f32::min(z_min, z_max);
         let zmax = f32::max(z_min, z_max);
         Sphere {
@@ -46,6 +47,7 @@ impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
         // Transform ray into object space
         let (r, o_err, d_err) = ray.transform(&self.world_to_object);
+        // let (r, o_err, d_err) = (ray, Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0));
 
         // Compute quadratic coefficients
         let ox = EFloat::new(r.o.x, o_err.x);
@@ -79,6 +81,7 @@ impl Shape for Sphere {
             if p_hit.x == 0.0 && p_hit.y == 0.0 {
                 p_hit.x = 1e-5 * self.radius;
             }
+            p_hit *= self.radius / p_hit.to_vector().norm();
             let mut phi = f32::atan2(p_hit.x, p_hit.y);
             if phi < 0.0 {
                 phi += 2.0 * consts::PI;
@@ -96,10 +99,10 @@ impl Shape for Sphere {
                 // Compute sphere hit position and phi
                 p_hit = r.at(t_shape_hit.into());
                 // Refine sphere intersection point
-                p_hit *= self.radius / p_hit.to_vector().norm();
                 if p_hit.x == 0.0 && p_hit.y == 0.0 {
                     p_hit.x = 1e-5 * self.radius;
                 }
+                p_hit *= self.radius / p_hit.to_vector().norm();
                 phi = f32::atan2(p_hit.x, p_hit.y);
                 if phi < 0.0 {
                     phi += 2.0 * consts::PI;

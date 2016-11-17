@@ -157,3 +157,10 @@ fn test_efloat_div() {
         assert!(precise_result <= result.upper_bound() as f64);
     }
 }
+
+#[test]
+fn test_ieee754_next() {
+    let neg_zero = -0.0f32;
+    assert!(!neg_zero.prev().is_nan());
+    assert!(!neg_zero.next().is_nan());
+}

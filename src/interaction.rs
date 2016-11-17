@@ -125,7 +125,7 @@ impl<'a> SurfaceInteraction<'a> {
         for i in 0..3 {
             if offset[i] > 0.0 {
                 po[i] = po[i].next();
-            } else {
+            } else if offset[i] < 0.0 {
                 po[i] = po[i].prev();
             }
         }
