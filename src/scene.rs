@@ -44,7 +44,8 @@ impl Scene {
                                  area_light: None,
                                  material: Some(Arc::new(MatteMaterial::new(Colourf::rgb(1.0,
                                                                                          0.0,
-                                                                                         0.0)))),
+                                                                                         0.0),
+                                                                            20.0))),
                              })],
         }
     }

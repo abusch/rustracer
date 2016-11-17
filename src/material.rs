@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use bsdf::{BSDF, BxDF, FresnelConductor, SpecularReflection, LambertianReflection};
+use bsdf::{BSDF, BxDF, FresnelConductor, SpecularReflection, LambertianReflection, OrenNayar};
 use colour::Colourf;
 use interaction::SurfaceInteraction;
 
@@ -17,24 +17,31 @@ pub trait Material {
 
 pub struct MatteMaterial {
     r: Colourf,
+    sigma: f32,
 }
 
 impl MatteMaterial {
-    pub fn new(r: Colourf) -> MatteMaterial {
+    pub fn new(r: Colourf, sigma: f32) -> MatteMaterial {
         MatteMaterial {
-            r: r, /* bxdfs: vec![Box::new(SpecularReflection::new(Colourf::rgb(1.0, 0.0, 0.0),
-                   *                                              Box::new(FresnelConductor::new(
-                   *                                                      Colourf::white(),
-                   *                                                      Colourf::rgb(0.155265, 0.116723, 0.138381),
-                   *                                                      Colourf::rgb(4.82835, 3.12225, 2.14696),
-                   *                                                      ))))], */
+            r: r,
+            sigma: sigma, /* bxdfs: vec![Box::new(SpecularReflection::new(Colourf::rgb(1.0, 0.0, 0.0),
+                           *                                              Box::new(FresnelConductor::new(
+                           *                                                      Colourf::white(),
+                           *                                                      Colourf::rgb(0.155265, 0.116723, 0.138381),
+                           *                                                      Colourf::rgb(4.82835, 3.12225, 2.14696),
+                           *                                                      ))))], */
         }
     }
 
     pub fn bsdf(&self, isect: &SurfaceInteraction) -> BSDF {
-        BSDF::new(isect,
-                  1.5,
-                  vec![Box::new(LambertianReflection::new(self.r))])
+        let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
+        if self.sigma == 0.0 {
+            bxdfs.push(Box::new(LambertianReflection::new(self.r)));
+        } else {
+            bxdfs.push(Box::new(OrenNayar::new(self.r, self.sigma)));
+        }
+
+        BSDF::new(isect, 1.5, bxdfs)
     }
 }
 
