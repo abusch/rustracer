@@ -27,6 +27,16 @@ impl Ray {
         }
     }
 
+    pub fn segment(o: Point, d: Vector, tmax: f32) -> Ray {
+        stats::inc_primary_ray();
+        Ray {
+            o: o,
+            d: d,
+            t_min: 0.0,
+            t_max: tmax,
+        }
+    }
+
     pub fn at(&self, t: f32) -> Point {
         self.o + t * self.d
     }

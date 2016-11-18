@@ -46,15 +46,13 @@ impl SamplerIntegrator for Whitted {
                 let bsdf = isect.bsdf.clone().unwrap();
 
                 for light in &scene.lights {
-                    let (li, wi, pdf) = light.sample_li(&isect, &wo, (0.0, 0.0));
+                    let (li, wi, pdf, visibilityTester) = light.sample_li(&isect, &wo, (0.0, 0.0));
                     if li.is_black() || pdf == 0.0 {
                         continue;
                     }
 
-                    // TODO VisibilityTester
-                    let mut shadow_ray = isect.spawn_ray(&wi);
                     let f = bsdf.f(&wi, &wo, bsdf::BxDFType::all());
-                    if !f.is_black() && !scene.intersect_p(&mut shadow_ray) {
+                    if !f.is_black() && visibilityTester.unoccluded(scene) {
                         colour += f * li * wi.dot(&n).abs() / pdf;
                     }
                 }

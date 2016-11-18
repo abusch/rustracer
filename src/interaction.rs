@@ -115,6 +115,12 @@ impl<'a> SurfaceInteraction<'a> {
         Ray::new(o, *dir)
     }
 
+    pub fn spawn_ray_to(&self, p: &Point) -> Ray {
+        let d = *p - self.p;
+        let o = self.offset_origin(&self.p, &self.p_error, &self.n, &d);
+        Ray::segment(o, d, 1.0 - 1e-4)
+    }
+
     fn offset_origin(&self, p: &Point, p_err: &Vector, n: &Vector, w: &Vector) -> Point {
         let d = na::abs(n).dot(p_err);
         let mut offset = d * *n;

@@ -12,7 +12,7 @@ pub trait Primitive {
 
     fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction>;
 
-    fn intersect_p(&self, ray: &mut Ray) -> bool;
+    fn intersect_p(&self, ray: &Ray) -> bool;
 
     fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>>;
 
@@ -42,7 +42,7 @@ impl Primitive for GeometricPrimitive {
         })
     }
 
-    fn intersect_p(&self, ray: &mut Ray) -> bool {
+    fn intersect_p(&self, ray: &Ray) -> bool {
         self.shape.intersect_p(ray)
     }
 
