@@ -2,7 +2,7 @@ use std::f32;
 use std::ops::Index;
 use std::cmp::PartialOrd;
 use {Vector, Point, lerp};
-use na::Point3;
+use na::{Point3, Norm};
 use ray::Ray;
 use stats;
 use num::Bounded;
@@ -151,6 +151,27 @@ impl<T> Bounds3<T>
         Point3::new(lerp(t.x, self.p_min.x, self.p_max.x),
                     lerp(t.y, self.p_min.y, self.p_max.y),
                     lerp(t.z, self.p_min.z, self.p_max.z))
+    }
+
+    pub fn inside(&self, p: &Point3<T>) -> bool {
+        p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y &&
+        p.y <= self.p_max.y && p.z >= self.p_min.z && p.z <= self.p_max.z
+    }
+}
+
+impl Bounds3<f32> {
+    /// Compute the bounding sphere of the current bounding box, and returns its center and radius.
+    pub fn bounding_sphere(&self) -> (Point, f32) {
+        let center = Point::new((self.p_min.x + self.p_max.x) / 2.0,
+                                (self.p_min.y + self.p_max.y) / 2.0,
+                                (self.p_min.z + self.p_max.z) / 2.0);
+        let radius = if self.inside(&center) {
+            (self.p_max - center).norm()
+        } else {
+            0.0
+        };
+
+        (center, radius)
     }
 }
 
