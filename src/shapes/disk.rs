@@ -25,7 +25,7 @@ impl Disk {
                phi_max: f32,
                object_to_world: Transform)
                -> Disk {
-        assert!(height > 0.0 && radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
+        assert!(radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
         Disk {
             height: height,
             radius: radius,

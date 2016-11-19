@@ -1,22 +1,26 @@
+use std::f32::consts;
 use std::mem;
 use std::sync::Arc;
+
+use na;
 use na::Norm;
 
-use ::Vector;
+use ::{Vector, Transform};
 use bounds::Bounds3f;
 use bvh::BVH;
 use camera::Camera;
 use colour::Colourf;
 use instance::Instance;
 use integrator::SamplerIntegrator;
-use intersection::Intersection;
 use interaction::SurfaceInteraction;
+use intersection::Intersection;
 use light::Light;
 use material::MatteMaterial;
-use ray::Ray;
-use skydome::Atmosphere;
 use primitive::{Primitive, GeometricPrimitive};
+use ray::Ray;
+use shapes::disk::Disk;
 use shapes::sphere::Sphere;
+use skydome::Atmosphere;
 
 pub struct Scene {
     pub camera: Camera,
@@ -48,6 +52,23 @@ impl Scene {
                                                                                          0.0,
                                                                                          0.0),
                                                                             20.0))),
+                             }),
+                             Box::new(GeometricPrimitive {
+                                 shape: Arc::new(Disk::new(-1.0,
+                                                           20.0,
+                                                           0.0,
+                                                           360.0,
+                                                           Transform::new(na::zero(),
+                                                                          Vector::new(-consts::PI /
+                                                                                      2.0,
+                                                                                      0.0,
+                                                                                      0.0),
+                                                                          1.0))),
+                                 area_light: None,
+                                 material: Some(Arc::new(MatteMaterial::new(Colourf::rgb(1.0,
+                                                                                         1.0,
+                                                                                         1.0),
+                                                                            0.0))),
                              })],
         };
         for l in lights.iter_mut() {
