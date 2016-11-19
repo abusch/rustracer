@@ -3,6 +3,7 @@ use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
 
 pub mod sphere;
+pub mod disk;
 
 pub trait Shape {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
