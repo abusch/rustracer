@@ -15,6 +15,7 @@ pub trait BxDF {
         let pdf = self.pdf(wo, &wi);
         (wi, pdf, None, self.f(wo, &wi))
     }
+    // TODO
     // fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Colourf);
     // fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Colourf);
     fn matches(&self, flags: BxDFType) -> bool {

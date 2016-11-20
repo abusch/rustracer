@@ -2,11 +2,13 @@ mod bxdf;
 mod fresnel;
 mod lambertian;
 mod oren_nayar;
+mod microfacet;
 
 pub use self::bxdf::*;
 pub use self::fresnel::*;
 pub use self::lambertian::*;
 pub use self::oren_nayar::*;
+pub use self::microfacet::*;
 
 use std::mem;
 use na::{self, Cross, Dot, zero, Norm, clamp};
