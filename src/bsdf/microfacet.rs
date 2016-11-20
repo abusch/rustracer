@@ -10,14 +10,14 @@ use bsdf::fresnel::Fresnel;
 
 pub struct MicrofacetReflection {
     r: Colourf,
-    distribution: Box<MicrofacetDistribution>,
-    fresnel: Box<Fresnel>,
+    distribution: Box<MicrofacetDistribution + Send + Sync>,
+    fresnel: Box<Fresnel + Send + Sync>,
 }
 
 impl MicrofacetReflection {
     pub fn new(r: Colourf,
-               distribution: Box<MicrofacetDistribution>,
-               fresnel: Box<Fresnel>)
+               distribution: Box<MicrofacetDistribution + Send + Sync>,
+               fresnel: Box<Fresnel + Send + Sync>)
                -> MicrofacetReflection {
         MicrofacetReflection {
             r: r,
@@ -157,10 +157,10 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
         }
 
         // Compute alpha for direction w
-        let alpha = (cos_phi(wh) * self.alpha_x * self.alpha_x +
-                     sin_phi(wh) * self.alpha_y * self.alpha_y)
+        let alpha = (cos2_phi(wh) * self.alpha_x * self.alpha_x +
+                     sin2_phi(wh) * self.alpha_y * self.alpha_y)
             .sqrt();
         let alpha2tan2theta = (alpha * abs_tan_theta) * (alpha * abs_tan_theta);
-        -(1.0 + (1.0 + alpha2tan2theta).sqrt()) / 2.0
+        (-1.0 + (1.0 + alpha2tan2theta).sqrt()) / 2.0
     }
 }

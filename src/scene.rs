@@ -16,6 +16,7 @@ use interaction::SurfaceInteraction;
 use intersection::Intersection;
 use light::Light;
 use material::matte::MatteMaterial;
+use material::plastic::Plastic;
 use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
 use shapes::disk::Disk;
@@ -48,7 +49,8 @@ impl Scene {
             primitives: vec![Box::new(GeometricPrimitive {
                                  shape: Arc::new(Sphere::default()),
                                  area_light: None,
-                                 material: Some(Arc::new(MatteMaterial::new(Colourf::red(), 20.0))),
+                                 material: Some(Arc::new(Plastic::new(Colourf::red(),
+                                                                      Colourf::white()))), /* material: Some(Arc::new(MatteMaterial::new(Colourf::red(), 20.0))), */
                              }),
                              Box::new(GeometricPrimitive {
                                  shape: Arc::new(Disk::new(-1.0,

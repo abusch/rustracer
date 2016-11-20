@@ -81,6 +81,24 @@ pub trait Fresnel {
     fn evaluate(&self, cos_theta_i: f32) -> Colourf;
 }
 
+impl Fresnel {
+    pub fn conductor(eta_i: Colourf, eta_t: Colourf, k: Colourf) -> FresnelConductor {
+        FresnelConductor {
+            eta_i: eta_i,
+            eta_t: eta_t,
+            k: k,
+        }
+    }
+
+    pub fn dielectric(eta_i: f32, eta_t: f32) -> FresnelDielectric {
+        FresnelDielectric {
+            eta_i: eta_i,
+            eta_t: eta_t,
+        }
+    }
+}
+
+
 /// Fresnel for conductor materials
 pub struct FresnelConductor {
     eta_i: Colourf,

@@ -187,12 +187,12 @@ pub fn sin_phi(w: &Vector) -> f32 {
 
 #[inline]
 pub fn cos2_phi(w: &Vector) -> f32 {
-    cos_phi(w) / cos_phi(w)
+    cos_phi(w) * cos_phi(w)
 }
 
 #[inline]
 pub fn sin2_phi(w: &Vector) -> f32 {
-    sin_phi(w) / sin_phi(w)
+    sin_phi(w) * sin_phi(w)
 }
 
 #[inline]

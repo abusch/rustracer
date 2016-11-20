@@ -3,6 +3,7 @@ use colour::Colourf;
 use interaction::SurfaceInteraction;
 
 pub mod matte;
+pub mod plastic;
 
 pub enum TransportMode {
     RADIANCE,
