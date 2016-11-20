@@ -4,16 +4,17 @@ use bsdf::{BSDF, BxDF, FresnelConductor, SpecularReflection, LambertianReflectio
 use colour::Colourf;
 use material::{Material, TransportMode};
 use interaction::SurfaceInteraction;
+use texture::{Texture, ConstantTexture};
 
 pub struct MatteMaterial {
-    r: Colourf,
+    kd: Arc<Texture<Colourf> + Sync + Send>,
     sigma: f32,
 }
 
 impl MatteMaterial {
     pub fn new(r: Colourf, sigma: f32) -> MatteMaterial {
         MatteMaterial {
-            r: r,
+            kd: Arc::new(ConstantTexture::new(r)),
             sigma: sigma, /* bxdfs: vec![Box::new(SpecularReflection::new(Colourf::rgb(1.0, 0.0, 0.0),
                            *                                              Box::new(FresnelConductor::new(
                            *                                                      Colourf::white(),
@@ -23,23 +24,24 @@ impl MatteMaterial {
         }
     }
 
-    pub fn bsdf(&self, isect: &SurfaceInteraction) -> BSDF {
+    pub fn bsdf(&self, si: &SurfaceInteraction) -> BSDF {
         let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
+        let r = self.kd.evaluate(si);
         if self.sigma == 0.0 {
-            bxdfs.push(Box::new(LambertianReflection::new(self.r)));
+            bxdfs.push(Box::new(LambertianReflection::new(r)));
         } else {
-            bxdfs.push(Box::new(OrenNayar::new(self.r, self.sigma)));
+            bxdfs.push(Box::new(OrenNayar::new(r, self.sigma)));
         }
 
-        BSDF::new(isect, 1.5, bxdfs)
+        BSDF::new(si, 1.5, bxdfs)
     }
 }
 
 impl Material for MatteMaterial {
     fn compute_scattering_functions(&self,
-                                    isect: &mut SurfaceInteraction,
+                                    si: &mut SurfaceInteraction,
                                     mode: TransportMode,
                                     allow_multiple_lobes: bool) {
-        isect.bsdf = Some(Arc::new(self.bsdf(isect)));
+        si.bsdf = Some(Arc::new(self.bsdf(si)));
     }
 }

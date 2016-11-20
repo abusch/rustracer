@@ -37,6 +37,7 @@ pub mod scene;
 pub mod shapes;
 mod skydome;
 mod stats;
+pub mod texture;
 mod transform;
 
 pub type Dim = (usize, usize);
