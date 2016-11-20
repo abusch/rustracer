@@ -1,6 +1,6 @@
 use na::Dot;
 
-use colour::Colourf;
+use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampling::Sampler;
@@ -10,12 +10,12 @@ pub struct Normal {
 }
 
 impl SamplerIntegrator for Normal {
-    fn li(&self, scene: &Scene, ray: &mut Ray, _: &mut Sampler, _: u32) -> Colourf {
+    fn li(&self, scene: &Scene, ray: &mut Ray, _: &mut Sampler, _: u32) -> Spectrum {
         if let Some(intersection) = scene.intersect2(ray) {
             let n = intersection.n;
-            Colourf::grey(ray.d.dot(&n).abs())
+            Spectrum::grey(ray.d.dot(&n).abs())
         } else {
-            Colourf::black()
+            Spectrum::black()
         }
 
     }

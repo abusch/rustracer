@@ -9,7 +9,7 @@ use ::{Vector, Transform};
 use bounds::Bounds3f;
 use bvh::BVH;
 use camera::Camera;
-use colour::Colourf;
+use spectrum::Spectrum;
 use instance::Instance;
 use integrator::SamplerIntegrator;
 use interaction::SurfaceInteraction;
@@ -49,8 +49,8 @@ impl Scene {
             primitives: vec![Box::new(GeometricPrimitive {
                                  shape: Arc::new(Sphere::default()),
                                  area_light: None,
-                                 material: Some(Arc::new(Plastic::new(Colourf::red(),
-                                                                      Colourf::white()))), /* material: Some(Arc::new(MatteMaterial::new(Colourf::red(), 20.0))), */
+                                 material: Some(Arc::new(Plastic::new(Spectrum::red(),
+                                                                      Spectrum::white()))), /* material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 20.0))), */
                              }),
                              Box::new(GeometricPrimitive {
                                  shape: Arc::new(Disk::new(-1.0,

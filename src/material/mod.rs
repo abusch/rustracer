@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use colour::Colourf;
+use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 
 pub mod matte;

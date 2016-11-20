@@ -4,15 +4,15 @@ use Vector;
 use Transform;
 use ray::Ray;
 use geometry::Sphere;
-use colour::Colourf;
+use spectrum::Spectrum;
 use na::{Norm, Dot, zero, Inverse};
 
-const BETA_R: Colourf = Colourf {
+const BETA_R: Spectrum = Spectrum {
     r: 5.5e-6,
     g: 13e-6,
     b: 22.4e-6,
 };
-const BETA_M: Colourf = Colourf {
+const BETA_M: Spectrum = Spectrum {
     r: 21e-6,
     g: 21e-6,
     b: 21e-6,
@@ -45,13 +45,13 @@ impl Atmosphere {
         }
     }
 
-    pub fn compute_incident_light(&self, ray: &mut Ray) -> Colourf {
+    pub fn compute_incident_light(&self, ray: &mut Ray) -> Spectrum {
         let mut r = self.transform_inv * *ray;
         match self.atmosphere.intersect_sphere(&r) {
-            None => Colourf::black(),
+            None => Spectrum::black(),
             Some((t0, t1)) => {
                 if t1 < 0.0 {
-                    return Colourf::black();
+                    return Spectrum::black();
                 }
                 if t0 > r.t_min && t0 > 0.0 {
                     r.t_min = t0;
@@ -65,8 +65,8 @@ impl Atmosphere {
 
                 let segment_length = (r.t_max - r.t_min) / num_samples as f32;
                 let mut t_current = r.t_min;
-                let mut sum_r = Colourf::black();
-                let mut sum_m = Colourf::black();
+                let mut sum_r = Spectrum::black();
+                let mut sum_m = Spectrum::black();
                 let mut optical_depth_r = 0.0;
                 let mut optical_depth_m = 0.0;
                 let mu = r.d.normalize().dot(&self.sun_direction);
@@ -115,7 +115,7 @@ impl Atmosphere {
                         let tau = BETA_R * (optical_depth_r + optical_depth_light_r) +
                                   BETA_M * 1.1 * (optical_depth_m + optical_depth_light_m);
                         let attenuation =
-                            Colourf::rgb((-tau.r).exp(), (-tau.g).exp(), (-tau.b).exp());
+                            Spectrum::rgb((-tau.r).exp(), (-tau.g).exp(), (-tau.b).exp());
                         sum_r += attenuation * h_r;
                         sum_m += attenuation * h_m;
                     }

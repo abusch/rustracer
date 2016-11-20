@@ -1,7 +1,7 @@
 use na::Dot;
 
 use bsdf;
-use colour::Colourf;
+use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use ray::Ray;
 use sampling::Sampler;
@@ -16,7 +16,7 @@ pub use self::whitted::Whitted;
 pub use self::normal::Normal;
 
 pub trait SamplerIntegrator {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Colourf;
+    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum;
 
     fn specular_reflection(&self,
                            ray: &mut Ray,
@@ -25,7 +25,7 @@ pub trait SamplerIntegrator {
                            bsdf: &bsdf::BSDF,
                            sampler: &mut Sampler,
                            depth: u32)
-                           -> Colourf {
+                           -> Spectrum {
         let flags = bsdf::BSDF_REFLECTION | bsdf::BSDF_SPECULAR;
         // TODO use sampler.get_2d()
         let (f, wi, pdf) = bsdf.sample_f(&isect.wo, (0.0, 0.0), flags);
@@ -35,7 +35,7 @@ pub trait SamplerIntegrator {
             let refl = self.li(scene, &mut r, sampler, depth + 1);
             f * refl * wi.dot(&ns).abs() / pdf
         } else {
-            Colourf::black()
+            Spectrum::black()
         }
     }
 
@@ -46,7 +46,7 @@ pub trait SamplerIntegrator {
                              bsdf: &bsdf::BSDF,
                              sampler: &mut Sampler,
                              depth: u32)
-                             -> Colourf {
+                             -> Spectrum {
         let flags = bsdf::BSDF_TRANSMISSION | bsdf::BSDF_SPECULAR;
         // TODO use sampler.get_2d()
         let (f, wi, pdf) = bsdf.sample_f(&isect.wo, (0.0, 0.0), flags);
@@ -56,7 +56,7 @@ pub trait SamplerIntegrator {
             let refr = self.li(scene, &mut r, sampler, depth + 1);
             f * refr * wi.dot(&ns).abs() / pdf
         } else {
-            Colourf::black()
+            Spectrum::black()
         }
     }
 }

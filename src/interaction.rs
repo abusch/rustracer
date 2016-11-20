@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use ::{Point, Point2f, Vector, Transform};
 use bsdf::BSDF;
-use colour::Colourf;
+use spectrum::Spectrum;
 use primitive::Primitive;
 use ray::Ray;
 use shapes::Shape;
@@ -72,8 +72,8 @@ impl<'a> SurfaceInteraction<'a> {
         }
     }
 
-    pub fn le(&self, wo: Vector) -> Colourf {
-        Colourf::black()
+    pub fn le(&self, wo: Vector) -> Spectrum {
+        Spectrum::black()
     }
 
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {

@@ -1,5 +1,5 @@
 use Dim;
-use colour::Colourf;
+use spectrum::Spectrum;
 use filter::Filter;
 
 const FILTER_SIZE: usize = 16;
@@ -14,19 +14,19 @@ pub struct Film {
 
 #[derive(Copy, Clone, Debug)]
 pub struct PixelSample {
-    pub c: Colourf,
+    pub c: Spectrum,
     pub weighted_sum: f32,
 }
 
 impl PixelSample {
     pub fn new() -> PixelSample {
         PixelSample {
-            c: Colourf::black(),
+            c: Spectrum::black(),
             weighted_sum: 0.0,
         }
     }
 
-    pub fn render(&self) -> Colourf {
+    pub fn render(&self) -> Spectrum {
         (self.c / self.weighted_sum)
     }
 }
@@ -60,7 +60,7 @@ impl Film {
         }
     }
 
-    pub fn add_sample(&mut self, x: f32, y: f32, colour: Colourf) {
+    pub fn add_sample(&mut self, x: f32, y: f32, colour: Spectrum) {
         if colour.has_nan() {
             println!("WARN: colour has NaNs! Ignoring");
             return;
@@ -107,7 +107,7 @@ impl Film {
         }
     }
 
-    pub fn render(&self) -> Vec<Colourf> {
+    pub fn render(&self) -> Vec<Spectrum> {
         self.samples.iter().map(|s| s.render()).collect()
     }
 }

@@ -4,7 +4,7 @@ use na::Norm;
 
 use Point;
 use Vector;
-use colour::Colourf;
+use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use ray::Ray;
 use scene::Scene;
@@ -48,7 +48,7 @@ pub trait Light {
                  isect: &SurfaceInteraction,
                  wo: &Vector,
                  sample: (f32, f32))
-                 -> (Colourf, Vector, f32, VisibilityTester);
+                 -> (Spectrum, Vector, f32, VisibilityTester);
 
     fn preprocess(&mut self, scene: &Scene) {}
 
@@ -56,17 +56,17 @@ pub trait Light {
 
     fn flags(&self) -> LightFlags;
 
-    fn power(&self) -> Colourf;
+    fn power(&self) -> Spectrum;
 }
 
 #[derive(Debug)]
 pub struct PointLight {
     pub pos: Point,
-    pub emission_colour: Colourf,
+    pub emission_colour: Spectrum,
 }
 
 impl PointLight {
-    pub fn new(p: Point, ec: Colourf) -> PointLight {
+    pub fn new(p: Point, ec: Spectrum) -> PointLight {
         PointLight {
             pos: p,
             emission_colour: ec,
@@ -79,7 +79,7 @@ impl Light for PointLight {
                  isect: &SurfaceInteraction,
                  wo: &Vector,
                  sample: (f32, f32))
-                 -> (Colourf, Vector, f32, VisibilityTester) {
+                 -> (Spectrum, Vector, f32, VisibilityTester) {
         let wi = self.pos - isect.p;
         let r2 = wi.norm_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);
@@ -96,7 +96,7 @@ impl Light for PointLight {
         DELTA_POSITION
     }
 
-    fn power(&self) -> Colourf {
+    fn power(&self) -> Spectrum {
         4.0 * PI * self.emission_colour
     }
 }
@@ -104,13 +104,13 @@ impl Light for PointLight {
 #[derive(Debug)]
 pub struct DistantLight {
     pub dir: Vector,
-    pub emission_colour: Colourf,
+    pub emission_colour: Spectrum,
     w_center: Point,
     w_radius: f32,
 }
 
 impl DistantLight {
-    pub fn new(dir: Vector, ec: Colourf) -> DistantLight {
+    pub fn new(dir: Vector, ec: Spectrum) -> DistantLight {
         DistantLight {
             dir: dir.normalize(),
             emission_colour: ec,
@@ -131,7 +131,7 @@ impl Light for DistantLight {
                  isect: &SurfaceInteraction,
                  _wo: &Vector,
                  _sample: (f32, f32))
-                 -> (Colourf, Vector, f32, VisibilityTester) {
+                 -> (Spectrum, Vector, f32, VisibilityTester) {
         let p_outside = isect.p - self.dir * (2.0 * self.w_radius);
         (self.emission_colour,
          -self.dir,
@@ -147,7 +147,7 @@ impl Light for DistantLight {
         DELTA_DIRECTION
     }
 
-    fn power(&self) -> Colourf {
+    fn power(&self) -> Spectrum {
         self.emission_colour * PI * self.w_radius * self.w_radius
     }
 }

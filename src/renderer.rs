@@ -8,7 +8,7 @@ use img;
 
 use Dim;
 use block_queue::BlockQueue;
-use colour::Colourf;
+use spectrum::Spectrum;
 use filter::mitchell::MitchellNetravali;
 use film::Film;
 use sampling::{Sampler, LowDiscrepancy};
@@ -74,7 +74,7 @@ pub fn render(scene: Arc<Scene>,
     global_stats
 }
 
-fn write_png(dim: Dim, image: &[Colourf], filename: &str) -> io::Result<()> {
+fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
     let (w, h) = dim;
     let mut buffer = Vec::new();
 
@@ -97,5 +97,5 @@ fn write_png(dim: Dim, image: &[Colourf], filename: &str) -> io::Result<()> {
 struct FilmSample {
     x: f32,
     y: f32,
-    c: Colourf,
+    c: Spectrum,
 }

@@ -2,7 +2,7 @@ use std::mem;
 
 use ::{Vector, Point2f};
 use super::*;
-use colour::Colourf;
+use spectrum::Spectrum;
 use na::{self, Dot, Norm, clamp};
 
 /// Compute the reflection direction
@@ -52,7 +52,7 @@ pub fn fr_dielectric(cos_theta_i: f32, eta_i: f32, eta_t: f32) -> f32 {
     }
 }
 
-fn fr_conductor(cos_theta_i: f32, eta_i: &Colourf, eta_t: &Colourf, k: &Colourf) -> Colourf {
+fn fr_conductor(cos_theta_i: f32, eta_i: &Spectrum, eta_t: &Spectrum, k: &Spectrum) -> Spectrum {
     let mut cos_theta_i = clamp(cos_theta_i, -1.0, 1.0);
     let eta = *eta_t / *eta_i;
     let eta_k = *k / *eta_i;
@@ -78,11 +78,11 @@ fn fr_conductor(cos_theta_i: f32, eta_i: &Colourf, eta_t: &Colourf, k: &Colourf)
 
 /// Trait for Fresnel materials
 pub trait Fresnel {
-    fn evaluate(&self, cos_theta_i: f32) -> Colourf;
+    fn evaluate(&self, cos_theta_i: f32) -> Spectrum;
 }
 
 impl Fresnel {
-    pub fn conductor(eta_i: Colourf, eta_t: Colourf, k: Colourf) -> FresnelConductor {
+    pub fn conductor(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
         FresnelConductor {
             eta_i: eta_i,
             eta_t: eta_t,
@@ -101,13 +101,13 @@ impl Fresnel {
 
 /// Fresnel for conductor materials
 pub struct FresnelConductor {
-    eta_i: Colourf,
-    eta_t: Colourf,
-    k: Colourf,
+    eta_i: Spectrum,
+    eta_t: Spectrum,
+    k: Spectrum,
 }
 
 impl FresnelConductor {
-    pub fn new(eta_i: Colourf, eta_t: Colourf, k: Colourf) -> FresnelConductor {
+    pub fn new(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
         FresnelConductor {
             eta_i: eta_i,
             eta_t: eta_t,
@@ -117,7 +117,7 @@ impl FresnelConductor {
 }
 
 impl Fresnel for FresnelConductor {
-    fn evaluate(&self, cos_theta_i: f32) -> Colourf {
+    fn evaluate(&self, cos_theta_i: f32) -> Spectrum {
         fr_conductor(cos_theta_i.abs(), &self.eta_i, &self.eta_t, &self.k)
     }
 }
@@ -129,19 +129,19 @@ pub struct FresnelDielectric {
 }
 
 impl Fresnel for FresnelDielectric {
-    fn evaluate(&self, cos_theta_i: f32) -> Colourf {
-        Colourf::grey(fr_dielectric(cos_theta_i.abs(), self.eta_i, self.eta_t))
+    fn evaluate(&self, cos_theta_i: f32) -> Spectrum {
+        Spectrum::grey(fr_dielectric(cos_theta_i.abs(), self.eta_i, self.eta_t))
     }
 }
 
 /// BRDF for perfect specular reflection
 pub struct SpecularReflection {
-    r: Colourf,
+    r: Spectrum,
     fresnel: Box<Fresnel + Send + Sync>,
 }
 
 impl SpecularReflection {
-    pub fn new(r: Colourf, fresnel: Box<Fresnel + Send + Sync>) -> SpecularReflection {
+    pub fn new(r: Spectrum, fresnel: Box<Fresnel + Send + Sync>) -> SpecularReflection {
         SpecularReflection {
             r: r,
             fresnel: fresnel,
@@ -150,13 +150,13 @@ impl SpecularReflection {
 }
 
 impl BxDF for SpecularReflection {
-    fn f(&self, wo: &Vector, wi: &Vector) -> Colourf {
+    fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum {
         // The probability to call f() with the exact (wo, wi) for specular reflection is 0, so we
         // return black here. Use sample_f() instead.
-        Colourf::black()
+        Spectrum::black()
     }
 
-    fn sample_f(&self, wo: &Vector, _sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Colourf) {
+    fn sample_f(&self, wo: &Vector, _sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Spectrum) {
         // There's only one possible wi for a given wo, so we always return it with a pdf of 1.
         let wi = Vector::new(-wo.x, -wo.y, wo.z);
         let spectrum = self.fresnel.evaluate(cos_theta(&wi)) * self.r / abs_cos_theta(&wi);

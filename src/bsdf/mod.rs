@@ -14,7 +14,7 @@ use std::mem;
 use na::{self, Cross, Dot, zero, Norm, clamp};
 
 use ::{Vector, Point2f};
-use colour::Colourf;
+use spectrum::Spectrum;
 use intersection::Intersection;
 use interaction::SurfaceInteraction;
 
@@ -56,7 +56,7 @@ impl BSDF {
     }
 
     /// Evaluate the BSDF for the given incoming light direction and outgoing light direction.
-    pub fn f(&self, wi_w: &Vector, wo_w: &Vector, flags: BxDFType) -> Colourf {
+    pub fn f(&self, wi_w: &Vector, wo_w: &Vector, flags: BxDFType) -> Spectrum {
         let wi = self.world_to_local(wi_w);
         let wo = self.world_to_local(wo_w);
         let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
@@ -69,14 +69,14 @@ impl BSDF {
                 ((reflect && (b.get_type().contains(BSDF_REFLECTION))) ||
                  (!reflect && (b.get_type().contains(BSDF_TRANSMISSION))))
             })
-            .fold(Colourf::black(), |c, b| c + b.f(&wi, &wo))
+            .fold(Spectrum::black(), |c, b| c + b.f(&wi, &wo))
     }
 
     pub fn sample_f(&self,
                     wo_w: &Vector,
                     sample: (f32, f32),
                     flags: BxDFType)
-                    -> (Colourf, Vector, f32) {
+                    -> (Spectrum, Vector, f32) {
         // if !flags.contains(BSDF_SPECULAR) {
         //     unimplemented!();
         // }
@@ -86,7 +86,7 @@ impl BSDF {
         //     let wi = Vector::new(-wo.x, -wo.y, wo.z);
         //     let cos_theta_i = wi.z;
         //     let kr = fr_dielectric(cos_theta_i, 1.0, self.eta);
-        //     let colour = Colourf::rgb(1.0, 1.0, 1.0) * kr / cos_theta_i.abs();
+        //     let colour = Spectrum::rgb(1.0, 1.0, 1.0) * kr / cos_theta_i.abs();
 
         //     assert!(!colour.has_nan());
         //     return (colour, self.local_to_world(&wi), 1.0);
@@ -107,15 +107,15 @@ impl BSDF {
         //         .map(|wi| {
         //             let cos_theta_i = wi.z;
         //             let kr = fr_dielectric(cos_theta_i, 1.0, self.eta);
-        //             let colour = Colourf::rgb(1.0, 1.0, 1.0) * (1.0 - kr) / cos_theta_i.abs();
+        //             let colour = Spectrum::rgb(1.0, 1.0, 1.0) * (1.0 - kr) / cos_theta_i.abs();
 
         //             assert!(!colour.has_nan());
         //             (colour, self.local_to_world(&wi), 1.0)
         //         })
-        //         .unwrap_or((Colourf::black(), zero(), 0.0));
+        //         .unwrap_or((Spectrum::black(), zero(), 0.0));
         // }
 
-        (Colourf::black(), zero(), 0.0)
+        (Spectrum::black(), zero(), 0.0)
     }
 
     fn world_to_local(&self, v: &Vector) -> Vector {

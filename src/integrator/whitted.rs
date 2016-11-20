@@ -1,7 +1,7 @@
 use std::f32::consts::*;
 
 use bsdf;
-use colour::Colourf;
+use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampling::Sampler;
@@ -20,8 +20,8 @@ impl Whitted {
 }
 
 impl SamplerIntegrator for Whitted {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Colourf {
-        let mut colour = Colourf::black();
+    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum {
+        let mut colour = Spectrum::black();
 
         match scene.intersect2(ray) {
             Some(mut isect) => {
@@ -64,7 +64,7 @@ impl SamplerIntegrator for Whitted {
             }
             None => {
                 // colour = scene.atmosphere.compute_incident_light(ray);
-                colour = Colourf::black();
+                colour = Spectrum::black();
             }
         }
 

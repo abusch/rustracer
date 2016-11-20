@@ -2,19 +2,19 @@ use std::sync::Arc;
 
 use bsdf::{BSDF, BxDF, Fresnel, FresnelDielectric, TrowbridgeReitzDistribution,
            MicrofacetReflection, LambertianReflection};
-use colour::Colourf;
+use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use texture::{Texture, ConstantTexture};
 
 
 pub struct Plastic {
-    kd: Arc<Texture<Colourf> + Send + Sync>,
-    ks: Arc<Texture<Colourf> + Send + Sync>, // TODO roughness, bump
+    kd: Arc<Texture<Spectrum> + Send + Sync>,
+    ks: Arc<Texture<Spectrum> + Send + Sync>, // TODO roughness, bump
 }
 
 impl Plastic {
-    pub fn new(kd: Colourf, ks: Colourf) -> Plastic {
+    pub fn new(kd: Spectrum, ks: Spectrum) -> Plastic {
         Plastic {
             kd: Arc::new(ConstantTexture::new(kd)),
             ks: Arc::new(ConstantTexture::new(ks)),

@@ -1,19 +1,19 @@
 use std::f32::consts;
 
 use ::Vector;
-use colour::Colourf;
+use spectrum::Spectrum;
 use bsdf::{BxDFType, BSDF_REFLECTION, BSDF_DIFFUSE};
 use bsdf::{sin_theta, sin_phi, cos_phi, abs_cos_theta};
 use bsdf::bxdf::BxDF;
 
 pub struct OrenNayar {
-    r: Colourf,
+    r: Spectrum,
     a: f32,
     b: f32,
 }
 
 impl OrenNayar {
-    pub fn new(r: Colourf, sigma: f32) -> OrenNayar {
+    pub fn new(r: Spectrum, sigma: f32) -> OrenNayar {
         let sigma_rad = sigma.to_radians();
         let sigma2 = sigma * sigma;
 
@@ -26,7 +26,7 @@ impl OrenNayar {
 }
 
 impl BxDF for OrenNayar {
-    fn f(&self, wo: &Vector, wi: &Vector) -> Colourf {
+    fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum {
         let sin_theta_i = sin_theta(wi);
         let sin_theta_o = sin_theta(wo);
 

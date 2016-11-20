@@ -1,20 +1,20 @@
 use std::f32::consts;
 use super::*;
 use ::{Vector, Point2f};
-use colour::Colourf;
+use spectrum::Spectrum;
 
 pub struct LambertianReflection {
-    r: Colourf,
+    r: Spectrum,
 }
 
 impl LambertianReflection {
-    pub fn new(r: Colourf) -> LambertianReflection {
+    pub fn new(r: Spectrum) -> LambertianReflection {
         LambertianReflection { r: r }
     }
 }
 
 impl BxDF for LambertianReflection {
-    fn f(&self, wo: &Vector, wi: &Vector) -> Colourf {
+    fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum {
         self.r * consts::FRAC_1_PI
     }
 

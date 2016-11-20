@@ -1,25 +1,25 @@
 use std::sync::Arc;
 
 use bsdf::{BSDF, BxDF, FresnelConductor, SpecularReflection, LambertianReflection, OrenNayar};
-use colour::Colourf;
+use spectrum::Spectrum;
 use material::{Material, TransportMode};
 use interaction::SurfaceInteraction;
 use texture::{Texture, ConstantTexture, CheckerboardTexture};
 
 pub struct MatteMaterial {
-    kd: Arc<Texture<Colourf> + Sync + Send>,
+    kd: Arc<Texture<Spectrum> + Sync + Send>,
     sigma: f32,
 }
 
 impl MatteMaterial {
-    pub fn new(r: Colourf, sigma: f32) -> MatteMaterial {
+    pub fn new(r: Spectrum, sigma: f32) -> MatteMaterial {
         MatteMaterial {
             kd: Arc::new(ConstantTexture::new(r)),
-            sigma: sigma, /* bxdfs: vec![Box::new(SpecularReflection::new(Colourf::rgb(1.0, 0.0, 0.0),
+            sigma: sigma, /* bxdfs: vec![Box::new(SpecularReflection::new(Spectrum::rgb(1.0, 0.0, 0.0),
                            *                                              Box::new(FresnelConductor::new(
-                           *                                                      Colourf::white(),
-                           *                                                      Colourf::rgb(0.155265, 0.116723, 0.138381),
-                           *                                                      Colourf::rgb(4.82835, 3.12225, 2.14696),
+                           *                                                      Spectrum::white(),
+                           *                                                      Spectrum::rgb(0.155265, 0.116723, 0.138381),
+                           *                                                      Spectrum::rgb(4.82835, 3.12225, 2.14696),
                            *                                                      ))))], */
         }
     }

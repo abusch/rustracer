@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use Vector;
-use colour::Colourf;
+use spectrum::Spectrum;
 use geometry::DifferentialGeometry;
 use material::Material;
 
@@ -23,7 +23,7 @@ impl<'a> Intersection<'a> {
         }
     }
 
-    pub fn le(&self, wo: Vector) -> Colourf {
-        Colourf::black()
+    pub fn le(&self, wo: Vector) -> Spectrum {
+        Spectrum::black()
     }
 }

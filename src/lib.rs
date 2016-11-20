@@ -18,7 +18,7 @@ mod bounds;
 mod bsdf;
 mod bvh;
 pub mod camera;
-pub mod colour;
+pub mod spectrum;
 pub mod efloat;
 mod filter;
 pub mod geometry;

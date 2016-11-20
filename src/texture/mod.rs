@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 
 use ::Point2f;
-use colour::Colourf;
+use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 
 pub trait Texture<T> {
@@ -50,10 +50,10 @@ impl<T> CheckerboardTexture<T> {
     }
 }
 
-impl CheckerboardTexture<Colourf> {
-    pub fn bw() -> CheckerboardTexture<Colourf> {
-        CheckerboardTexture::new(Arc::new(ConstantTexture::new(Colourf::black())),
-                                 Arc::new(ConstantTexture::new(Colourf::white())),
+impl CheckerboardTexture<Spectrum> {
+    pub fn bw() -> CheckerboardTexture<Spectrum> {
+        CheckerboardTexture::new(Arc::new(ConstantTexture::new(Spectrum::black())),
+                                 Arc::new(ConstantTexture::new(Spectrum::white())),
                                  Box::new(UVMapping2D::new(10.0, 10.0, 0.0, 0.0)))
     }
 }

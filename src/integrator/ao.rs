@@ -2,7 +2,7 @@ use std::f32;
 use std::iter;
 
 use Vector;
-use colour::Colourf;
+use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampling::Sampler;
@@ -20,7 +20,7 @@ impl AmbientOcclusion {
 }
 
 impl SamplerIntegrator for AmbientOcclusion {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, _: u32) -> Colourf {
+    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, _: u32) -> Spectrum {
         let mut n_clear: usize = 0;
 
         if let Some(intersection) = scene.intersect(ray) {
@@ -42,6 +42,6 @@ impl SamplerIntegrator for AmbientOcclusion {
             }
         }
 
-        Colourf::grey((n_clear as f32) / (self.n_samples as f32))
+        Spectrum::grey((n_clear as f32) / (self.n_samples as f32))
     }
 }
