@@ -15,7 +15,7 @@ use integrator::SamplerIntegrator;
 use interaction::SurfaceInteraction;
 use intersection::Intersection;
 use light::Light;
-use material::MatteMaterial;
+use material::matte::MatteMaterial;
 use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
 use shapes::disk::Disk;
@@ -48,10 +48,7 @@ impl Scene {
             primitives: vec![Box::new(GeometricPrimitive {
                                  shape: Arc::new(Sphere::default()),
                                  area_light: None,
-                                 material: Some(Arc::new(MatteMaterial::new(Colourf::rgb(1.0,
-                                                                                         0.0,
-                                                                                         0.0),
-                                                                            20.0))),
+                                 material: Some(Arc::new(MatteMaterial::new(Colourf::red(), 20.0))),
                              }),
                              Box::new(GeometricPrimitive {
                                  shape: Arc::new(Disk::new(-1.0,
@@ -65,9 +62,7 @@ impl Scene {
                                                                                       0.0),
                                                                           1.0))),
                                  area_light: None,
-                                 material: Some(Arc::new(MatteMaterial::new(Colourf::rgb(1.0,
-                                                                                         1.0,
-                                                                                         1.0),
+                                 material: Some(Arc::new(MatteMaterial::new(Colourf::white(),
                                                                             0.0))),
                              })],
         };

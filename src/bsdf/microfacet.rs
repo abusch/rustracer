@@ -71,6 +71,15 @@ pub struct BeckmannDistribution {
     alpha_y: f32,
 }
 
+impl BeckmannDistribution {
+    pub fn new(ax: f32, ay: f32) -> BeckmannDistribution {
+        BeckmannDistribution {
+            alpha_x: ax,
+            alpha_y: ay,
+        }
+    }
+}
+
 impl MicrofacetDistribution for BeckmannDistribution {
     fn d(&self, wh: &Vector) -> f32 {
         let tan2theta = tan2_theta(wh);
@@ -105,4 +114,53 @@ impl MicrofacetDistribution for BeckmannDistribution {
     }
 }
 
-// TODO Trowbridge-Reitz distrbution
+pub struct TrowbridgeReitzDistribution {
+    alpha_x: f32,
+    alpha_y: f32,
+}
+
+impl TrowbridgeReitzDistribution {
+    pub fn new(ax: f32, ay: f32) -> TrowbridgeReitzDistribution {
+        TrowbridgeReitzDistribution {
+            alpha_x: ax,
+            alpha_y: ay,
+        }
+    }
+
+    pub fn roughness_to_alpha(roughness: f32) -> f32 {
+        let roughness = roughness.max(1e-3);
+        let x = roughness.ln();
+        1.62142 + 0.819955 * x + 0.1734 * x * x + 0.0171201 * x * x * x +
+        0.000640711 * x * x * x * x
+
+    }
+}
+
+impl MicrofacetDistribution for TrowbridgeReitzDistribution {
+    fn d(&self, wh: &Vector) -> f32 {
+        let tan2theta = tan2_theta(wh);
+        if tan2theta.is_infinite() {
+            return 0.0;
+        }
+
+        let cos4theta = cos2_theta(wh) * cos2_theta(wh);
+        let e = (cos2_phi(wh) / (self.alpha_x * self.alpha_x) +
+                 sin2_phi(wh) / (self.alpha_y * self.alpha_y)) * tan2theta;
+
+        1.0 / (consts::PI * self.alpha_x * self.alpha_y * cos4theta * (1.0 + e) * (1.0 + e))
+    }
+
+    fn lambda(&self, wh: &Vector) -> f32 {
+        let abs_tan_theta = tan_theta(wh).abs();
+        if abs_tan_theta.is_infinite() {
+            return 0.0;
+        }
+
+        // Compute alpha for direction w
+        let alpha = (cos_phi(wh) * self.alpha_x * self.alpha_x +
+                     sin_phi(wh) * self.alpha_y * self.alpha_y)
+            .sqrt();
+        let alpha2tan2theta = (alpha * abs_tan_theta) * (alpha * abs_tan_theta);
+        -(1.0 + (1.0 + alpha2tan2theta).sqrt()) / 2.0
+    }
+}

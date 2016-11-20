@@ -25,6 +25,18 @@ impl Colourf {
         Colourf::rgb(0.0, 0.0, 0.0)
     }
 
+    pub fn red() -> Colourf {
+        Colourf::rgb(1.0, 0.0, 0.0)
+    }
+
+    pub fn green() -> Colourf {
+        Colourf::rgb(0.0, 1.0, 0.0)
+    }
+
+    pub fn blue() -> Colourf {
+        Colourf::rgb(0.0, 0.0, 1.0)
+    }
+
     pub fn to_srgb(&self) -> Colourf {
         let a = 0.055f32;
         let b = 1f32 / 2.4;

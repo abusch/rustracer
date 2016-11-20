@@ -1,19 +1,9 @@
 use std::sync::Arc;
+
 use bsdf::{BSDF, BxDF, FresnelConductor, SpecularReflection, LambertianReflection, OrenNayar};
 use colour::Colourf;
+use material::{Material, TransportMode};
 use interaction::SurfaceInteraction;
-
-pub enum TransportMode {
-    RADIANCE,
-    IMPORTANCE,
-}
-
-pub trait Material {
-    fn compute_scattering_functions(&self,
-                                    isect: &mut SurfaceInteraction,
-                                    mode: TransportMode,
-                                    allow_multiple_lobes: bool);
-}
 
 pub struct MatteMaterial {
     r: Colourf,
