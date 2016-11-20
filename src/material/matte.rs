@@ -4,7 +4,7 @@ use bsdf::{BSDF, BxDF, FresnelConductor, SpecularReflection, LambertianReflectio
 use colour::Colourf;
 use material::{Material, TransportMode};
 use interaction::SurfaceInteraction;
-use texture::{Texture, ConstantTexture};
+use texture::{Texture, ConstantTexture, CheckerboardTexture};
 
 pub struct MatteMaterial {
     kd: Arc<Texture<Colourf> + Sync + Send>,
@@ -21,6 +21,13 @@ impl MatteMaterial {
                            *                                                      Colourf::rgb(0.155265, 0.116723, 0.138381),
                            *                                                      Colourf::rgb(4.82835, 3.12225, 2.14696),
                            *                                                      ))))], */
+        }
+    }
+
+    pub fn checkerboard(sigma: f32) -> MatteMaterial {
+        MatteMaterial {
+            kd: Arc::new(CheckerboardTexture::bw()),
+            sigma: sigma,
         }
     }
 

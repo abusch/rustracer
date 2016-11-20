@@ -64,8 +64,7 @@ impl Scene {
                                                                                       0.0),
                                                                           1.0))),
                                  area_light: None,
-                                 material: Some(Arc::new(MatteMaterial::new(Colourf::white(),
-                                                                            0.0))),
+                                 material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
                              })],
         };
         for l in lights.iter_mut() {
