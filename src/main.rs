@@ -17,7 +17,7 @@ use rt::spectrum::Spectrum;
 use rt::camera::Camera;
 use rt::geometry::*;
 use rt::instance::Instance;
-use rt::integrator::{SamplerIntegrator, Whitted, Normal};
+use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
 use rt::light::{Light, PointLight, DistantLight};
 use rt::material::Material;
 use rt::renderer;
@@ -44,7 +44,7 @@ Options:
   -i <integrator>, --integrator=<integrator>  SamplerIntegrator \
      to use [default: whitted].
                                               Valid values: \
-     whitted, normal.
+     whitted, normal, ao.
   --whitted-max-ray-depth=N                   Maximum ray depth for \
      Whitted integrator. [default: 8].
   --ao-samples=N                              Number of \
@@ -66,7 +66,7 @@ struct Args {
 #[derive(RustcDecodable)]
 enum SamplerIntegratorType {
     Whitted,
-    // Ao,
+    Ao,
     Normal,
 }
 
@@ -113,11 +113,11 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
                      args.flag_whitted_max_ray_depth);
             Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
         }
-        // SamplerIntegratorType::Ao => {
-        //     println!("Using Ambient Occlusion integrator with {} samples",
-        //              args.flag_ao_samples);
-        //     Box::new(AmbientOcclusion::new(args.flag_ao_samples))
-        // }
+        SamplerIntegratorType::Ao => {
+            println!("Using Ambient Occlusion integrator with {} samples",
+                     args.flag_ao_samples);
+            Box::new(AmbientOcclusion::new(args.flag_ao_samples))
+        }
         SamplerIntegratorType::Normal => {
             println!("Using normal facing ratio integrator");
             Box::new(Normal {})
@@ -155,7 +155,8 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     // Light
     lights.push(Box::new(PointLight::new(Point::new(-5.0, 5.0, 10.0),
                                          Spectrum::rgb(3000.0, 2000.0, 2000.0))));
-    lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(), Spectrum::rgb(1.0, 1.0, 1.0))));
+    lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(),
+                                           Spectrum::rgb(1.0, 1.0, 1.0))));
 
     Scene::new(camera, integrator, &mut objs, lights)
 }
