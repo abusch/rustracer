@@ -1,11 +1,11 @@
 use std::sync::Arc;
-use ray::Ray;
+
 use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
-use shapes::Shape;
+use light::AreaLight;
 use material::{Material, TransportMode};
-
-pub trait AreaLight {}
+use ray::Ray;
+use shapes::Shape;
 
 pub trait Primitive {
     fn world_bounds(&self) -> Bounds3f;

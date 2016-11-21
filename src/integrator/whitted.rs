@@ -1,13 +1,15 @@
 use std::f32::consts::*;
 
+use na::Dot;
+
+use Point2f;
 use bsdf;
-use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
+use material::TransportMode;
 use ray::Ray;
 use sampling::Sampler;
 use scene::Scene;
-use material::TransportMode;
-use na::Dot;
+use spectrum::Spectrum;
 
 pub struct Whitted {
     pub max_ray_depth: u8,
@@ -33,7 +35,7 @@ impl SamplerIntegrator for Whitted {
                 isect.compute_scattering_functions(ray, TransportMode::RADIANCE, false);
 
                 // Compute emitted light if ray hit an area light source
-                colour += isect.le(wo);
+                colour += isect.le(&wo);
 
                 // Add contribution of each light source
                 // let bsdf = isect.material.bsdf(&isect);
@@ -46,7 +48,8 @@ impl SamplerIntegrator for Whitted {
                 let bsdf = isect.bsdf.clone().unwrap();
 
                 for light in &scene.lights {
-                    let (li, wi, pdf, visibilityTester) = light.sample_li(&isect, &wo, (0.0, 0.0));
+                    let (li, wi, pdf, visibilityTester) =
+                        light.sample_li(&isect, &wo, &Point2f::new(0.0, 0.0));
                     if li.is_black() || pdf == 0.0 {
                         continue;
                     }

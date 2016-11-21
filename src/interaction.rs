@@ -10,6 +10,42 @@ use na::{self, Dot, Cross, Norm};
 use material::TransportMode;
 use fp::Ieee754;
 
+
+// TODO Find a better design for this mess of inheritance...
+
+pub struct Interaction {
+    /// The point where the ray hit the primitive
+    pub p: Point,
+    /// Error bound for the intersection point
+    pub p_error: Vector,
+    /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
+    pub wo: Vector,
+    /// Normal
+    pub n: Vector,
+}
+
+impl Interaction {
+    pub fn new(p: Point, p_error: Vector, wo: Vector, n: Vector) -> Interaction {
+        Interaction {
+            p: p,
+            p_error: p_error,
+            wo: wo,
+            n: n,
+        }
+    }
+
+    pub fn spawn_ray(&self, dir: &Vector) -> Ray {
+        let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
+        Ray::new(o, *dir)
+    }
+
+    pub fn spawn_ray_to(&self, p: &Point) -> Ray {
+        let d = *p - self.p;
+        let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
+        Ray::segment(o, d, 1.0 - 1e-4)
+    }
+}
+
 pub struct SurfaceInteraction<'a> {
     /// The point where the ray hit the primitive
     pub p: Point,
@@ -72,8 +108,11 @@ impl<'a> SurfaceInteraction<'a> {
         }
     }
 
-    pub fn le(&self, wo: Vector) -> Spectrum {
-        Spectrum::black()
+    pub fn le(&self, w: &Vector) -> Spectrum {
+        self.primitive
+            .and_then(|p| p.area_light())
+            .map(|light| light.l(self, w))
+            .unwrap_or(Spectrum::black())
     }
 
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {
@@ -111,32 +150,32 @@ impl<'a> SurfaceInteraction<'a> {
     }
 
     pub fn spawn_ray(&self, dir: &Vector) -> Ray {
-        let o = self.offset_origin(&self.p, &self.p_error, &self.n, dir);
+        let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
     }
 
     pub fn spawn_ray_to(&self, p: &Point) -> Ray {
         let d = *p - self.p;
-        let o = self.offset_origin(&self.p, &self.p_error, &self.n, &d);
+        let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
+}
 
-    fn offset_origin(&self, p: &Point, p_err: &Vector, n: &Vector, w: &Vector) -> Point {
-        let d = na::abs(n).dot(p_err);
-        let mut offset = d * *n;
-        if w.dot(n) < 0.0 {
-            offset = -offset;
-        }
-        let mut po = *p + offset;
-        for i in 0..3 {
-            if offset[i] > 0.0 {
-                po[i] = po[i].next();
-            } else if offset[i] < 0.0 {
-                po[i] = po[i].prev();
-            }
-        }
-        po
+fn offset_origin(p: &Point, p_err: &Vector, n: &Vector, w: &Vector) -> Point {
+    let d = na::abs(n).dot(p_err);
+    let mut offset = d * *n;
+    if w.dot(n) < 0.0 {
+        offset = -offset;
     }
+    let mut po = *p + offset;
+    for i in 0..3 {
+        if offset[i] > 0.0 {
+            po[i] = po[i].next();
+        } else if offset[i] < 0.0 {
+            po[i] = po[i].prev();
+        }
+    }
+    po
 }
 
 /// Normal and partial derivatives used for shading. Can be different from geometric ones due to

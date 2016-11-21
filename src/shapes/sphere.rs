@@ -1,13 +1,17 @@
-use ::{gamma, Transform, Point2f, Point, Vector};
-use super::Shape;
-use ray::Ray;
-use bounds::Bounds3f;
-use interaction::SurfaceInteraction;
-use efloat::{self, EFloat};
+use std::f32::consts;
 
 use na::{self, Inverse, Norm};
 
-use std::f32::consts;
+use {gamma, Transform, Point2f, Point, Vector};
+use bounds::Bounds3f;
+use efloat::{self, EFloat};
+use interaction::{Interaction, SurfaceInteraction};
+use ray::Ray;
+use sampling::uniform_sample_sphere;
+use shapes::Shape;
+use transform::{transform_point_with_error, transform_normal};
+
+
 
 pub struct Sphere {
     object_to_world: Transform,
@@ -129,8 +133,7 @@ impl Shape for Sphere {
                        Vector::new(p_hit.z * cos_phi,
                                    p_hit.z * sin_phi,
                                    -self.radius * theta.sin());
-            // Compute dn/du and dn/dv
-            // TODO
+            // TODO Compute dn/du and dn/dv
             let isect =
                 SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, self);
             Some((isect.transform(&self.object_to_world), t_shape_hit.into()))
@@ -157,6 +160,15 @@ impl Shape for Sphere {
         bounds.extend(self.object_to_world * Point::new(b[1].x, b[1].y, b[1].z));
 
         bounds
+    }
+
+    fn sample(&self, u: &Point2f) -> Interaction {
+        let mut p_obj = Point::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
+        let n = transform_normal(&p_obj.to_vector(), &self.object_to_world).normalize();
+        p_obj = p_obj * self.radius / p_obj.to_vector().norm();
+        let p_obj_error = gamma(5) * na::abs(&p_obj.to_vector());
+        let (p, p_err) = transform_point_with_error(&self.object_to_world, &p_obj, &p_obj_error);
+        Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n)
     }
 }
 

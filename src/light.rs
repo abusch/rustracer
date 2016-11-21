@@ -1,13 +1,14 @@
 use std::f32;
 use std::f32::consts::*;
-use na::Norm;
 
-use Point;
-use Vector;
-use spectrum::Spectrum;
+use na::{Dot, Norm};
+
+use {Point, Point2f, Vector};
 use interaction::SurfaceInteraction;
 use ray::Ray;
 use scene::Scene;
+use shapes::Shape;
+use spectrum::Spectrum;
 
 bitflags! {
     pub flags LightFlags: u32 {
@@ -47,8 +48,10 @@ pub trait Light {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  wo: &Vector,
-                 sample: (f32, f32))
+                 u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester);
+
+    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32;
 
     fn preprocess(&mut self, scene: &Scene) {}
 
@@ -78,7 +81,7 @@ impl Light for PointLight {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  wo: &Vector,
-                 sample: (f32, f32))
+                 u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester) {
         let wi = self.pos - isect.p;
         let r2 = wi.norm_squared();
@@ -86,6 +89,10 @@ impl Light for PointLight {
         let vt = VisibilityTester::new(isect.spawn_ray_to(&self.pos));
 
         (l_i, wi.normalize(), 1.0, vt)
+    }
+
+    fn pdf_li(&self, si: &SurfaceInteraction, _wi: &Vector) -> f32 {
+        0.0
     }
 
     fn n_samples(&self) -> u32 {
@@ -130,13 +137,17 @@ impl Light for DistantLight {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  _wo: &Vector,
-                 _sample: (f32, f32))
+                 _u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester) {
         let p_outside = isect.p - self.dir * (2.0 * self.w_radius);
         (self.emission_colour,
          -self.dir,
          1.0,
          VisibilityTester::new(isect.spawn_ray_to(&p_outside)))
+    }
+
+    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32 {
+        0.0
     }
 
     fn n_samples(&self) -> u32 {
@@ -149,5 +160,60 @@ impl Light for DistantLight {
 
     fn power(&self) -> Spectrum {
         self.emission_colour * PI * self.w_radius * self.w_radius
+    }
+}
+
+pub trait AreaLight: Light {
+    // TODO SurfaceInteraction should be Interation to support mediums
+    fn l(&self, si: &SurfaceInteraction, w: &Vector) -> Spectrum;
+}
+
+pub struct DiffuseAreaLight {
+    l_emit: Spectrum,
+    shape: Box<Shape + Send + Sync>,
+    n_samples: u32,
+    area: f32,
+}
+
+impl DiffuseAreaLight {}
+
+impl Light for DiffuseAreaLight {
+    fn sample_li(&self,
+                 si: &SurfaceInteraction,
+                 wo: &Vector,
+                 u: &Point2f)
+                 -> (Spectrum, Vector, f32, VisibilityTester) {
+        let p_shape = self.shape.sample_si(si, u);
+        let wi = (p_shape.p - si.p).normalize();
+        let pdf = self.shape.pdf_wi(si, &wi);
+        let vis = VisibilityTester::new(si.spawn_ray_to(&p_shape.p));
+
+        (self.l(si, &(-wi)), wi, pdf, vis)
+    }
+
+    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32 {
+        self.shape.pdf_wi(si, wi)
+    }
+
+    fn n_samples(&self) -> u32 {
+        self.n_samples
+    }
+
+    fn flags(&self) -> LightFlags {
+        AREA
+    }
+
+    fn power(&self) -> Spectrum {
+        self.l_emit * PI * self.area
+    }
+}
+
+impl AreaLight for DiffuseAreaLight {
+    fn l(&self, si: &SurfaceInteraction, w: &Vector) -> Spectrum {
+        if si.n.dot(w) > 0.0 {
+            self.l_emit
+        } else {
+            Spectrum::black()
+        }
     }
 }

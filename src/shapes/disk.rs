@@ -1,13 +1,15 @@
 use std::f32::consts;
 
 use na;
-use na::Inverse;
+use na::{Dot, Norm, Inverse};
 
 use ::{Point, Vector, Transform, Point2f};
 use bounds::Bounds3f;
-use interaction::SurfaceInteraction;
+use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
+use sampling::concentric_sample_disk;
 use shapes::Shape;
+use transform::{transform_normal, transform_point_with_error};
 
 pub struct Disk {
     height: f32,
@@ -90,5 +92,15 @@ impl Shape for Disk {
     fn world_bounds(&self) -> Bounds3f {
         // TODO
         Bounds3f::new()
+    }
+
+    fn sample(&self, u: &Point2f) -> Interaction {
+        let pd = concentric_sample_disk(u);
+        let p_obj = Point::new(pd.x * self.radius, pd.y * self.radius, self.height);
+        let n = transform_normal(&Vector::z(), &self.object_to_world).normalize();
+        let (p, p_err) =
+            transform_point_with_error(&self.object_to_world, &p_obj, &Vector::new(0.0, 0.0, 0.0));
+
+        Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n)
     }
 }

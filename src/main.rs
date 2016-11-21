@@ -153,10 +153,10 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     //                                        Vector::new(FRAC_PI_2, 0.0, 0.0),
     //                                        20.0)));
     // Light
-    lights.push(Box::new(PointLight::new(Point::new(-5.0, 5.0, 10.0),
-                                         Spectrum::rgb(3000.0, 2000.0, 2000.0))));
+    lights.push(Box::new(PointLight::new(Point::new(-3.0, 3.0, 3.0),
+                                         Spectrum::rgb(100.0, 100.0, 100.0))));
     lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(),
-                                           Spectrum::rgb(1.0, 1.0, 1.0))));
+                                           Spectrum::rgb(5.0, 5.0, 5.0))));
 
     Scene::new(camera, integrator, &mut objs, lights)
 }
