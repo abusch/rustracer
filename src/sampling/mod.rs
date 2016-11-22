@@ -1,7 +1,9 @@
 use std::f32::consts;
+
 use rand::{thread_rng, Rng};
-use ::{Point2f, Vector};
-use na::{zero, Vector2};
+use na::Vector2;
+
+use {Point2f, Vector};
 
 const FRAC_PI_4: f32 = consts::FRAC_PI_2 / 2.0;
 
@@ -36,7 +38,7 @@ pub fn concentric_sample_disk(u: &Point2f) -> Point2f {
 
 pub trait Sampler {
     fn get_samples(&self, x: f32, y: f32, samples: &mut Vec<(f32, f32)>);
-    // fn get_2d(&self) -> (f32, f32);
+    fn get_2d(&self) -> Point2f;
 }
 
 pub struct LowDiscrepancy {
@@ -57,6 +59,10 @@ impl Sampler for LowDiscrepancy {
             samples[i].0 = s.0 + x;
             samples[i].1 = s.1 + y;
         }
+    }
+
+    fn get_2d(&self) -> Point2f {
+        Point2f::new(thread_rng().next_f32(), thread_rng().next_f32())
     }
 }
 

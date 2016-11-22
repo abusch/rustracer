@@ -1,6 +1,7 @@
 use std::f32::consts;
-use super::*;
-use ::{Vector, Point2f};
+
+use bsdf::{BxDF, BxDFType, BSDF_DIFFUSE, BSDF_REFLECTION};
+use ::Vector;
 use spectrum::Spectrum;
 
 pub struct LambertianReflection {
@@ -14,7 +15,7 @@ impl LambertianReflection {
 }
 
 impl BxDF for LambertianReflection {
-    fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum {
+    fn f(&self, _wo: &Vector, _wi: &Vector) -> Spectrum {
         self.r * consts::FRAC_1_PI
     }
 

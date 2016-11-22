@@ -1,8 +1,5 @@
-use std::f32::consts::*;
-
 use na::Dot;
 
-use Point2f;
 use bsdf;
 use integrator::SamplerIntegrator;
 use material::TransportMode;
@@ -28,7 +25,6 @@ impl SamplerIntegrator for Whitted {
         match scene.intersect2(ray) {
             Some(mut isect) => {
                 let n = isect.shading.n;
-                let p = isect.p;
                 let wo = isect.wo;
 
                 // Compute scattering functions for surface interaction
@@ -37,25 +33,22 @@ impl SamplerIntegrator for Whitted {
                 // Compute emitted light if ray hit an area light source
                 colour += isect.le(&wo);
 
-                // Add contribution of each light source
-                // let bsdf = isect.material.bsdf(&isect);
-
-
                 if isect.bsdf.is_none() {
                     let mut r = isect.spawn_ray(&ray.d);
                     return self.li(scene, &mut r, sampler, depth);
                 }
                 let bsdf = isect.bsdf.clone().unwrap();
 
+                // Add contribution of each light source
                 for light in &scene.lights {
-                    let (li, wi, pdf, visibilityTester) =
-                        light.sample_li(&isect, &wo, &Point2f::new(0.0, 0.0));
+                    let (li, wi, pdf, visibility_tester) =
+                        light.sample_li(&isect, &wo, &sampler.get_2d());
                     if li.is_black() || pdf == 0.0 {
                         continue;
                     }
 
                     let f = bsdf.f(&wi, &wo, bsdf::BxDFType::all());
-                    if !f.is_black() && visibilityTester.unoccluded(scene) {
+                    if !f.is_black() && visibility_tester.unoccluded(scene) {
                         colour += f * li * wi.dot(&n).abs() / pdf;
                     }
                 }

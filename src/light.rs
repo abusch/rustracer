@@ -53,7 +53,7 @@ pub trait Light {
 
     fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32;
 
-    fn preprocess(&mut self, scene: &Scene) {}
+    fn preprocess(&mut self, _scene: &Scene) {}
 
     fn n_samples(&self) -> u32;
 
@@ -80,8 +80,8 @@ impl PointLight {
 impl Light for PointLight {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
-                 wo: &Vector,
-                 u: &Point2f)
+                 _wo: &Vector,
+                 _u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester) {
         let wi = self.pos - isect.p;
         let r2 = wi.norm_squared();
@@ -91,7 +91,7 @@ impl Light for PointLight {
         (l_i, wi.normalize(), 1.0, vt)
     }
 
-    fn pdf_li(&self, si: &SurfaceInteraction, _wi: &Vector) -> f32 {
+    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector) -> f32 {
         0.0
     }
 
@@ -146,7 +146,7 @@ impl Light for DistantLight {
          VisibilityTester::new(isect.spawn_ray_to(&p_outside)))
     }
 
-    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32 {
+    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector) -> f32 {
         0.0
     }
 
@@ -175,12 +175,25 @@ pub struct DiffuseAreaLight {
     area: f32,
 }
 
-impl DiffuseAreaLight {}
+impl DiffuseAreaLight {
+    pub fn new(l_emit: Spectrum,
+               shape: Box<Shape + Send + Sync>,
+               n_samples: u32)
+               -> DiffuseAreaLight {
+        let area = shape.area();
+        DiffuseAreaLight {
+            l_emit: l_emit,
+            shape: shape,
+            n_samples: n_samples,
+            area: area,
+        }
+    }
+}
 
 impl Light for DiffuseAreaLight {
     fn sample_li(&self,
                  si: &SurfaceInteraction,
-                 wo: &Vector,
+                 _wo: &Vector,
                  u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester) {
         let p_shape = self.shape.sample_si(si, u);

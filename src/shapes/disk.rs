@@ -1,7 +1,7 @@
 use std::f32::consts;
 
 use na;
-use na::{Dot, Norm, Inverse};
+use na::{Norm, Inverse};
 
 use ::{Point, Vector, Transform, Point2f};
 use bounds::Bounds3f;
@@ -42,7 +42,7 @@ impl Disk {
 impl Shape for Disk {
     fn intersect(&self, r: &Ray) -> Option<(SurfaceInteraction, f32)> {
         // Transform ray to object space
-        let (ray, o_err, d_err) = r.transform(&self.world_to_object);
+        let (ray, _o_err, _d_err) = r.transform(&self.world_to_object);
         // Compute plane intersection for disk
         if r.d.z == 0.0 {
             // Reject disk intersection for rays parallel to the disk plane
@@ -90,8 +90,12 @@ impl Shape for Disk {
     }
 
     fn world_bounds(&self) -> Bounds3f {
-        // TODO
-        Bounds3f::new()
+        let ob = self.object_bounds();
+        let p1 = self.object_to_world * ob.p_min;
+        let p2 = self.object_to_world * ob.p_max;
+        let p_min = Point::new(p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z));
+        let p_max = Point::new(p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z));
+        Bounds3f::from_points(&p_min, &p_max)
     }
 
     fn sample(&self, u: &Point2f) -> Interaction {

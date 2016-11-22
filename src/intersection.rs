@@ -23,7 +23,7 @@ impl<'a> Intersection<'a> {
         }
     }
 
-    pub fn le(&self, wo: Vector) -> Spectrum {
+    pub fn le(&self, _wo: Vector) -> Spectrum {
         Spectrum::black()
     }
 }

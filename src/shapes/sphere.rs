@@ -11,8 +11,6 @@ use sampling::uniform_sample_sphere;
 use shapes::Shape;
 use transform::{transform_point_with_error, transform_normal};
 
-
-
 pub struct Sphere {
     object_to_world: Transform,
     world_to_object: Transform,

@@ -4,22 +4,22 @@ extern crate docopt;
 extern crate rustc_serialize;
 extern crate num_cpus;
 
-use std::f32::consts::*;
-use std::path::Path;
+use std::f32::consts;
 use std::sync::Arc;
 use std::num::ParseIntError;
-use na::zero;
 use docopt::Docopt;
 
 use rt::{Point, Vector, Transform, Dim};
 use rt::scene::Scene;
 use rt::spectrum::Spectrum;
 use rt::camera::Camera;
-use rt::geometry::*;
-use rt::instance::Instance;
 use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
-use rt::light::{Light, PointLight, DistantLight};
-use rt::material::Material;
+use rt::light::{Light, PointLight, DistantLight, DiffuseAreaLight};
+use rt::material::matte::MatteMaterial;
+use rt::material::plastic::Plastic;
+use rt::primitive::{Primitive, GeometricPrimitive};
+use rt::shapes::disk::Disk;
+use rt::shapes::sphere::Sphere;
 use rt::renderer;
 
 const USAGE: &'static str =
@@ -124,41 +124,42 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
         }
     };
 
-    let mut objs = Vec::new();
     let mut lights: Vec<Box<Light + Send + Sync>> = Vec::new();
-    let height = 5.0;
 
-    // {
-    //     let mesh = Mesh::load(Path::new("models/bunny.obj"), "bunny");
-    //     objs.push(Instance::new(Box::new(mesh),
-    //                             Arc::new(Material::new(Spectrum::rgb(0.0, 0.0, 0.5), 0.0, 0.0)),
-    //                             Transform::new(Vector::new(1.0, 2.0, -15.0),
-    //                                            Vector::new(0.0, 0.0, 0.0),
-    //                                            2.0)));
-    // }
-    // {
-    //     let mesh = Mesh::load(Path::new("models/buddha.obj"), "buddha");
-    //     objs.push(Instance::new(Box::new(mesh),
-    //                             Arc::new(Material::new(Spectrum::rgb(0.0, 0.0, 0.5), 0.0, 0.0)),
-    //                             Transform::new(Vector::new(6.0, 6.0, -15.0),
-    //                                            Vector::new(0.0, PI, 0.0),
-    //                                            10.0)));
-    // }
-    // objs.push(Instance::new(Box::new(Sphere::new(3.0)),
-    //                         Arc::new(Material::new(Spectrum::rgb(0.90, 0.90, 0.90), 1.0, 1.0)),
-    //                         Transform::new(Vector::new(-6.5, 4.0, -15.0), zero(), 1.0)));
-    // objs.push(Instance::new(Box::new(Plane),
-    //                         Arc::new(Material::new(Spectrum::rgb(1.0, 1.0, 1.0), 0.0, 0.0)),
-    //                         Transform::new(Vector::new(0.0, height - 4.0, 0.0),
-    //                                        Vector::new(FRAC_PI_2, 0.0, 0.0),
-    //                                        20.0)));
+    let primitives: Vec<Box<Primitive + Sync + Send>> =
+        vec![Box::new(GeometricPrimitive {
+                 shape: Arc::new(Sphere::default()),
+                 area_light: None,
+                 material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))), /* material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 20.0))), */
+             }),
+             Box::new(GeometricPrimitive {
+                 shape: Arc::new(Disk::new(-1.0,
+                                           20.0,
+                                           0.0,
+                                           360.0,
+                                           Transform::new(na::zero(),
+                                                          Vector::new(-consts::PI / 2.0,
+                                                                      0.0,
+                                                                      0.0),
+                                                          1.0))),
+                 area_light: None,
+                 material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
+             })];
     // Light
-    lights.push(Box::new(PointLight::new(Point::new(-3.0, 3.0, 3.0),
-                                         Spectrum::rgb(100.0, 100.0, 100.0))));
+    lights.push(Box::new(DiffuseAreaLight::new(Spectrum::rgb(1.0, 1.0, 1.0),
+                                               Box::new(Disk::new(-2.0,
+                                                                  1.0,
+                                                                  0.0,
+                                                                  360.0,
+                                                                  Transform::new(na::zero(),
+                                                                  Vector::new(-consts::FRAC_PI_2, 0.0, 0.0), 1.0))),
+                                               16)));
+    // lights.push(Box::new(PointLight::new(Point::new(-3.0, 3.0, 3.0),
+    //                                      Spectrum::rgb(100.0, 100.0, 100.0))));
     lights.push(Box::new(DistantLight::new(-Vector::y() - Vector::z(),
-                                           Spectrum::rgb(5.0, 5.0, 5.0))));
+                                           Spectrum::rgb(1.0, 1.0, 1.0))));
 
-    Scene::new(camera, integrator, &mut objs, lights)
+    Scene::new(camera, integrator, primitives, lights)
 }
 
 

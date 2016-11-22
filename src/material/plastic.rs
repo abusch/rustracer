@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use bsdf::{BSDF, BxDF, Fresnel, FresnelDielectric, TrowbridgeReitzDistribution,
-           MicrofacetReflection, LambertianReflection};
+use bsdf::{BSDF, BxDF, Fresnel, TrowbridgeReitzDistribution, MicrofacetReflection,
+           LambertianReflection};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
@@ -25,8 +25,8 @@ impl Plastic {
 impl Material for Plastic {
     fn compute_scattering_functions(&self,
                                     si: &mut SurfaceInteraction,
-                                    transport: TransportMode,
-                                    allow_multiple_lobes: bool) {
+                                    _mode: TransportMode,
+                                    _allow_multiple_lobes: bool) {
         let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
         let kd = self.kd.evaluate(si);
         if !kd.is_black() {

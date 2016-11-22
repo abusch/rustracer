@@ -10,12 +10,10 @@ pub use self::lambertian::*;
 pub use self::oren_nayar::*;
 pub use self::microfacet::*;
 
-use std::mem;
-use na::{self, Cross, Dot, zero, Norm, clamp};
+use na::{self, Cross, Dot, zero, Norm};
 
-use ::{Vector, Point2f};
+use ::Vector;
 use spectrum::Spectrum;
-use intersection::Intersection;
 use interaction::SurfaceInteraction;
 
 bitflags! {
@@ -73,9 +71,9 @@ impl BSDF {
     }
 
     pub fn sample_f(&self,
-                    wo_w: &Vector,
-                    sample: (f32, f32),
-                    flags: BxDFType)
+                    _wo_w: &Vector,
+                    _sample: (f32, f32),
+                    _flags: BxDFType)
                     -> (Spectrum, Vector, f32) {
         // if !flags.contains(BSDF_SPECULAR) {
         //     unimplemented!();

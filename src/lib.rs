@@ -1,3 +1,4 @@
+#[deny(trivial_casts, trivial_numeric_casts, unused_qualifications)]
 #[macro_use]
 extern crate approx;
 #[macro_use]
@@ -29,7 +30,7 @@ mod interaction;
 mod intersection;
 pub mod light;
 pub mod material;
-mod primitive;
+pub mod primitive;
 pub mod ray;
 pub mod renderer;
 pub mod sampling;

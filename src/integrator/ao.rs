@@ -1,7 +1,7 @@
 use std::f32;
 use std::iter;
 
-use ::{Point2f, Vector};
+use ::Point2f;
 use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;
@@ -25,7 +25,6 @@ impl SamplerIntegrator for AmbientOcclusion {
 
         if let Some(intersection) = scene.intersect2(ray) {
             let n = intersection.n;
-            let p = intersection.p;
             let mut samples = iter::repeat((0.0, 0.0)).take(self.n_samples).collect();
 
             sampler.get_samples(0.0, 0.0, &mut samples);

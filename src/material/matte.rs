@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use bsdf::{BSDF, BxDF, FresnelConductor, SpecularReflection, LambertianReflection, OrenNayar};
+use bsdf::{BSDF, BxDF, LambertianReflection, OrenNayar};
 use spectrum::Spectrum;
 use material::{Material, TransportMode};
 use interaction::SurfaceInteraction;
@@ -15,12 +15,7 @@ impl MatteMaterial {
     pub fn new(r: Spectrum, sigma: f32) -> MatteMaterial {
         MatteMaterial {
             kd: Arc::new(ConstantTexture::new(r)),
-            sigma: sigma, /* bxdfs: vec![Box::new(SpecularReflection::new(Spectrum::rgb(1.0, 0.0, 0.0),
-                           *                                              Box::new(FresnelConductor::new(
-                           *                                                      Spectrum::white(),
-                           *                                                      Spectrum::rgb(0.155265, 0.116723, 0.138381),
-                           *                                                      Spectrum::rgb(4.82835, 3.12225, 2.14696),
-                           *                                                      ))))], */
+            sigma: sigma,
         }
     }
 
@@ -47,8 +42,8 @@ impl MatteMaterial {
 impl Material for MatteMaterial {
     fn compute_scattering_functions(&self,
                                     si: &mut SurfaceInteraction,
-                                    mode: TransportMode,
-                                    allow_multiple_lobes: bool) {
+                                    _mode: TransportMode,
+                                    _allow_multiple_lobes: bool) {
         si.bsdf = Some(Arc::new(self.bsdf(si)));
     }
 }

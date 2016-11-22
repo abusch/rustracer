@@ -87,11 +87,11 @@ impl MicrofacetDistribution for BeckmannDistribution {
             return 0.0;
         }
 
-        let cos4theta = cos2_theta(wh) * cos2_theta(wh);
+        let cos4_theta = cos2_theta(wh) * cos2_theta(wh);
         (-tan2theta *
          (cos2_phi(wh) / (self.alpha_x * self.alpha_x) +
           sin2_phi(wh) / (self.alpha_y * self.alpha_y)))
-            .exp() / (consts::PI * self.alpha_x * self.alpha_y)
+            .exp() / (consts::PI * self.alpha_x * self.alpha_y * cos4_theta)
     }
 
     fn lambda(&self, wh: &Vector) -> f32 {

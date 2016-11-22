@@ -150,13 +150,16 @@ impl SpecularReflection {
 }
 
 impl BxDF for SpecularReflection {
-    fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum {
+    fn f(&self, _wo: &Vector, _wi: &Vector) -> Spectrum {
         // The probability to call f() with the exact (wo, wi) for specular reflection is 0, so we
         // return black here. Use sample_f() instead.
         Spectrum::black()
     }
 
-    fn sample_f(&self, wo: &Vector, _sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Spectrum) {
+    fn sample_f(&self,
+                wo: &Vector,
+                _sample: &Point2f)
+                -> (Vector, f32, Option<BxDFType>, Spectrum) {
         // There's only one possible wi for a given wo, so we always return it with a pdf of 1.
         let wi = Vector::new(-wo.x, -wo.y, wo.z);
         let spectrum = self.fresnel.evaluate(cos_theta(&wi)) * self.r / abs_cos_theta(&wi);

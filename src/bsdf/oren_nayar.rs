@@ -15,7 +15,7 @@ pub struct OrenNayar {
 impl OrenNayar {
     pub fn new(r: Spectrum, sigma: f32) -> OrenNayar {
         let sigma_rad = sigma.to_radians();
-        let sigma2 = sigma * sigma;
+        let sigma2 = sigma_rad * sigma_rad;
 
         OrenNayar {
             r: r,

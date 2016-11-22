@@ -1,5 +1,3 @@
-use std::sync::Arc;
-use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 
 pub mod matte;
