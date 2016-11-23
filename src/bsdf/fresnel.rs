@@ -3,7 +3,7 @@ use std::mem;
 use ::{Vector, Point2f};
 use super::*;
 use spectrum::Spectrum;
-use na::{self, Dot, Norm, clamp};
+use na::{Dot, Norm, clamp};
 
 /// Compute the reflection direction
 fn reflect(wo: &Vector, n: &Vector) -> Vector {
@@ -53,7 +53,7 @@ pub fn fr_dielectric(cos_theta_i: f32, eta_i: f32, eta_t: f32) -> f32 {
 }
 
 fn fr_conductor(cos_theta_i: f32, eta_i: &Spectrum, eta_t: &Spectrum, k: &Spectrum) -> Spectrum {
-    let mut cos_theta_i = clamp(cos_theta_i, -1.0, 1.0);
+    let cos_theta_i = clamp(cos_theta_i, -1.0, 1.0);
     let eta = *eta_t / *eta_i;
     let eta_k = *k / *eta_i;
 

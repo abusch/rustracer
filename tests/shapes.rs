@@ -7,7 +7,7 @@ use rand::{Rng, StdRng, SeedableRng};
 use rand::distributions::{Range, IndependentSample};
 use na::{Norm, Dot};
 
-use rt::{Transform, Point, Point2f};
+use rt::{Point, Point2f};
 use rt::ray::Ray;
 use rt::sampling;
 use rt::shapes::Shape;
@@ -46,7 +46,7 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
     }
 
     // We usually, but not always, get an intersection
-    if let Some((isect, t_hit)) = shape.intersect(&mut ray) {
+    if let Some((isect, _t_hit)) = shape.intersect(&mut ray) {
         // Now trace a bunch of rays leaving the intersection point
         for i in 0..10000 {
             // Random direction leaving the intersection point

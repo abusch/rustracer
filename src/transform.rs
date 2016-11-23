@@ -69,6 +69,9 @@ pub fn transform_normal(normal: &Vector, transform: &Transform) -> Vector {
     *normal * m_transp
 }
 
+#[cfg(test)]
+use na::{Dot, Inverse};
+
 #[test]
 fn test_normal_transform() {
     let t = Transform::new(Vector::new(0.0, 0.0, 0.0), Vector::new(4.0, 5.0, 6.0), 4.0);

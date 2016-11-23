@@ -1,4 +1,4 @@
-#[deny(trivial_casts, trivial_numeric_casts, unused_qualifications)]
+#![deny(trivial_casts, unused_qualifications)]
 #[macro_use]
 extern crate approx;
 #[macro_use]

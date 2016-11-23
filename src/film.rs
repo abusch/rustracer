@@ -34,7 +34,7 @@ impl PixelSample {
 impl Film {
     pub fn new(dim: Dim, filter: Box<Filter + Sync + Send>) -> Film {
         let (w, h) = dim;
-        let size = w as usize * h as usize;
+        let size = w * h;
         let filter_size = FILTER_SIZE * FILTER_SIZE;
         let mut samples = Vec::with_capacity(size);
         samples.resize(size, PixelSample::new());
