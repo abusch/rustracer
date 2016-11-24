@@ -30,14 +30,14 @@ impl SamplerIntegrator for Whitted {
                 // Compute scattering functions for surface interaction
                 isect.compute_scattering_functions(ray, TransportMode::RADIANCE, false);
 
-                // Compute emitted light if ray hit an area light source
-                colour += isect.le(&wo);
-
                 if isect.bsdf.is_none() {
                     let mut r = isect.spawn_ray(&ray.d);
                     return self.li(scene, &mut r, sampler, depth);
                 }
                 let bsdf = isect.bsdf.clone().unwrap();
+
+                // Compute emitted light if ray hit an area light source
+                colour += isect.le(&wo);
 
                 // Add contribution of each light source
                 for light in &scene.lights {

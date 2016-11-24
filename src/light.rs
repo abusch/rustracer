@@ -1,10 +1,11 @@
+use std::sync::Arc;
 use std::f32;
 use std::f32::consts::*;
 
 use na::{Dot, Norm};
 
 use {Point, Point2f, Vector};
-use interaction::SurfaceInteraction;
+use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
 use scene::Scene;
 use shapes::Shape;
@@ -143,7 +144,9 @@ impl Light for DistantLight {
         (self.emission_colour,
          -self.dir,
          1.0,
-         VisibilityTester::new(isect.spawn_ray_to(&p_outside)))
+         // TODO can't use self.w_radius as I've disabled preprocess for now...
+         // VisibilityTester::new(isect.spawn_ray_to(&p_outside)))
+         VisibilityTester::new(isect.spawn_ray(&(-self.dir))))
     }
 
     fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector) -> f32 {
@@ -164,20 +167,19 @@ impl Light for DistantLight {
 }
 
 pub trait AreaLight: Light {
-    // TODO SurfaceInteraction should be Interation to support mediums
-    fn l(&self, si: &SurfaceInteraction, w: &Vector) -> Spectrum;
+    fn l(&self, si: &Interaction, w: &Vector) -> Spectrum;
 }
 
 pub struct DiffuseAreaLight {
     l_emit: Spectrum,
-    shape: Box<Shape + Send + Sync>,
+    shape: Arc<Shape + Send + Sync>,
     n_samples: u32,
     area: f32,
 }
 
 impl DiffuseAreaLight {
     pub fn new(l_emit: Spectrum,
-               shape: Box<Shape + Send + Sync>,
+               shape: Arc<Shape + Send + Sync>,
                n_samples: u32)
                -> DiffuseAreaLight {
         let area = shape.area();
@@ -196,12 +198,13 @@ impl Light for DiffuseAreaLight {
                  _wo: &Vector,
                  u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester) {
-        let p_shape = self.shape.sample_si(si, u);
+        let p_shape = self.shape.sample_si(&si.into(), u);
+        assert!(!p_shape.p.x.is_nan() && !p_shape.p.y.is_nan() && !p_shape.p.z.is_nan());
         let wi = (p_shape.p - si.p).normalize();
-        let pdf = self.shape.pdf_wi(si, &wi);
+        let pdf = self.shape.pdf(si);
         let vis = VisibilityTester::new(si.spawn_ray_to(&p_shape.p));
 
-        (self.l(si, &(-wi)), wi, pdf, vis)
+        (self.l(&p_shape, &(-wi)), wi, pdf, vis)
     }
 
     fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32 {
@@ -222,7 +225,7 @@ impl Light for DiffuseAreaLight {
 }
 
 impl AreaLight for DiffuseAreaLight {
-    fn l(&self, si: &SurfaceInteraction, w: &Vector) -> Spectrum {
+    fn l(&self, si: &Interaction, w: &Vector) -> Spectrum {
         if si.n.dot(w) > 0.0 {
             self.l_emit
         } else {

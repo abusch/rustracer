@@ -107,4 +107,8 @@ impl Shape for Disk {
 
         Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n)
     }
+
+    fn area(&self) -> f32 {
+        self.phi_max * 0.5 * (self.radius * self.radius - self.inner_radius * self.inner_radius)
+    }
 }

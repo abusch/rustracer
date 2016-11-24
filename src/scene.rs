@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::mem;
 
 use na::Norm;
@@ -15,7 +16,7 @@ use skydome::Atmosphere;
 pub struct Scene {
     pub camera: Camera,
     // bvh: BVH<Instance>,
-    pub lights: Vec<Box<Light + Sync + Send>>,
+    pub lights: Vec<Arc<Light + Sync + Send>>,
     pub atmosphere: Atmosphere,
     pub integrator: Box<SamplerIntegrator + Sync + Send>,
     pub primitives: Vec<Box<Primitive + Sync + Send>>,
@@ -25,7 +26,7 @@ impl Scene {
     pub fn new(camera: Camera,
                integrator: Box<SamplerIntegrator + Sync + Send>,
                primitives: Vec<Box<Primitive + Sync + Send>>,
-               mut lights: Vec<Box<Light + Sync + Send>>)
+               mut lights: Vec<Arc<Light + Sync + Send>>)
                -> Scene {
         // let bvh = BVH::new(16, objects);
         let mut scene = Scene {
@@ -37,9 +38,11 @@ impl Scene {
             integrator: integrator,
             primitives: primitives,
         };
-        for l in lights.iter_mut() {
-            l.preprocess(&scene);
-        }
+        // TODO There's a bit of a circular reference with AreaLight <-> Shape <-> GeometricPrimitive which
+        // doesn't play well with mutation needed by preprocessing...
+        // for l in lights.iter_mut() {
+        //     l.borrow_mut().preprocess(&scene);
+        // }
         mem::replace(&mut scene.lights, lights);
 
         scene

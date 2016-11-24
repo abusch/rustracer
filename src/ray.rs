@@ -19,6 +19,9 @@ pub struct Ray {
 impl Ray {
     pub fn new(o: Point, d: Vector) -> Ray {
         stats::inc_primary_ray();
+        assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
+        assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
+        assert!(d.norm_squared() != 0.0);
         Ray {
             o: o,
             d: d,
@@ -29,6 +32,9 @@ impl Ray {
 
     pub fn segment(o: Point, d: Vector, tmax: f32) -> Ray {
         stats::inc_primary_ray();
+        assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
+        assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
+        assert!(d.norm_squared() != 0.0);
         Ray {
             o: o,
             d: d,

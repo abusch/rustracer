@@ -26,7 +26,6 @@ fn full_sphere_reintersect() {
     for i in 0..1000 {
         rng.reseed(&[i]);
         let radius = pexp(&mut rng, 4.0);
-        // println!("radius={}", radius);
         let sphere = Sphere::new(na::one(), radius, -radius, radius, 360.0);
         test_reintersection_convex(&sphere, &mut rng);
     }
@@ -56,15 +55,6 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
                 w = -w;
             }
             let mut ray_out = isect.spawn_ray(&w);
-            // if let Some((isect, thit)) = shape.intersect(&mut ray_out) {
-            //     println!("ray_out={:?}, isect.p={:?}, isect.p_err={:?}, isect.n={:?}",
-            //              ray_out,
-            //              isect.p,
-            //              isect.p_error,
-            //              isect.n);
-            //     println!("ray_out.o.norm={}", ray_out.o.to_vector().norm());
-            //     println!("isect.p.norm={}", isect.p.to_vector().norm());
-            // }
             assert!(!shape.intersect_p(&mut ray_out));
             assert!(shape.intersect(&mut ray_out).is_none());
 

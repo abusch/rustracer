@@ -47,3 +47,9 @@ impl Material for MatteMaterial {
         si.bsdf = Some(Arc::new(self.bsdf(si)));
     }
 }
+
+impl Default for MatteMaterial {
+    fn default() -> Self {
+        MatteMaterial::new(Spectrum::grey(0.5), 0.0)
+    }
+}

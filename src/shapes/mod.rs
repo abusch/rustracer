@@ -25,7 +25,7 @@ pub trait Shape {
 
     fn sample(&self, u: &Point2f) -> Interaction;
 
-    fn sample_si(&self, _si: &SurfaceInteraction, u: &Point2f) -> Interaction {
+    fn sample_si(&self, _si: &Interaction, u: &Point2f) -> Interaction {
         self.sample(u)
     }
 

@@ -35,12 +35,14 @@ impl Interaction {
     }
 
     pub fn spawn_ray(&self, dir: &Vector) -> Ray {
+        assert!(dir.x != 0.0 && dir.y != 0.0 && dir.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
     }
 
     pub fn spawn_ray_to(&self, p: &Point) -> Ray {
         let d = *p - self.p;
+        assert!(d.x != 0.0 && d.y != 0.0 && d.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
@@ -111,7 +113,7 @@ impl<'a> SurfaceInteraction<'a> {
     pub fn le(&self, w: &Vector) -> Spectrum {
         self.primitive
             .and_then(|p| p.area_light())
-            .map(|light| light.l(self, w))
+            .map(|light| light.l(&self.into(), w))
             .unwrap_or(Spectrum::black())
     }
 
@@ -150,12 +152,14 @@ impl<'a> SurfaceInteraction<'a> {
     }
 
     pub fn spawn_ray(&self, dir: &Vector) -> Ray {
+        assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
     }
 
     pub fn spawn_ray_to(&self, p: &Point) -> Ray {
         let d = *p - self.p;
+        assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
@@ -176,6 +180,18 @@ fn offset_origin(p: &Point, p_err: &Vector, n: &Vector, w: &Vector) -> Point {
         }
     }
     po
+}
+
+impl<'a> From<SurfaceInteraction<'a>> for Interaction {
+    fn from(si: SurfaceInteraction) -> Interaction {
+        Interaction::new(si.p, si.p_error, si.wo, si.n)
+    }
+}
+
+impl<'a> From<&'a SurfaceInteraction<'a>> for Interaction {
+    fn from(si: &SurfaceInteraction) -> Interaction {
+        Interaction::new(si.p, si.p_error, si.wo, si.n)
+    }
 }
 
 /// Normal and partial derivatives used for shading. Can be different from geometric ones due to
