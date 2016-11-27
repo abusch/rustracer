@@ -54,9 +54,12 @@ impl BSDF {
     }
 
     /// Evaluate the BSDF for the given incoming light direction and outgoing light direction.
-    pub fn f(&self, wi_w: &Vector, wo_w: &Vector, flags: BxDFType) -> Spectrum {
+    pub fn f(&self, wo_w: &Vector, wi_w: &Vector, flags: BxDFType) -> Spectrum {
         let wi = self.world_to_local(wi_w);
         let wo = self.world_to_local(wo_w);
+        if wo.z == 0.0 {
+            return Spectrum::black();
+        }
         let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
         self.bxdfs
             .iter()
@@ -67,7 +70,7 @@ impl BSDF {
                 ((reflect && (b.get_type().contains(BSDF_REFLECTION))) ||
                  (!reflect && (b.get_type().contains(BSDF_TRANSMISSION))))
             })
-            .fold(Spectrum::black(), |c, b| c + b.f(&wi, &wo))
+            .fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
     }
 
     pub fn sample_f(&self,

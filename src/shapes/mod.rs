@@ -15,21 +15,33 @@ pub trait Shape {
         self.intersect(ray).is_some()
     }
 
-    fn area(&self) -> f32 {
-        0.0
-    }
+    fn area(&self) -> f32;
 
     fn object_bounds(&self) -> Bounds3f;
 
     fn world_bounds(&self) -> Bounds3f;
 
-    fn sample(&self, u: &Point2f) -> Interaction;
+    fn sample(&self, u: &Point2f) -> (Interaction, f32);
 
-    fn sample_si(&self, _si: &Interaction, u: &Point2f) -> Interaction {
-        self.sample(u)
+    fn sample_si(&self, si: &Interaction, u: &Point2f) -> (Interaction, f32) {
+        let (intr, mut pdf) = self.sample(u);
+        let mut wi = intr.p - si.p;
+        let d2 = wi.norm_squared();
+        if d2 == 0.0 {
+            pdf = 0.0;
+        } else {
+            wi = wi.normalize();
+            pdf *= d2 / (intr.n.dot(&(-wi)).abs());
+            if pdf.is_infinite() {
+                pdf = 0.0;
+            }
+        }
+
+        (intr, pdf)
     }
 
-    fn pdf(&self, _si: &SurfaceInteraction) -> f32 {
+    fn pdf(&self, si: &SurfaceInteraction) -> f32 {
+        // TODO more stuff to do here?
         1.0 / self.area()
     }
 

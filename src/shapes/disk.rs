@@ -74,8 +74,8 @@ impl Shape for Disk {
         let dpdv = Vector::new(p_hit.x, p_hit.y, 0.0) * (self.inner_radius - self.radius) / r_hit;
         // Refine disk intersection point
         p_hit.z = self.height;
-        let p_err = Vector::new(0.0, 0.0, 0.0);
         // Compute error bounds for intersection point
+        let p_err = Vector::new(0.0, 0.0, 0.0);
         // Initialize SurfaceInteraction from parametric information
         let isect =
             SurfaceInteraction::new(p_hit, p_err, Point2f::new(u, v), -ray.d, dpdu, dpdv, self);
@@ -98,14 +98,15 @@ impl Shape for Disk {
         Bounds3f::from_points(&p_min, &p_max)
     }
 
-    fn sample(&self, u: &Point2f) -> Interaction {
+    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let pd = concentric_sample_disk(u);
         let p_obj = Point::new(pd.x * self.radius, pd.y * self.radius, self.height);
         let n = transform_normal(&Vector::z(), &self.object_to_world).normalize();
         let (p, p_err) =
             transform_point_with_error(&self.object_to_world, &p_obj, &Vector::new(0.0, 0.0, 0.0));
+        let pdf = 1.0 / self.area();
 
-        Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n)
+        (Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n), pdf)
     }
 
     fn area(&self) -> f32 {

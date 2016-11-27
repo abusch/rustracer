@@ -145,7 +145,7 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
         vec![Box::new(GeometricPrimitive {
                  shape: Arc::new(Sphere::default()),
                  area_light: None,
-                 material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))), /* material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 20.0))), */
+                 material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 0.0))), /* material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 20.0))), */
              }),
              Box::new(GeometricPrimitive {
                  shape: Arc::new(Disk::new(-1.0,
@@ -158,7 +158,8 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
                                                                       0.0),
                                                           1.0))),
                  area_light: None,
-                 material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
+                 // material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
+                 material: Some(Arc::new(MatteMaterial::new(Spectrum::blue(), 0.0))),
              }),
              area_light_prim];
     // Light

@@ -160,13 +160,18 @@ impl Shape for Sphere {
         bounds
     }
 
-    fn sample(&self, u: &Point2f) -> Interaction {
+    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let mut p_obj = Point::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
         let n = transform_normal(&p_obj.to_vector(), &self.object_to_world).normalize();
         p_obj = p_obj * self.radius / p_obj.to_vector().norm();
         let p_obj_error = gamma(5) * na::abs(&p_obj.to_vector());
         let (p, p_err) = transform_point_with_error(&self.object_to_world, &p_obj, &p_obj_error);
-        Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n)
+        let pdf = 1.0 / self.area();
+        (Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n), pdf)
+    }
+
+    fn area(&self) -> f32 {
+        self.phi_max * self.radius * (self.z_max - self.z_min)
     }
 }
 

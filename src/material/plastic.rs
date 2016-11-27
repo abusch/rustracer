@@ -34,8 +34,8 @@ impl Material for Plastic {
         }
         let ks = self.ks.evaluate(si);
         if !ks.is_black() {
-            let fresnel = Box::new(Fresnel::dielectric(1.0, 1.5));
-            let roughness = TrowbridgeReitzDistribution::roughness_to_alpha(0.9);
+            let fresnel = Box::new(Fresnel::dielectric(1.5, 1.0));
+            let roughness = TrowbridgeReitzDistribution::roughness_to_alpha(0.1);
             let distrib = Box::new(TrowbridgeReitzDistribution::new(roughness, roughness));
             bxdfs.push(Box::new(MicrofacetReflection::new(ks, distrib, fresnel)));
         }
