@@ -127,25 +127,24 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     let disk = Arc::new(Disk::new(-2.0,
-                                  1.0,
+                                  0.5,
                                   0.0,
                                   360.0,
                                   Transform::new(na::zero(),
                                                  Vector::new(consts::FRAC_PI_2, 0.0, 0.0),
                                                  1.0)));
     let area_light =
-        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(1.0, 1.0, 1.0), disk.clone(), 16));
+        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(2.0, 2.0, 2.0), disk.clone(), 16));
     let area_light_prim = Box::new(GeometricPrimitive {
         shape: disk.clone(),
         area_light: Some(area_light.clone()),
         material: Some(Arc::new(MatteMaterial::default())),
     });
 
-    let primitives: Vec<Box<Primitive + Sync + Send>> =
-        vec![Box::new(GeometricPrimitive {
+    let primitives: Vec<Box<Primitive + Sync + Send>> = vec![Box::new(GeometricPrimitive {
                  shape: Arc::new(Sphere::default()),
                  area_light: None,
-                 material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 0.0))), /* material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 20.0))), */
+                 material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
              }),
              Box::new(GeometricPrimitive {
                  shape: Arc::new(Disk::new(-1.0,
@@ -159,15 +158,15 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
                                                           1.0))),
                  area_light: None,
                  // material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
-                 material: Some(Arc::new(MatteMaterial::new(Spectrum::blue(), 0.0))),
+                 material: Some(Arc::new(MatteMaterial::new(Spectrum::white(), 0.0))),
              }),
              area_light_prim];
     // Light
     lights.push(area_light);
     // lights.push(Box::new(PointLight::new(Point::new(-3.0, 3.0, 3.0),
     //                                      Spectrum::rgb(100.0, 100.0, 100.0))));
-    // lights.push(Arc::new(DistantLight::new(-Vector::y() - Vector::z(),
-    //                                        Spectrum::rgb(1.0, 1.0, 1.0))));
+    lights.push(Arc::new(DistantLight::new(Vector::new(0.0, -1.0, -5.0),
+                                           Spectrum::rgb(1.0, 1.0, 1.0))));
 
     Scene::new(camera, integrator, primitives, lights)
 }
