@@ -60,7 +60,7 @@ struct Args {
     flag_ao_samples: usize,
     flag_dimension: String,
     flag_spp: usize,
-    flag_block_size: usize,
+    flag_block_size: u32,
 }
 
 #[derive(RustcDecodable)]
@@ -76,8 +76,8 @@ fn main() {
         .and_then(|d| d.help(true).decode())
         .unwrap_or_else(|e| e.exit());
 
-    let parsed_dims: Result<Vec<usize>, ParseIntError> =
-        args.flag_dimension.split('x').map(|s| s.parse::<usize>()).collect();
+    let parsed_dims: Result<Vec<u32>, ParseIntError> =
+        args.flag_dimension.split('x').map(|s| s.parse::<u32>()).collect();
     let dims = parsed_dims.expect("Invalid dimensions");
     if dims.len() != 2 {
         panic!("Error: invalid dimension specification: {}",

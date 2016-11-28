@@ -1,11 +1,9 @@
 use std::f32::consts::PI;
 
-use Vector;
-use Dim;
-use Point;
-use ray::Ray;
 use na::Norm;
 
+use {Vector, Dim, Point, Point2f};
+use ray::Ray;
 
 pub struct Camera {
     pub origin: Point,
@@ -31,9 +29,9 @@ impl Camera {
         }
     }
 
-    pub fn ray_for(&self, x: f32, y: f32) -> Ray {
-        let xx = (2.0 * x * self.inv_width - 1.0) * self.angle * self.aspect_ratio;
-        let yy = (1.0 - 2.0 * y * self.inv_height) * self.angle;
+    pub fn ray_for(&self, p: &Point2f) -> Ray {
+        let xx = (2.0 * p.x * self.inv_width - 1.0) * self.angle * self.aspect_ratio;
+        let yy = (1.0 - 2.0 * p.y * self.inv_height) * self.angle;
         let raydir = Vector::new(xx, yy, -1.0).normalize();
         Ray::new(self.origin, raydir)
     }

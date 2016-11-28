@@ -20,7 +20,7 @@ pub fn render(scene: Arc<Scene>,
               filename: &str,
               num_threads: usize,
               spp: usize,
-              bs: usize)
+              bs: u32)
               -> stats::Stats {
     let mut film = Film::new(dim,
                              Box::new(MitchellNetravali::new(2.0, 2.0, 1.0 / 3.0, 1.0 / 3.0)));
@@ -39,21 +39,26 @@ pub fn render(scene: Arc<Scene>,
         pool.execute(move || {
             let mut samples = Vec::new();
             samples.resize(spp, (0.0, 0.0));
-            let mut sampler = LowDiscrepancy::new(spp);
+            let mut sampler = LowDiscrepancy::new(spp, 4);
             while let Some(block) = block_queue.next() {
                 block_queue.report_progress();
                 for p in block {
-                    sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
-                    for s in &samples {
-                        let mut ray = scene.camera.ray_for(s.0, s.1);
+                    sampler.start_pixel(&p);
+                    // sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
+                    loop {
+                        let s = sampler.get_camera_sample();
+                        let mut ray = scene.camera.ray_for(&s);
                         let sample_colour = scene.integrator.li(&scene, &mut ray, &mut sampler, 0);
                         let film_sample = FilmSample {
-                            x: s.0,
-                            y: s.1,
+                            x: s.x,
+                            y: s.y,
                             c: sample_colour,
                         };
                         pixel_tx.send(film_sample)
                             .expect(&format!("Failed to send sample {:?}", film_sample));
+                        if !sampler.start_next_sample() {
+                            break;
+                        }
                     }
                 }
             }
@@ -62,7 +67,8 @@ pub fn render(scene: Arc<Scene>,
     }
 
     // Write all pixels to the image
-    for s in pixel_rx.iter().take(block_queue.num_blocks * block_size * block_size * spp) {
+    for s in pixel_rx.iter()
+        .take(block_queue.num_blocks as usize * block_size as usize * block_size as usize * spp) {
         film.add_sample(s.x, s.y, s.c);
     }
     // Collect all the stats from the threads
@@ -79,7 +85,7 @@ fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
     let mut buffer = Vec::new();
 
     for i in 0..w * h {
-        let bytes: [u8; 3] = image[i].to_srgb().into();
+        let bytes: [u8; 3] = image[i as usize].to_srgb().into();
         buffer.push(bytes[0]);
         buffer.push(bytes[1]);
         buffer.push(bytes[2]);

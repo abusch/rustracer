@@ -7,13 +7,13 @@ use na::Point2;
 /// A block of pixels that a thread is responsible for rendering (i.e a bucket).
 #[derive(Debug)]
 pub struct Block {
-    start: Point2<usize>,
-    current: Point2<usize>,
-    end: Point2<usize>,
+    start: Point2<u32>,
+    current: Point2<u32>,
+    end: Point2<u32>,
 }
 
 impl Block {
-    pub fn new(start: (usize, usize), size: usize) -> Block {
+    pub fn new(start: (u32, u32), size: u32) -> Block {
         Block {
             start: Point2::new(start.0, start.1),
             current: Point2::new(start.0, start.1),
@@ -23,15 +23,15 @@ impl Block {
 
     /// Return the area of this block in pixels (i.e. number of pixels this
     /// block covers)
-    pub fn area(&self) -> usize {
+    pub fn area(&self) -> u32 {
         (self.end.x - self.start.x) * (self.end.y - self.start.y)
     }
 }
 
 impl Iterator for Block {
-    type Item = Point2<usize>;
+    type Item = Point2<u32>;
 
-    fn next(&mut self) -> Option<Point2<usize>> {
+    fn next(&mut self) -> Option<Point2<u32>> {
         if self.current.x >= self.end.x || self.current.y >= self.end.y {
             None
         } else {
@@ -51,16 +51,16 @@ impl Iterator for Block {
 }
 
 pub struct BlockQueue {
-    dims: (usize, usize),
-    block_size: usize,
+    dims: (u32, u32),
+    block_size: u32,
     counter: AtomicUsize,
-    pub num_blocks: usize,
+    pub num_blocks: u32,
 }
 
 impl BlockQueue {
-    pub fn new(dims: (usize, usize), block_size: usize) -> BlockQueue {
-        let xblocks = (dims.0 as f32 / block_size as f32).ceil() as usize;
-        let yblocks = (dims.1 as f32 / block_size as f32).ceil() as usize;
+    pub fn new(dims: (u32, u32), block_size: u32) -> BlockQueue {
+        let xblocks = (dims.0 as f32 / block_size as f32).ceil() as u32;
+        let yblocks = (dims.1 as f32 / block_size as f32).ceil() as u32;
         BlockQueue {
             dims: dims,
             block_size: block_size,
@@ -70,7 +70,7 @@ impl BlockQueue {
     }
 
     pub fn next(&self) -> Option<Block> {
-        let c = self.counter.fetch_add(1, Ordering::AcqRel);
+        let c = self.counter.fetch_add(1, Ordering::AcqRel) as u32;
         if c >= self.num_blocks {
             None
         } else {

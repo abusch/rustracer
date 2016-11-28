@@ -25,11 +25,13 @@ impl SamplerIntegrator for AmbientOcclusion {
 
         if let Some(intersection) = scene.intersect2(ray) {
             let n = intersection.n;
-            let mut samples = iter::repeat((0.0, 0.0)).take(self.n_samples).collect();
+            let mut samples: Vec<Point2f> =
+                iter::repeat(Point2f::new(0.0, 0.0)).take(self.n_samples).collect();
 
-            sampler.get_samples(0.0, 0.0, &mut samples);
+            // TODO fixme
+            // sampler.get_samples(0.0, 0.0, &mut samples);
             for s in &samples {
-                let mut w = uniform_sample_sphere(&Point2f::new(s.0, s.1));
+                let mut w = uniform_sample_sphere(&s);
                 if w.dot(&n) < 0.0 {
                     w = -w;
                 }

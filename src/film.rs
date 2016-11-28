@@ -5,8 +5,8 @@ use filter::Filter;
 const FILTER_SIZE: usize = 16;
 
 pub struct Film {
-    pub width: usize,
-    pub height: usize,
+    pub width: u32,
+    pub height: u32,
     samples: Vec<PixelSample>,
     filter_table: Vec<f32>,
     filter: Box<Filter + Sync + Send>,
@@ -36,8 +36,8 @@ impl Film {
         let (w, h) = dim;
         let size = w * h;
         let filter_size = FILTER_SIZE * FILTER_SIZE;
-        let mut samples = Vec::with_capacity(size);
-        samples.resize(size, PixelSample::new());
+        let mut samples = Vec::with_capacity(size as usize);
+        samples.resize(size as usize, PixelSample::new());
         let mut filter_table = Vec::with_capacity(filter_size);
         filter_table.resize(filter_size, 0f32);
 
@@ -100,7 +100,7 @@ impl Film {
             for x in x0..x1 {
                 let offset = ify[y - y0] * FILTER_SIZE + ifx[x - x0];
                 let filter_weight = self.filter_table[offset];
-                let pidx = y * self.width + x;
+                let pidx = y * self.width as usize + x;
                 self.samples[pidx].c += colour * filter_weight;
                 self.samples[pidx].weighted_sum += filter_weight;
             }

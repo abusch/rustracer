@@ -24,9 +24,7 @@ threadpool = "1.3"
 tobj = "0.1"
 
 [profile.release]
-# How to send extra compiler flag for -march=native equivalent in Rust
-# flag is `-C target-cpu=native`
 opt-level = 3
-debug = false
+debug = true
 rpath = false
-lto = true
+lto = false

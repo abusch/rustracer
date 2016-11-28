@@ -41,11 +41,12 @@ mod stats;
 pub mod texture;
 mod transform;
 
-pub type Dim = (usize, usize);
+pub type Dim = (u32, u32);
 
 pub type Vector = Vector3<f32>;
 pub type Point = Point3<f32>;
 pub type Point2f = Point2<f32>;
+pub type Point2i = Point2<u32>;
 pub type Transform = Similarity3<f32>;
 
 pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
