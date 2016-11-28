@@ -1,3 +1,4 @@
+pub mod boxfilter;
 pub mod mitchell;
 
 pub trait Filter {
