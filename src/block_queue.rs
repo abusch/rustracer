@@ -106,7 +106,7 @@ fn test_area() {
 #[test]
 fn test_iter() {
     let block = Block::new((12, 12), 8);
-    let pixels: Vec<Point2<usize>> = block.into_iter().collect();
+    let pixels: Vec<Point2<u32>> = block.into_iter().collect();
 
     assert_eq!(pixels.len(), 64);
     assert_eq!(pixels[0].x, 12);
