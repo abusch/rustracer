@@ -4,7 +4,7 @@ use bsdf;
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use ray::Ray;
-use sampling::Sampler;
+use sampler::Sampler;
 use scene::Scene;
 
 mod whitted;

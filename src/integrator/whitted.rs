@@ -4,7 +4,7 @@ use bsdf;
 use integrator::SamplerIntegrator;
 use material::TransportMode;
 use ray::Ray;
-use sampling::Sampler;
+use sampler::Sampler;
 use scene::Scene;
 use spectrum::Spectrum;
 

@@ -5,7 +5,8 @@ use ::Point2f;
 use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;
-use sampling::{Sampler, uniform_sample_sphere};
+use sampler::Sampler;
+use sampling::uniform_sample_sphere;
 use scene::Scene;
 use na::Dot;
 

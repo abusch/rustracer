@@ -12,7 +12,8 @@ use spectrum::Spectrum;
 use filter::mitchell::MitchellNetravali;
 use filter::boxfilter::BoxFilter;
 use film::Film;
-use sampling::{Sampler, LowDiscrepancy};
+use sampler::Sampler;
+use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
 use stats;
 
@@ -40,7 +41,7 @@ pub fn render(scene: Arc<Scene>,
         pool.execute(move || {
             let mut samples = Vec::new();
             samples.resize(spp, (0.0, 0.0));
-            let mut sampler = LowDiscrepancy::new(spp, 4);
+            let mut sampler = ZeroTwoSequence::new(spp, 4);
             while let Some(block) = block_queue.next() {
                 block_queue.report_progress();
                 for p in block {
