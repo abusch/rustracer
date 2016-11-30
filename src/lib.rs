@@ -14,6 +14,7 @@ extern crate num;
 use na::{Vector3, Point2, Point3, Similarity3, BaseNum};
 use std::f32;
 
+mod blockedarray;
 mod block_queue;
 mod bounds;
 mod bsdf;
