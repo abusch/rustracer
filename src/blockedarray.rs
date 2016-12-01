@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Index, IndexMut};
 
 use num::{Zero, zero};
 
@@ -21,7 +21,6 @@ impl<T> BlockedArray<T>
           T: Zero
 {
     pub fn new(u_res: usize, v_res: usize) -> BlockedArray<T> {
-
         let data = vec![zero(); u_res * v_res];
 
         BlockedArray {
@@ -32,6 +31,26 @@ impl<T> BlockedArray<T>
             block_size: BLOCK_SIZE,
             data: data,
         }
+    }
+
+    pub fn new_from(u_res: usize, v_res: usize, d: &[T]) -> BlockedArray<T> {
+        let mut ba = Self::new(u_res, v_res);
+
+        for u in 0..u_res {
+            for v in 0..v_res {
+                ba[(u, v)] = d[v * u_res + u]
+            }
+        }
+
+        ba
+    }
+
+    pub fn u_size(&self) -> usize {
+        self.u_res
+    }
+
+    pub fn v_size(&self) -> usize {
+        self.v_res
     }
 
     pub fn block_size(&self) -> usize {
@@ -62,5 +81,21 @@ impl<T> Index<(usize, usize)> for BlockedArray<T>
         let offset = self.block_size() * self.block_size() * (self.u_blocks * bv + bu) +
                      self.block_size() * ov + ou;
         &self.data[offset]
+    }
+}
+
+impl<T> IndexMut<(usize, usize)> for BlockedArray<T>
+    where T: Copy,
+          T: Zero
+{
+    fn index_mut(&mut self, i: (usize, usize)) -> &mut T {
+        let (u, v) = i;
+        let bu = self.block(u);
+        let bv = self.block(v);
+        let ou = self.offset(u);
+        let ov = self.offset(v);
+        let offset = self.block_size() * self.block_size() * (self.u_blocks * bv + bu) +
+                     self.block_size() * ov + ou;
+        &mut self.data[offset]
     }
 }
