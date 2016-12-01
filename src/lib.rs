@@ -11,8 +11,11 @@ extern crate threadpool as tp;
 extern crate ieee754 as fp;
 extern crate num;
 
-use na::{Vector3, Point2, Point3, Similarity3, BaseNum};
 use std::f32;
+use std::ops::{Add, Mul, Sub};
+
+use na::{Vector3, Point2, Point3, Similarity3, BaseNum};
+use num::One;
 
 mod blockedarray;
 mod block_queue;
@@ -31,6 +34,7 @@ mod interaction;
 mod intersection;
 pub mod light;
 pub mod material;
+pub mod mipmap;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
@@ -57,9 +61,15 @@ pub fn gamma(n: u32) -> f32 {
 }
 
 /// Linear interpolation between 2 values
-pub fn lerp<T: BaseNum>(t: T, a: T, b: T) -> T {
-    let one: T = na::one();
-    (one - t) * a + t * b
+pub fn lerp<S, T>(t: S, a: T, b: T) -> T
+    where S: One,
+          S: Sub<S, Output = S>,
+          S: Copy,
+          T: Add<T, Output = T>,
+          T: Mul<S, Output = T>
+{
+    let one: S = num::one();
+    a * (one - t) + b * t
 }
 
 #[test]
