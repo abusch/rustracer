@@ -1,6 +1,7 @@
 use std::io;
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
+use std::fmt;
 
 use na::Point2;
 
@@ -47,6 +48,12 @@ impl Iterator for Block {
 
             Some(cur)
         }
+    }
+}
+
+impl fmt::Display for Block {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} → {}", self.start, self.end)
     }
 }
 

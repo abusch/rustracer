@@ -1,13 +1,25 @@
+extern crate chrono;
 extern crate nalgebra as na;
 extern crate rustracer as rt;
 extern crate docopt;
 extern crate rustc_serialize;
 extern crate num_cpus;
+#[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
+extern crate slog;
+#[macro_use]
+extern crate slog_scope;
+extern crate slog_stream;
 
 use std::f32::consts;
 use std::sync::Arc;
 use std::num::ParseIntError;
+use std::fs::OpenOptions;
+use std::io;
+use std::thread;
+
+use chrono::Local;
 use docopt::Docopt;
+use slog::*;
 
 use rt::{Point, Vector, Transform, Dim};
 use rt::scene::Scene;
@@ -71,6 +83,9 @@ enum SamplerIntegratorType {
 }
 
 fn main() {
+    // configure logger
+    configure_logger();
+
     // Parse args
     let args: Args = Docopt::new(USAGE)
         .and_then(|d| d.help(true).decode())
@@ -106,20 +121,21 @@ fn main() {
 }
 
 fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
+    info!("Building scene");
     let camera = Camera::new(Point::new(0.0, 0.0, 5.0), dim, 50.0);
     let integrator: Box<SamplerIntegrator + Send + Sync> = match args.flag_integrator {
         SamplerIntegratorType::Whitted => {
-            println!("Using Whitted integrator with max ray depth of {}",
-                     args.flag_whitted_max_ray_depth);
+            info!("Using Whitted integrator with max ray depth of {}",
+                  args.flag_whitted_max_ray_depth);
             Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
         }
         SamplerIntegratorType::Ao => {
-            println!("Using Ambient Occlusion integrator with {} samples",
-                     args.flag_ao_samples);
+            info!("Using Ambient Occlusion integrator with {} samples",
+                  args.flag_ao_samples);
             Box::new(AmbientOcclusion::new(args.flag_ao_samples))
         }
         SamplerIntegratorType::Normal => {
-            println!("Using normal facing ratio integrator");
+            info!("Using normal facing ratio integrator");
             Box::new(Normal {})
         }
     };
@@ -171,6 +187,20 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     Scene::new(camera, integrator, primitives, lights)
 }
 
+fn configure_logger() {
+    let log_path = "/tmp/rustracer.log";
+    let file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(log_path)
+        .unwrap();
+
+    let drain = slog_stream::async_stream(file, MyFormat).fuse();
+    let log = Logger::root(drain, o!());
+    slog_scope::set_global_logger(log);
+
+}
 
 trait HumanDisplay {
     fn human_display(&self) -> String;
@@ -190,5 +220,30 @@ impl HumanDisplay for std::time::Duration {
         }
         let millis = self.subsec_nanos() / 1000000;
         format!("{}:{}:{}.{}", hours, minutes, seconds, millis)
+    }
+}
+
+macro_rules! now {
+    () => ( Local::now().format("%m-%d %H:%M:%S%.3f") )
+}
+
+struct MyFormat;
+
+impl slog_stream::Format for MyFormat {
+    fn format(&self,
+              io: &mut io::Write,
+              rinfo: &slog::Record,
+              _logger_values: &slog::OwnedKeyValueList)
+              -> io::Result<()> {
+        let msg = format!("{} [{}][{}][{}:{} {}] - {}\n",
+                          now!(),
+                          rinfo.level(),
+                          thread::current().name().unwrap_or("unnamed"),
+                          rinfo.file(),
+                          rinfo.line(),
+                          rinfo.module(),
+                          rinfo.msg());
+        let _ = try!(io.write_all(msg.as_bytes()));
+        Ok(())
     }
 }

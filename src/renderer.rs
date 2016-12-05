@@ -29,11 +29,11 @@ pub fn render(scene: Arc<Scene>,
 
     let block_size = bs;
     let block_queue = Arc::new(BlockQueue::new(dim, block_size));
-    println!("Rendering scene using {} threads", num_threads);
-    let pool = ThreadPool::new(num_threads);
+    info!("Rendering scene using {} threads", num_threads);
+    let pool = ThreadPool::new_with_name("worker".into(), num_threads);
     let (pixel_tx, pixel_rx) = channel();
     let (stats_tx, stats_rx) = channel();
-    for _ in 0..num_threads {
+    for i in 0..num_threads {
         let scene = scene.clone();
         let pixel_tx = pixel_tx.clone();
         let stats_tx = stats_tx.clone();
@@ -43,6 +43,7 @@ pub fn render(scene: Arc<Scene>,
             samples.resize(spp, (0.0, 0.0));
             let mut sampler = ZeroTwoSequence::new(spp, 4);
             while let Some(block) = block_queue.next() {
+                info!("Rendering tile {}", block);
                 block_queue.report_progress();
                 for p in block {
                     sampler.start_pixel(&p);
