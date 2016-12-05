@@ -62,7 +62,7 @@ impl Film {
 
     pub fn add_sample(&mut self, x: f32, y: f32, colour: Spectrum) {
         if colour.has_nan() {
-            println!("WARN: colour has NaNs! Ignoring");
+            warn!("colour has NaNs! Ignoring");
             return;
         }
         let (xwidth, ywidth) = self.filter.width();
