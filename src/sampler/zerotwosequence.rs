@@ -61,9 +61,6 @@ impl Sampler for ZeroTwoSequence {
         }
 
         // TODO generate 1d and 2d array samples
-        // println!("Generated samples for pixel: {:?}", p);
-        // println!("1d samples: {:?}", self.samples_1d);
-        // println!("2d samples: {:?}", self.samples_2d);
 
         self.current_pixel = *p;
         self.current_pixel_sample_index = 0;
