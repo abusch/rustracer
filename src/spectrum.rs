@@ -1,7 +1,7 @@
 use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
 use na;
 
-#[derive(Debug,Copy,PartialEq,Clone)]
+#[derive(Debug,Copy,PartialEq,Clone,Default)]
 pub struct Spectrum {
     pub r: f32,
     pub g: f32,
