@@ -18,7 +18,7 @@ extern crate threadpool as tp;
 use std::f32;
 use std::ops::{Add, Mul, Sub};
 
-use na::{Vector3, Point2, Point3, Similarity3, BaseNum};
+use na::{Vector2, Vector3, Point2, Point3, Similarity3, BaseNum};
 use num::One;
 
 mod blockedarray;
@@ -54,6 +54,7 @@ mod transform;
 pub type Dim = (u32, u32);
 
 pub type Vector = Vector3<f32>;
+pub type Vector2f = Vector2<f32>;
 pub type Point = Point3<f32>;
 pub type Point2f = Point2<f32>;
 pub type Point2i = Point2<u32>;
