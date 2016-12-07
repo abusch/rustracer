@@ -47,7 +47,7 @@ impl<T> MIPMap<T>
             let res_pow2 = Point2i::new(res.x.next_power_of_two(), res.y.next_power_of_two());
             // resample image in s direction
             resampled_image.resize(res_pow2.x as usize * res_pow2.y as usize, zero());
-            let s_weights = MIPMap::<T>::resample_weights(res.x, res_pow2.x);
+            let s_weights = MIPMap::<T>::resample_weights(res.x as usize, res_pow2.x as usize);
             // apply s_weights to zoom in s direction
             for t in 0..res.y as usize {
                 for s in 0..res_pow2.x as usize {
@@ -71,7 +71,7 @@ impl<T> MIPMap<T>
             }
             // TODO use rayon to parallelize this loop?
             // resample image in t direction
-            let t_weights = MIPMap::<T>::resample_weights(res.y, res_pow2.y);
+            let t_weights = MIPMap::<T>::resample_weights(res.y as usize, res_pow2.y as usize);
             // apply t_weights to zoom in t direction
             for s in 0..res_pow2.x as usize {
                 let mut work_data = vec![zero(); res_pow2.y as usize];
@@ -199,9 +199,9 @@ impl<T> MIPMap<T>
         *self.texel(level, s0 + 1, t0 + 1) * ds * dt
     }
 
-    fn resample_weights(old_res: u32, new_res: u32) -> Vec<ResampleWeight> {
+    fn resample_weights(old_res: usize, new_res: usize) -> Vec<ResampleWeight> {
         assert!(new_res >= old_res);
-        let mut wt = Vec::with_capacity(new_res as usize);
+        let mut wt = Vec::with_capacity(new_res);
         let filter_width = 2.0;
         let mut w = [0.0; 4];
         for i in 0..new_res {
@@ -227,7 +227,18 @@ impl<T> MIPMap<T>
     }
 
     fn lanczos(f: f32) -> f32 {
-        0.0
+        let tau = 2.0;
+        let mut x = f.abs();
+        if x < 1e-5 {
+            return 1.0;
+        };
+        if x > 1.0 {
+            return 0.0;
+        };
+        x *= f32::consts::PI;
+        let s = (x * tau).sin() / (x * tau);
+        let lanczos = x.sin() / x;
+        s * lanczos
     }
 }
 
