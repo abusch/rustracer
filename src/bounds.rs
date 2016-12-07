@@ -1,8 +1,8 @@
 use std::f32;
 use std::ops::Index;
 use std::cmp::PartialOrd;
-use {Vector, Point, lerp};
-use na::{Point3, Norm};
+use {Vector, Point, Point2f, Point2i, lerp};
+use na::{Point3, Point2, Norm};
 use ray::Ray;
 use stats;
 use num::Bounded;
@@ -175,6 +175,107 @@ impl Bounds3<f32> {
     }
 }
 
+pub type Bounds2i = Bounds2<u32>;
+pub type Bounds2f = Bounds2<f32>;
+
+#[derive(Debug, Copy, Clone)]
+pub struct Bounds2<T> {
+    pub p_min: Point2<T>,
+    pub p_max: Point2<T>,
+}
+
+impl<T> Bounds2<T>
+    where T: BaseNum + Bounded + PartialOrd
+{
+    pub fn new() -> Bounds2<T> {
+        let min = T::min_value();
+        let max = T::max_value();
+        Bounds2 {
+            p_min: Point2::new(max, max),
+            p_max: Point2::new(min, min),
+        }
+    }
+
+    pub fn from_point(point: &Point2<T>) -> Bounds2<T> {
+        Bounds2 {
+            p_min: *point,
+            p_max: *point,
+        }
+    }
+
+    pub fn from_points(min: &Point2<T>, max: &Point2<T>) -> Bounds2<T> {
+        assert!(min.x <= max.x && min.y <= max.y, "Invalid bounds");
+        Bounds2 {
+            p_min: *min,
+            p_max: *max,
+        }
+    }
+
+    // pub fn corner(&self, corner: usize) -> Point2<T> {
+    //     Point3::new(self[corner & 1].x,
+    //                 self[if corner & 2 != 0 { 1 } else { 0 }].y,
+    //                 self[if corner & 4 != 0 { 1 } else { 0 }].y)
+    // }
+
+    pub fn extend(&mut self, p: Point2<T>) {
+        if p.x < self.p_min.x {
+            self.p_min.x = p.x
+        }
+        if p.y < self.p_min.y {
+            self.p_min.y = p.y
+        }
+        if p.x > self.p_max.x {
+            self.p_max.x = p.x
+        }
+        if p.y > self.p_max.y {
+            self.p_max.y = p.y
+        }
+    }
+
+    // pub fn maximum_extent(&self) -> Axis {
+    //     let v = self.p_max - self.p_min;
+    //     if v.x > v.y {
+    //         if v.x > v.z { Axis::X } else { Axis::Z }
+    //     } else if v.y > v.z {
+    //         Axis::Y
+    //     } else {
+    //         Axis::Z
+    //     }
+    // }
+
+    pub fn union(bbox1: &Bounds2<T>, bbox2: &Bounds2<T>) -> Bounds2<T> {
+        let min = Point2::new(min(bbox1.p_min.x, bbox2.p_min.x),
+                              min(bbox1.p_min.y, bbox2.p_min.y));
+        let max = Point2::new(max(bbox1.p_max.x, bbox2.p_max.x),
+                              max(bbox1.p_max.y, bbox2.p_max.y));
+
+        Bounds2 {
+            p_min: min,
+            p_max: max,
+        }
+    }
+
+    pub fn union_point(bbox: &Bounds2<T>, p: &Point2<T>) -> Bounds2<T> {
+        let mut b = *bbox;
+        b.extend(*p);
+        b
+    }
+
+    /// Linearly interpolate a point inside the bounds
+    pub fn lerp(&self, t: &Point2<T>) -> Point2<T> {
+        Point2::new(lerp(t.x, self.p_min.x, self.p_max.x),
+                    lerp(t.y, self.p_min.y, self.p_max.y))
+    }
+
+    pub fn inside(&self, p: &Point2<T>) -> bool {
+        p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y && p.y <= self.p_max.y
+    }
+
+    pub fn get_area(&self) -> T {
+        (self.p_max.x - self.p_min.x) * (self.p_max.y - self.p_min.y)
+    }
+}
+
 impl<T> Index<usize> for Bounds3<T> {
     type Output = Point3<T>;
 
@@ -184,6 +285,47 @@ impl<T> Index<usize> for Bounds3<T> {
             1 => &self.p_max,
             _ => panic!("Invalid index!"),
         }
+    }
+}
+
+pub struct Bounds2Iterator<'a> {
+    p: Point2i,
+    bounds: &'a Bounds2i,
+}
+
+impl<'a> Iterator for Bounds2Iterator<'a> {
+    type Item = Point2i;
+
+    fn next(&mut self) -> Option<Point2i> {
+        self.p.x += 1;
+        if self.p.x == self.bounds.p_max.x {
+            self.p.x = self.bounds.p_min.x;
+            self.p.y += 1;
+        }
+        if self.p.y == self.bounds.p_max.y {
+            None
+        } else {
+            Some(self.p)
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Bounds2<u32> {
+    type Item = Point2i;
+    type IntoIter = Bounds2Iterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Bounds2Iterator {
+            p: self.p_min,
+            bounds: self,
+        }
+    }
+}
+
+impl From<Bounds2i> for Bounds2f {
+    fn from(b: Bounds2i) -> Self {
+        Bounds2f::from_points(&Point2f::new(b.p_min.x as f32, b.p_min.y as f32),
+                              &Point2f::new(b.p_max.x as f32, b.p_max.y as f32))
     }
 }
 
