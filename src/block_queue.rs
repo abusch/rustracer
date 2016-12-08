@@ -8,9 +8,9 @@ use na::Point2;
 /// A block of pixels that a thread is responsible for rendering (i.e a bucket).
 #[derive(Debug)]
 pub struct Block {
-    start: Point2<u32>,
+    pub start: Point2<u32>,
     current: Point2<u32>,
-    end: Point2<u32>,
+    pub end: Point2<u32>,
 }
 
 impl Block {
