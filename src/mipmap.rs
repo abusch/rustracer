@@ -3,12 +3,13 @@ use std::cmp;
 use std::f32;
 
 use na;
-use num::{zero, one, Zero, One};
+use num::{zero, Zero};
 
 use ::Point2i;
 use ::Point2f;
 use ::lerp;
 use blockedarray::BlockedArray;
+use spectrum::Spectrum;
 
 pub enum WrapMode {
     Repeat,
@@ -27,10 +28,9 @@ pub struct MIPMap<T> {
 
 impl<T> MIPMap<T>
     where T: Zero,
-          T: One,
           T: Clone,
           T: Copy,
-          T: PartialOrd,
+          T: Clampable,
           T: AddAssign<T>,
           T: Mul<f32, Output = T>
 {
@@ -40,6 +40,7 @@ impl<T> MIPMap<T>
                max_anisotropy: f32,
                wrap_mode: WrapMode)
                -> MIPMap<T> {
+        info!("Creating MIPMap for texture");
         let mut resolution = *res;
         let mut resampled_image = Vec::new();
         if !res.x.is_power_of_two() || !res.y.is_power_of_two() {
@@ -74,9 +75,9 @@ impl<T> MIPMap<T>
             let t_weights = MIPMap::<T>::resample_weights(res.y as usize, res_pow2.y as usize);
             // apply t_weights to zoom in t direction
             for s in 0..res_pow2.x as usize {
-                let mut work_data = vec![zero(); res_pow2.y as usize];
+                let mut work_data: Vec<T> = vec![zero(); res_pow2.y as usize];
                 for t in 0..res_pow2.y as usize {
-                    work_data[t] = zero();
+                    // work_data[t] = zero();
                     // Compute texel (s,t) in t-zoomed image
                     for j in 0..4 {
                         let mut offset = t_weights[t].first_texel as usize + j;
@@ -92,8 +93,7 @@ impl<T> MIPMap<T>
                     }
                 }
                 for t in 0..res_pow2.y as usize {
-                    resampled_image[t * res_pow2.x as usize + s] =
-                        na::clamp(work_data[t], zero(), one());
+                    resampled_image[t * res_pow2.x as usize + s] = work_data[t].clamp(0.0, 1.0);
                 }
             }
             resolution = res_pow2;
@@ -245,4 +245,22 @@ impl<T> MIPMap<T>
 struct ResampleWeight {
     pub first_texel: u32,
     pub weights: [f32; 4],
+}
+
+trait Clampable {
+    fn clamp(self, min: f32, max: f32) -> Self;
+}
+
+impl Clampable for f32 {
+    fn clamp(self, min: f32, max: f32) -> f32 {
+        na::clamp(self, min, max)
+    }
+}
+
+impl Clampable for Spectrum {
+    fn clamp(self, min: f32, max: f32) -> Spectrum {
+        Spectrum::rgb(self.r.clamp(min, max),
+                      self.g.clamp(min, max),
+                      self.b.clamp(min, max))
+    }
 }

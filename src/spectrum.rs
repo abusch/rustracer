@@ -1,5 +1,8 @@
+use std::cmp::{PartialOrd, Ordering};
 use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
+
 use na;
+use num::{Zero, One};
 
 #[derive(Debug,Copy,PartialEq,Clone,Default)]
 pub struct Spectrum {
@@ -49,6 +52,19 @@ impl Spectrum {
             }
         }
         srgb
+    }
+
+    pub fn from_srgb(rgb: &[u8; 3]) -> Spectrum {
+        fn convert(v: u8) -> f32 {
+            let value = v as f32 / 255.0;
+            if value <= 0.0031308 {
+                12.92 * value
+            } else {
+                1.055 * value.powf(1.0 / 2.4) - 0.055
+            }
+        }
+
+        Spectrum::rgb(convert(rgb[0]), convert(rgb[1]), convert(rgb[2]))
     }
 
     pub fn is_black(&self) -> bool {
@@ -202,5 +218,21 @@ impl IndexMut<usize> for Spectrum {
             2 => &mut self.b,
             _ => panic!("Invalid index into color"),
         }
+    }
+}
+
+impl Zero for Spectrum {
+    fn zero() -> Spectrum {
+        Spectrum::black()
+    }
+
+    fn is_zero(&self) -> bool {
+        self.is_black()
+    }
+}
+
+impl One for Spectrum {
+    fn one() -> Spectrum {
+        Spectrum::white()
     }
 }

@@ -1,11 +1,12 @@
 use std::sync::Arc;
+use std::path::Path;
 
 use bsdf::{BSDF, BxDF, Fresnel, TrowbridgeReitzDistribution, MicrofacetReflection,
            LambertianReflection};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
-use texture::{Texture, ConstantTexture};
+use texture::{Texture, ConstantTexture, ImageTexture};
 
 
 pub struct Plastic {
@@ -17,6 +18,13 @@ impl Plastic {
     pub fn new(kd: Spectrum, ks: Spectrum) -> Plastic {
         Plastic {
             kd: Arc::new(ConstantTexture::new(kd)),
+            ks: Arc::new(ConstantTexture::new(ks)),
+        }
+    }
+
+    pub fn new_tex(kd_tex: &str, ks: Spectrum) -> Plastic {
+        Plastic {
+            kd: Arc::new(ImageTexture::new(&Path::new(kd_tex))),
             ks: Arc::new(ConstantTexture::new(ks)),
         }
     }

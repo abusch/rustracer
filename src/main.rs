@@ -160,7 +160,8 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     let primitives: Vec<Box<Primitive + Sync + Send>> = vec![Box::new(GeometricPrimitive {
                  shape: Arc::new(Sphere::default()),
                  area_light: None,
-                 material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
+                 // material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
+                 material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
              }),
              Box::new(GeometricPrimitive {
                  shape: Arc::new(Disk::new(-1.0,
