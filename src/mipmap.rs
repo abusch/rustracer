@@ -61,7 +61,7 @@ impl<T> MIPMap<T>
                             WrapMode::Clamp => na::clamp(orig_s, 0, res.x as usize - 1),
                             WrapMode::Black => orig_s,
                         };
-                        if orig_s >= 0 && orig_s < res.x as usize {
+                        if orig_s < res.x as usize {
                             resampled_image[t * res_pow2.x as usize + s] +=
                                 img[(t * res.x as usize + orig_s) as usize] *
                                 s_weights[s].weights[j];
@@ -86,7 +86,7 @@ impl<T> MIPMap<T>
                             WrapMode::Clamp => na::clamp(offset, 0, res.y as usize - 1),
                             WrapMode::Black => offset,
                         };
-                        if offset >= 0 && offset < res.y as usize {
+                        if offset < res.y as usize {
                             work_data[t] += img[(offset * res_pow2.x as usize + s) as usize] *
                                             t_weights[t].weights[j];
                         }
@@ -158,7 +158,7 @@ impl<T> MIPMap<T>
             WrapMode::Repeat => (s % l.u_size(), t % l.v_size()),
             WrapMode::Clamp => (na::clamp(s, 0, l.u_size() - 1), na::clamp(t, 0, l.v_size() - 1)),
             WrapMode::Black => {
-                if s < 0 || s >= l.u_size() || t < 0 || t >= l.v_size() {
+                if s >= l.u_size() || t >= l.v_size() {
                     return &self.black;
                 }
                 (s, t)
@@ -247,7 +247,7 @@ struct ResampleWeight {
     pub weights: [f32; 4],
 }
 
-trait Clampable {
+pub trait Clampable {
     fn clamp(self, min: f32, max: f32) -> Self;
 }
 

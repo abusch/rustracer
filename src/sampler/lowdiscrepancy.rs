@@ -47,21 +47,21 @@ pub fn sobol_2d<T: Rng>(n_samples_per_pixel_sample: u32,
 
 }
 
-fn gray_code_sample(C: &[u32], n: u32, scramble: u32, p: &mut [f32]) {
+fn gray_code_sample(c: &[u32], n: u32, scramble: u32, p: &mut [f32]) {
     let mut v = scramble;
     for i in 0..n {
         p[i as usize] = (v as f32 * 2.3283064365386963e-10f32).min(ONE_MINUS_EPSILON);
-        v ^= C[(i + 1).trailing_zeros() as usize];
+        v ^= c[(i + 1).trailing_zeros() as usize];
     }
 }
 
-fn gray_code_sample_2d(C0: &[u32], C1: &[u32], n: u32, scramble: &Point2i, p: &mut [Point2f]) {
+fn gray_code_sample_2d(c0: &[u32], c1: &[u32], n: u32, scramble: &Point2i, p: &mut [Point2f]) {
     let mut v = [scramble.x, scramble.y];
     for i in 0..n {
         p[i as usize].x = (v[0] as f32 * 2.3283064365386963e-10f32).min(ONE_MINUS_EPSILON);
         p[i as usize].y = (v[1] as f32 * 2.3283064365386963e-10f32).min(ONE_MINUS_EPSILON);
-        v[0] ^= C0[(i + 1).trailing_zeros() as usize];
-        v[1] ^= C1[(i + 1).trailing_zeros() as usize];
+        v[0] ^= c0[(i + 1).trailing_zeros() as usize];
+        v[1] ^= c1[(i + 1).trailing_zeros() as usize];
     }
 }
 

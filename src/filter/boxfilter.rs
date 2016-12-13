@@ -3,7 +3,7 @@ use filter::Filter;
 pub struct BoxFilter {}
 
 impl Filter for BoxFilter {
-    fn evaluate(&self, x: f32, y: f32) -> f32 {
+    fn evaluate(&self, _x: f32, _y: f32) -> f32 {
         1.0
     }
 

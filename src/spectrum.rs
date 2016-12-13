@@ -1,4 +1,3 @@
-use std::cmp::{PartialOrd, Ordering};
 use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
 
 use na;

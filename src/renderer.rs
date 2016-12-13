@@ -9,7 +9,6 @@ use img;
 use Dim;
 use block_queue::BlockQueue;
 use spectrum::Spectrum;
-use filter::mitchell::MitchellNetravali;
 use filter::boxfilter::BoxFilter;
 use film::Film;
 use sampler::Sampler;
