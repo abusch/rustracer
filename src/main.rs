@@ -21,18 +21,19 @@ use chrono::Local;
 use docopt::Docopt;
 use slog::*;
 
-use rt::{Point, Vector, Transform, Dim};
-use rt::scene::Scene;
-use rt::spectrum::Spectrum;
 use rt::camera::Camera;
 use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
 use rt::light::{Light, PointLight, DistantLight, DiffuseAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::plastic::Plastic;
+use rt::{Point, Vector, Transform, Dim};
 use rt::primitive::{Primitive, GeometricPrimitive};
+use rt::renderer;
+use rt::scene::Scene;
 use rt::shapes::disk::Disk;
 use rt::shapes::sphere::Sphere;
-use rt::renderer;
+use rt::spectrum::Spectrum;
+use rt::transform;
 
 const USAGE: &'static str =
     "
@@ -142,13 +143,7 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
 
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
-    let disk = Arc::new(Disk::new(-2.0,
-                                  0.5,
-                                  0.0,
-                                  360.0,
-                                  Transform::new(na::zero(),
-                                                 Vector::new(consts::FRAC_PI_2, 0.0, 0.0),
-                                                 1.0)));
+    let disk = Arc::new(Disk::new(-2.0, 0.5, 0.0, 360.0, transform::rot_x(90.0)));
     let area_light =
         Arc::new(DiffuseAreaLight::new(Spectrum::rgb(2.0, 2.0, 2.0), disk.clone(), 16));
     let area_light_prim = Box::new(GeometricPrimitive {
@@ -158,21 +153,18 @@ fn bunny_buddah(dim: Dim, args: &Args) -> Scene {
     });
 
     let primitives: Vec<Box<Primitive + Sync + Send>> = vec![Box::new(GeometricPrimitive {
-                 shape: Arc::new(Sphere::default()),
+                 shape: Arc::new(Sphere::new()
+                     .radius(0.8)
+                     .z_min(-0.8)
+                     .z_max(0.6)
+                     .phi_max(360.0)
+                     .transform(transform::rot(45.0, 45.0, 0.0))),
                  area_light: None,
                  // material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
                  material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
              }),
              Box::new(GeometricPrimitive {
-                 shape: Arc::new(Disk::new(-1.0,
-                                           20.0,
-                                           0.0,
-                                           360.0,
-                                           Transform::new(na::zero(),
-                                                          Vector::new(-consts::PI / 2.0,
-                                                                      0.0,
-                                                                      0.0),
-                                                          1.0))),
+                 shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
                  area_light: None,
                  // material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
                  material: Some(Arc::new(MatteMaterial::new(Spectrum::white(), 0.0))),

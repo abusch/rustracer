@@ -1,6 +1,6 @@
 use std::f32::consts;
 
-use na::{self, Inverse, Norm};
+use na::{self, Inverse, Norm, one};
 
 use {gamma, Transform, Point2f, Point, Vector};
 use bounds::Bounds3f;
@@ -23,33 +23,84 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(object_to_world: Transform,
-               radius: f32,
-               z_min: f32,
-               z_max: f32,
-               phi_max: f32)
-               -> Self {
-        assert!(radius > 0.0);
-        let zmin = f32::min(z_min, z_max);
-        let zmax = f32::max(z_min, z_max);
+    pub fn new() -> Self {
         Sphere {
-            object_to_world: object_to_world,
-            world_to_object: object_to_world.inverse().unwrap(),
-            radius: radius,
-            z_min: na::clamp(zmin, -radius, radius),
-            z_max: na::clamp(zmax, -radius, radius),
-            theta_min: na::clamp(z_min / radius, -1.0, 1.0).acos(),
-            theta_max: na::clamp(z_max / radius, -1.0, 1.0).acos(),
-            phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
+            object_to_world: one(),
+            world_to_object: one(),
+            radius: 1.0,
+            z_min: -1.0,
+            z_max: 1.0,
+            theta_min: -consts::PI,
+            theta_max: consts::PI,
+            phi_max: 2.0 * consts::PI,
         }
     }
+
+    pub fn radius(mut self, radius: f32) -> Self {
+        self.radius = radius;
+        self.z_min = -radius;
+        self.z_max = radius;
+        self.theta_min = -consts::PI;
+        self.theta_max = consts::PI;
+
+        self
+    }
+
+    pub fn z_min(mut self, z_min: f32) -> Self {
+        assert!(z_min <= self.z_max);
+        self.z_min = na::clamp(z_min, -self.radius, self.radius);
+        self.theta_min = na::clamp(z_min / -self.radius, -1.0, 1.0).acos();
+
+        self
+    }
+
+    pub fn z_max(mut self, z_max: f32) -> Self {
+        assert!(self.z_min <= z_max);
+        self.z_max = na::clamp(z_max, -self.radius, self.radius);
+        self.theta_max = na::clamp(z_max / -self.radius, -1.0, 1.0).acos();
+
+        self
+    }
+
+    pub fn phi_max(mut self, phi_max: f32) -> Self {
+        self.phi_max = na::clamp(phi_max, 0.0, 360.0).to_radians();
+
+        self
+    }
+
+    pub fn transform(mut self, object_to_world: Transform) -> Self {
+        self.object_to_world = object_to_world;
+        self.world_to_object = object_to_world.inverse().unwrap();
+
+        self
+    }
+
+    // pub fn new(object_to_world: Transform,
+    //            radius: f32,
+    //            z_min: f32,
+    //            z_max: f32,
+    //            phi_max: f32)
+    //            -> Self {
+    //     assert!(radius > 0.0);
+    //     let zmin = f32::min(z_min, z_max);
+    //     let zmax = f32::max(z_min, z_max);
+    //     Sphere {
+    //         object_to_world: object_to_world,
+    //         world_to_object: object_to_world.inverse().unwrap(),
+    //         radius: radius,
+    //         z_min: na::clamp(zmin, -radius, radius),
+    //         z_max: na::clamp(zmax, -radius, radius),
+    //         theta_min: na::clamp(z_min / radius, -1.0, 1.0).acos(),
+    //         theta_max: na::clamp(z_max / radius, -1.0, 1.0).acos(),
+    //         phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
+    //     }
+    // }
 }
 
 impl Shape for Sphere {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
         // Transform ray into object space
         let (r, o_err, d_err) = ray.transform(&self.world_to_object);
-        // let (r, o_err, d_err) = (ray, Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0));
 
         // Compute quadratic coefficients
         let ox = EFloat::new(r.o.x, o_err.x);
@@ -177,6 +228,6 @@ impl Shape for Sphere {
 
 impl Default for Sphere {
     fn default() -> Self {
-        Sphere::new(na::one(), 1.0, -1.0, 1.0, 360.0)
+        Sphere::new()
     }
 }
