@@ -30,8 +30,8 @@ impl Sphere {
             radius: 1.0,
             z_min: -1.0,
             z_max: 1.0,
-            theta_min: -consts::PI,
-            theta_max: consts::PI,
+            theta_min: consts::PI,
+            theta_max: 0.0,
             phi_max: 2.0 * consts::PI,
         }
     }
@@ -40,8 +40,8 @@ impl Sphere {
         self.radius = radius;
         self.z_min = -radius;
         self.z_max = radius;
-        self.theta_min = -consts::PI;
-        self.theta_max = consts::PI;
+        self.theta_min = consts::PI;
+        self.theta_max = 0.0;
 
         self
     }
@@ -49,7 +49,7 @@ impl Sphere {
     pub fn z_min(mut self, z_min: f32) -> Self {
         assert!(z_min <= self.z_max);
         self.z_min = na::clamp(z_min, -self.radius, self.radius);
-        self.theta_min = na::clamp(z_min / -self.radius, -1.0, 1.0).acos();
+        self.theta_min = na::clamp(z_min / self.radius, -1.0, 1.0).acos();
 
         self
     }
@@ -57,7 +57,7 @@ impl Sphere {
     pub fn z_max(mut self, z_max: f32) -> Self {
         assert!(self.z_min <= z_max);
         self.z_max = na::clamp(z_max, -self.radius, self.radius);
-        self.theta_max = na::clamp(z_max / -self.radius, -1.0, 1.0).acos();
+        self.theta_max = na::clamp(z_max / self.radius, -1.0, 1.0).acos();
 
         self
     }
