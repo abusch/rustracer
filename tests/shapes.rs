@@ -26,7 +26,7 @@ fn full_sphere_reintersect() {
     for i in 0..1000 {
         rng.reseed(&[i]);
         let radius = pexp(&mut rng, 4.0);
-        let sphere = Sphere::new(na::one(), radius, -radius, radius, 360.0);
+        let sphere = Sphere::new().radius(radius);
         test_reintersection_convex(&sphere, &mut rng);
     }
 }
