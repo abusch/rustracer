@@ -49,7 +49,7 @@ pub mod shapes;
 mod skydome;
 mod stats;
 pub mod texture;
-mod transform;
+pub mod transform;
 
 pub type Dim = (u32, u32);
 

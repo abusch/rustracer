@@ -1,5 +1,6 @@
-use {Vector, Point, Transform, gamma};
 use na::{self, FromHomogeneous, ToHomogeneous, Matrix3, Matrix4, Transpose};
+
+use {Vector, Point, Transform, gamma};
 
 /// Transform the given point using the given transformation and also return a vector of the
 /// absolute error introduced for each coordinate.
@@ -67,6 +68,22 @@ pub fn transform_normal(normal: &Vector, transform: &Transform) -> Vector {
     let m: Matrix3<f32> = FromHomogeneous::from(&hom);
     let m_transp = m.transpose();
     *normal * m_transp
+}
+
+pub fn rot_x(angle: f32) -> Transform {
+    Transform::new(na::zero(), Vector::x() * angle.to_radians(), 1.0)
+}
+
+pub fn rot_y(angle: f32) -> Transform {
+    Transform::new(na::zero(), Vector::y() * angle.to_radians(), 1.0)
+}
+
+pub fn rot_z(angle: f32) -> Transform {
+    Transform::new(na::zero(), Vector::z() * angle.to_radians(), 1.0)
+}
+
+pub fn rot(ax: f32, ay: f32, az: f32) -> Transform {
+    Transform::new(na::zero(), Vector::new(ax, ay, az), 1.0)
 }
 
 #[cfg(test)]
