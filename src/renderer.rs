@@ -37,15 +37,12 @@ pub fn render(scene: Arc<Scene>,
         let stats_tx = stats_tx.clone();
         let block_queue = block_queue.clone();
         pool.execute(move || {
-            let mut samples = Vec::new();
-            samples.resize(spp, (0.0, 0.0));
             let mut sampler = ZeroTwoSequence::new(spp, 4);
             while let Some(block) = block_queue.next() {
                 info!("Rendering tile {}", block);
                 block_queue.report_progress();
                 for p in block {
                     sampler.start_pixel(&p);
-                    // sampler.get_samples(p.x as f32, p.y as f32, &mut samples);
                     loop {
                         let s = sampler.get_camera_sample();
                         let mut ray = scene.camera.ray_for(&s);

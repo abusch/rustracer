@@ -17,6 +17,7 @@ dependencies = [
  "slog 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog-scope 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog-stream 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "thread-id 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "threadpool 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "tobj 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -384,6 +385,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "thread-id"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "thread_local"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -483,6 +493,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum strsim 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "67f84c44fbb2f91db7fef94554e6b2ac05909c9c0b0bc23bb98d3a1aebfe7f7c"
 "checksum term_size 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "3f7f5f3f71b0040cecc71af239414c23fd3c73570f5ff54cf50e03cef637f2a0"
 "checksum thread-id 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a9539db560102d1cef46b8b78ce737ff0bb64e7e18d35b2a5688f7d097d0ff03"
+"checksum thread-id 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4437c97558c70d129e40629a5b385b3fb1ffac301e63941335e4d354081ec14a"
 "checksum thread_local 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)" = "8576dbbfcaef9641452d5cf0df9b0e7eeab7694956dd33bb61515fb8f18cfdd5"
 "checksum threadpool 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "59f6d3eff89920113dac9db44dde461d71d01e88a5b57b258a0466c32b5d7fe1"
 "checksum time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)" = "3c7ec6d62a20df54e07ab3b78b9a3932972f4b7981de295563686849eb3989af"

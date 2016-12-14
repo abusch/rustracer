@@ -10,12 +10,12 @@ extern crate slog;
 #[macro_use]
 extern crate slog_scope;
 extern crate slog_stream;
+extern crate thread_id;
 
 use std::sync::Arc;
 use std::num::ParseIntError;
 use std::fs::OpenOptions;
 use std::io;
-use std::thread;
 use std::process;
 
 use chrono::Local;
@@ -173,7 +173,7 @@ fn parse_args<'a>() -> ArgMatches<'a> {
         .arg(Arg::with_name("spp")
             .long("spp")
             .help("Sample per pixels")
-            .default_value("8"))
+            .default_value("4"))
         .get_matches()
 }
 
@@ -186,7 +186,7 @@ fn configure_logger() {
         .open(log_path)
         .unwrap();
 
-    let drain = slog_stream::async_stream(file, MyFormat).fuse();
+    let drain = slog_stream::stream(file, MyFormat).fuse();
     let log = Logger::root(drain, o!());
     slog_scope::set_global_logger(log);
 
@@ -225,10 +225,10 @@ impl slog_stream::Format for MyFormat {
               rinfo: &slog::Record,
               _logger_values: &slog::OwnedKeyValueList)
               -> io::Result<()> {
-        let msg = format!("{} [{}][{}][{}:{} {}] - {}\n",
+        let msg = format!("{} [{}][{:x}][{}:{} {}] - {}\n",
                           now!(),
                           rinfo.level(),
-                          thread::current().name().unwrap_or("unnamed"),
+                          thread_id::get(),
                           rinfo.file(),
                           rinfo.line(),
                           rinfo.module(),
