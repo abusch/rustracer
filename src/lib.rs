@@ -3,6 +3,7 @@
 extern crate approx;
 #[macro_use]
 extern crate bitflags;
+extern crate crossbeam;
 extern crate ieee754 as fp;
 extern crate image as img;
 extern crate itertools as it;
@@ -13,7 +14,6 @@ extern crate rand;
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
-extern crate threadpool as tp;
 
 use std::f32;
 use std::ops::{Add, Mul, Sub};

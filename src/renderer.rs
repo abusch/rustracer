@@ -1,22 +1,21 @@
 use std::io;
-use std::sync::Arc;
 use std::path::Path;
 use std::sync::mpsc::channel;
 
-use tp::ThreadPool;
+use crossbeam;
 use img;
 
 use Dim;
 use block_queue::BlockQueue;
-use spectrum::Spectrum;
 use filter::boxfilter::BoxFilter;
 use film::Film;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
+use spectrum::Spectrum;
 use stats;
 
-pub fn render(scene: Arc<Scene>,
+pub fn render(scene: Scene,
               dim: Dim,
               filename: &str,
               num_threads: usize,
@@ -26,43 +25,45 @@ pub fn render(scene: Arc<Scene>,
     let mut film = Film::new(dim, Box::new(BoxFilter {}));
 
     let block_size = bs;
-    let block_queue = Arc::new(BlockQueue::new(dim, block_size));
-    info!("Rendering scene using {} threads", num_threads);
-    let pool = ThreadPool::new_with_name("worker".into(), num_threads);
+    let block_queue = BlockQueue::new(dim, block_size);
     let (pixel_tx, pixel_rx) = channel();
     let (stats_tx, stats_rx) = channel();
-    for i in 0..num_threads {
-        let scene = scene.clone();
-        let pixel_tx = pixel_tx.clone();
-        let stats_tx = stats_tx.clone();
-        let block_queue = block_queue.clone();
-        pool.execute(move || {
-            let mut sampler = ZeroTwoSequence::new(spp, 4);
-            while let Some(block) = block_queue.next() {
-                info!("Rendering tile {}", block);
-                block_queue.report_progress();
-                for p in block {
-                    sampler.start_pixel(&p);
-                    loop {
-                        let s = sampler.get_camera_sample();
-                        let mut ray = scene.camera.ray_for(&s);
-                        let sample_colour = scene.integrator.li(&scene, &mut ray, &mut sampler, 0);
-                        let film_sample = FilmSample {
-                            x: s.x,
-                            y: s.y,
-                            c: sample_colour,
-                        };
-                        pixel_tx.send(film_sample)
-                            .expect(&format!("Failed to send sample {:?}", film_sample));
-                        if !sampler.start_next_sample() {
-                            break;
+    info!("Rendering scene using {} threads", num_threads);
+    crossbeam::scope(|scope| {
+        for i in 0..num_threads {
+            let ref scene = scene;
+            let pixel_tx = pixel_tx.clone();
+            let stats_tx = stats_tx.clone();
+            let ref bq = block_queue;
+            scope.spawn(move || {
+                let mut sampler = ZeroTwoSequence::new(spp, 4);
+                while let Some(block) = bq.next() {
+                    info!("Rendering tile {}", block);
+                    bq.report_progress();
+                    for p in block {
+                        sampler.start_pixel(&p);
+                        loop {
+                            let s = sampler.get_camera_sample();
+                            let mut ray = scene.camera.ray_for(&s);
+                            let sample_colour = scene.integrator
+                                .li(&scene, &mut ray, &mut sampler, 0);
+                            let film_sample = FilmSample {
+                                x: s.x,
+                                y: s.y,
+                                c: sample_colour,
+                            };
+                            pixel_tx.send(film_sample)
+                                .expect(&format!("Failed to send sample {:?}", film_sample));
+                            if !sampler.start_next_sample() {
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            stats_tx.send(stats::get_stats()).expect("Failed to send thread stats");
-        });
-    }
+                stats_tx.send(stats::get_stats()).expect("Failed to send thread stats");
+            });
+        }
+    });
 
     // Write all pixels to the image
     for s in pixel_rx.iter()

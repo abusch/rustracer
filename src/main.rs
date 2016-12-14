@@ -87,7 +87,7 @@ fn run(matches: ArgMatches) -> Result<(), String> {
 
     let start_time = std::time::Instant::now();
     let stats =
-        renderer::render(Arc::new(scene),
+        renderer::render(scene,
                          dim,
                          matches.value_of("output").unwrap(),
                          matches.value_of("threads")
