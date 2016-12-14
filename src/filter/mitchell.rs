@@ -50,3 +50,9 @@ impl Filter for MitchellNetravali {
         (self.inv_width, self.inv_height)
     }
 }
+
+impl Default for MitchellNetravali {
+    fn default() -> Self {
+        MitchellNetravali::new(2.0, 2.0, 1.0 / 3.0, 1.0 / 3.0)
+    }
+}
