@@ -11,13 +11,11 @@ use interaction::SurfaceInteraction;
 use light::Light;
 use primitive::Primitive;
 use ray::Ray;
-use skydome::Atmosphere;
 
 pub struct Scene {
     pub camera: Camera,
     // bvh: BVH<Instance>,
     pub lights: Vec<Arc<Light + Sync + Send>>,
-    pub atmosphere: Atmosphere,
     pub integrator: Box<SamplerIntegrator + Sync + Send>,
     pub primitives: Vec<Box<Primitive + Sync + Send>>,
 }
@@ -34,7 +32,6 @@ impl Scene {
             // objects: objects,
             // bvh: bvh,
             lights: Vec::new(),
-            atmosphere: Atmosphere::earth((Vector::y()).normalize()),
             integrator: integrator,
             primitives: primitives,
         };

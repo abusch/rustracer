@@ -7,6 +7,7 @@ use interaction::{Interaction, SurfaceInteraction};
 
 pub mod sphere;
 pub mod disk;
+pub mod mesh;
 
 pub trait Shape {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
