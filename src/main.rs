@@ -27,6 +27,7 @@ use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
 use rt::light::{Light, DistantLight, DiffuseAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::plastic::Plastic;
+use rt::material::metal::Metal;
 use rt::{Point, Vector, Dim};
 use rt::primitive::{Primitive, GeometricPrimitive};
 use rt::renderer;
@@ -127,7 +128,8 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
                      .transform(transform::rot(45.0, 45.0, 0.0))),
                  area_light: None,
                  // material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
-                 material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
+                 // material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
+                 material: Some(Arc::new(Metal::new())),
              }),
              Box::new(GeometricPrimitive {
                  shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),

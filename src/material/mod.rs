@@ -1,6 +1,7 @@
 use interaction::SurfaceInteraction;
 
 pub mod matte;
+pub mod metal;
 pub mod plastic;
 
 pub enum TransportMode {
