@@ -3,6 +3,9 @@ use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
 use na;
 use num::{Zero, One};
 
+use ::lerp;
+use cie;
+
 #[derive(Debug,Copy,PartialEq,Clone,Default)]
 pub struct Spectrum {
     pub r: f32,
@@ -66,6 +69,31 @@ impl Spectrum {
         Spectrum::rgb(convert(rgb[0]), convert(rgb[1]), convert(rgb[2]))
     }
 
+    pub fn from_xyz(xyz: &[f32; 3]) -> Spectrum {
+        let r = 3.240479 * xyz[0] - 1.537150 * xyz[1] - 0.498535 * xyz[2];
+        let g = -0.969256 * xyz[0] + 1.875991 * xyz[1] + 0.041556 * xyz[2];
+        let b = 0.055648 * xyz[0] - 0.204043 * xyz[1] + 1.057311 * xyz[2];
+        Spectrum::rgb(r, g, b)
+    }
+
+    pub fn from_sampled(lambda: &[f32], v: &[f32], n: usize) -> Spectrum {
+        // TODO sort by wavelength if needed
+        let mut xyz = [0.0; 3];
+        for i in 0..cie::nCIESamples {
+            let val = interpolate_spectrum_samples(lambda, v, n, cie::CIE_lambda[i]);
+            xyz[0] += val * cie::CIE_X[i];
+            xyz[1] += val * cie::CIE_Y[i];
+            xyz[2] += val * cie::CIE_Z[i];
+        }
+        let scale = (cie::CIE_lambda[cie::nCIESamples - 1] - cie::CIE_lambda[0]) /
+                    (cie::CIE_Y_integral * cie::nCIESamples as f32);
+        xyz[0] *= scale;
+        xyz[1] *= scale;
+        xyz[2] *= scale;
+
+        Self::from_xyz(&xyz)
+    }
+
     pub fn is_black(&self) -> bool {
         self.r == 0.0 && self.g == 0.0 && self.b == 0.0
     }
@@ -82,6 +110,44 @@ impl Spectrum {
         Spectrum::rgb(self.r.sqrt(), self.g.sqrt(), self.b.sqrt())
     }
 }
+
+fn interpolate_spectrum_samples(lambda: &[f32], vals: &[f32], n: usize, l: f32) -> f32 {
+    for i in 0..n - 1 {
+        assert!(lambda[i + 1] > lambda[i]);
+    }
+    if l <= lambda[0] {
+        return vals[0];
+    }
+    if l >= lambda[n - 1] {
+        return vals[n - 1];
+    }
+    let offset = find_interval(n, |index| lambda[index] <= l);
+    assert!(l >= lambda[offset] && l <= lambda[offset + 1]);
+    let t = (l - lambda[offset]) / (lambda[offset + 1] - lambda[offset]);
+    lerp(t, vals[offset], vals[offset + 1])
+}
+
+fn find_interval<P>(size: usize, pred: P) -> usize
+    where P: Fn(usize) -> bool
+{
+    let mut first = 0;
+    let mut len = size;
+    while len > 0 {
+        let half = len >> 1;
+        let middle = first + half;
+        // Bisect range based on value of _pred_ at _middle_
+        if pred(middle) {
+            first = middle + 1;
+            len -= half + 1;
+        } else {
+            len = half;
+        }
+    }
+    na::clamp(first - 1, 0, size - 2)
+}
+
+
+// Operators
 
 impl Add<Spectrum> for Spectrum {
     type Output = Spectrum;
