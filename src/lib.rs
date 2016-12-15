@@ -27,6 +27,7 @@ mod bounds;
 mod bsdf;
 mod bvh;
 pub mod camera;
+mod cie;
 pub mod spectrum;
 pub mod efloat;
 mod filter;
