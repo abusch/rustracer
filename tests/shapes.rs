@@ -47,7 +47,7 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
     // We usually, but not always, get an intersection
     if let Some((isect, _t_hit)) = shape.intersect(&mut ray) {
         // Now trace a bunch of rays leaving the intersection point
-        for i in 0..10000 {
+        for i in 0..1000 {
             // Random direction leaving the intersection point
             let u = Point2f::new(rng.next_f32(), rng.next_f32());
             let mut w = sampling::uniform_sample_sphere(&u);
