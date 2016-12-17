@@ -15,8 +15,8 @@ pub struct TriangleMesh {
     n_vertices: usize,
     vertex_indices: Vec<usize>,
     p: Vec<Point3f>,
-    n: Vec<Vector3f>,
-    s: Vec<Vector3f>,
+    n: Option<Vec<Vector3f>>,
+    s: Option<Vec<Vector3f>>,
     uv: Option<Vec<Point2f>>, // TODO alpha mask
 }
 
@@ -26,9 +26,9 @@ impl TriangleMesh {
                vertex_indices: &[usize],
                n_vertices: usize,
                p: &[Point3f],
-               s: &[Vector3f],
-               n: &[Vector3f],
-               uv: &[Point2f])
+               s: Option<&[Vector3f]>,
+               n: Option<&[Vector3f]>,
+               uv: Option<&[Point2f]>)
                -> Self {
         let points: Vec<Point3f> = p.iter().map(|pt| *object_to_world * *pt).collect();
         TriangleMesh {
@@ -38,9 +38,9 @@ impl TriangleMesh {
             n_vertices: n_vertices,
             vertex_indices: Vec::from(vertex_indices),
             p: points,
-            n: Vec::from(n),
-            s: Vec::from(s),
-            uv: Some(Vec::from(uv)),
+            n: n.map(Vec::from),
+            s: s.map(Vec::from),
+            uv: uv.map(Vec::from),
         }
     }
 }
@@ -160,7 +160,41 @@ impl<'a> Shape for Triangle<'a> {
         // test intersection against alpha texture if present
         // TODO
         // Fill in SurfaceInteraction from triangle hit
-        Some((SurfaceInteraction::new(p_hit, p_error, uv_hit, -ray.d, dpdu, dpdv, self), t))
+        let mut isect = SurfaceInteraction::new(p_hit, p_error, uv_hit, -ray.d, dpdu, dpdv, self);
+        // - Override surface normal
+        let n = dp02.cross(&dp12).normalize();
+        isect.n = n;
+        isect.shading.n = n;
+        // Initialize triangle shading geometry
+        // - shading normal
+        let mut ns = if let Some(ref n) = self.mesh.n {
+            (n[self.v[0]] * b0 + n[self.v[1]] * b1 + n[self.v[2]] * b2).normalize()
+        } else {
+            isect.n
+        };
+        // - shading tangent
+        let mut ss = if let Some(ref s) = self.mesh.s {
+            (s[self.v[0]] * b0 + s[self.v[1]] * b1 + s[self.v[2]] * b2).normalize()
+        } else {
+            isect.dpdu.normalize()
+        };
+        // - shading bitangent
+        let mut ts = ss.cross(&ns);
+        if ts.norm_squared() > 0.0 {
+            ts = ts.normalize();
+            // adjust ss to make sure it's orthogonal with ns and ts
+            ss = ts.cross(&ns);
+        } else {
+            let (ss1, ts1) = coordinate_system(&ns);
+            ss = ss1;
+            ts = ts1;
+        }
+        isect.shading.n = ns;
+        isect.shading.dpdu = ss;
+        isect.shading.dpdv = ts;
+        // Ensure correct orientation of the geometric normal TODO
+
+        Some((isect, t))
     }
 
     fn area(&self) -> f32 {
