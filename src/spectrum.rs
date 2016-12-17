@@ -6,6 +6,9 @@ use num::{Zero, One};
 use ::lerp;
 use cie;
 
+/// Represents a linear RGB spectrum.
+/// TODO Rename this to `RGBSpectrum` and make `Spectrum` a type alias to this so we can also support
+/// full spectral rendering.
 #[derive(Debug,Copy,PartialEq,Clone,Default)]
 pub struct Spectrum {
     pub r: f32,
@@ -14,10 +17,12 @@ pub struct Spectrum {
 }
 
 impl Spectrum {
+    /// Create an RGB spectrum from its components
     pub fn rgb(r: f32, g: f32, b: f32) -> Spectrum {
         Spectrum { r: r, g: g, b: b }
     }
 
+    /// Create an RGB spectrum where all the components have the same value.
     pub fn grey(v: f32) -> Spectrum {
         Spectrum { r: v, g: v, b: v }
     }
@@ -42,20 +47,24 @@ impl Spectrum {
         Spectrum::rgb(0.0, 0.0, 1.0)
     }
 
-    pub fn to_srgb(&self) -> Spectrum {
+    /// Convert this linear RGB spectrum to non-linear sRGB and return the result as an array of
+    /// bytes.
+    pub fn to_srgb(&self) -> [u8; 3] {
         let a = 0.055f32;
         let b = 1f32 / 2.4;
-        let mut srgb = Spectrum::black();
+        let mut srgb = [0; 3];
         for i in 0..3 {
-            if self[i] <= 0.0031308 {
-                srgb[i] = 12.92 * self[i];
+            let v = if self[i] <= 0.0031308 {
+                12.92 * self[i]
             } else {
-                srgb[i] = (1.0 + a) * f32::powf(self[i], b) - a;
-            }
+                (1.0 + a) * f32::powf(self[i], b) - a
+            };
+            srgb[i] = na::clamp(v * 255.0, 0.0, 255.0) as u8;
         }
         srgb
     }
 
+    /// Convert a non-linear sRGB value to a linear RGB spectrum.
     pub fn from_srgb(rgb: &[u8; 3]) -> Spectrum {
         fn convert(v: u8) -> f32 {
             let value = v as f32 / 255.0;
@@ -69,6 +78,7 @@ impl Spectrum {
         Spectrum::rgb(convert(rgb[0]), convert(rgb[1]), convert(rgb[2]))
     }
 
+    /// Convert a linear spectrum in XYZ format to a linear RGB format.
     pub fn from_xyz(xyz: &[f32; 3]) -> Spectrum {
         let r = 3.240479 * xyz[0] - 1.537150 * xyz[1] - 0.498535 * xyz[2];
         let g = -0.969256 * xyz[0] + 1.875991 * xyz[1] + 0.041556 * xyz[2];
@@ -76,6 +86,8 @@ impl Spectrum {
         Spectrum::rgb(r, g, b)
     }
 
+    /// Create a spectrum from a series of (wavelength, value) samples from an SPD (Spectral Power
+    /// Distribution).
     pub fn from_sampled(lambda: &[f32], v: &[f32], n: usize) -> Spectrum {
         // TODO sort by wavelength if needed
         let mut xyz = [0.0; 3];
@@ -94,18 +106,22 @@ impl Spectrum {
         Self::from_xyz(&xyz)
     }
 
+    /// Return true if the colour is black i.e (0, 0 ,0).
     pub fn is_black(&self) -> bool {
         self.r == 0.0 && self.g == 0.0 && self.b == 0.0
     }
 
+    /// Return true if any of the components is NaN. Useful for debugging.
     pub fn has_nan(&self) -> bool {
         self.r.is_nan() || self.g.is_nan() || self.b.is_nan()
     }
 
+    /// Return true if any of the components is infinite. Useful for debugging.
     pub fn is_infinite(&self) -> bool {
         self.r.is_infinite() || self.g.is_infinite() || self.b.is_infinite()
     }
 
+    /// Return a spectrum where each component is the square root of the original component.
     pub fn sqrt(&self) -> Spectrum {
         Spectrum::rgb(self.r.sqrt(), self.g.sqrt(), self.b.sqrt())
     }
@@ -242,14 +258,6 @@ impl Div<f32> for Spectrum {
 
     fn div(self, rhs: f32) -> Spectrum {
         Spectrum::rgb(self.r / rhs, self.g / rhs, self.b / rhs)
-    }
-}
-
-impl From<Spectrum> for [u8; 3] {
-    fn from(c: Spectrum) -> [u8; 3] {
-        [(na::clamp(c.r, 0.0, 1.0) * 255.0) as u8,
-         (na::clamp(c.g, 0.0, 1.0) * 255.0) as u8,
-         (na::clamp(c.b, 0.0, 1.0) * 255.0) as u8]
     }
 }
 

@@ -84,7 +84,7 @@ fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
     let mut buffer = Vec::new();
 
     for i in 0..w * h {
-        let bytes: [u8; 3] = image[i as usize].to_srgb().into();
+        let bytes = image[i as usize].to_srgb();
         buffer.push(bytes[0]);
         buffer.push(bytes[1]);
         buffer.push(bytes[2]);

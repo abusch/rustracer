@@ -18,7 +18,7 @@ extern crate slog_scope;
 use std::f32;
 use std::ops::{Add, Mul, Sub};
 
-use na::{Vector2, Vector3, Point2, Point3, Similarity3, BaseNum};
+use na::{Vector2, Vector3, Point2, Point3, Similarity3, BaseNum, Cross, zero};
 use num::One;
 
 mod blockedarray;
@@ -68,7 +68,7 @@ pub fn gamma(n: u32) -> f32 {
     (n as f32 * MACHINE_EPSILON) / (1.0 - n as f32 * MACHINE_EPSILON)
 }
 
-/// Linear interpolation between 2 values
+/// Linear interpolation between 2 values.
 pub fn lerp<S, T>(t: S, a: T, b: T) -> T
     where S: One,
           S: Sub<S, Output = S>,
@@ -80,6 +80,7 @@ pub fn lerp<S, T>(t: S, a: T, b: T) -> T
     a * (one - t) + b * t
 }
 
+/// Return the dimension index (0, 1 or 2) that contains the largest component.
 pub fn max_dimension<T>(v: Vector3<T>) -> usize
     where T: PartialOrd
 {
@@ -90,16 +91,31 @@ pub fn max_dimension<T>(v: Vector3<T>) -> usize
     }
 }
 
+/// Permute the components of this vector based on the given indices for x, y and z.
 pub fn permute_v<T>(v: &Vector3<T>, x: usize, y: usize, z: usize) -> Vector3<T>
     where T: Copy
 {
     Vector3::new(v[x], v[y], v[z])
 }
 
+/// Permute the components of this point based on the given indices for x, y and z.
 pub fn permute_p<T>(v: &Point3<T>, x: usize, y: usize, z: usize) -> Point3<T>
     where T: Copy
 {
     Point3::new(v[x], v[y], v[z])
+}
+
+/// Created an orthogonal coordinate system from a single vector.
+pub fn coordinate_system(v1: &Vector3f) -> (Vector3f, Vector3f) {
+    let v2 = if v1.x.abs() > v1.y.abs() {
+        Vector3::new(-v1.z, 0.0, v1.x) / (v1.x * v1.x + v1.z * v1.z).sqrt()
+    } else {
+        Vector3::new(0.0, v1.z, v1.y) / (v1.y * v1.y + v1.z * v1.z).sqrt()
+    };
+
+    let v3 = v1.cross(&v2);
+
+    (v2, v3)
 }
 
 #[test]

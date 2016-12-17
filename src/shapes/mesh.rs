@@ -1,7 +1,8 @@
 use na::{Inverse, Cross, Norm};
 use na::{abs, zero};
 
-use ::{Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p};
+use ::{Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
+       coordinate_system};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
@@ -143,8 +144,7 @@ impl<'a> Shape for Triangle<'a> {
         let determinant = duv02[0] * duv12[1] - duv02[1] * duv12[0];
         let (dpdu, dpdv) = if determinant == 0.0 {
             // handle zero determinant
-            // TODO
-            unimplemented!()
+            coordinate_system(&(p2 - p0).cross(&(p1 - p0)).normalize())
         } else {
             let inv_det = 1.0 / determinant;
             let dpdu = (duv12[1] * dp02 - duv02[1] * dp12) / inv_det;
@@ -159,7 +159,7 @@ impl<'a> Shape for Triangle<'a> {
             .to_point();
         // test intersection against alpha texture if present
         // TODO
-        // Fill in SuerfaceInteraction from triangle hit
+        // Fill in SurfaceInteraction from triangle hit
         Some((SurfaceInteraction::new(p_hit, p_error, uv_hit, -ray.d, dpdu, dpdv, self), t))
     }
 

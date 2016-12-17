@@ -24,7 +24,7 @@ impl Metal {
             k: Box::new(ConstantTexture::new(Spectrum::from_sampled(&CopperWavelengths[..],
                                                                     &CopperK[..],
                                                                     CopperSamples))),
-            rough: Box::new(ConstantTexture::new(0.1)),
+            rough: Box::new(ConstantTexture::new(0.01)),
             // urough: Box::new(ConstantTexture::new(...)),
             // vrough: Box::new(ConstantTexture::new(...)),
             remap_roughness: true,
