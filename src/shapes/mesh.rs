@@ -2,7 +2,7 @@ use na::{Inverse, Cross, Norm};
 use na::{abs, zero};
 
 use ::{Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
-       coordinate_system};
+       coordinate_system, gamma};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
@@ -152,7 +152,10 @@ impl<'a> Shape for Triangle<'a> {
             (dpdu, dpdv)
         };
         // Compute error bounds for triangle intersection
-        let p_error = zero();
+        let x_abs_sum = (b0 * p0.x).abs() + (b1 * p1.x).abs() + (b2 * p2.x).abs();
+        let y_abs_sum = (b0 * p0.y).abs() + (b1 * p1.y).abs() + (b2 * p2.y).abs();
+        let z_abs_sum = (b0 * p0.z).abs() + (b1 * p1.z).abs() + (b2 * p2.z).abs();
+        let p_error = gamma(7) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
         // interpolate (u,v) parametric coordinates and hit point
         let p_hit = (p0.to_vector() * b0 + p1.to_vector() * b1 + p2.to_vector() * b2).to_point();
         let uv_hit = (uv[0].to_vector() * b0 + uv[1].to_vector() * b1 + uv[2].to_vector() * b2)
