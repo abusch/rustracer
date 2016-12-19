@@ -1,14 +1,18 @@
 use std::cmp::min;
 use std::mem::replace;
+use std::sync::Arc;
 
 use it;
 
 use ::{Point, Vector};
 use bounds::{Axis, Bounds3f};
+use interaction::SurfaceInteraction;
+use light::AreaLight;
+use material::{Material, TransportMode};
 use primitive::Primitive;
 use ray::Ray;
 
-pub struct BVH<T: Primitive> {
+pub struct BVH<T> {
     max_prims_per_node: usize,
     primitives: Vec<T>,
     nodes: Vec<LinearBVHNode>,
@@ -171,9 +175,7 @@ impl<T: Primitive> BVH<T> {
         offset
     }
 
-    pub fn intersect<'a, R, F>(&'a self, ray: &mut Ray, f: F) -> Option<R>
-        where F: Fn(&mut Ray, &'a T) -> Option<R>
-    {
+    pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
         if self.nodes.is_empty() {
             return None;
         }
@@ -191,7 +193,8 @@ impl<T: Primitive> BVH<T> {
                 match linear_node.data {
                     LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
                         for i in 0..num_prims {
-                            result = f(ray, &self.primitives[primitives_offset + i]).or(result);
+                            result =
+                                self.primitives[primitives_offset + i].intersect(ray).or(result);
                             // if let Some(isect) = f(ray, &self.primitives[primitives_offset + i]) {
                             //     result = Some(isect);
                             // }
@@ -232,6 +235,34 @@ impl<T: Primitive> BVH<T> {
     }
 }
 
+impl<T: Primitive> Primitive for BVH<T> {
+    fn world_bounds(&self) -> Bounds3f {
+        self.primitives[0].world_bounds()
+    }
+
+    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+        self.intersect(ray)
+    }
+
+    fn intersect_p(&self, ray: &Ray) -> bool {
+        self.intersect_p(ray)
+    }
+
+    fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>> {
+        panic!("area_light() should not be called on an Aggregate Primitive!");
+    }
+
+    fn material(&self) -> Option<Arc<Material + Send + Sync>> {
+        panic!("material() should not be called on an Aggregate Primitive!");
+    }
+
+    fn compute_scattering_functions(&self,
+                                    isect: &mut SurfaceInteraction,
+                                    mode: TransportMode,
+                                    allow_multiple_lobes: bool) {
+        panic!("compute_scattering_functions() should not be called on an Aggregate Primitive!");
+    }
+}
 
 struct BVHPrimitiveInfo {
     pub prim_number: usize,
