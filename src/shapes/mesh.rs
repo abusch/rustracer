@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use na::{Inverse, Cross, Norm};
 use na::{abs, zero};
 
@@ -45,33 +47,38 @@ impl TriangleMesh {
     }
 }
 
-pub struct Triangle<'a> {
-    mesh: &'a TriangleMesh,
-    v: &'a [usize],
+pub struct Triangle {
+    mesh: Arc<TriangleMesh>,
+    v_start_index: usize,
 }
 
-impl<'a> Triangle<'a> {
-    pub fn new(mesh: &'a TriangleMesh, tri_number: usize) -> Triangle<'a> {
+impl Triangle {
+    pub fn new(mesh: Arc<TriangleMesh>, tri_number: usize) -> Triangle {
         Triangle {
             mesh: mesh,
-            v: &mesh.vertex_indices[tri_number * 3..tri_number * 3 + 1],
+            v_start_index: tri_number * 3, /* v: &mesh.vertex_indices[tri_number * 3..tri_number * 3 + 1], */
         }
+    }
+
+    #[inline(always)]
+    fn v(&self, index: usize) -> usize {
+        self.mesh.vertex_indices[self.v_start_index + index]
     }
 
     fn get_uvs(&self) -> [Point2f; 3] {
         if let Some(ref uv) = self.mesh.uv {
-            [uv[self.v[0]], uv[self.v[1]], uv[self.v[2]]]
+            [uv[self.v(0)], uv[self.v(1)], uv[self.v(2)]]
         } else {
             [Point2f::new(0.0, 0.0), Point2f::new(1.0, 0.0), Point2f::new(1.0, 1.0)]
         }
     }
 }
 
-impl<'a> Shape for Triangle<'a> {
+impl Shape for Triangle {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
-        let p0 = self.mesh.p[self.v[0]];
-        let p1 = self.mesh.p[self.v[1]];
-        let p2 = self.mesh.p[self.v[2]];
+        let p0 = self.mesh.p[self.v(0)];
+        let p1 = self.mesh.p[self.v(1)];
+        let p2 = self.mesh.p[self.v(2)];
 
         // Perform ray-triangle intersection test
         // - transform triangle vertices to ray coordinate space
@@ -171,13 +178,13 @@ impl<'a> Shape for Triangle<'a> {
         // Initialize triangle shading geometry
         // - shading normal
         let mut ns = if let Some(ref n) = self.mesh.n {
-            (n[self.v[0]] * b0 + n[self.v[1]] * b1 + n[self.v[2]] * b2).normalize()
+            (n[self.v(0)] * b0 + n[self.v(1)] * b1 + n[self.v(2)] * b2).normalize()
         } else {
             isect.n
         };
         // - shading tangent
         let mut ss = if let Some(ref s) = self.mesh.s {
-            (s[self.v[0]] * b0 + s[self.v[1]] * b1 + s[self.v[2]] * b2).normalize()
+            (s[self.v(0)] * b0 + s[self.v(1)] * b1 + s[self.v(2)] * b2).normalize()
         } else {
             isect.dpdu.normalize()
         };
@@ -201,28 +208,56 @@ impl<'a> Shape for Triangle<'a> {
     }
 
     fn area(&self) -> f32 {
-        let p0 = self.mesh.p[self.v[0]];
-        let p1 = self.mesh.p[self.v[1]];
-        let p2 = self.mesh.p[self.v[2]];
+        let p0 = self.mesh.p[self.v(0)];
+        let p1 = self.mesh.p[self.v(1)];
+        let p2 = self.mesh.p[self.v(2)];
 
         0.5 * (p1 - p0).cross(&(p2 - p0)).norm()
     }
 
     fn object_bounds(&self) -> Bounds3f {
-        let p0 = self.mesh.world_to_object * self.mesh.p[self.v[0]];
-        let p1 = self.mesh.world_to_object * self.mesh.p[self.v[1]];
-        let p2 = self.mesh.world_to_object * self.mesh.p[self.v[2]];
+        let p0 = self.mesh.world_to_object * self.mesh.p[self.v(0)];
+        let p1 = self.mesh.world_to_object * self.mesh.p[self.v(1)];
+        let p2 = self.mesh.world_to_object * self.mesh.p[self.v(2)];
         Bounds3f::union_point(&Bounds3f::from_points(&p0, &p1), &p2)
     }
 
     fn world_bounds(&self) -> Bounds3f {
-        let p0 = self.mesh.p[self.v[0]];
-        let p1 = self.mesh.p[self.v[1]];
-        let p2 = self.mesh.p[self.v[2]];
+        let p0 = self.mesh.p[self.v(0)];
+        let p1 = self.mesh.p[self.v(1)];
+        let p2 = self.mesh.p[self.v(2)];
         Bounds3f::union_point(&Bounds3f::from_points(&p0, &p1), &p2)
     }
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         unimplemented!();
     }
+}
+
+pub fn create_triangle_mesh<'a>(object_to_world: &Transform,
+                                reverse_orientation: bool,
+                                n_triangles: usize,
+                                vertex_indices: &[usize],
+                                n_vertices: usize,
+                                p: &[Point3f],
+                                s: Option<&[Vector3f]>,
+                                n: Option<&[Vector3f]>,
+                                uv: Option<&[Point2f]>)
+                                -> Vec<Box<Shape + 'a>> {
+    let mesh = Arc::new(TriangleMesh::new(object_to_world,
+                                          n_triangles,
+                                          vertex_indices,
+                                          n_vertices,
+                                          p,
+                                          s,
+                                          n,
+                                          uv));
+
+    let mut tris: Vec<Box<Shape>> = Vec::with_capacity(n_triangles);
+
+    for i in 0..n_triangles {
+        tris.push(Box::new(Triangle::new(mesh.clone(), i)));
+    }
+
+    tris
 }
