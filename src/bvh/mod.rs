@@ -1,5 +1,6 @@
 use std::cmp::min;
 use std::mem::replace;
+
 use it;
 
 use ::{Point, Vector};
@@ -15,17 +16,17 @@ pub struct BVH<T: Primitive> {
 
 impl<T: Primitive> BVH<T> {
     pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
-        println!("Generating BVH:");
+        info!("Generating BVH:");
 
         // 1. Get bounds info
-        println!("\tGenerating primitive info");
+        info!("\tGenerating primitive info");
         let mut primitive_info: Vec<BVHPrimitiveInfo> = prims.iter()
             .enumerate()
             .map(|(i, p)| BVHPrimitiveInfo::new(i, p.world_bounds()))
             .collect();
 
         // 2. Build tree
-        println!("\tBuilding tree for {} primitives", prims.len());
+        info!("\tBuilding tree for {} primitives", prims.len());
         let mut total_nodes = 0;
         let mut ordered_prims_idx = Vec::with_capacity(prims.len());
         let root: BVHBuildNode = BVH::<T>::recursive_build(&mut primitive_info,
@@ -48,11 +49,11 @@ impl<T: Primitive> BVH<T> {
         prims_with_idx.sort_by_key(|i| i.1);
         let ordered_prims: Vec<T> = prims_with_idx.drain(..).map(|i| i.0).collect();
 
-        println!("\tCreated {} nodes", total_nodes);
-        println!("\tOrdered {} primitives", ordered_prims.len());
+        info!("\tCreated {} nodes", total_nodes);
+        info!("\tOrdered {} primitives", ordered_prims.len());
 
         // 3. Build flatten representation
-        println!("\tFlattening tree");
+        info!("\tFlattening tree");
         let mut nodes = Vec::with_capacity(total_nodes);
         BVH::<T>::flatten_bvh(&root, &mut nodes);
         assert!(nodes.len() == total_nodes);
