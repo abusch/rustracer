@@ -3,31 +3,32 @@ use std::mem::replace;
 use it;
 
 use ::{Point, Vector};
-use geometry::{Axis, BBox, Bounded};
+use bounds::{Axis, Bounds3f};
+use primitive::Primitive;
 use ray::Ray;
 
-pub struct BVH<T: Bounded> {
+pub struct BVH<T: Primitive> {
     max_prims_per_node: usize,
     primitives: Vec<T>,
     nodes: Vec<LinearBVHNode>,
 }
 
-impl<T: Bounded> BVH<T> {
+impl<T: Primitive> BVH<T> {
     pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
         println!("Generating BVH:");
 
         // 1. Get bounds info
         println!("\tGenerating primitive info");
-        let mut build_data: Vec<BVHPrimitiveInfo> = prims.iter()
+        let mut primitive_info: Vec<BVHPrimitiveInfo> = prims.iter()
             .enumerate()
-            .map(|(i, p)| BVHPrimitiveInfo::new(i, p.get_world_bounds()))
+            .map(|(i, p)| BVHPrimitiveInfo::new(i, p.world_bounds()))
             .collect();
 
         // 2. Build tree
         println!("\tBuilding tree for {} primitives", prims.len());
         let mut total_nodes = 0;
         let mut ordered_prims_idx = Vec::with_capacity(prims.len());
-        let root: BVHBuildNode = BVH::<T>::recursive_build(&mut build_data,
+        let root: BVHBuildNode = BVH::<T>::recursive_build(&mut primitive_info,
                                                            0usize,
                                                            prims.len(),
                                                            max_prims_per_node,
@@ -76,7 +77,7 @@ impl<T: Bounded> BVH<T> {
         // Compute bounds of all primitives in node
         let bbox = build_data[start..end]
             .iter()
-            .fold(BBox::new(), |b, pi| BBox::union(&b, &pi.bounds));
+            .fold(Bounds3f::new(), |b, pi| Bounds3f::union(&b, &pi.bounds));
         if n_primitives == 1 {
             // Create leaf
             let first_prim_offset = ordered_prims.len();
@@ -88,11 +89,12 @@ impl<T: Bounded> BVH<T> {
             // Compute bounds of primitive centroids
             let centroids_bounds = build_data[start..end]
                 .iter()
-                .fold(BBox::new(), |bb, pi| BBox::union_point(&bb, &pi.centroid));
+                .fold(Bounds3f::new(),
+                      |bb, pi| Bounds3f::union_point(&bb, &pi.centroid));
             // Choose split dimension
             let dimension = centroids_bounds.maximum_extent();
             // Partition primitives into 2 sets and build children
-            if centroids_bounds.bounds[0][dimension] == centroids_bounds.bounds[1][dimension] {
+            if centroids_bounds[0][dimension] == centroids_bounds[1][dimension] {
                 let first_prim_offset = ordered_prims.len();
                 for pi in build_data[start..end].iter() {
                     ordered_prims.push(pi.prim_number);
@@ -100,9 +102,7 @@ impl<T: Bounded> BVH<T> {
                 return BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox);
             }
             // Partition primitives based on split method (here split middle)
-            let pmid = 0.5 *
-                       (centroids_bounds.bounds[0][dimension] +
-                        centroids_bounds.bounds[1][dimension]);
+            let pmid = 0.5 * (centroids_bounds[0][dimension] + centroids_bounds[1][dimension]);
             let mut mid = it::partition(build_data[start..end].iter_mut(),
                                         |pi| pi.centroid[dimension] < pmid) +
                           start;
@@ -186,7 +186,7 @@ impl<T: Bounded> BVH<T> {
             [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
         loop {
             let linear_node = &self.nodes[current_node_idx];
-            if linear_node.bounds.intersect_p(ray, &inv_dir, &dir_is_neg) {
+            if linear_node.bounds.intersect_p_fast(ray, &inv_dir, &dir_is_neg) {
                 match linear_node.data {
                     LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
                         for i in 0..num_prims {
@@ -235,14 +235,14 @@ impl<T: Bounded> BVH<T> {
 struct BVHPrimitiveInfo {
     pub prim_number: usize,
     pub centroid: Point,
-    pub bounds: BBox,
+    pub bounds: Bounds3f,
 }
 
 impl BVHPrimitiveInfo {
-    fn new(pn: usize, bb: BBox) -> BVHPrimitiveInfo {
+    fn new(pn: usize, bb: Bounds3f) -> BVHPrimitiveInfo {
         BVHPrimitiveInfo {
             prim_number: pn,
-            centroid: (0.5 * bb.bounds[0].to_vector() + 0.5 * bb.bounds[1].to_vector()).to_point(),
+            centroid: (0.5 * bb[0].to_vector() + 0.5 * bb[1].to_vector()).to_point(),
             bounds: bb,
         }
     }
@@ -250,12 +250,12 @@ impl BVHPrimitiveInfo {
 
 enum BVHBuildNode {
     Interior {
-        bounds: BBox,
+        bounds: Bounds3f,
         children: [Box<BVHBuildNode>; 2],
         split_axis: Axis,
     },
     Leaf {
-        bounds: BBox,
+        bounds: Bounds3f,
         first_prim_offset: usize,
         num_prims: usize,
     },
@@ -263,7 +263,7 @@ enum BVHBuildNode {
 
 impl BVHBuildNode {
     fn interior(axis: Axis, child1: Box<BVHBuildNode>, child2: Box<BVHBuildNode>) -> BVHBuildNode {
-        let bbox = BBox::union(child1.bounds(), child2.bounds());
+        let bbox = Bounds3f::union(child1.bounds(), child2.bounds());
         BVHBuildNode::Interior {
             bounds: bbox,
             children: [child1, child2],
@@ -271,7 +271,7 @@ impl BVHBuildNode {
         }
     }
 
-    fn leaf(first_prim_offset: usize, num_prims: usize, bbox: BBox) -> BVHBuildNode {
+    fn leaf(first_prim_offset: usize, num_prims: usize, bbox: Bounds3f) -> BVHBuildNode {
         BVHBuildNode::Leaf {
             bounds: bbox,
             first_prim_offset: first_prim_offset,
@@ -279,7 +279,7 @@ impl BVHBuildNode {
         }
     }
 
-    fn bounds(&self) -> &BBox {
+    fn bounds(&self) -> &Bounds3f {
         match *self {
             BVHBuildNode::Interior { ref bounds, .. } |
             BVHBuildNode::Leaf { ref bounds, .. } => bounds,
@@ -301,6 +301,6 @@ enum LinearBVHNodeData {
 
 #[derive(Debug)]
 struct LinearBVHNode {
-    bounds: BBox,
+    bounds: Bounds3f,
     data: LinearBVHNodeData,
 }
