@@ -2,7 +2,7 @@ use std::f32::consts;
 
 use na::Vector2;
 
-use {Point2i, Point2f, Vector};
+use {Point2f, Vector};
 
 const FRAC_PI_4: f32 = consts::FRAC_PI_2 / 2.0;
 

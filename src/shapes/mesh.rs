@@ -4,20 +4,18 @@ use std::sync::Arc;
 use std::path::Path;
 
 use na::{Inverse, Cross, Norm};
-use na::{abs, zero};
+use na::abs;
 
-use ::{Transform, Point2f, Point3f, Vector2f, Vector3f, max_dimension, permute_v, permute_p,
+use ::{Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
        coordinate_system, gamma};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
 use shapes::Shape;
+use stats;
 
 pub struct TriangleMesh {
-    object_to_world: Transform,
     world_to_object: Transform,
-    n_triangles: usize,
-    n_vertices: usize,
     vertex_indices: Vec<usize>,
     p: Vec<Point3f>,
     n: Option<Vec<Vector3f>>,
@@ -27,9 +25,7 @@ pub struct TriangleMesh {
 
 impl TriangleMesh {
     pub fn new(object_to_world: &Transform,
-               n_triangles: usize,
                vertex_indices: &[usize],
-               n_vertices: usize,
                p: &[Point3f],
                s: Option<&[Vector3f]>,
                n: Option<&[Vector3f]>,
@@ -37,10 +33,7 @@ impl TriangleMesh {
                -> Self {
         let points: Vec<Point3f> = p.iter().map(|pt| *object_to_world * *pt).collect();
         TriangleMesh {
-            object_to_world: *object_to_world,
             world_to_object: object_to_world.inverse().unwrap(),
-            n_triangles: n_triangles,
-            n_vertices: n_vertices,
             vertex_indices: Vec::from(vertex_indices),
             p: points,
             n: n.map(Vec::from),
@@ -59,7 +52,7 @@ impl Triangle {
     pub fn new(mesh: Arc<TriangleMesh>, tri_number: usize) -> Triangle {
         Triangle {
             mesh: mesh,
-            v_start_index: tri_number * 3, /* v: &mesh.vertex_indices[tri_number * 3..tri_number * 3 + 1], */
+            v_start_index: tri_number * 3,
         }
     }
 
@@ -79,6 +72,7 @@ impl Triangle {
 
 impl Shape for Triangle {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
+        stats::inc_triangle_test();
         let p0 = self.mesh.p[self.v(0)];
         let p1 = self.mesh.p[self.v(1)];
         let p2 = self.mesh.p[self.v(2)];
@@ -180,7 +174,7 @@ impl Shape for Triangle {
         isect.shading.n = n;
         // Initialize triangle shading geometry
         // - shading normal
-        let mut ns = if let Some(ref n) = self.mesh.n {
+        let ns = if let Some(ref n) = self.mesh.n {
             (n[self.v(0)] * b0 + n[self.v(1)] * b1 + n[self.v(2)] * b2).normalize()
         } else {
             isect.n
@@ -207,6 +201,7 @@ impl Shape for Triangle {
         isect.shading.dpdv = ts;
         // Ensure correct orientation of the geometric normal TODO
 
+        stats::inc_triangle_isect();
         Some((isect, t))
     }
 
@@ -239,26 +234,19 @@ impl Shape for Triangle {
 
 pub fn create_triangle_mesh(object_to_world: &Transform,
                             reverse_orientation: bool,
-                            n_triangles: usize,
                             vertex_indices: &[usize],
-                            n_vertices: usize,
                             p: &[Point3f],
                             s: Option<&[Vector3f]>,
                             n: Option<&[Vector3f]>,
                             uv: Option<&[Point2f]>)
                             -> Vec<Triangle> {
-    let mesh = Arc::new(TriangleMesh::new(object_to_world,
-                                          n_triangles,
-                                          vertex_indices,
-                                          n_vertices,
-                                          p,
-                                          s,
-                                          n,
-                                          uv));
+    let mesh = Arc::new(TriangleMesh::new(object_to_world, vertex_indices, p, s, n, uv));
 
+    let n_triangles = vertex_indices.len() / 3;
     let mut tris: Vec<Triangle> = Vec::with_capacity(n_triangles);
 
     for i in 0..n_triangles {
+        stats::inc_num_triangles();
         tris.push(Triangle::new(mesh.clone(), i));
     }
 
@@ -298,9 +286,7 @@ pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) 
 
     create_triangle_mesh(transform,
                          false,
-                         indices.len() / 3,
                          &indices[..],
-                         positions.len(),
                          &positions[..],
                          None,
                          if normals.is_empty() {

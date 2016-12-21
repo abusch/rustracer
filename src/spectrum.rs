@@ -91,14 +91,14 @@ impl Spectrum {
     pub fn from_sampled(lambda: &[f32], v: &[f32], n: usize) -> Spectrum {
         // TODO sort by wavelength if needed
         let mut xyz = [0.0; 3];
-        for i in 0..cie::nCIESamples {
-            let val = interpolate_spectrum_samples(lambda, v, n, cie::CIE_lambda[i]);
+        for i in 0..cie::N_CIE_SAMPLES {
+            let val = interpolate_spectrum_samples(lambda, v, n, cie::CIE_LAMBDA[i]);
             xyz[0] += val * cie::CIE_X[i];
             xyz[1] += val * cie::CIE_Y[i];
             xyz[2] += val * cie::CIE_Z[i];
         }
-        let scale = (cie::CIE_lambda[cie::nCIESamples - 1] - cie::CIE_lambda[0]) /
-                    (cie::CIE_Y_integral * cie::nCIESamples as f32);
+        let scale = (cie::CIE_LAMBDA[cie::N_CIE_SAMPLES - 1] - cie::CIE_LAMBDA[0]) /
+                    (cie::CIE_Y_INTEGRAL * cie::N_CIE_SAMPLES as f32);
         xyz[0] *= scale;
         xyz[1] *= scale;
         xyz[2] *= scale;

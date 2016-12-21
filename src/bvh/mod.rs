@@ -5,14 +5,14 @@ use std::path::Path;
 
 use it;
 
-use ::{Point3f, Vector2f, Vector3f, Transform};
+use ::{Point3f, Vector3f, Transform};
 use bounds::{Axis, Bounds3f};
 use interaction::SurfaceInteraction;
 use light::AreaLight;
 use material::{Material, TransportMode};
 use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
-use shapes::{Shape, mesh};
+use shapes::mesh;
 use shapes::mesh::Triangle;
 
 pub struct BVH<T> {

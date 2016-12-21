@@ -22,7 +22,7 @@ impl SamplerIntegrator for Whitted {
     fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum {
         let mut colour = Spectrum::black();
 
-        match scene.intersect2(ray) {
+        match scene.intersect(ray) {
             Some(mut isect) => {
                 let n = isect.shading.n;
                 let wo = isect.wo;

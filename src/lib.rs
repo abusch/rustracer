@@ -18,7 +18,7 @@ extern crate slog_scope;
 use std::f32;
 use std::ops::{Add, Mul, Sub};
 
-use na::{Vector2, Vector3, Point2, Point3, Similarity3, BaseNum, Cross, zero};
+use na::{Vector2, Vector3, Point2, Point3, Similarity3, Cross};
 use num::One;
 
 mod blockedarray;

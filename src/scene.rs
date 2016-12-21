@@ -1,9 +1,6 @@
 use std::sync::Arc;
 use std::mem;
 
-use na::Norm;
-
-use ::Vector;
 use bounds::Bounds3f;
 use camera::Camera;
 use integrator::SamplerIntegrator;
@@ -14,7 +11,6 @@ use ray::Ray;
 
 pub struct Scene {
     pub camera: Camera,
-    // bvh: BVH<Instance>,
     pub lights: Vec<Arc<Light + Sync + Send>>,
     pub integrator: Box<SamplerIntegrator + Sync + Send>,
     pub primitives: Vec<Box<Primitive + Sync + Send>>,
@@ -24,13 +20,10 @@ impl Scene {
     pub fn new(camera: Camera,
                integrator: Box<SamplerIntegrator + Sync + Send>,
                primitives: Vec<Box<Primitive + Sync + Send>>,
-               mut lights: Vec<Arc<Light + Sync + Send>>)
+               lights: Vec<Arc<Light + Sync + Send>>)
                -> Scene {
-        // let bvh = BVH::new(16, objects);
         let mut scene = Scene {
             camera: camera,
-            // objects: objects,
-            // bvh: bvh,
             lights: Vec::new(),
             integrator: integrator,
             primitives: primitives,
@@ -45,15 +38,11 @@ impl Scene {
         scene
     }
 
-    // pub fn intersect(&self, ray: &mut Ray) -> Option<Intersection> {
-    //     self.bvh.intersect(ray, |r, i| i.intersect(r))
-    // }
-    pub fn intersect2(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+    pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
         self.primitives.iter().fold(None, |r, p| p.intersect(ray).or(r))
     }
 
     pub fn intersect_p(&self, ray: &Ray) -> bool {
-        // self.intersect2(ray).is_some()
         self.primitives.iter().fold(false, |r, p| p.intersect_p(ray) || r)
     }
 
