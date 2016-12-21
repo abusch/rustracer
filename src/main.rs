@@ -28,9 +28,8 @@ use rt::camera::Camera;
 use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
 use rt::light::{Light, DistantLight, DiffuseAreaLight};
 use rt::material::matte::MatteMaterial;
-use rt::material::plastic::Plastic;
 use rt::material::metal::Metal;
-use rt::{Point, Vector, Dim};
+use rt::material::plastic::Plastic;
 use rt::primitive::{Primitive, GeometricPrimitive};
 use rt::renderer;
 use rt::scene::Scene;
@@ -38,6 +37,7 @@ use rt::shapes::disk::Disk;
 use rt::shapes::sphere::Sphere;
 use rt::spectrum::Spectrum;
 use rt::transform;
+use rt::{Transform, Point, Vector3f, Dim};
 
 arg_enum! {
   #[derive(Debug)]
@@ -116,7 +116,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let camera = Camera::new(Point::new(0.0, 0.0, 5.0), dim, 50.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
-    let disk = Arc::new(Disk::new(-2.0, 0.5, 0.0, 360.0, transform::rot_x(90.0)));
+    let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
     let area_light =
         Arc::new(DiffuseAreaLight::new(Spectrum::rgb(2.0, 2.0, 2.0), disk.clone(), 16));
     let area_light_prim = Box::new(GeometricPrimitive {
@@ -126,8 +126,10 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     });
 
     let bronze = Arc::new(Metal::new());
+    let plastic = Arc::new(Plastic::new(Spectrum::green(), Spectrum::white()));
+    let plastic_lines = Arc::new(Plastic::new_tex("lines.png", Spectrum::white()));
     let sphere = Box::new(GeometricPrimitive {
-        shape: Arc::new(Sphere::new().transform(transform::rot(45.0, 45.0, 0.0))),
+        shape: Arc::new(Sphere::new().radius(0.7).transform(transform::rot(45.0, 45.0, 0.0))),
         area_light: None,
         // material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
         // material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
@@ -136,20 +138,35 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let bunny =
         Box::new(BVH::<GeometricPrimitive>::from_mesh_file(&Path::new("models/bunny.obj"),
                                                            "bunny",
+                                                           plastic.clone(),
+                                                           &Transform::new(
+                                                             Vector3f::new(2.0, -0.8, 0.0),
+                                                             Vector3f::new(0.0, 20.0f32.to_radians(), 0.0),
+                                                             0.5
+                                                             ))) as Box<Primitive + Send + Sync>;
+    let buddha =
+        Box::new(BVH::<GeometricPrimitive>::from_mesh_file(&Path::new("models/buddha.obj"),
+                                                           "buddha",
                                                            bronze.clone(),
-                                                           &na::one())) as Box<Primitive + Send + Sync>;
+                                                           &Transform::new(
+                                                             Vector3f::new(-2.0, -0.1, 0.0),
+                                                             Vector3f::new(0.0, 200.0f32.to_radians(), 0.0),
+                                                             3.0
+                                                             ))) as Box<Primitive + Send + Sync>;
     let floor = Box::new(GeometricPrimitive {
         shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
         area_light: None,
         // material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
-        material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 0.0))),
+        // material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 0.0))),
+        material: Some(plastic_lines.clone()),
     });
 
-    let primitives: Vec<Box<Primitive + Sync + Send>> = vec![bunny, floor, area_light_prim];
+    let primitives: Vec<Box<Primitive + Sync + Send>> =
+        vec![buddha, sphere, bunny, floor, area_light_prim];
     // Light
     lights.push(area_light);
-    lights.push(Arc::new(DistantLight::new(Vector::new(0.0, -1.0, -5.0),
-                                           Spectrum::rgb(1.0, 1.0, 1.0))));
+    lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
+                                           Spectrum::rgb(0.7, 0.7, 0.7))));
 
     Scene::new(camera, integrator, primitives, lights)
 }
