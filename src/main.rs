@@ -15,6 +15,7 @@ extern crate thread_id;
 use std::sync::Arc;
 use std::num::ParseIntError;
 use std::fs::OpenOptions;
+use std::path::Path;
 use std::io;
 use std::process;
 
@@ -22,6 +23,7 @@ use chrono::Local;
 use clap::{Arg, ArgMatches, App};
 use slog::*;
 
+use rt::bvh::BVH;
 use rt::camera::Camera;
 use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
 use rt::light::{Light, DistantLight, DiffuseAreaLight};
@@ -123,21 +125,27 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
         material: Some(Arc::new(MatteMaterial::default())),
     });
 
-    let primitives: Vec<Box<Primitive + Sync + Send>> = vec![Box::new(GeometricPrimitive {
-                 shape: Arc::new(Sphere::new()
-                     .transform(transform::rot(45.0, 45.0, 0.0))),
-                 area_light: None,
-                 // material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
-                 // material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
-                 material: Some(Arc::new(Metal::new())),
-             }),
-             Box::new(GeometricPrimitive {
-                 shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
-                 area_light: None,
-                 // material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
-                 material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 0.0))),
-             }),
-             area_light_prim];
+    let bronze = Arc::new(Metal::new());
+    let sphere = Box::new(GeometricPrimitive {
+        shape: Arc::new(Sphere::new().transform(transform::rot(45.0, 45.0, 0.0))),
+        area_light: None,
+        // material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
+        // material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
+        material: Some(bronze.clone()),
+    });
+    let bunny =
+        Box::new(BVH::<GeometricPrimitive>::from_mesh_file(&Path::new("models/bunny.obj"),
+                                                           "bunny",
+                                                           bronze.clone(),
+                                                           &na::one())) as Box<Primitive + Send + Sync>;
+    let floor = Box::new(GeometricPrimitive {
+        shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
+        area_light: None,
+        // material: Some(Arc::new(MatteMaterial::checkerboard(0.0))),
+        material: Some(Arc::new(MatteMaterial::new(Spectrum::red(), 0.0))),
+    });
+
+    let primitives: Vec<Box<Primitive + Sync + Send>> = vec![bunny, floor, area_light_prim];
     // Light
     lights.push(area_light);
     lights.push(Arc::new(DistantLight::new(Vector::new(0.0, -1.0, -5.0),

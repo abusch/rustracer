@@ -25,7 +25,7 @@ mod blockedarray;
 mod block_queue;
 mod bounds;
 mod bsdf;
-mod bvh;
+pub mod bvh;
 pub mod camera;
 mod cie;
 pub mod spectrum;

@@ -1,9 +1,12 @@
+extern crate tobj;
+
 use std::sync::Arc;
+use std::path::Path;
 
 use na::{Inverse, Cross, Norm};
 use na::{abs, zero};
 
-use ::{Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
+use ::{Transform, Point2f, Point3f, Vector2f, Vector3f, max_dimension, permute_v, permute_p,
        coordinate_system, gamma};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
@@ -234,16 +237,16 @@ impl Shape for Triangle {
     }
 }
 
-pub fn create_triangle_mesh<'a>(object_to_world: &Transform,
-                                reverse_orientation: bool,
-                                n_triangles: usize,
-                                vertex_indices: &[usize],
-                                n_vertices: usize,
-                                p: &[Point3f],
-                                s: Option<&[Vector3f]>,
-                                n: Option<&[Vector3f]>,
-                                uv: Option<&[Point2f]>)
-                                -> Vec<Box<Shape + 'a>> {
+pub fn create_triangle_mesh(object_to_world: &Transform,
+                            reverse_orientation: bool,
+                            n_triangles: usize,
+                            vertex_indices: &[usize],
+                            n_vertices: usize,
+                            p: &[Point3f],
+                            s: Option<&[Vector3f]>,
+                            n: Option<&[Vector3f]>,
+                            uv: Option<&[Point2f]>)
+                            -> Vec<Triangle> {
     let mesh = Arc::new(TriangleMesh::new(object_to_world,
                                           n_triangles,
                                           vertex_indices,
@@ -253,11 +256,57 @@ pub fn create_triangle_mesh<'a>(object_to_world: &Transform,
                                           n,
                                           uv));
 
-    let mut tris: Vec<Box<Shape>> = Vec::with_capacity(n_triangles);
+    let mut tris: Vec<Triangle> = Vec::with_capacity(n_triangles);
 
     for i in 0..n_triangles {
-        tris.push(Box::new(Triangle::new(mesh.clone(), i)));
+        tris.push(Triangle::new(mesh.clone(), i));
     }
 
     tris
+}
+
+pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) -> Vec<Triangle> {
+    info!("Loading {} model from OBJ file:", model_name);
+    let (models, _) = tobj::load_obj(file.into()).unwrap();
+    let model = models.iter()
+        .find(|m| m.name == model_name)
+        .unwrap();
+
+    info!("tProcessing indices");
+    let indices: Vec<usize> = model.mesh.indices.iter().map(|i| *i as usize).collect();
+
+    info!("\tProcessing vertices");
+    let positions: Vec<Point3f> = model.mesh
+        .positions
+        .chunks(3)
+        .map(|p| Point3f::new(p[0], p[1], p[2]))
+        .collect();
+
+    info!("\tProcessing normals");
+    let normals: Vec<Vector3f> = model.mesh
+        .normals
+        .chunks(3)
+        .map(|n| Vector3f::new(n[0], n[1], n[2]))
+        .collect();
+
+    info!("\tProcessing UV coordinates");
+    let uv: Vec<Point2f> = model.mesh
+        .texcoords
+        .chunks(2)
+        .map(|t| Point2f::new(t[0], t[1]))
+        .collect();
+
+    create_triangle_mesh(transform,
+                         false,
+                         indices.len() / 3,
+                         &indices[..],
+                         positions.len(),
+                         &positions[..],
+                         None,
+                         if normals.is_empty() {
+                             None
+                         } else {
+                             Some(&normals[..])
+                         },
+                         if uv.is_empty() { None } else { Some(&uv[..]) })
 }

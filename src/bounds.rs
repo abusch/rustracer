@@ -36,12 +36,10 @@ impl<T> Bounds3<T>
         }
     }
 
-    pub fn from_points(min: &Point3<T>, max: &Point3<T>) -> Bounds3<T> {
-        assert!(min.x <= max.x && min.y <= max.y && min.z <= max.z,
-                "Invalid bounds");
+    pub fn from_points(p1: &Point3<T>, p2: &Point3<T>) -> Bounds3<T> {
         Bounds3 {
-            p_min: *min,
-            p_max: *max,
+            p_min: Point3::new(min(p1.x, p2.x), min(p1.y, p2.y), min(p1.z, p2.z)),
+            p_max: Point3::new(max(p1.x, p2.x), max(p1.y, p2.y), max(p1.z, p2.z)),
         }
     }
 

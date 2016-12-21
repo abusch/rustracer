@@ -1,16 +1,19 @@
 use std::cmp::min;
 use std::mem::replace;
 use std::sync::Arc;
+use std::path::Path;
 
 use it;
 
-use ::{Point, Vector};
+use ::{Point3f, Vector2f, Vector3f, Transform};
 use bounds::{Axis, Bounds3f};
 use interaction::SurfaceInteraction;
 use light::AreaLight;
 use material::{Material, TransportMode};
-use primitive::Primitive;
+use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
+use shapes::{Shape, mesh};
+use shapes::mesh::Triangle;
 
 pub struct BVH<T> {
     max_prims_per_node: usize,
@@ -19,6 +22,25 @@ pub struct BVH<T> {
 }
 
 impl<T: Primitive> BVH<T> {
+    pub fn from_mesh_file(file: &Path,
+                          model: &str,
+                          material: Arc<Material + Send + Sync>,
+                          transform: &Transform)
+                          -> BVH<GeometricPrimitive> {
+        let mut triangles: Vec<Triangle> = mesh::load_triangle_mesh(file, model, transform);
+        let mut prims = triangles.drain(..)
+            .map(|t| {
+                GeometricPrimitive {
+                    shape: Arc::new(t),
+                    area_light: None,
+                    material: Some(material.clone()),
+                }
+            })
+            .collect();
+
+        BVH::new(4, &mut prims)
+    }
+
     pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
         info!("Generating BVH:");
 
@@ -184,7 +206,7 @@ impl<T: Primitive> BVH<T> {
         let mut to_visit_offset = 0;
         let mut current_node_idx = 0;
         let mut nodes_to_visit = [0; 64];
-        let inv_dir = Vector::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
+        let inv_dir = Vector3f::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
         let dir_is_neg =
             [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
         loop {
@@ -266,7 +288,7 @@ impl<T: Primitive> Primitive for BVH<T> {
 
 struct BVHPrimitiveInfo {
     pub prim_number: usize,
-    pub centroid: Point,
+    pub centroid: Point3f,
     pub bounds: Bounds3f,
 }
 
