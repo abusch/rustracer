@@ -196,8 +196,14 @@ impl<T: Primitive> BVH<T> {
 
         offset
     }
+}
 
-    pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+impl<T: Primitive> Primitive for BVH<T> {
+    fn world_bounds(&self) -> Bounds3f {
+        self.primitives[0].world_bounds()
+    }
+
+    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
         if self.nodes.is_empty() {
             return None;
         }
@@ -217,9 +223,6 @@ impl<T: Primitive> BVH<T> {
                         for i in 0..num_prims {
                             result =
                                 self.primitives[primitives_offset + i].intersect(ray).or(result);
-                            // if let Some(isect) = f(ray, &self.primitives[primitives_offset + i]) {
-                            //     result = Some(isect);
-                            // }
                         }
                         if to_visit_offset == 0 {
                             break;
@@ -255,19 +258,62 @@ impl<T: Primitive> BVH<T> {
         }
         result
     }
-}
-
-impl<T: Primitive> Primitive for BVH<T> {
-    fn world_bounds(&self) -> Bounds3f {
-        self.primitives[0].world_bounds()
-    }
-
-    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
-        self.intersect(ray)
-    }
 
     fn intersect_p(&self, ray: &Ray) -> bool {
-        self.intersect_p(ray)
+        if self.nodes.is_empty() {
+            return false;
+        }
+
+        let mut to_visit_offset = 0;
+        let mut current_node_idx = 0;
+        let mut nodes_to_visit = [0; 64];
+        let inv_dir = Vector3f::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
+        let dir_is_neg =
+            [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
+        loop {
+            let linear_node = &self.nodes[current_node_idx];
+            if linear_node.bounds.intersect_p_fast(ray, &inv_dir, &dir_is_neg) {
+                match linear_node.data {
+                    LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
+                        for i in 0..num_prims {
+
+                            if self.primitives[primitives_offset + i].intersect_p(ray) {
+                                return true;
+                            }
+                        }
+                        if to_visit_offset == 0 {
+                            break;
+                        }
+                        to_visit_offset -= 1;
+                        current_node_idx = nodes_to_visit[to_visit_offset];
+                    }
+                    LinearBVHNodeData::Interior { axis, second_child_offset, .. } => {
+                        let axis_num = match axis {
+                            Axis::X => 0,
+                            Axis::Y => 1,
+                            Axis::Z => 2,
+                        };
+                        if dir_is_neg[axis_num] != 0 {
+                            nodes_to_visit[to_visit_offset] = current_node_idx + 1;
+                            to_visit_offset += 1;
+                            current_node_idx = second_child_offset;
+                        } else {
+                            nodes_to_visit[to_visit_offset] = second_child_offset;
+                            to_visit_offset += 1;
+                            current_node_idx += 1;
+                        }
+                    }
+                }
+            } else {
+                if to_visit_offset == 0 {
+                    break;
+                }
+                to_visit_offset -= 1;
+                current_node_idx = nodes_to_visit[to_visit_offset];
+            }
+
+        }
+        false
     }
 
     fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>> {

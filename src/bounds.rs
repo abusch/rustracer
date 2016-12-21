@@ -101,18 +101,14 @@ impl<T> Bounds3<T>
         b
     }
 
-    pub fn intersect_p(&self, ray: &mut Ray) -> bool {
+    pub fn intersect_p(&self, ray: &Ray) -> bool {
         let invdir = Vector::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
         let sign = [(ray.d.x < 0.0) as usize, (ray.d.y < 0.0) as usize, (ray.d.z < 0.0) as usize];
 
         self.intersect_p_fast(ray, &invdir, &sign)
     }
 
-    pub fn intersect_p_fast(&self,
-                            ray: &mut Ray,
-                            inv_dir: &Vector,
-                            dir_is_neg: &[usize; 3])
-                            -> bool {
+    pub fn intersect_p_fast(&self, ray: &Ray, inv_dir: &Vector, dir_is_neg: &[usize; 3]) -> bool {
         stats::inc_fast_bbox_isect();
         // Check intersection with X and Y slab
         let mut tmin = (self[dir_is_neg[0]].x.into() - ray.o.x) * inv_dir.x;
