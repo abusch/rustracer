@@ -30,11 +30,11 @@ pub fn render(scene: Scene,
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     crossbeam::scope(|scope| {
-        for i in 0..num_threads {
-            let ref scene = scene;
+        for _ in 0..num_threads {
+            let scene = &scene;
             let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
-            let ref bq = block_queue;
+            let bq = &block_queue;
             scope.spawn(move || {
                 let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
@@ -46,7 +46,7 @@ pub fn render(scene: Scene,
                             let s = sampler.get_camera_sample();
                             let mut ray = scene.camera.ray_for(&s);
                             let sample_colour = scene.integrator
-                                .li(&scene, &mut ray, &mut sampler, 0);
+                                .li(scene, &mut ray, &mut sampler, 0);
                             let film_sample = FilmSample {
                                 x: s.x,
                                 y: s.y,

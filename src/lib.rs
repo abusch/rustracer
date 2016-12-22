@@ -83,8 +83,10 @@ pub fn max_dimension<T>(v: Vector3<T>) -> usize
 {
     if v.x > v.y {
         if v.x > v.z { 0 } else { 2 }
+    } else if v.y > v.z {
+        1
     } else {
-        if v.y > v.z { 1 } else { 2 }
+        2
     }
 }
 

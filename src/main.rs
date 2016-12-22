@@ -136,7 +136,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
         material: Some(bronze.clone()),
     });
     let bunny =
-        Box::new(BVH::<GeometricPrimitive>::from_mesh_file(&Path::new("models/bunny.obj"),
+        Box::new(BVH::<GeometricPrimitive>::from_mesh_file(Path::new("models/bunny.obj"),
                                                            "bunny",
                                                            plastic.clone(),
                                                            &Transform::new(
@@ -145,7 +145,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
                                                              0.5
                                                              ))) as Box<Primitive + Send + Sync>;
     let buddha =
-        Box::new(BVH::<GeometricPrimitive>::from_mesh_file(&Path::new("models/buddha.obj"),
+        Box::new(BVH::<GeometricPrimitive>::from_mesh_file(Path::new("models/buddha.obj"),
                                                            "buddha",
                                                            bronze.clone(),
                                                            &Transform::new(
@@ -260,7 +260,7 @@ impl slog_stream::Format for MyFormat {
                           rinfo.line(),
                           rinfo.module(),
                           rinfo.msg());
-        let _ = try!(io.write_all(msg.as_bytes()));
+        try!(io.write_all(msg.as_bytes()));
         Ok(())
     }
 }

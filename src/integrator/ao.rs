@@ -21,23 +21,23 @@ impl AmbientOcclusion {
 }
 
 impl SamplerIntegrator for AmbientOcclusion {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, _: u32) -> Spectrum {
+    fn li(&self, scene: &Scene, ray: &mut Ray, _sampler: &mut Sampler, _: u32) -> Spectrum {
         let mut n_clear: usize = 0;
 
         if let Some(intersection) = scene.intersect(ray) {
             let n = intersection.n;
-            let mut samples: Vec<Point2f> =
+            let samples: Vec<Point2f> =
                 iter::repeat(Point2f::new(0.0, 0.0)).take(self.n_samples).collect();
 
             // TODO fixme
             // sampler.get_samples(0.0, 0.0, &mut samples);
             for s in &samples {
-                let mut w = uniform_sample_sphere(&s);
+                let mut w = uniform_sample_sphere(s);
                 if w.dot(&n) < 0.0 {
                     w = -w;
                 }
-                let mut ao_ray = intersection.spawn_ray(&w);
-                if !scene.intersect_p(&mut ao_ray) {
+                let ao_ray = intersection.spawn_ray(&w);
+                if !scene.intersect_p(&ao_ray) {
                     n_clear += 1;
                 }
 

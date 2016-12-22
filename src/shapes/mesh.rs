@@ -126,9 +126,8 @@ impl Shape for Triangle {
         p1t.z *= sz;
         p2t.z *= sz;
         let t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
-        if det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det) {
-            return None;
-        } else if det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det) {
+        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det)) ||
+           (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det)) {
             return None;
         }
         // - compute barycentric coordinates and t value for triangle intersection

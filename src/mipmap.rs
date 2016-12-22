@@ -111,7 +111,7 @@ impl<T> MIPMap<T>
         // initialize levels of MIPMap for image
         let n_levels = 1 + f32::log2(cmp::max(resolution.x, resolution.y) as f32).log2() as usize;
         // Initialize most detailed level of the pyramid
-        let img_data = if resampled_image.len() == 0 {
+        let img_data = if resampled_image.is_empty() {
             img
         } else {
             &resampled_image[..]

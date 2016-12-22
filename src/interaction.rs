@@ -114,7 +114,7 @@ impl<'a> SurfaceInteraction<'a> {
         self.primitive
             .and_then(|p| p.area_light())
             .map(|light| light.l(&self.into(), w))
-            .unwrap_or(Spectrum::black())
+            .unwrap_or_else(Spectrum::black)
     }
 
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {

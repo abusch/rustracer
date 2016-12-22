@@ -31,15 +31,16 @@ impl BxDF for OrenNayar {
         let sin_theta_o = sin_theta(wo);
 
         // compute cosine term of the Oren-Nayar model
-        let mut max_cos = 0.0;
-        if sin_theta_i > 1e-4 && sin_theta_o > 1e-4 {
+        let max_cos = if sin_theta_i > 1e-4 && sin_theta_o > 1e-4 {
             let sin_phi_i = sin_phi(wi);
             let cos_phi_i = cos_phi(wi);
             let sin_phi_o = sin_phi(wo);
             let cos_phi_o = cos_phi(wo);
             let d_cos = sin_phi_i * sin_phi_o + cos_phi_i * cos_phi_o;
-            max_cos = d_cos.max(0.0);
-        }
+            d_cos.max(0.0)
+        } else {
+            0.0
+        };
         // compute sine and tangent terms of Oren-Nayar model
         let (sin_alpha, tan_beta) = if abs_cos_theta(wi) > abs_cos_theta(wo) {
             (sin_theta_o, sin_theta_i / abs_cos_theta(wi))

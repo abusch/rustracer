@@ -26,7 +26,7 @@ impl ImageTexture {
             .collect();
 
         ImageTexture {
-            mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.5, 0.5)),
+            mapping: Box::new(UVMapping2D::new(2.0, 2.0, 0.0, 0.0)),
             mipmap: Arc::new(MIPMap::new(&res, &pixels[..], false, 0.0, WrapMode::Repeat)),
         }
     }

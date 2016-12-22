@@ -24,7 +24,7 @@ impl Plastic {
 
     pub fn new_tex(kd_tex: &str, ks: Spectrum) -> Plastic {
         Plastic {
-            kd: Arc::new(ImageTexture::new(&Path::new(kd_tex))),
+            kd: Arc::new(ImageTexture::new(Path::new(kd_tex))),
             ks: Arc::new(ConstantTexture::new(ks)),
         }
     }
