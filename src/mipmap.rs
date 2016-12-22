@@ -1,6 +1,7 @@
 use std::ops::{Mul, AddAssign};
 use std::cmp;
 use std::f32;
+use std::fmt::Debug;
 
 use na;
 use num::{zero, Zero};
@@ -31,6 +32,7 @@ impl<T> MIPMap<T>
           T: Clone,
           T: Copy,
           T: Clampable,
+          T: Debug,
           T: AddAssign<T>,
           T: Mul<f32, Output = T>
 {
@@ -44,6 +46,7 @@ impl<T> MIPMap<T>
         let mut resolution = *res;
         let mut resampled_image = Vec::new();
         if !res.x.is_power_of_two() || !res.y.is_power_of_two() {
+            info!("Texture dimensions are not powers of 2: re-sampling.");
             // resample image to power of two resolution
             let res_pow2 = Point2i::new(res.x.next_power_of_two(), res.y.next_power_of_two());
             // resample image in s direction
@@ -116,6 +119,7 @@ impl<T> MIPMap<T>
         } else {
             &resampled_image[..]
         };
+        // level 0
         mipmap.pyramid
             .push(BlockedArray::new_from(resolution.x as usize, resolution.y as usize, img_data));
         for i in 1..n_levels {
@@ -126,11 +130,13 @@ impl<T> MIPMap<T>
             // Filter 4 texels from finer level of pyramid
             for t in 0..t_res {
                 for s in 0..s_res {
-                    ba[(s, t)] = (*mipmap.texel(i - 1, 2 * s, 2 * t) +
-                                  *mipmap.texel(i - 1, 2 * s + 1, 2 * t) +
-                                  *mipmap.texel(i - 1, 2 * s, 2 * t + 1) +
-                                  *mipmap.texel(i - 1, 2 * s + 1, 2 * t + 1)) *
+                    let (si, ti) = (s as isize, t as isize);
+                    ba[(s, t)] = (*mipmap.texel(i - 1, 2 * si, 2 * ti) +
+                                  *mipmap.texel(i - 1, 2 * si + 1, 2 * ti) +
+                                  *mipmap.texel(i - 1, 2 * si, 2 * ti + 1) +
+                                  *mipmap.texel(i - 1, 2 * si + 1, 2 * ti + 1)) *
                                  0.25;
+                    debug!("l={}, ba[({}, {})]={:?}", i, s, t, ba[(s, t)]);
                 }
             }
             mipmap.pyramid.push(ba);
@@ -152,16 +158,19 @@ impl<T> MIPMap<T>
         self.pyramid.len()
     }
 
-    pub fn texel(&self, level: usize, s: usize, t: usize) -> &T {
+    pub fn texel(&self, level: usize, s: isize, t: isize) -> &T {
         let l = &self.pyramid[level];
-        let (ss, tt) = match self.wrap_mode {
-            WrapMode::Repeat => (s % l.u_size(), t % l.v_size()),
-            WrapMode::Clamp => (na::clamp(s, 0, l.u_size() - 1), na::clamp(t, 0, l.v_size() - 1)),
+        let (u_size, v_size) = (l.u_size() as isize, l.v_size() as isize);
+        let (ss, tt): (usize, usize) = match self.wrap_mode {
+            WrapMode::Repeat => (modulo(s, u_size), modulo(t, v_size)),
+            WrapMode::Clamp => {
+                (na::clamp(s, 0, u_size - 1) as usize, na::clamp(t, 0, v_size - 1) as usize)
+            }
             WrapMode::Black => {
-                if s >= l.u_size() || t >= l.v_size() {
+                if s < 0 || s >= u_size || t < 0 || t >= v_size {
                     return &self.black;
                 }
-                (s, t)
+                (s as usize, t as usize)
             }
         };
         &l[(ss, tt)]
@@ -188,10 +197,18 @@ impl<T> MIPMap<T>
         let level = na::clamp(level, 0, self.levels() - 1);
         let s = st.x * self.pyramid[level].u_size() as f32 - 0.5;
         let t = st.y * self.pyramid[level].v_size() as f32 - 0.5;
-        let s0 = s.floor() as usize;
-        let t0 = t.floor() as usize;
+        let s0 = s.floor() as isize;
+        let t0 = t.floor() as isize;
         let ds = s - s0 as f32;
         let dt = t - t0 as f32;
+        debug!("st={:?}, s={}, t={}, s0={}, t0={}, ds={}, dt={}",
+               st,
+               s,
+               t,
+               s0,
+               t0,
+               ds,
+               dt);
 
         *self.texel(level, s0, t0) * (1.0 - ds) * (1.0 - dt) +
         *self.texel(level, s0, t0 + 1) * (1.0 - ds) * dt +
@@ -216,6 +233,7 @@ impl<T> MIPMap<T>
             let inv_sum_weights = 1.0 / (w[0] + w[1] + w[2] + w[3]);
             for j in 0..4 {
                 w[j] *= inv_sum_weights;
+                assert!(w[j] <= 1.0);
             }
             wt.push(ResampleWeight {
                 first_texel: first_texel,
@@ -262,5 +280,14 @@ impl Clampable for Spectrum {
         Spectrum::rgb(self.r.clamp(min, max),
                       self.g.clamp(min, max),
                       self.b.clamp(min, max))
+    }
+}
+
+fn modulo(a: isize, b: isize) -> usize {
+    let result = a % b;
+    if result < 0 {
+        (result + b) as usize
+    } else {
+        result as usize
     }
 }

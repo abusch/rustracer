@@ -259,7 +259,7 @@ pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) 
         .find(|m| m.name == model_name)
         .unwrap();
 
-    info!("tProcessing indices");
+    info!("\tProcessing indices");
     let indices: Vec<usize> = model.mesh.indices.iter().map(|i| *i as usize).collect();
 
     info!("\tProcessing vertices");
