@@ -118,7 +118,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
 
     let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
     let area_light =
-        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(2.0, 2.0, 2.0), disk.clone(), 16));
+        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(8.0, 8.0, 8.0), disk.clone(), 16));
     let area_light_prim = Box::new(GeometricPrimitive {
         shape: disk.clone(),
         area_light: Some(area_light.clone()),
@@ -126,10 +126,11 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     });
 
     let bronze = Arc::new(Metal::new());
-    let plastic = Arc::new(Plastic::new(Spectrum::green(), Spectrum::white()));
+    let gold = Arc::new(Metal::gold());
+    let plastic = Arc::new(Plastic::new(Spectrum::rgb(0.3, 0.3, 1.0), Spectrum::white()));
     let plastic_lines = Arc::new(Plastic::new_tex("lines.png", Spectrum::white()));
     let sphere = Box::new(GeometricPrimitive {
-        shape: Arc::new(Sphere::new().radius(0.7).transform(transform::rot(45.0, 45.0, 0.0))),
+        shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
         area_light: None,
         // material: Some(Arc::new(Plastic::new(Spectrum::red(), Spectrum::white()))),
         // material: Some(Arc::new(Plastic::new_tex("lines.png", Spectrum::white()))),
@@ -147,9 +148,9 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let buddha =
         Box::new(BVH::<GeometricPrimitive>::from_mesh_file(Path::new("models/buddha.obj"),
                                                            "buddha",
-                                                           bronze.clone(),
+                                                           gold.clone(),
                                                            &Transform::new(
-                                                             Vector3f::new(-2.0, -0.1, 0.0),
+                                                             Vector3f::new(-2.0, 0.0, 0.0),
                                                              Vector3f::new(0.0, 200.0f32.to_radians(), 0.0),
                                                              3.0
                                                              ))) as Box<Primitive + Send + Sync>;
@@ -166,7 +167,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     // Light
     lights.push(area_light);
     lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
-                                           Spectrum::rgb(0.7, 0.7, 0.7))));
+                                           Spectrum::rgb(0.5, 0.5, 0.5))));
 
     Scene::new(camera, integrator, primitives, lights)
 }

@@ -86,6 +86,18 @@ pub fn rot(ax: f32, ay: f32, az: f32) -> Transform {
     Transform::new(na::zero(), Vector::new(ax, ay, az), 1.0)
 }
 
+pub fn translate_x(t: f32) -> Transform {
+    Transform::new(Vector::x() * t, na::zero(), 1.0)
+}
+
+pub fn translate_y(t: f32) -> Transform {
+    Transform::new(Vector::y() * t, na::zero(), 1.0)
+}
+
+pub fn translate_z(t: f32) -> Transform {
+    Transform::new(Vector::z() * t, na::zero(), 1.0)
+}
+
 #[cfg(test)]
 use na::{Dot, Inverse};
 
