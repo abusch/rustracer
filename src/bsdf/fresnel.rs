@@ -1,7 +1,8 @@
 use std::mem;
 
 use ::{Vector, Point2f};
-use super::*;
+use bsdf::{BxDF, BxDFType, BSDF_SPECULAR, BSDF_REFLECTION};
+use geometry::*;
 use spectrum::Spectrum;
 use na::{Dot, Norm, clamp};
 

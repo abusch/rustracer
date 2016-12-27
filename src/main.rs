@@ -105,7 +105,9 @@ fn run(matches: ArgMatches) -> Result<(), String> {
     println!("Secondary rays             : {}", stats.secondary_rays);
     println!("Num triangles              : {}", stats.triangles);
     println!("Ray-triangle tests         : {}", stats.ray_triangle_tests);
-    println!("Ray-triangle intersections : {}", stats.ray_triangle_isect);
+    println!("Ray-triangle intersections : {}\t({}%)",
+             stats.ray_triangle_isect,
+             stats.ray_triangle_isect as f32 / stats.ray_triangle_tests as f32 * 100.0);
     println!("Fast bounding-box test     : {}", stats.fast_bbox_isect);
 
     Ok(())
@@ -118,7 +120,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
 
     let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
     let area_light =
-        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(8.0, 8.0, 8.0), disk.clone(), 16));
+        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(3.0, 3.0, 3.0), disk.clone(), 16));
     let area_light_prim = Box::new(GeometricPrimitive {
         shape: disk.clone(),
         area_light: Some(area_light.clone()),

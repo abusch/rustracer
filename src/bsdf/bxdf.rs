@@ -1,7 +1,8 @@
 use std::f32::consts;
 
-use super::{BxDFType, abs_cos_theta, same_hemisphere};
+use super::BxDFType;
 use ::{Vector, Point2f};
+use geometry::{abs_cos_theta, same_hemisphere};
 use sampling::cosine_sample_hemisphere;
 use spectrum::Spectrum;
 

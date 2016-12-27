@@ -83,6 +83,7 @@ fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
     let (w, h) = dim;
     let mut buffer = Vec::new();
 
+    info!("Converting image to sRGB");
     for i in 0..w * h {
         let bytes = image[i as usize].to_srgb();
         buffer.push(bytes[0]);
@@ -91,6 +92,7 @@ fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
     }
 
     // Save the buffer
+    info!("Writing image to file {}", filename);
     img::save_buffer(&Path::new(filename),
                      &buffer,
                      w as u32,

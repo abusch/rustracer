@@ -3,7 +3,7 @@ use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
 use na;
 use num::{Zero, One};
 
-use ::lerp;
+use ::{lerp, find_interval};
 use cie;
 
 /// Represents a linear RGB spectrum.
@@ -142,26 +142,6 @@ fn interpolate_spectrum_samples(lambda: &[f32], vals: &[f32], n: usize, l: f32) 
     let t = (l - lambda[offset]) / (lambda[offset + 1] - lambda[offset]);
     lerp(t, vals[offset], vals[offset + 1])
 }
-
-fn find_interval<P>(size: usize, pred: P) -> usize
-    where P: Fn(usize) -> bool
-{
-    let mut first = 0;
-    let mut len = size;
-    while len > 0 {
-        let half = len >> 1;
-        let middle = first + half;
-        // Bisect range based on value of _pred_ at _middle_
-        if pred(middle) {
-            first = middle + 1;
-            len -= half + 1;
-        } else {
-            len = half;
-        }
-    }
-    na::clamp(first - 1, 0, size - 2)
-}
-
 
 // Operators
 

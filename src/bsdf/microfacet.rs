@@ -5,7 +5,8 @@ use na::{Norm, Dot};
 use ::Vector;
 use spectrum::Spectrum;
 use bsdf::{BxDF, BxDFType, BSDF_REFLECTION, BSDF_GLOSSY};
-use bsdf::{tan_theta, tan2_theta, abs_cos_theta, cos2_theta, cos_phi, cos2_phi, sin_phi, sin2_phi};
+use geometry::{tan_theta, tan2_theta, abs_cos_theta, cos2_theta, cos_phi, cos2_phi, sin_phi,
+               sin2_phi};
 use bsdf::fresnel::Fresnel;
 
 pub struct MicrofacetReflection {

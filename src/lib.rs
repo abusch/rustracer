@@ -32,6 +32,7 @@ pub mod spectrum;
 pub mod efloat;
 mod filter;
 mod film;
+mod geometry;
 pub mod integrator;
 mod interaction;
 pub mod light;
@@ -115,6 +116,26 @@ pub fn coordinate_system(v1: &Vector3f) -> (Vector3f, Vector3f) {
     let v3 = v1.cross(&v2);
 
     (v2, v3)
+}
+
+// TODO does this exist in std?
+pub fn find_interval<P>(size: usize, pred: P) -> usize
+    where P: Fn(usize) -> bool
+{
+    let mut first = 0;
+    let mut len = size;
+    while len > 0 {
+        let half = len >> 1;
+        let middle = first + half;
+        // Bisect range based on value of _pred_ at _middle_
+        if pred(middle) {
+            first = middle + 1;
+            len -= half + 1;
+        } else {
+            len = half;
+        }
+    }
+    na::clamp(first - 1, 0, size - 2)
 }
 
 #[test]

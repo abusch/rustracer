@@ -3,7 +3,7 @@ use std::f32::consts;
 use ::Vector;
 use spectrum::Spectrum;
 use bsdf::{BxDFType, BSDF_REFLECTION, BSDF_DIFFUSE};
-use bsdf::{sin_theta, sin_phi, cos_phi, abs_cos_theta};
+use geometry::{sin_theta, sin_phi, cos_phi, abs_cos_theta};
 use bsdf::bxdf::BxDF;
 
 pub struct OrenNayar {
