@@ -125,6 +125,13 @@ impl Spectrum {
     pub fn sqrt(&self) -> Spectrum {
         Spectrum::rgb(self.r.sqrt(), self.g.sqrt(), self.b.sqrt())
     }
+
+    /// Return the luminance of the Spectrum
+    pub fn y(&self) -> f32 {
+        let y_height: [f32; 3] = [0.212671, 0.715160, 0.072169];
+        return y_height[0] * self[0] + y_height[1] * self[1] + y_height[2] * self[2];
+
+    }
 }
 
 fn interpolate_spectrum_samples(lambda: &[f32], vals: &[f32], n: usize, l: f32) -> f32 {
