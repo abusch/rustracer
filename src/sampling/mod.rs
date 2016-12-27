@@ -4,6 +4,12 @@ use na::Vector2;
 
 use {Point2f, Vector};
 
+mod distribution1d;
+mod distribution2d;
+
+pub use self::distribution1d::Distribution1D;
+pub use self::distribution2d::Distribution2D;
+
 const FRAC_PI_4: f32 = consts::FRAC_PI_2 / 2.0;
 
 // Inline functions
