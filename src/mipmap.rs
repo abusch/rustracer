@@ -112,7 +112,8 @@ impl<T> MIPMap<T>
         };
 
         // initialize levels of MIPMap for image
-        let n_levels = 1 + f32::log2(cmp::max(resolution.x, resolution.y) as f32).log2() as usize;
+        let n_levels = 1 + (cmp::max(resolution.x, resolution.y) as f32).log2() as usize;
+        info!("mipmap will have {} levels", n_levels);
         // Initialize most detailed level of the pyramid
         let img_data = if resampled_image.is_empty() {
             img
