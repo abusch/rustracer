@@ -1,7 +1,7 @@
 use ::find_interval;
 
 pub struct Distribution1D {
-    func: Vec<f32>,
+    pub func: Vec<f32>,
     cdf: Vec<f32>,
     pub func_int: f32,
 }

@@ -9,10 +9,12 @@ use spectrum::Spectrum;
 mod point;
 mod distant;
 mod diffuse;
+mod infinite;
 
 pub use self::point::PointLight;
 pub use self::distant::DistantLight;
 pub use self::diffuse::DiffuseAreaLight;
+pub use self::infinite::InfiniteAreaLight;
 
 bitflags! {
     pub flags LightFlags: u32 {
@@ -29,22 +31,24 @@ fn is_delta_light(flags: LightFlags) -> bool {
 }
 
 pub struct VisibilityTester {
-    ray: Ray,
+    pub p0: Interaction,
+    pub p1: Interaction,
 }
 
 impl VisibilityTester {
-    pub fn new(ray: Ray) -> VisibilityTester {
-        VisibilityTester { ray: ray }
+    pub fn new(p0: Interaction, p1: Interaction) -> VisibilityTester {
+        VisibilityTester { p0: p0, p1: p1 }
     }
 
     pub fn unoccluded(&self, scene: &Scene) -> bool {
-        !scene.intersect_p(&self.ray)
+        let r = self.p0.spawn_ray_to_interaction(&self.p1);
+        !scene.intersect_p(&r)
     }
 }
 
 pub trait Light {
     /// Sample the light source for an outgoing direction wo.
-    /// Return a triplet of:
+    /// Return a tuple of:
     ///  * emitted light in the sampled direction
     ///  * the sampled direction wi
     ///  * the pdf for that direction
@@ -64,6 +68,10 @@ pub trait Light {
     fn flags(&self) -> LightFlags;
 
     fn power(&self) -> Spectrum;
+
+    fn le(&self, ray: &Ray) -> Spectrum {
+        Spectrum::black()
+    }
 }
 
 pub trait AreaLight: Light {

@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use na::Norm;
 
 use {Point, Vector, Point2f};
-use interaction::SurfaceInteraction;
+use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, DELTA_DIRECTION};
 use scene::Scene;
 use spectrum::Spectrum;
@@ -22,7 +22,7 @@ impl DistantLight {
             dir: dir.normalize(),
             emission_colour: ec,
             w_center: Point::new(0.0, 0.0, 0.0),
-            w_radius: 0.0,
+            w_radius: 100.0, // TODO
         }
     }
 }
@@ -43,9 +43,7 @@ impl Light for DistantLight {
         (self.emission_colour,
          -self.dir,
          1.0,
-         // TODO can't use self.w_radius as I've disabled preprocess for now...
-         // VisibilityTester::new(isect.spawn_ray_to(&p_outside)))
-         VisibilityTester::new(isect.spawn_ray(&(-self.dir))))
+         VisibilityTester::new(isect.into(), Interaction::from_point(&p_outside)))
     }
 
     fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector) -> f32 {

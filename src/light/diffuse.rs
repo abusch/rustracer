@@ -41,7 +41,7 @@ impl Light for DiffuseAreaLight {
         let (p_shape, pdf) = self.shape.sample_si(&si.into(), u);
         assert!(!p_shape.p.x.is_nan() && !p_shape.p.y.is_nan() && !p_shape.p.z.is_nan());
         let wi = (p_shape.p - si.p).normalize();
-        let vis = VisibilityTester::new(si.spawn_ray_to(&p_shape.p));
+        let vis = VisibilityTester::new(si.into(), p_shape);
 
         (self.l(&p_shape, &(-wi)), wi, pdf, vis)
     }

@@ -5,7 +5,7 @@ use na::Norm;
 use {Point, Vector, Point2f};
 use light::{Light, LightFlags, VisibilityTester, DELTA_POSITION};
 use spectrum::Spectrum;
-use interaction::SurfaceInteraction;
+use interaction::{Interaction, SurfaceInteraction};
 
 #[derive(Debug)]
 pub struct PointLight {
@@ -31,7 +31,7 @@ impl Light for PointLight {
         let wi = self.pos - isect.p;
         let r2 = wi.norm_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);
-        let vt = VisibilityTester::new(isect.spawn_ray_to(&self.pos));
+        let vt = VisibilityTester::new(isect.into(), Interaction::from_point(&self.pos));
 
         (l_i, wi.normalize(), 1.0, vt)
     }

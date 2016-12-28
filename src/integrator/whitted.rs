@@ -59,8 +59,7 @@ impl SamplerIntegrator for Whitted {
                 }
             }
             None => {
-                // colour = scene.atmosphere.compute_incident_light(ray);
-                colour = Spectrum::black();
+                colour = scene.lights.iter().fold(Spectrum::black(), |c, l| c + l.le(ray));
             }
         }
 

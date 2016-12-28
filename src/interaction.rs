@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use ::{Point, Point2f, Vector, Transform};
+use ::{Point, Point3f, Point2f, Vector, Vector3f, Transform};
 use bsdf::BSDF;
 use spectrum::Spectrum;
 use primitive::Primitive;
@@ -13,6 +13,7 @@ use fp::Ieee754;
 
 // TODO Find a better design for this mess of inheritance...
 
+#[derive(Copy, Clone)]
 pub struct Interaction {
     /// The point where the ray hit the primitive
     pub p: Point,
@@ -34,6 +35,15 @@ impl Interaction {
         }
     }
 
+    pub fn from_point(p: &Point) -> Interaction {
+        Interaction {
+            p: *p,
+            p_error: Vector3f::new(0.0, 0.0, 0.0),
+            wo: Vector3f::new(0.0, 0.0, 0.0),
+            n: Vector3f::new(0.0, 0.0, 0.0),
+        }
+    }
+
     pub fn spawn_ray(&self, dir: &Vector) -> Ray {
         assert!(dir.x != 0.0 && dir.y != 0.0 && dir.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
@@ -45,6 +55,13 @@ impl Interaction {
         assert!(d.x != 0.0 && d.y != 0.0 && d.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
+    }
+
+    pub fn spawn_ray_to_interaction(&self, it: &Interaction) -> Ray {
+        let origin = offset_origin(&self.p, &self.p_error, &self.n, &(it.p - self.p));
+        let target = offset_origin(&it.p, &it.p_error, &it.n, &(origin - it.p));
+        let d = target - origin;
+        Ray::segment(origin, d, 1.0 - 1e-4)
     }
 }
 
@@ -62,7 +79,7 @@ pub struct SurfaceInteraction<'a> {
     /// Partial derivatives at the intersection point
     pub dpdu: Vector,
     pub dpdv: Vector,
-    /// Partial derivaties of the normal
+    /// Partial derivatives of the normal
     pub dndu: Vector,
     pub dndv: Vector,
     /// Hit shape
