@@ -13,7 +13,7 @@ impl Distribution2D {
         let mut p_conditional_v = Vec::with_capacity(nv);
         for v in 0..nv {
             // compute conditional sampling distribution for v_tilde
-            p_conditional_v.push(Distribution1D::new(&func[v * nu..v * (nu + 1)]));
+            p_conditional_v.push(Distribution1D::new(&func[v * nu..(v + 1) * nu]));
         }
         // compute marginal sampling distribution p[v_tilde]
         let mut marginal_func = Vec::with_capacity(nv);

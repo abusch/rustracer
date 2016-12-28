@@ -9,11 +9,12 @@ pub struct Distribution1D {
 impl Distribution1D {
     pub fn new(f: &[f32]) -> Distribution1D {
         let n = f.len();
+        assert!(n >= 2, "Need at least 2 values in a distribution");
         let func = Vec::from(f);
-        let mut cdf = Vec::with_capacity(n + 1);
+        let mut cdf = vec![0.0; n + 1];
         // compute integral of step function at xi
         cdf[0] = 0.0;
-        for i in 0..n + 1 {
+        for i in 1..n + 1 {
             cdf[i] = cdf[i - 1] + func[i - 1] / n as f32;
         }
         // transform step function integral into CDF
