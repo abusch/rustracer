@@ -21,12 +21,12 @@ impl<T> BlockedArray<T>
           T: Zero
 {
     pub fn new(u_res: usize, v_res: usize) -> BlockedArray<T> {
-        let data = vec![zero(); u_res * v_res];
+        let data = vec![zero(); round_up(u_res) * round_up(v_res)];
 
         BlockedArray {
             u_res: u_res,
             v_res: v_res,
-            u_blocks: u_res.next_power_of_two() >> LOG_BLOCK_SIZE,
+            u_blocks: round_up(u_res) >> LOG_BLOCK_SIZE,
             log_block_size: LOG_BLOCK_SIZE,
             block_size: BLOCK_SIZE,
             data: data,
@@ -64,6 +64,10 @@ impl<T> BlockedArray<T>
     pub fn offset(&self, a: usize) -> usize {
         a & (self.block_size() - 1)
     }
+}
+
+fn round_up(x: usize) -> usize {
+    (x + BLOCK_SIZE - 1) & !(BLOCK_SIZE - 1)
 }
 
 impl<T> Index<(usize, usize)> for BlockedArray<T>
