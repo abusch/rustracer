@@ -26,7 +26,7 @@ use slog::*;
 use rt::bvh::BVH;
 use rt::camera::Camera;
 use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
-use rt::light::{Light, DistantLight, DiffuseAreaLight};
+use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::metal::Metal;
 use rt::material::plastic::Plastic;
@@ -167,9 +167,13 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let primitives: Vec<Box<Primitive + Sync + Send>> =
         vec![buddha, sphere, bunny, floor, area_light_prim];
     // Light
-    lights.push(area_light);
-    lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
-                                           Spectrum::rgb(0.5, 0.5, 0.5))));
+    // lights.push(area_light);
+    // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
+    //                                        Spectrum::rgb(0.5, 0.5, 0.5))));
+    lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
+                                                16,
+                                                Spectrum::grey(0.5),
+                                                Path::new("foo"))));
 
     Scene::new(camera, integrator, primitives, lights)
 }
