@@ -17,7 +17,7 @@ crossbeam = "0.2"
 ieee754 = { git = "https://github.com/abusch/ieee754.git" }
 image = "0.10"
 itertools = "0.5"
-nalgebra = "0.8"
+nalgebra = "0.10"
 num = "0.1"
 num_cpus = "1.1"
 rand = "0.3"
