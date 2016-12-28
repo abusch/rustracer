@@ -34,15 +34,15 @@ impl InfiniteAreaLight {
         let l_map = Box::new(MIPMap::new(&resolution, &[power; 1], false, 0.0, WrapMode::Repeat));
         // initialize sampling PDFs for infinite area light TODO
         // - compute scalar-valued image img from environment map
-        let (width, height) = (resolution.x as usize, resolution.y as usize);
-        let filter = 1.0 / max(width, height) as f32;
+        let (width, height) = (2 * l_map.width(), 2 * l_map.height());
+        let filter = 0.5 / max(width, height) as f32;
         let mut img = Vec::with_capacity(width * height);
         for v in 0..height {
-            let vp = v as f32 / height as f32;
+            let vp = (v as f32 + 0.5) / height as f32;
             let sin_theta = (PI * (v as f32 + 0.5) / height as f32).sin();
             for u in 0..width {
-                let up = u as f32 / width as f32;
-                img[u + v * width] = l_map.lookup(&Point2f::new(up, vp), filter).y() * sin_theta;
+                let up = (u as f32 + 0.5) / width as f32;
+                img.push(l_map.lookup(&Point2f::new(up, vp), filter).y() * sin_theta);
             }
         }
         // - compute sampling distributions for rows and columns of image
