@@ -202,7 +202,7 @@ impl<T> MIPMap<T>
         let t0 = t.floor() as isize;
         let ds = s - s0 as f32;
         let dt = t - t0 as f32;
-        debug!("st={:?}, s={}, t={}, s0={}, t0={}, ds={}, dt={}",
+        trace!("st={:?}, s={}, t={}, s0={}, t0={}, ds={}, dt={}",
                st,
                s,
                t,
