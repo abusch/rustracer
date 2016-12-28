@@ -36,7 +36,7 @@ impl Texture<Spectrum> for ImageTexture {
     fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum {
         let st = self.mapping.map(si);
         // TODO Call correct lookup method once we have ray differentials
-        self.mipmap.lookup(&st, 0.1)
+        self.mipmap.lookup(&st, 0.0)
     }
 }
 
