@@ -8,13 +8,13 @@ use spectrum::Spectrum;
 
 pub trait BxDF {
     fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum;
-    fn sample_f(&self, wo: &Vector, u: &Point2f) -> (Vector, f32, Option<BxDFType>, Spectrum) {
+    fn sample_f(&self, wo: &Vector, u: &Point2f) -> (Spectrum, Vector, f32, BxDFType) {
         let mut wi = cosine_sample_hemisphere(u);
         if wo.z < 0.0 {
             wi.z *= -1.0;
         }
         let pdf = self.pdf(wo, &wi);
-        (wi, pdf, None, self.f(wo, &wi))
+        (self.f(wo, &wi), wi, pdf, BxDFType::empty())
     }
     // TODO implement rho functions
     // fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Spectrum);
@@ -52,9 +52,9 @@ impl BxDF for ScaledBxDF {
     fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum {
         self.bxdf.f(wo, wi) * self.scale
     }
-    fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Vector, f32, Option<BxDFType>, Spectrum) {
-        let (wi, pdf, bxdftype, spectrum) = self.bxdf.sample_f(wo, sample);
-        (wi, pdf, bxdftype, spectrum * self.scale)
+    fn sample_f(&self, wo: &Vector, sample: &Point2f) -> (Spectrum, Vector, f32, BxDFType) {
+        let (spectrum, wi, pdf, bxdftype) = self.bxdf.sample_f(wo, sample);
+        (spectrum * self.scale, wi, pdf, bxdftype)
     }
     // fn rho(&self, wo: &Vector, n_samples: u32) -> (Point2f, Spectrum) {
     //     let (sample, spectrum) = self.bxdf.rho(wo, n_samples);

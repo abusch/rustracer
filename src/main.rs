@@ -175,13 +175,13 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let primitives: Vec<Box<Primitive + Sync + Send>> =
         vec![buddha, sphere, bunny, floor, area_light_prim];
     // Light
-    // lights.push(area_light);
-    // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
-    //                                        Spectrum::rgb(0.5, 0.5, 0.5))));
-    lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
-                                                16,
-                                                Spectrum::grey(0.5),
-                                                Path::new("foo"))));
+    lights.push(area_light);
+    lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
+                                           Spectrum::rgb(0.5, 0.5, 0.5))));
+    // lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
+    //                                             16,
+    //                                             Spectrum::grey(0.5),
+    //                                             Path::new("foo"))));
 
     Scene::new(camera, integrator, primitives, lights)
 }
@@ -191,7 +191,7 @@ fn parse_args<'a>() -> ArgMatches<'a> {
     // will be read from the scene file...
     App::new("rustracer")
         .version("0.1")
-        .author("Antoine Bűsch")
+        .author("Antoine Büsch")
         .about("Toy raytracer in Rust based on PBRTv3")
         .arg(Arg::with_name("output")
             .long("output")

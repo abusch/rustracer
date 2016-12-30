@@ -67,6 +67,9 @@ pub fn gamma(n: u32) -> f32 {
     (n as f32 * MACHINE_EPSILON) / (1.0 - n as f32 * MACHINE_EPSILON)
 }
 
+/// Smallest representable float strictly less than 1
+pub const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
+
 /// Linear interpolation between 2 values.
 pub fn lerp<S, T>(t: S, a: T, b: T) -> T
     where S: One,

@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use {Point2i, Point2f};
+use {Point2i, Point2f, ONE_MINUS_EPSILON};
 
 pub fn van_der_corput<T: Rng>(n_samples_per_pixel_sample: u32,
                               n_pixel_samples: u32,
@@ -75,37 +75,6 @@ fn shuffle<R: Rng, T>(samp: &mut [T], count: u32, n_dimensions: u32, rng: &mut R
     }
 }
 
-
-// fn van_der_corput(n: u32, scramble: u32) -> f32 {
-//     let mut bits = n;
-//     bits = (bits << 16) | (bits >> 16);
-//     bits = ((bits & 0x00ff00ff) << 8) | ((bits & 0xff00ff00) >> 8);
-//     bits = ((bits & 0x0f0f0f0f) << 4) | ((bits & 0xf0f0f0f0) >> 4);
-//     bits = ((bits & 0x33333333) << 2) | ((bits & 0xcccccccc) >> 2);
-//     bits = ((bits & 0x55555555) << 1) | ((bits & 0xaaaaaaaa) >> 1);
-//     bits ^= scramble;
-
-//     (bits >> 8) as f32 / 0x1000000 as f32
-// }
-
-// fn sobol(bits: u32, scramble: u32) -> f32 {
-//     let mut v: u32 = 1 << 31;
-//     let mut i = bits;
-//     let mut r = scramble;
-
-//     while i > 0 {
-//         if i & 1 > 0 {
-//             r ^= v;
-//         }
-//         i >>= 1;
-//         v ^= v >> 1;
-//     }
-
-//     (r >> 8) as f32 / 0x1000000 as f32
-// }
-
-/// Smallest representable float strictly less than 1
-const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
 const CVAN_DER_CORPUT: [u32; 32] = [0b_10000000000000000000000000000000,
                                     0b_1000000000000000000000000000000,
                                     0b_100000000000000000000000000000,

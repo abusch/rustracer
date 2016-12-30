@@ -157,14 +157,11 @@ impl BxDF for SpecularReflection {
         Spectrum::black()
     }
 
-    fn sample_f(&self,
-                wo: &Vector,
-                _sample: &Point2f)
-                -> (Vector, f32, Option<BxDFType>, Spectrum) {
+    fn sample_f(&self, wo: &Vector, _sample: &Point2f) -> (Spectrum, Vector, f32, BxDFType) {
         // There's only one possible wi for a given wo, so we always return it with a pdf of 1.
         let wi = Vector::new(-wo.x, -wo.y, wo.z);
         let spectrum = self.fresnel.evaluate(cos_theta(&wi)) * self.r / abs_cos_theta(&wi);
-        (wi, 1.0, None, spectrum)
+        (spectrum, wi, 1.0, BxDFType::empty())
     }
 
     fn get_type(&self) -> BxDFType {
