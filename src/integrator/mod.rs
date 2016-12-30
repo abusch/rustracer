@@ -78,7 +78,13 @@ pub fn uniform_sample_one_light(it: &SurfaceInteraction,
         Spectrum::black()
     } else {
         // Randomly chose a light to sample
-        let num_light = cmp::max(n_lights - 1, (sampler.get_1d() * n_lights as f32) as usize);
+        let s = sampler.get_1d();
+        let num_light = cmp::min(n_lights - 1, (s * n_lights as f32) as usize);
+        debug!("sampler.get_1d()={}, n_lights={}, num_light={}, num_light as usize={}",
+               s,
+               n_lights,
+               s * n_lights as f32,
+               num_light);
         let light = &scene.lights[num_light];
         let u_light = sampler.get_2d();
         let u_scattering = sampler.get_2d();
@@ -93,7 +99,6 @@ pub fn estimate_direct(it: &SurfaceInteraction,
                        scene: &Scene,
                        sampler: &mut Sampler)
                        -> Spectrum {
-    // let light = light.as_ref();
     let bsdf_flags = bsdf::BxDFType::all();
     let mut ld = Spectrum::black();
     // Sample light with multiple importance sampling
