@@ -41,6 +41,12 @@ pub fn concentric_sample_disk(u: &Point2f) -> Point2f {
     r * Point2f::new(theta.cos(), theta.sin())
 }
 
+#[inline]
+pub fn power_heuristic(nf: u32, f_pdf: f32, ng: u32, g_pdf: f32) -> f32 {
+    let f = nf as f32 * f_pdf;
+    let g = ng as f32 * g_pdf;
+    (f * f) / (f * f + g * g)
+}
 
 // pub fn zero_two_sequence(n: u32, scramble: (u32, u32)) -> (f32, f32) {
 //     (van_der_corput(n, scramble.0), sobol(n, scramble.1))
