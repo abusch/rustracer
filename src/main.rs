@@ -175,13 +175,13 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let primitives: Vec<Box<Primitive + Sync + Send>> =
         vec![buddha, sphere, bunny, floor, area_light_prim];
     // Light
-    lights.push(area_light);
-    lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
-                                           Spectrum::rgb(0.5, 0.5, 0.5))));
-    // lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
-    //                                             16,
-    //                                             Spectrum::grey(0.5),
-    //                                             Path::new("foo"))));
+    // lights.push(area_light);
+    // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
+    //                                        Spectrum::rgb(0.5, 0.5, 0.5))));
+    lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
+                                                16,
+                                                Spectrum::grey(1.0),
+                                                Path::new("foo"))));
 
     Scene::new(camera, integrator, primitives, lights)
 }

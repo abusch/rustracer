@@ -99,7 +99,13 @@ pub fn estimate_direct(it: &SurfaceInteraction,
                        scene: &Scene,
                        sampler: &mut Sampler)
                        -> Spectrum {
-    let bsdf_flags = bsdf::BxDFType::all();
+    let specular = false;
+
+    let bsdf_flags = if specular {
+        bsdf::BxDFType::all()
+    } else {
+        bsdf::BxDFType::all() & !bsdf::BSDF_SPECULAR
+    };
     let mut ld = Spectrum::black();
     // Sample light with multiple importance sampling
     let bsdf = it.bsdf.as_ref().expect("There should be a BSDF set at this point!");
@@ -118,7 +124,7 @@ pub fn estimate_direct(it: &SurfaceInteraction,
                     ld += f * li / light_pdf;
                 } else {
                     let weight = power_heuristic(1, light_pdf, 1, scattering_pdf);
-                    ld += f * li / weight * light_pdf;
+                    ld += f * li * weight / light_pdf;
                 }
             }
         }
