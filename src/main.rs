@@ -25,7 +25,8 @@ use slog::*;
 
 use rt::bvh::BVH;
 use rt::camera::Camera;
-use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
+use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
+                     AmbientOcclusion};
 use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::metal::Metal;
@@ -43,6 +44,7 @@ arg_enum! {
   #[derive(Debug)]
   enum SamplerIntegratorType {
       Whitted,
+      DirectLighting,
       Ao,
       Normal
   }
@@ -75,6 +77,12 @@ fn run(matches: ArgMatches) -> Result<(), String> {
                 info!("Using Whitted integrator with max ray depth of {}", 8);
                 // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
                 Box::new(Whitted::new(8))
+            }
+            SamplerIntegratorType::DirectLighting => {
+                info!("Using direct lighting integrator with max ray depth of {}",
+                      8);
+                // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
+                Box::new(DirectLightingIntegrator::new(8))
             }
             SamplerIntegratorType::Ao => {
                 info!("Using Ambient Occlusion integrator with {} samples", 32);
@@ -203,7 +211,8 @@ fn parse_args<'a>() -> ArgMatches<'a> {
             .long("integrator")
             .short("i")
             .help("SamplerIntegrator to use")
-            .possible_values(&SamplerIntegratorType::variants()))
+            .possible_values(&SamplerIntegratorType::variants())
+            .default_value("Whitted"))
         .arg(Arg::with_name("spp")
             .long("spp")
             .help("Sample per pixels")
