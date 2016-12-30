@@ -1,24 +1,33 @@
 use na::Dot;
 
 use bsdf;
-use integrator::SamplerIntegrator;
+use integrator::{SamplerIntegrator, uniform_sample_one_light};
 use material::TransportMode;
 use ray::Ray;
 use sampler::Sampler;
 use scene::Scene;
 use spectrum::Spectrum;
 
-pub struct Whitted {
+pub enum LightStrategy {
+    UniformSampleAll,
+    UniformSampleOne,
+}
+
+pub struct DirectLightingIntegrator {
+    pub light_strategy: LightStrategy,
     pub max_ray_depth: u8,
 }
 
-impl Whitted {
-    pub fn new(n: u8) -> Whitted {
-        Whitted { max_ray_depth: n }
+impl DirectLightingIntegrator {
+    pub fn new(n: u8) -> DirectLightingIntegrator {
+        DirectLightingIntegrator {
+            max_ray_depth: n,
+            light_strategy: LightStrategy::UniformSampleOne,
+        }
     }
 }
 
-impl SamplerIntegrator for Whitted {
+impl SamplerIntegrator for DirectLightingIntegrator {
     fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum {
         let mut colour = Spectrum::black();
 
@@ -38,18 +47,13 @@ impl SamplerIntegrator for Whitted {
 
                 // Compute emitted light if ray hit an area light source
                 colour += isect.le(&wo);
-
-                // Add contribution of each light source
-                for light in &scene.lights {
-                    let (li, wi, pdf, visibility_tester) =
-                        light.sample_li(&isect, &sampler.get_2d());
-                    if li.is_black() || pdf == 0.0 {
-                        continue;
-                    }
-
-                    let f = bsdf.f(&wo, &wi, bsdf::BxDFType::all());
-                    if !f.is_black() && visibility_tester.unoccluded(scene) {
-                        colour += f * li * wi.dot(&n).abs() / pdf;
+                if !scene.lights.is_empty() {
+                    // Compute direct lighting for DirectLightingIntegrator
+                    colour += match self.light_strategy {
+                        LightStrategy::UniformSampleAll => unimplemented!(),
+                        LightStrategy::UniformSampleOne => {
+                            uniform_sample_one_light(&isect, scene, sampler)
+                        }
                     }
                 }
 

@@ -1,5 +1,7 @@
 use std::f32;
 
+use uuid::Uuid;
+
 use {Point2f, Vector};
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
@@ -26,7 +28,7 @@ bitflags! {
 }
 
 #[inline]
-fn is_delta_light(flags: LightFlags) -> bool {
+pub fn is_delta_light(flags: LightFlags) -> bool {
     flags.contains(DELTA_POSITION) || flags.contains(DELTA_DIRECTION)
 }
 
@@ -47,7 +49,8 @@ impl VisibilityTester {
 }
 
 pub trait Light {
-    /// Sample the light source for an outgoing direction wo.
+    fn id(&self) -> Uuid;
+    /// Sample the light source
     /// Return a tuple of:
     ///  * emitted light in the sampled direction
     ///  * the sampled direction wi
@@ -55,7 +58,6 @@ pub trait Light {
     ///  * A VisibilityTester
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
-                 wo: &Vector,
                  u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester);
 

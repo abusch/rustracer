@@ -14,6 +14,7 @@ extern crate rand;
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
+extern crate uuid;
 
 use std::f32;
 use std::ops::{Add, Mul, Sub};
@@ -65,6 +66,9 @@ pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
 pub fn gamma(n: u32) -> f32 {
     (n as f32 * MACHINE_EPSILON) / (1.0 - n as f32 * MACHINE_EPSILON)
 }
+
+/// Smallest representable float strictly less than 1
+pub const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
 
 /// Linear interpolation between 2 values.
 pub fn lerp<S, T>(t: S, a: T, b: T) -> T

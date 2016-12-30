@@ -25,8 +25,9 @@ use slog::*;
 
 use rt::bvh::BVH;
 use rt::camera::Camera;
-use rt::integrator::{SamplerIntegrator, Whitted, Normal, AmbientOcclusion};
-use rt::light::{Light, DistantLight, DiffuseAreaLight};
+use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
+                     AmbientOcclusion};
+use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::metal::Metal;
 use rt::material::plastic::Plastic;
@@ -43,6 +44,7 @@ arg_enum! {
   #[derive(Debug)]
   enum SamplerIntegratorType {
       Whitted,
+      DirectLighting,
       Ao,
       Normal
   }
@@ -75,6 +77,12 @@ fn run(matches: ArgMatches) -> Result<(), String> {
                 info!("Using Whitted integrator with max ray depth of {}", 8);
                 // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
                 Box::new(Whitted::new(8))
+            }
+            SamplerIntegratorType::DirectLighting => {
+                info!("Using direct lighting integrator with max ray depth of {}",
+                      8);
+                // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
+                Box::new(DirectLightingIntegrator::new(8))
             }
             SamplerIntegratorType::Ao => {
                 info!("Using Ambient Occlusion integrator with {} samples", 32);
@@ -167,9 +175,13 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let primitives: Vec<Box<Primitive + Sync + Send>> =
         vec![buddha, sphere, bunny, floor, area_light_prim];
     // Light
-    lights.push(area_light);
-    lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
-                                           Spectrum::rgb(0.5, 0.5, 0.5))));
+    // lights.push(area_light);
+    // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, -5.0),
+    //                                        Spectrum::rgb(0.5, 0.5, 0.5))));
+    lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
+                                                16,
+                                                Spectrum::grey(1.0),
+                                                Path::new("foo"))));
 
     Scene::new(camera, integrator, primitives, lights)
 }
@@ -179,7 +191,7 @@ fn parse_args<'a>() -> ArgMatches<'a> {
     // will be read from the scene file...
     App::new("rustracer")
         .version("0.1")
-        .author("Antoine Bűsch")
+        .author("Antoine Büsch")
         .about("Toy raytracer in Rust based on PBRTv3")
         .arg(Arg::with_name("output")
             .long("output")
@@ -199,7 +211,8 @@ fn parse_args<'a>() -> ArgMatches<'a> {
             .long("integrator")
             .short("i")
             .help("SamplerIntegrator to use")
-            .possible_values(&SamplerIntegratorType::variants()))
+            .possible_values(&SamplerIntegratorType::variants())
+            .default_value("Whitted"))
         .arg(Arg::with_name("spp")
             .long("spp")
             .help("Sample per pixels")
