@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 
 use na::Norm;
+use uuid::Uuid;
 
 use {Point, Vector, Point2f};
 use interaction::{Interaction, SurfaceInteraction};
@@ -10,6 +11,7 @@ use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct DistantLight {
+    pub id: Uuid,
     pub dir: Vector,
     pub emission_colour: Spectrum,
     w_center: Point,
@@ -19,6 +21,7 @@ pub struct DistantLight {
 impl DistantLight {
     pub fn new(dir: Vector, ec: Spectrum) -> DistantLight {
         DistantLight {
+            id: Uuid::new_v4(),
             dir: dir.normalize(),
             emission_colour: ec,
             w_center: Point::new(0.0, 0.0, 0.0),
@@ -28,6 +31,10 @@ impl DistantLight {
 }
 
 impl Light for DistantLight {
+    fn id(&self) -> Uuid {
+        self.id
+    }
+
     fn preprocess(&mut self, scene: &Scene) {
         let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
         self.w_center = w_center;
@@ -36,7 +43,6 @@ impl Light for DistantLight {
 
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
-                 _wo: &Vector,
                  _u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester) {
         let p_outside = isect.p - self.dir * (2.0 * self.w_radius);

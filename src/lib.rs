@@ -14,6 +14,7 @@ extern crate rand;
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
+extern crate uuid;
 
 use std::f32;
 use std::ops::{Add, Mul, Sub};

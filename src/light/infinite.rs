@@ -3,6 +3,7 @@ use std::path::Path;
 use std::cmp::max;
 
 use na::{Norm, Inverse, Origin, zero, origin};
+use uuid::Uuid;
 
 use ::{Vector, Vector3f, Point2i, Point2f, Point3f, Transform};
 use geometry::{spherical_phi, spherical_theta};
@@ -14,6 +15,7 @@ use sampling::Distribution2D;
 use spectrum::Spectrum;
 
 pub struct InfiniteAreaLight {
+    id: Uuid,
     light_to_world: Transform,
     world_to_light: Transform,
     n_samples: u32,
@@ -49,6 +51,7 @@ impl InfiniteAreaLight {
         let distribution = Box::new(Distribution2D::new(&img[..], width, height));
 
         InfiniteAreaLight {
+            id: Uuid::new_v4(),
             light_to_world: l2w,
             world_to_light: l2w.inverse().unwrap(),
             n_samples: n_samples,
@@ -61,9 +64,12 @@ impl InfiniteAreaLight {
 }
 
 impl Light for InfiniteAreaLight {
+    fn id(&self) -> Uuid {
+        self.id
+    }
+
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
-                 wo: &Vector,
                  u: &Point2f)
                  -> (Spectrum, Vector, f32, VisibilityTester) {
         // Find (u, v) sample coordinates in infinite light texture
