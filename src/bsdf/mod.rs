@@ -12,7 +12,7 @@ pub use self::microfacet::*;
 
 use na::{self, Cross, Dot, zero, Norm};
 
-use ::Vector;
+use ::{Vector, Point2f};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 
@@ -73,11 +73,36 @@ impl BSDF {
             .fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
     }
 
+    pub fn pdf(&self, wo_w: &Vector, wi_w: &Vector, flags: BxDFType) -> f32 {
+        if self.bxdfs.is_empty() {
+            return 0.0;
+        }
+        let wo = self.world_to_local(wo_w);
+        if wo.z == 0.0 {
+            return 0.0;
+        }
+        let wi = self.world_to_local(wi_w);
+
+        let mut matched_comps = 0;
+        let mut pdf = 0.0;
+        for bxdf in &self.bxdfs {
+            if bxdf.matches(flags) {
+                matched_comps += 1;
+                pdf += bxdf.pdf(&wo, &wi);
+            }
+        }
+        if matched_comps == 0 {
+            0.0
+        } else {
+            pdf / matched_comps as f32
+        }
+    }
+
     pub fn sample_f(&self,
                     _wo_w: &Vector,
-                    _sample: (f32, f32),
+                    _sample: &Point2f,
                     _flags: BxDFType)
-                    -> (Spectrum, Vector, f32) {
+                    -> (Spectrum, Vector, f32, BxDFType) {
         // if !flags.contains(BSDF_SPECULAR) {
         //     unimplemented!();
         // }
@@ -116,7 +141,7 @@ impl BSDF {
         //         .unwrap_or((Spectrum::black(), zero(), 0.0));
         // }
 
-        (Spectrum::black(), zero(), 0.0)
+        (Spectrum::black(), zero(), 0.0, BxDFType::all())
     }
 
     fn world_to_local(&self, v: &Vector) -> Vector {
