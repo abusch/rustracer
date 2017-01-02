@@ -244,12 +244,12 @@ impl HumanDisplay for std::time::Duration {
         let mut minutes = 0;
         let mut seconds = self.as_secs();
         if seconds >= 60 {
-            seconds %= 60;
             minutes = seconds / 60;
+            seconds %= 60;
         }
         if minutes >= 60 {
-            minutes %= 60;
             hours = minutes / 60;
+            minutes %= 60;
         }
         let millis = self.subsec_nanos() / 1000000;
         format!("{}:{}:{}.{}", hours, minutes, seconds, millis)
