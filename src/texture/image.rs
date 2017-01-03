@@ -22,7 +22,12 @@ impl ImageTexture {
         let rgb = buf.to_rgb();
         let res = Point2i::new(rgb.width(), rgb.height());
         let pixels: Vec<Spectrum> = rgb.pixels()
-            .map(|p| Spectrum::from_srgb(&p.data))
+            .map(|p| {
+                let r = p.data[0] as f32 / 255.0;
+                let g = p.data[1] as f32 / 255.0;
+                let b = p.data[2] as f32 / 255.0;
+                Spectrum::rgb(r, g, b)
+            })
             .collect();
 
         ImageTexture {
