@@ -1,10 +1,11 @@
 use std::sync::Arc;
+use std::path::Path;
 
 use bsdf::{BSDF, BxDF, LambertianReflection, OrenNayar};
 use spectrum::Spectrum;
 use material::{Material, TransportMode};
 use interaction::SurfaceInteraction;
-use texture::{Texture, ConstantTexture, CheckerboardTexture};
+use texture::{Texture, ConstantTexture, CheckerboardTexture, ImageTexture, UVTexture};
 
 pub struct MatteMaterial {
     kd: Arc<Texture<Spectrum> + Sync + Send>,
@@ -16,6 +17,20 @@ impl MatteMaterial {
         MatteMaterial {
             kd: Arc::new(ConstantTexture::new(r)),
             sigma: sigma,
+        }
+    }
+
+    pub fn new_uv_texture() -> MatteMaterial {
+        MatteMaterial {
+            kd: Arc::new(UVTexture::new()),
+            sigma: 0.0,
+        }
+    }
+
+    pub fn new_image(kd: &str) -> MatteMaterial {
+        MatteMaterial {
+            kd: Arc::new(ImageTexture::new(Path::new(kd))),
+            sigma: 0.0,
         }
     }
 
