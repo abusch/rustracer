@@ -44,7 +44,7 @@ impl Shape for Disk {
         // Transform ray to object space
         let (ray, _o_err, _d_err) = r.transform(&self.world_to_object);
         // Compute plane intersection for disk
-        if r.d.z == 0.0 {
+        if ray.d.z == 0.0 {
             // Reject disk intersection for rays parallel to the disk plane
             return None;
         }
