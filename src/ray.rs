@@ -5,14 +5,10 @@ use std::f32::INFINITY;
 use std::ops::Mul;
 use na::{self, Norm, Dot};
 
-const BIAS: f32 = 1e-4;
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Ray {
     pub o: Point,
     pub d: Vector,
-    // TODO delete?
-    pub t_min: f32,
     pub t_max: f32,
 }
 
@@ -25,7 +21,6 @@ impl Ray {
         Ray {
             o: o,
             d: d,
-            t_min: 0.0,
             t_max: INFINITY,
         }
     }
@@ -38,7 +33,6 @@ impl Ray {
         Ray {
             o: o,
             d: d,
-            t_min: 0.0,
             t_max: tmax,
         }
     }
@@ -52,7 +46,6 @@ impl Ray {
         Ray {
             o: o,
             d: d,
-            t_min: BIAS,
             t_max: INFINITY,
         }
     }
@@ -70,7 +63,6 @@ impl Ray {
         let r = Ray {
             o: o,
             d: d,
-            t_min: 0.0,
             t_max: t_max,
         };
         (r, o_error, d_error)

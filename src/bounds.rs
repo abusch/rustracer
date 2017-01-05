@@ -137,7 +137,7 @@ impl<T> Bounds3<T>
             tmax = tzmax;
         }
 
-        tmin < ray.t_max && tmax > ray.t_min
+        tmin < ray.t_max && tmax > 0.0
     }
 
     /// Linearly interpolate a point inside the bounds
