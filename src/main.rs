@@ -23,6 +23,7 @@ use chrono::Local;
 use clap::{Arg, ArgMatches, App};
 use slog::*;
 
+use rt::bounds::Bounds2f;
 use rt::bvh::BVH;
 use rt::camera::Camera;
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
@@ -38,7 +39,7 @@ use rt::shapes::disk::Disk;
 use rt::shapes::sphere::Sphere;
 use rt::spectrum::Spectrum;
 use rt::transform;
-use rt::{Transform, Point, Vector3f, Dim};
+use rt::{Transform, Point, Vector3f, Dim, Point2f};
 
 arg_enum! {
   #[derive(Debug)]
@@ -123,7 +124,11 @@ fn run(matches: ArgMatches) -> Result<(), String> {
 
 fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Scene {
     info!("Building scene");
-    let camera = Camera::new(Point::new(0.0, 0.0, 5.0), dim, 50.0);
+    let camera = Camera::new(transform::translate_z(-5.0),
+                             Point2f::new(dim.0 as f32, dim.1 as f32),
+                             0.0,
+                             0.0,
+                             50.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
