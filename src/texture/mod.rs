@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use ::Point2f;
 use interaction::SurfaceInteraction;
+use spectrum::Spectrum;
 
 mod constant;
 mod checkerboard;
@@ -11,6 +14,23 @@ pub use self::image::ImageTexture;
 
 pub trait Texture<T> {
     fn evaluate(&self, si: &SurfaceInteraction) -> T;
+}
+
+pub struct UVTexture {
+    mapping: Box<TextureMapping2D + Send + Sync>,
+}
+
+impl UVTexture {
+    pub fn new() -> UVTexture {
+        UVTexture { mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)) }
+    }
+}
+
+impl Texture<Spectrum> for UVTexture {
+    fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum {
+        let st = self.mapping.map(si);
+        Spectrum::rgb(st[0] - st[0].floor(), st[1] - st[1].floor(), 0.0)
+    }
 }
 
 // Texture mappings
