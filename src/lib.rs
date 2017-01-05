@@ -24,7 +24,7 @@ use num::One;
 
 mod blockedarray;
 mod block_queue;
-mod bounds;
+pub mod bounds;
 mod bsdf;
 pub mod bvh;
 pub mod camera;

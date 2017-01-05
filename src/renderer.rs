@@ -44,7 +44,7 @@ pub fn render(scene: Scene,
                         sampler.start_pixel(&p);
                         loop {
                             let s = sampler.get_camera_sample();
-                            let mut ray = scene.camera.ray_for(&s);
+                            let mut ray = scene.camera.generate_ray(&s);
                             let sample_colour = scene.integrator
                                 .li(scene, &mut ray, &mut sampler, 0);
                             let film_sample = FilmSample {
