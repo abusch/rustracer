@@ -1,19 +1,20 @@
-use {Vector, Point, Transform};
+use {Vector3f, Point3f, Transform};
 use stats;
 use transform;
 use std::f32::INFINITY;
 use std::ops::Mul;
 use na::{self, Norm, Dot};
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Ray {
-    pub o: Point,
-    pub d: Vector,
+    pub o: Point3f,
+    pub d: Vector3f,
     pub t_max: f32,
+    pub differential: Option<RayDifferential>,
 }
 
 impl Ray {
-    pub fn new(o: Point, d: Vector) -> Ray {
+    pub fn new(o: Point3f, d: Vector3f) -> Ray {
         stats::inc_primary_ray();
         assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
@@ -22,10 +23,11 @@ impl Ray {
             o: o,
             d: d,
             t_max: INFINITY,
+            differential: None,
         }
     }
 
-    pub fn segment(o: Point, d: Vector, tmax: f32) -> Ray {
+    pub fn segment(o: Point3f, d: Vector3f, tmax: f32) -> Ray {
         stats::inc_primary_ray();
         assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
@@ -34,23 +36,25 @@ impl Ray {
             o: o,
             d: d,
             t_max: tmax,
+            differential: None,
         }
     }
 
-    pub fn at(&self, t: f32) -> Point {
+    pub fn at(&self, t: f32) -> Point3f {
         self.o + t * self.d
     }
 
-    pub fn spawn(&self, o: Point, d: Vector) -> Ray {
+    pub fn spawn(&self, o: Point3f, d: Vector3f) -> Ray {
         stats::inc_secondary_ray();
         Ray {
             o: o,
             d: d,
             t_max: INFINITY,
+            differential: None,
         }
     }
 
-    pub fn transform(&self, transform: &Transform) -> (Ray, Vector, Vector) {
+    pub fn transform(&self, transform: &Transform) -> (Ray, Vector3f, Vector3f) {
         let (mut o, o_error) = transform::transform_point(transform, &self.o);
         let (d, d_error) = transform::transform_vector(transform, &self.d);
         let t_max = self.t_max;
@@ -64,6 +68,7 @@ impl Ray {
             o: o,
             d: d,
             t_max: t_max,
+            differential: None,
         };
         (r, o_error, d_error)
     }
@@ -79,6 +84,14 @@ impl Mul<Ray> for Transform {
 
         new_ray
     }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct RayDifferential {
+    pub rx_origin: Point3f,
+    pub ry_origin: Point3f,
+    pub rx_direction: Vector3f,
+    pub ry_direction: Vector3f,
 }
 
 #[test]
