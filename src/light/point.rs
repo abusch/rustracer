@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use na::Norm;
 use uuid::Uuid;
 
-use {Point, Vector3f, Point2f};
+use {Point3f, Vector3f, Point2f};
 use light::{Light, LightFlags, VisibilityTester, DELTA_POSITION};
 use spectrum::Spectrum;
 use interaction::{Interaction, SurfaceInteraction};
@@ -11,12 +11,12 @@ use interaction::{Interaction, SurfaceInteraction};
 #[derive(Debug)]
 pub struct PointLight {
     pub id: Uuid,
-    pub pos: Point,
+    pub pos: Point3f,
     pub emission_colour: Spectrum,
 }
 
 impl PointLight {
-    pub fn new(p: Point, ec: Spectrum) -> PointLight {
+    pub fn new(p: Point3f, ec: Spectrum) -> PointLight {
         PointLight {
             id: Uuid::new_v4(),
             pos: p,

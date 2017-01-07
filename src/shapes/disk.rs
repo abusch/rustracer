@@ -3,7 +3,7 @@ use std::f32::consts;
 use na;
 use na::{Norm, Inverse};
 
-use ::{Point, Vector3f, Transform, Point2f};
+use ::{Point3f, Vector3f, Transform, Point2f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
@@ -85,22 +85,22 @@ impl Shape for Disk {
     }
 
     fn object_bounds(&self) -> Bounds3f {
-        Bounds3f::from_points(&Point::new(-self.radius, -self.radius, self.height),
-                              &Point::new(self.radius, self.radius, self.height))
+        Bounds3f::from_points(&Point3f::new(-self.radius, -self.radius, self.height),
+                              &Point3f::new(self.radius, self.radius, self.height))
     }
 
     fn world_bounds(&self) -> Bounds3f {
         let ob = self.object_bounds();
         let p1 = self.object_to_world * ob.p_min;
         let p2 = self.object_to_world * ob.p_max;
-        let p_min = Point::new(p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z));
-        let p_max = Point::new(p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z));
+        let p_min = Point3f::new(p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z));
+        let p_max = Point3f::new(p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z));
         Bounds3f::from_points(&p_min, &p_max)
     }
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let pd = concentric_sample_disk(u);
-        let p_obj = Point::new(pd.x * self.radius, pd.y * self.radius, self.height);
+        let p_obj = Point3f::new(pd.x * self.radius, pd.y * self.radius, self.height);
         let n = transform_normal(&Vector3f::z(), &self.object_to_world).normalize();
         let (p, p_err) = transform_point_with_error(&self.object_to_world,
                                                     &p_obj,

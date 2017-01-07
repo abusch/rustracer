@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use na::Norm;
 use uuid::Uuid;
 
-use {Point, Vector3f, Point2f};
+use {Point3f, Vector3f, Point2f};
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, DELTA_DIRECTION};
 use scene::Scene;
@@ -14,7 +14,7 @@ pub struct DistantLight {
     pub id: Uuid,
     pub dir: Vector3f,
     pub emission_colour: Spectrum,
-    w_center: Point,
+    w_center: Point3f,
     w_radius: f32,
 }
 
@@ -24,7 +24,7 @@ impl DistantLight {
             id: Uuid::new_v4(),
             dir: dir.normalize(),
             emission_colour: ec,
-            w_center: Point::new(0.0, 0.0, 0.0),
+            w_center: Point3f::new(0.0, 0.0, 0.0),
             w_radius: 100.0, // TODO
         }
     }

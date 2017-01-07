@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use ::{Point, Point3f, Point2f, Vector3f, Transform};
+use ::{Point3f, Point2f, Vector3f, Transform};
 use bsdf::BSDF;
 use spectrum::Spectrum;
 use primitive::Primitive;
@@ -16,7 +16,7 @@ use fp::Ieee754;
 #[derive(Copy, Clone)]
 pub struct Interaction {
     /// The point where the ray hit the primitive
-    pub p: Point,
+    pub p: Point3f,
     /// Error bound for the intersection point
     pub p_error: Vector3f,
     /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
@@ -26,7 +26,7 @@ pub struct Interaction {
 }
 
 impl Interaction {
-    pub fn new(p: Point, p_error: Vector3f, wo: Vector3f, n: Vector3f) -> Interaction {
+    pub fn new(p: Point3f, p_error: Vector3f, wo: Vector3f, n: Vector3f) -> Interaction {
         Interaction {
             p: p,
             p_error: p_error,
@@ -35,7 +35,7 @@ impl Interaction {
         }
     }
 
-    pub fn from_point(p: &Point) -> Interaction {
+    pub fn from_point(p: &Point3f) -> Interaction {
         Interaction {
             p: *p,
             p_error: Vector3f::new(0.0, 0.0, 0.0),
@@ -50,7 +50,7 @@ impl Interaction {
         Ray::new(o, *dir)
     }
 
-    pub fn spawn_ray_to(&self, p: &Point) -> Ray {
+    pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
         let d = *p - self.p;
         assert!(d.x != 0.0 && d.y != 0.0 && d.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
@@ -67,7 +67,7 @@ impl Interaction {
 
 pub struct SurfaceInteraction<'a> {
     /// The point where the ray hit the primitive
-    pub p: Point,
+    pub p: Point3f,
     /// Error bound for the intersection point
     pub p_error: Vector3f,
     /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
@@ -93,7 +93,7 @@ pub struct SurfaceInteraction<'a> {
 }
 
 impl<'a> SurfaceInteraction<'a> {
-    pub fn new(p: Point,
+    pub fn new(p: Point3f,
                p_error: Vector3f,
                uv: Point2f,
                wo: Vector3f,
@@ -174,7 +174,7 @@ impl<'a> SurfaceInteraction<'a> {
         Ray::new(o, *dir)
     }
 
-    pub fn spawn_ray_to(&self, p: &Point) -> Ray {
+    pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
         let d = *p - self.p;
         assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
@@ -182,7 +182,7 @@ impl<'a> SurfaceInteraction<'a> {
     }
 }
 
-fn offset_origin(p: &Point, p_err: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point {
+fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point3f {
     let d = na::abs(n).dot(p_err);
     let mut offset = d * *n;
     if w.dot(n) < 0.0 {

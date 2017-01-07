@@ -1,10 +1,10 @@
 use na::{self, FromHomogeneous, ToHomogeneous, Matrix3, Matrix4, Transpose};
 
-use {Vector3f, Point, Transform, gamma};
+use {Vector3f, Point3f, Transform, gamma};
 
 /// Transform the given point using the given transformation and also return a vector of the
 /// absolute error introduced for each coordinate.
-pub fn transform_point(t: &Transform, p: &Point) -> (Point, Vector3f) {
+pub fn transform_point(t: &Transform, p: &Point3f) -> (Point3f, Vector3f) {
     let (x, y, z) = (p.x, p.y, p.z);
     let tp = *t * *p;
     let m: Matrix4<f32> = t.to_homogeneous();
@@ -20,9 +20,9 @@ pub fn transform_point(t: &Transform, p: &Point) -> (Point, Vector3f) {
 }
 
 pub fn transform_point_with_error(t: &Transform,
-                                  p: &Point,
+                                  p: &Point3f,
                                   p_error: &Vector3f)
-                                  -> (Point, Vector3f) {
+                                  -> (Point3f, Vector3f) {
     let (x, y, z) = (p.x, p.y, p.z);
     let tp = *t * *p;
     let m: Matrix4<f32> = t.to_homogeneous();
