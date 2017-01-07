@@ -14,7 +14,7 @@ use std::cmp;
 
 use na::{self, Cross, Dot, zero, Norm};
 
-use ::{Vector, Point2f, ONE_MINUS_EPSILON};
+use ::{Vector3f, Point2f, ONE_MINUS_EPSILON};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 
@@ -34,11 +34,11 @@ pub struct BSDF {
     /// Index of refraction of the surface
     eta: f32,
     /// Shading normal (i.e. potentially affected by bump-mapping)
-    ns: Vector,
+    ns: Vector3f,
     /// Geometry normal
-    ng: Vector,
-    ss: Vector,
-    ts: Vector,
+    ng: Vector3f,
+    ss: Vector3f,
+    ts: Vector3f,
     bxdfs: Vec<Box<BxDF + Sync + Send>>,
 }
 
@@ -56,7 +56,7 @@ impl BSDF {
     }
 
     /// Evaluate the BSDF for the given incoming light direction and outgoing light direction.
-    pub fn f(&self, wo_w: &Vector, wi_w: &Vector, flags: BxDFType) -> Spectrum {
+    pub fn f(&self, wo_w: &Vector3f, wi_w: &Vector3f, flags: BxDFType) -> Spectrum {
         let wi = self.world_to_local(wi_w);
         let wo = self.world_to_local(wo_w);
         if wo.z == 0.0 {
@@ -75,7 +75,7 @@ impl BSDF {
             .fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
     }
 
-    pub fn pdf(&self, wo_w: &Vector, wi_w: &Vector, flags: BxDFType) -> f32 {
+    pub fn pdf(&self, wo_w: &Vector3f, wi_w: &Vector3f, flags: BxDFType) -> f32 {
         if self.bxdfs.is_empty() {
             return 0.0;
         }
@@ -101,17 +101,17 @@ impl BSDF {
     }
 
     pub fn sample_f(&self,
-                    wo_w: &Vector,
+                    wo_w: &Vector3f,
                     u: &Point2f,
                     flags: BxDFType)
-                    -> (Spectrum, Vector, f32, BxDFType) {
+                    -> (Spectrum, Vector3f, f32, BxDFType) {
 
         let matching_comps = self.bxdfs
             .iter()
             .filter(|b| b.matches(flags))
             .collect::<Vec<&Box<BxDF + Sync + Send>>>();
         if matching_comps.is_empty() {
-            return (Spectrum::black(), Vector::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
         }
         // Chose which BxDF to sample
         let comp = cmp::min((u[0] * matching_comps.len() as f32).floor() as usize,
@@ -125,11 +125,11 @@ impl BSDF {
         // Sample chosen BxDF
         let wo = self.world_to_local(wo_w);
         if wo.z == 0.0 {
-            return (Spectrum::black(), Vector::new(0.0, 0.0, 0.0), 0.0, bxdf.get_type());
+            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, bxdf.get_type());
         }
         let (f, wi, mut pdf, sampled_type) = bxdf.sample_f(&wo, &u_remapped);
         if pdf == 0.0 {
-            return (Spectrum::black(), Vector::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
         }
         let wi_w = self.local_to_world(&wi);
 
@@ -161,14 +161,14 @@ impl BSDF {
         (f, wi, pdf, sampled_type)
     }
 
-    fn world_to_local(&self, v: &Vector) -> Vector {
-        Vector::new(v.dot(&self.ss), v.dot(&self.ts), v.dot(&self.ns))
+    fn world_to_local(&self, v: &Vector3f) -> Vector3f {
+        Vector3f::new(v.dot(&self.ss), v.dot(&self.ts), v.dot(&self.ns))
     }
 
-    fn local_to_world(&self, v: &Vector) -> Vector {
-        Vector::new(self.ss.x * v.x + self.ts.x * v.y + self.ns.x * v.z,
-                    self.ss.y * v.x + self.ts.y * v.y + self.ns.y * v.z,
-                    self.ss.z * v.z + self.ts.z * v.y + self.ns.z * v.z)
+    fn local_to_world(&self, v: &Vector3f) -> Vector3f {
+        Vector3f::new(self.ss.x * v.x + self.ts.x * v.y + self.ns.x * v.z,
+                      self.ss.y * v.x + self.ts.y * v.y + self.ns.y * v.z,
+                      self.ss.z * v.z + self.ts.z * v.y + self.ns.z * v.z)
     }
 
     /// Return the number of BxDFs matching the given flags

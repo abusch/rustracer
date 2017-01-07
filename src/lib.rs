@@ -53,7 +53,6 @@ pub mod transform;
 
 pub type Dim = (u32, u32);
 
-pub type Vector = Vector3<f32>;
 pub type Vector2f = Vector2<f32>;
 pub type Vector3f = Vector3<f32>;
 pub type Point = Point3<f32>;

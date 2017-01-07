@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use ::{Point, Point3f, Point2f, Vector, Vector3f, Transform};
+use ::{Point, Point3f, Point2f, Vector3f, Transform};
 use bsdf::BSDF;
 use spectrum::Spectrum;
 use primitive::Primitive;
@@ -18,15 +18,15 @@ pub struct Interaction {
     /// The point where the ray hit the primitive
     pub p: Point,
     /// Error bound for the intersection point
-    pub p_error: Vector,
+    pub p_error: Vector3f,
     /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
-    pub wo: Vector,
+    pub wo: Vector3f,
     /// Normal
-    pub n: Vector,
+    pub n: Vector3f,
 }
 
 impl Interaction {
-    pub fn new(p: Point, p_error: Vector, wo: Vector, n: Vector) -> Interaction {
+    pub fn new(p: Point, p_error: Vector3f, wo: Vector3f, n: Vector3f) -> Interaction {
         Interaction {
             p: p,
             p_error: p_error,
@@ -44,7 +44,7 @@ impl Interaction {
         }
     }
 
-    pub fn spawn_ray(&self, dir: &Vector) -> Ray {
+    pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 && dir.y != 0.0 && dir.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
@@ -69,19 +69,19 @@ pub struct SurfaceInteraction<'a> {
     /// The point where the ray hit the primitive
     pub p: Point,
     /// Error bound for the intersection point
-    pub p_error: Vector,
+    pub p_error: Vector3f,
     /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
-    pub wo: Vector,
+    pub wo: Vector3f,
     /// Normal
-    pub n: Vector,
+    pub n: Vector3f,
     /// Texture coordinates
     pub uv: Point2f,
     /// Partial derivatives at the intersection point
-    pub dpdu: Vector,
-    pub dpdv: Vector,
+    pub dpdu: Vector3f,
+    pub dpdv: Vector3f,
     /// Partial derivatives of the normal
-    pub dndu: Vector,
-    pub dndv: Vector,
+    pub dndu: Vector3f,
+    pub dndv: Vector3f,
     /// Hit shape
     pub shape: &'a Shape,
     /// Hit primitive
@@ -94,11 +94,11 @@ pub struct SurfaceInteraction<'a> {
 
 impl<'a> SurfaceInteraction<'a> {
     pub fn new(p: Point,
-               p_error: Vector,
+               p_error: Vector3f,
                uv: Point2f,
-               wo: Vector,
-               dpdu: Vector,
-               dpdv: Vector,
+               wo: Vector3f,
+               dpdu: Vector3f,
+               dpdv: Vector3f,
                shape: &Shape)
                -> SurfaceInteraction {
         let n = dpdu.cross(&dpdv).normalize();
@@ -127,7 +127,7 @@ impl<'a> SurfaceInteraction<'a> {
         }
     }
 
-    pub fn le(&self, w: &Vector) -> Spectrum {
+    pub fn le(&self, w: &Vector3f) -> Spectrum {
         self.primitive
             .and_then(|p| p.area_light())
             .map(|light| light.l(&self.into(), w))
@@ -168,7 +168,7 @@ impl<'a> SurfaceInteraction<'a> {
         }
     }
 
-    pub fn spawn_ray(&self, dir: &Vector) -> Ray {
+    pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
@@ -182,7 +182,7 @@ impl<'a> SurfaceInteraction<'a> {
     }
 }
 
-fn offset_origin(p: &Point, p_err: &Vector, n: &Vector, w: &Vector) -> Point {
+fn offset_origin(p: &Point, p_err: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point {
     let d = na::abs(n).dot(p_err);
     let mut offset = d * *n;
     if w.dot(n) < 0.0 {
@@ -214,11 +214,11 @@ impl<'a> From<&'a SurfaceInteraction<'a>> for Interaction {
 /// Normal and partial derivatives used for shading. Can be different from geometric ones due to
 /// bump mapping, etc.
 pub struct Shading {
-    pub n: Vector,
-    pub dpdu: Vector,
-    pub dpdv: Vector,
-    pub dndu: Vector,
-    pub dndv: Vector,
+    pub n: Vector3f,
+    pub dpdu: Vector3f,
+    pub dpdv: Vector3f,
+    pub dndu: Vector3f,
+    pub dndv: Vector3f,
 }
 
 impl Default for Shading {

@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use na::Norm;
 use uuid::Uuid;
 
-use {Point, Vector, Point2f};
+use {Point, Vector3f, Point2f};
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, DELTA_DIRECTION};
 use scene::Scene;
@@ -12,14 +12,14 @@ use spectrum::Spectrum;
 #[derive(Debug)]
 pub struct DistantLight {
     pub id: Uuid,
-    pub dir: Vector,
+    pub dir: Vector3f,
     pub emission_colour: Spectrum,
     w_center: Point,
     w_radius: f32,
 }
 
 impl DistantLight {
-    pub fn new(dir: Vector, ec: Spectrum) -> DistantLight {
+    pub fn new(dir: Vector3f, ec: Spectrum) -> DistantLight {
         DistantLight {
             id: Uuid::new_v4(),
             dir: dir.normalize(),
@@ -44,7 +44,7 @@ impl Light for DistantLight {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  _u: &Point2f)
-                 -> (Spectrum, Vector, f32, VisibilityTester) {
+                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let p_outside = isect.p - self.dir * (2.0 * self.w_radius);
         (self.emission_colour,
          -self.dir,
@@ -52,7 +52,7 @@ impl Light for DistantLight {
          VisibilityTester::new(isect.into(), Interaction::from_point(&p_outside)))
     }
 
-    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector) -> f32 {
+    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector3f) -> f32 {
         0.0
     }
 

@@ -5,7 +5,7 @@ use std::cmp::max;
 use na::{Norm, Inverse, Origin, zero, origin};
 use uuid::Uuid;
 
-use ::{Vector, Vector3f, Point2i, Point2f, Point3f, Transform};
+use ::{Vector3f, Point2i, Point2f, Point3f, Transform};
 use geometry::{spherical_phi, spherical_theta};
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, INFINITE};
@@ -71,7 +71,7 @@ impl Light for InfiniteAreaLight {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  u: &Point2f)
-                 -> (Spectrum, Vector, f32, VisibilityTester) {
+                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
         // Find (u, v) sample coordinates in infinite light texture
         let (uv, map_pdf) = self.distribution.sample_continuous(u);
         if map_pdf == 0.0 {
@@ -102,7 +102,7 @@ impl Light for InfiniteAreaLight {
         (self.l_map.lookup(&uv, 0.0), wi, pdf, vis)
     }
 
-    fn pdf_li(&self, si: &SurfaceInteraction, w: &Vector) -> f32 {
+    fn pdf_li(&self, si: &SurfaceInteraction, w: &Vector3f) -> f32 {
         let wi = self.world_to_light * *w;
         let theta = spherical_theta(&wi);
         let phi = spherical_phi(&wi);

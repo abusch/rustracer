@@ -1,7 +1,7 @@
 use std::f32;
 use std::ops::Index;
 use std::cmp::PartialOrd;
-use {Vector, Point, Point2f, Point2i, lerp};
+use {Vector3f, Point, Point2f, Point2i, lerp};
 use na::{Point3, Point2, Norm};
 use ray::Ray;
 use stats;
@@ -102,13 +102,13 @@ impl<T> Bounds3<T>
     }
 
     pub fn intersect_p(&self, ray: &Ray) -> bool {
-        let invdir = Vector::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
+        let invdir = Vector3f::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
         let sign = [(ray.d.x < 0.0) as usize, (ray.d.y < 0.0) as usize, (ray.d.z < 0.0) as usize];
 
         self.intersect_p_fast(ray, &invdir, &sign)
     }
 
-    pub fn intersect_p_fast(&self, ray: &Ray, inv_dir: &Vector, dir_is_neg: &[usize; 3]) -> bool {
+    pub fn intersect_p_fast(&self, ray: &Ray, inv_dir: &Vector3f, dir_is_neg: &[usize; 3]) -> bool {
         stats::inc_fast_bbox_isect();
         // Check intersection with X and Y slab
         let mut tmin = (self[dir_is_neg[0]].x.into() - ray.o.x) * inv_dir.x;

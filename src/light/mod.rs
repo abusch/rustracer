@@ -2,7 +2,7 @@ use std::f32;
 
 use uuid::Uuid;
 
-use {Point2f, Vector};
+use {Point2f, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
 use scene::Scene;
@@ -59,9 +59,9 @@ pub trait Light {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  u: &Point2f)
-                 -> (Spectrum, Vector, f32, VisibilityTester);
+                 -> (Spectrum, Vector3f, f32, VisibilityTester);
 
-    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32;
+    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32;
 
     fn preprocess(&mut self, _scene: &Scene) {}
 
@@ -77,5 +77,5 @@ pub trait Light {
 }
 
 pub trait AreaLight: Light {
-    fn l(&self, si: &Interaction, w: &Vector) -> Spectrum;
+    fn l(&self, si: &Interaction, w: &Vector3f) -> Spectrum;
 }

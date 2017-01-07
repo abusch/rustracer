@@ -1,18 +1,18 @@
 use std::mem;
 
-use ::{Vector, Point2f};
+use ::{Vector3f, Point2f};
 use bsdf::{BxDF, BxDFType, BSDF_SPECULAR, BSDF_REFLECTION};
 use geometry::*;
 use spectrum::Spectrum;
 use na::{Dot, Norm, clamp};
 
 /// Compute the reflection direction
-fn reflect(wo: &Vector, n: &Vector) -> Vector {
+fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {
     (-(*wo) + *n * 2.0 * wo.dot(n)).normalize()
 }
 
 /// Compute the refraction direction
-pub fn refract(i: &Vector, n: &Vector, eta: f32) -> Option<Vector> {
+pub fn refract(i: &Vector3f, n: &Vector3f, eta: f32) -> Option<Vector3f> {
     let cos_theta_i = n.dot(i);
     let sin2theta_i = (1.0 - cos_theta_i * cos_theta_i).max(0.0);
     let sin2theta_t = eta * eta * sin2theta_i;
@@ -151,15 +151,15 @@ impl SpecularReflection {
 }
 
 impl BxDF for SpecularReflection {
-    fn f(&self, _wo: &Vector, _wi: &Vector) -> Spectrum {
+    fn f(&self, _wo: &Vector3f, _wi: &Vector3f) -> Spectrum {
         // The probability to call f() with the exact (wo, wi) for specular reflection is 0, so we
         // return black here. Use sample_f() instead.
         Spectrum::black()
     }
 
-    fn sample_f(&self, wo: &Vector, _sample: &Point2f) -> (Spectrum, Vector, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, _sample: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         // There's only one possible wi for a given wo, so we always return it with a pdf of 1.
-        let wi = Vector::new(-wo.x, -wo.y, wo.z);
+        let wi = Vector3f::new(-wo.x, -wo.y, wo.z);
         let spectrum = self.fresnel.evaluate(cos_theta(&wi)) * self.r / abs_cos_theta(&wi);
         (spectrum, wi, 1.0, BxDFType::empty())
     }

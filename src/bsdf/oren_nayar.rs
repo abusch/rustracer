@@ -1,6 +1,6 @@
 use std::f32::consts;
 
-use ::Vector;
+use ::Vector3f;
 use spectrum::Spectrum;
 use bsdf::{BxDFType, BSDF_REFLECTION, BSDF_DIFFUSE};
 use geometry::{sin_theta, sin_phi, cos_phi, abs_cos_theta};
@@ -26,7 +26,7 @@ impl OrenNayar {
 }
 
 impl BxDF for OrenNayar {
-    fn f(&self, wo: &Vector, wi: &Vector) -> Spectrum {
+    fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
         let sin_theta_i = sin_theta(wi);
         let sin_theta_o = sin_theta(wo);
 

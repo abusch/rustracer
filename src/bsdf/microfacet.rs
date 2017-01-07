@@ -2,7 +2,7 @@ use std::f32::consts;
 
 use na::{Norm, Dot};
 
-use ::Vector;
+use ::Vector3f;
 use spectrum::Spectrum;
 use bsdf::{BxDF, BxDFType, BSDF_REFLECTION, BSDF_GLOSSY};
 use geometry::{tan_theta, tan2_theta, abs_cos_theta, cos2_theta, cos_phi, cos2_phi, sin_phi,
@@ -29,7 +29,7 @@ impl MicrofacetReflection {
 }
 
 impl BxDF for MicrofacetReflection {
-    fn f(&self, wi: &Vector, wo: &Vector) -> Spectrum {
+    fn f(&self, wi: &Vector3f, wo: &Vector3f) -> Spectrum {
         let cos_theta_o = abs_cos_theta(wo);
         let cos_theta_i = abs_cos_theta(wi);
         let mut wh = *wi + *wo;
@@ -57,12 +57,12 @@ impl BxDF for MicrofacetReflection {
 
 // Microfacet distributions
 pub trait MicrofacetDistribution {
-    fn d(&self, wh: &Vector) -> f32;
-    fn lambda(&self, wh: &Vector) -> f32;
-    fn g1(&self, wh: &Vector) -> f32 {
+    fn d(&self, wh: &Vector3f) -> f32;
+    fn lambda(&self, wh: &Vector3f) -> f32;
+    fn g1(&self, wh: &Vector3f) -> f32 {
         1.0 / (1.0 + self.lambda(wh))
     }
-    fn g(&self, wi: &Vector, wo: &Vector) -> f32 {
+    fn g(&self, wi: &Vector3f, wo: &Vector3f) -> f32 {
         1.0 / (1.0 + self.lambda(wi) + self.lambda(wo))
     }
 }
@@ -82,7 +82,7 @@ impl BeckmannDistribution {
 }
 
 impl MicrofacetDistribution for BeckmannDistribution {
-    fn d(&self, wh: &Vector) -> f32 {
+    fn d(&self, wh: &Vector3f) -> f32 {
         let tan2theta = tan2_theta(wh);
         if tan2theta.is_infinite() {
             return 0.0;
@@ -95,7 +95,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
             .exp() / (consts::PI * self.alpha_x * self.alpha_y * cos4_theta)
     }
 
-    fn lambda(&self, wh: &Vector) -> f32 {
+    fn lambda(&self, wh: &Vector3f) -> f32 {
         let abs_tan_theta = tan_theta(wh).abs();
         if abs_tan_theta.is_infinite() {
             return 0.0;
@@ -138,7 +138,7 @@ impl TrowbridgeReitzDistribution {
 }
 
 impl MicrofacetDistribution for TrowbridgeReitzDistribution {
-    fn d(&self, wh: &Vector) -> f32 {
+    fn d(&self, wh: &Vector3f) -> f32 {
         let tan2theta = tan2_theta(wh);
         if tan2theta.is_infinite() {
             return 0.0;
@@ -151,7 +151,7 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
         1.0 / (consts::PI * self.alpha_x * self.alpha_y * cos4theta * (1.0 + e) * (1.0 + e))
     }
 
-    fn lambda(&self, wh: &Vector) -> f32 {
+    fn lambda(&self, wh: &Vector3f) -> f32 {
         let abs_tan_theta = tan_theta(wh).abs();
         if abs_tan_theta.is_infinite() {
             return 0.0;

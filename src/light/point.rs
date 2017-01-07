@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use na::Norm;
 use uuid::Uuid;
 
-use {Point, Vector, Point2f};
+use {Point, Vector3f, Point2f};
 use light::{Light, LightFlags, VisibilityTester, DELTA_POSITION};
 use spectrum::Spectrum;
 use interaction::{Interaction, SurfaceInteraction};
@@ -33,7 +33,7 @@ impl Light for PointLight {
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  _u: &Point2f)
-                 -> (Spectrum, Vector, f32, VisibilityTester) {
+                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let wi = self.pos - isect.p;
         let r2 = wi.norm_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);
@@ -42,7 +42,7 @@ impl Light for PointLight {
         (l_i, wi.normalize(), 1.0, vt)
     }
 
-    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector) -> f32 {
+    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector3f) -> f32 {
         0.0
     }
 

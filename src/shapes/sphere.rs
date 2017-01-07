@@ -2,7 +2,7 @@ use std::f32::consts;
 
 use na::{self, Inverse, Norm, one};
 
-use {gamma, Transform, Point2f, Point, Vector};
+use {gamma, Transform, Point2f, Point, Vector3f};
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
 use interaction::{Interaction, SurfaceInteraction};
@@ -177,11 +177,11 @@ impl Shape for Sphere {
             let inv_z_radius = 1.0 / z_radius;
             let cos_phi = p_hit.x * inv_z_radius;
             let sin_phi = p_hit.y * inv_z_radius;
-            let dpdu = Vector::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
+            let dpdu = Vector3f::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
             let dpdv = (self.theta_max - self.theta_min) *
-                       Vector::new(p_hit.z * cos_phi,
-                                   p_hit.z * sin_phi,
-                                   -self.radius * theta.sin());
+                       Vector3f::new(p_hit.z * cos_phi,
+                                     p_hit.z * sin_phi,
+                                     -self.radius * theta.sin());
             // TODO Compute dn/du and dn/dv
             let isect =
                 SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, self);
@@ -218,7 +218,7 @@ impl Shape for Sphere {
         let p_obj_error = gamma(5) * na::abs(&p_obj.to_vector());
         let (p, p_err) = transform_point_with_error(&self.object_to_world, &p_obj, &p_obj_error);
         let pdf = 1.0 / self.area();
-        (Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n), pdf)
+        (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)
     }
 
     fn area(&self) -> f32 {

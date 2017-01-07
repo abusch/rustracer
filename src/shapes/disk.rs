@@ -3,7 +3,7 @@ use std::f32::consts;
 use na;
 use na::{Norm, Inverse};
 
-use ::{Point, Vector, Transform, Point2f};
+use ::{Point, Vector3f, Transform, Point2f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
@@ -70,12 +70,12 @@ impl Shape for Disk {
         let r_hit = dist2.sqrt();
         let one_minus_v = (r_hit - self.inner_radius) / (self.radius - self.inner_radius);
         let v = 1.0 - one_minus_v;
-        let dpdu = Vector::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
-        let dpdv = Vector::new(p_hit.x, p_hit.y, 0.0) * (self.inner_radius - self.radius) / r_hit;
+        let dpdu = Vector3f::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
+        let dpdv = Vector3f::new(p_hit.x, p_hit.y, 0.0) * (self.inner_radius - self.radius) / r_hit;
         // Refine disk intersection point
         p_hit.z = self.height;
         // Compute error bounds for intersection point
-        let p_err = Vector::new(0.0, 0.0, 0.0);
+        let p_err = Vector3f::new(0.0, 0.0, 0.0);
         // Initialize SurfaceInteraction from parametric information
         let isect =
             SurfaceInteraction::new(p_hit, p_err, Point2f::new(u, v), -ray.d, dpdu, dpdv, self);
@@ -101,12 +101,13 @@ impl Shape for Disk {
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let pd = concentric_sample_disk(u);
         let p_obj = Point::new(pd.x * self.radius, pd.y * self.radius, self.height);
-        let n = transform_normal(&Vector::z(), &self.object_to_world).normalize();
-        let (p, p_err) =
-            transform_point_with_error(&self.object_to_world, &p_obj, &Vector::new(0.0, 0.0, 0.0));
+        let n = transform_normal(&Vector3f::z(), &self.object_to_world).normalize();
+        let (p, p_err) = transform_point_with_error(&self.object_to_world,
+                                                    &p_obj,
+                                                    &Vector3f::new(0.0, 0.0, 0.0));
         let pdf = 1.0 / self.area();
 
-        (Interaction::new(p, p_err, Vector::new(0.0, 0.0, 0.0), n), pdf)
+        (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)
     }
 
     fn area(&self) -> f32 {

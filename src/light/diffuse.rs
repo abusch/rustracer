@@ -4,7 +4,7 @@ use std::sync::Arc;
 use na::{Dot, Norm};
 use uuid::Uuid;
 
-use {Vector, Point2f};
+use {Vector3f, Point2f};
 use light::{AreaLight, Light, LightFlags, VisibilityTester, AREA};
 use shapes::Shape;
 use spectrum::Spectrum;
@@ -43,7 +43,7 @@ impl Light for DiffuseAreaLight {
     fn sample_li(&self,
                  si: &SurfaceInteraction,
                  u: &Point2f)
-                 -> (Spectrum, Vector, f32, VisibilityTester) {
+                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let (p_shape, pdf) = self.shape.sample_si(&si.into(), u);
         assert!(!p_shape.p.x.is_nan() && !p_shape.p.y.is_nan() && !p_shape.p.z.is_nan());
         let wi = (p_shape.p - si.p).normalize();
@@ -52,7 +52,7 @@ impl Light for DiffuseAreaLight {
         (self.l(&p_shape, &(-wi)), wi, pdf, vis)
     }
 
-    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector) -> f32 {
+    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32 {
         self.shape.pdf_wi(si, wi)
     }
 
@@ -70,7 +70,7 @@ impl Light for DiffuseAreaLight {
 }
 
 impl AreaLight for DiffuseAreaLight {
-    fn l(&self, si: &Interaction, w: &Vector) -> Spectrum {
+    fn l(&self, si: &Interaction, w: &Vector3f) -> Spectrum {
         if si.n.dot(w) > 0.0 {
             self.l_emit
         } else {

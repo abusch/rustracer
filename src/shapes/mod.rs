@@ -1,6 +1,6 @@
 use na::{Dot, Norm};
 
-use {Point2f, Vector};
+use {Point2f, Vector3f};
 use ray::Ray;
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
@@ -46,7 +46,7 @@ pub trait Shape {
         1.0 / self.area()
     }
 
-    fn pdf_wi(&self, si: &SurfaceInteraction, wi: &Vector) -> f32 {
+    fn pdf_wi(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32 {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
