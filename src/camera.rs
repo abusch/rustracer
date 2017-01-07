@@ -4,7 +4,7 @@ use na::{self, Norm, Inverse, Matrix4, FromHomogeneous, ToHomogeneous, Perspecti
 
 use {Vector3f, Point3f, Point2f, Transform};
 use bounds::Bounds2f;
-use ray::Ray;
+use ray::{Ray, RayDifferential};
 
 /// Projective pinhole camera.
 /// TODO: abstract the Camera interface and handle multiple camera types.
@@ -13,6 +13,8 @@ pub struct Camera {
     camera_to_world: Transform,
     camera_to_screen: Matrix4<f32>,
     raster_to_camera: Matrix4<f32>,
+    dx_camera: Vector3f,
+    dy_camera: Vector3f,
 }
 
 impl Camera {
@@ -66,10 +68,23 @@ impl Camera {
                                translate(-screen_window.p_min.x, -screen_window.p_max.y, 0.0);
         let raster_to_screen = screen_to_raster.inverse().unwrap();
         let raster_to_camera = camera_to_screen.inverse().unwrap() * raster_to_screen;
+
+        // compute differential changes in origin for perspective camera rays
+        let dx_camera = na::from_homogeneous(&((raster_to_camera *
+                                                Point3f::new(1.0, 0.0, 0.0).to_homogeneous()) -
+                                               (raster_to_camera *
+                                                Point3f::new(0.0, 0.0, 0.0).to_homogeneous())));
+        let dy_camera = na::from_homogeneous(&((raster_to_camera *
+                                                Point3f::new(0.0, 1.0, 0.0).to_homogeneous()) -
+                                               (raster_to_camera *
+                                                Point3f::new(0.0, 0.0, 0.0).to_homogeneous())));
+
         Camera {
             camera_to_world: camera_to_world,
             camera_to_screen: camera_to_screen,
             raster_to_camera: raster_to_camera,
+            dx_camera: dx_camera,
+            dy_camera: dy_camera,
         }
     }
 
@@ -81,6 +96,28 @@ impl Camera {
         let ray = Ray::new(na::origin(), p_camera.to_vector().normalize());
         // TODO modify ray for depth of field
         ray.transform(&self.camera_to_world).0
+    }
+
+    pub fn generate_ray_differential(&self, sample: &Point2f) -> Ray {
+        let p_film = Point3f::new(sample.x, sample.y, 0.0);
+        let p_camera: Point3f = na::from_homogeneous(&(self.raster_to_camera *
+                                                       p_film.to_homogeneous()));
+
+        let mut ray = Ray::new(na::origin(), p_camera.to_vector().normalize())
+            .transform(&self.camera_to_world)
+            .0;
+        // TODO modify ray for depth of field
+        // compute offset rays for PerspectiveCamera ray differentials
+        let diff = RayDifferential {
+            rx_origin: ray.o,
+            ry_origin: ray.o,
+            rx_direction: (p_camera.to_vector() + self.dx_camera).normalize(),
+            ry_direction: (p_camera.to_vector() + self.dy_camera).normalize(),
+        };
+
+        ray.differential = Some(diff);
+
+        ray
     }
 }
 
