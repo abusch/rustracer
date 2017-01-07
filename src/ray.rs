@@ -96,10 +96,12 @@ pub struct RayDifferential {
 
 #[test]
 fn test_translation() {
-    let r = Ray::new(Point::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));
-    let t = Transform::new(Vector::new(1.0, 1.0, 1.0), Vector::new(0.0, 0.0, 0.0), 1.0);
+    let r = Ray::new(Point3f::new(1.0, 0.0, 0.0), Vector3f::new(0.0, 1.0, 0.0));
+    let t = Transform::new(Vector3f::new(1.0, 1.0, 1.0),
+                           Vector3f::new(0.0, 0.0, 0.0),
+                           1.0);
     let s = t * r;
 
-    assert_eq!(s.o, Point::new(2.0, 1.0, 1.0));
+    assert_eq!(s.o, Point3f::new(2.0, 1.0, 1.0));
     assert_eq!(s.d, r.d);
 }

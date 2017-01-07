@@ -7,7 +7,7 @@ use rand::{Rng, StdRng, SeedableRng};
 use rand::distributions::{Range, IndependentSample};
 use na::{Norm, Dot};
 
-use rt::{Point, Point2f};
+use rt::{Point3f, Point2f};
 use rt::ray::Ray;
 use rt::sampling;
 use rt::shapes::Shape;
@@ -33,11 +33,11 @@ fn full_sphere_reintersect() {
 
 fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
     // Ray origin
-    let o = Point::new(pexp(rng, 8.0), pexp(rng, 8.0), pexp(rng, 8.0));
+    let o = Point3f::new(pexp(rng, 8.0), pexp(rng, 8.0), pexp(rng, 8.0));
 
     // Destination
     let bounds = shape.world_bounds();
-    let t = Point::new(rng.next_f32(), rng.next_f32(), rng.next_f32());
+    let t = Point3f::new(rng.next_f32(), rng.next_f32(), rng.next_f32());
     let p = bounds.lerp(&t);
     let mut ray = Ray::new(o, p - o);
     if rng.next_f32() < 0.5 {

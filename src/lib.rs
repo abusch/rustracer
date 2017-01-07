@@ -143,7 +143,7 @@ pub fn find_interval<P>(size: usize, pred: P) -> usize
 #[test]
 fn test_gamma() {
     let g5 = gamma(5);
-    let p = Point::new(-0.4, 0.9, 0.2);
+    let p = Point3f::new(-0.4, 0.9, 0.2);
     let v = g5 * na::abs(&p.to_vector());
     println!("gamma(5) = {}, p={:?}, v={:?}", gamma(5), p, v);
 }
