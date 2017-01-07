@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::path::Path;
+use std::mem;
 
 use img;
 
@@ -21,17 +22,22 @@ impl ImageTexture {
         let buf = img::open(path).unwrap();
         let rgb = buf.to_rgb();
         let res = Point2i::new(rgb.width(), rgb.height());
-        let pixels: Vec<Spectrum> = rgb.pixels()
-            .map(|p| {
-                let r = p.data[0] as f32 / 255.0;
-                let g = p.data[1] as f32 / 255.0;
-                let b = p.data[2] as f32 / 255.0;
-                Spectrum::rgb(r, g, b)
-            })
+        let mut pixels: Vec<Spectrum> = rgb.pixels()
+            .map(|p| Spectrum::from_srgb(&p.data))
             .collect();
 
+        // Flip image in y; texture coordinate space has (0,0) at the lower
+        // left corner.
+        for y in 0..res.y / 2 {
+            for x in 0..res.x {
+                let o1 = (y * res.x + x) as usize;
+                let o2 = ((res.y - 1 - y) * res.x + x) as usize;
+                pixels.swap(o1, o2);
+            }
+        }
+
         ImageTexture {
-            mapping: Box::new(UVMapping2D::new(2.0, 2.0, 0.0, 0.0)),
+            mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),
             mipmap: Arc::new(MIPMap::new(&res, &pixels[..], false, 0.0, WrapMode::Repeat)),
         }
     }

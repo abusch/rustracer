@@ -6,11 +6,11 @@ use spectrum::Spectrum;
 
 mod constant;
 mod checkerboard;
-mod image;
+mod imagemap;
 
 pub use self::constant::ConstantTexture;
 pub use self::checkerboard::CheckerboardTexture;
-pub use self::image::ImageTexture;
+pub use self::imagemap::ImageTexture;
 
 pub trait Texture<T> {
     fn evaluate(&self, si: &SurfaceInteraction) -> T;

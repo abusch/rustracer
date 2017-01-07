@@ -66,7 +66,6 @@ impl Camera {
                                translate(-screen_window.p_min.x, -screen_window.p_max.y, 0.0);
         let raster_to_screen = screen_to_raster.inverse().unwrap();
         let raster_to_camera = camera_to_screen.inverse().unwrap() * raster_to_screen;
-        info!("camera_to_world={}", camera_to_world);
         Camera {
             camera_to_world: camera_to_world,
             camera_to_screen: camera_to_screen,
