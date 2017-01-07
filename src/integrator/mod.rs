@@ -8,7 +8,6 @@ use bsdf;
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use light::{Light, is_delta_light};
-use primitive::Primitive;
 use ray::Ray;
 use sampler::Sampler;
 use sampling::power_heuristic;

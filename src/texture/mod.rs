@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use ::Point2f;
 use interaction::SurfaceInteraction;
 use spectrum::Spectrum;

@@ -2,7 +2,7 @@ use std::f32::consts::{PI, FRAC_1_PI};
 use std::path::Path;
 use std::cmp::max;
 
-use na::{Norm, Inverse, Origin, zero, origin};
+use na::{Norm, Inverse, origin};
 use uuid::Uuid;
 
 use ::{Vector3f, Point2i, Point2f, Point3f, Transform};

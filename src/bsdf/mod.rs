@@ -12,7 +12,7 @@ pub use self::microfacet::*;
 
 use std::cmp;
 
-use na::{self, Cross, Dot, zero, Norm};
+use na::{Cross, Dot, Norm};
 
 use ::{Vector3f, Point2f, ONE_MINUS_EPSILON};
 use spectrum::Spectrum;

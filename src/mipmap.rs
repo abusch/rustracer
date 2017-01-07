@@ -1,6 +1,5 @@
 use std::ops::{Mul, AddAssign};
 use std::cmp;
-use std::mem;
 use std::f32;
 use std::fmt::Debug;
 

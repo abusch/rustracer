@@ -1,6 +1,4 @@
-use std::f32::consts::PI;
-
-use na::{self, Norm, Inverse, Matrix4, FromHomogeneous, ToHomogeneous, PerspectiveMatrix3};
+use na::{self, Norm, Inverse, Matrix4, ToHomogeneous};
 
 use {Vector3f, Point3f, Point2f, Transform};
 use bounds::Bounds2f;

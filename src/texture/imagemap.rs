@@ -1,6 +1,5 @@
 use std::sync::Arc;
 use std::path::Path;
-use std::mem;
 
 use img;
 

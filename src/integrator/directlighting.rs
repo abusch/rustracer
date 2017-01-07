@@ -1,6 +1,3 @@
-use na::Dot;
-
-use bsdf;
 use integrator::{SamplerIntegrator, uniform_sample_one_light};
 use material::TransportMode;
 use ray::Ray;
