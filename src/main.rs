@@ -151,7 +151,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     info!("Building scene");
     let camera = Camera::new(transform::translate_z(-5.0),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
-                             2.0,
+                             0.2,
                              5.0,
                              50.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();

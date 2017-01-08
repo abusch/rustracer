@@ -3,6 +3,7 @@ use na::{self, Norm, Inverse, Matrix4, ToHomogeneous};
 use {Vector3f, Point3f, Point2f, Transform};
 use bounds::Bounds2f;
 use ray::{Ray, RayDifferential};
+use sampling;
 
 /// Projective pinhole camera.
 /// TODO: abstract the Camera interface and handle multiple camera types.
@@ -95,9 +96,17 @@ impl Camera {
         let p_camera: Point3f = na::from_homogeneous(&(self.raster_to_camera *
                                                        p_film.to_homogeneous()));
 
-        let ray = Ray::new(na::origin(), p_camera.to_vector().normalize());
-        // TODO modify ray for depth of field
+        let mut ray = Ray::new(na::origin(), p_camera.to_vector().normalize());
+        // modify ray for depth of field
         if self.lens_radius > 0.0 {
+            // Sample point on lens
+            let p_lens = self.lens_radius * sampling::concentric_sample_disk(&sample.p_lens);
+            // Compute point on plane of focus
+            let ft = self.focal_distance / ray.d.z;
+            let p_focus = ray.at(ft);
+            // Update ray for effect of lens
+            ray.o = Point3f::new(p_lens.x, p_lens.y, 0.0);
+            ray.d = (p_focus - ray.o).normalize();
         }
         ray.transform(&self.camera_to_world).0
     }
@@ -107,21 +116,54 @@ impl Camera {
         let p_camera: Point3f = na::from_homogeneous(&(self.raster_to_camera *
                                                        p_film.to_homogeneous()));
 
-        let mut ray = Ray::new(na::origin(), p_camera.to_vector().normalize())
-            .transform(&self.camera_to_world)
-            .0;
-        // TODO modify ray for depth of field
+        let mut ray = Ray::new(na::origin(), p_camera.to_vector().normalize());
+        // modify ray for depth of field
+        if self.lens_radius > 0.0 {
+            // Sample point on lens
+            let p_lens = self.lens_radius * sampling::concentric_sample_disk(&sample.p_lens);
+            // Compute point on plane of focus
+            let ft = self.focal_distance / ray.d.z;
+            let p_focus = ray.at(ft);
+            // Update ray for effect of lens
+            ray.o = Point3f::new(p_lens.x, p_lens.y, 0.0);
+            ray.d = (p_focus - ray.o).normalize();
+        }
         // compute offset rays for PerspectiveCamera ray differentials
-        let diff = RayDifferential {
-            rx_origin: ray.o,
-            ry_origin: ray.o,
-            rx_direction: (p_camera.to_vector() + self.dx_camera).normalize(),
-            ry_direction: (p_camera.to_vector() + self.dy_camera).normalize(),
+        let diff = if self.lens_radius > 0.0 {
+            // Sample point on lens
+            let p_lens = self.lens_radius * sampling::concentric_sample_disk(&sample.p_lens);
+            let origin = Point3f::new(p_lens.x, p_lens.y, 0.0);
+
+            // ray differential in x direction
+            let dx = (p_camera + self.dx_camera).to_vector().normalize();
+            let ft_x = self.focal_distance / dx.z;
+            let p_focus_x = (ft_x * dx).to_point();
+            let rx_dir = (p_focus_x - origin).normalize();
+
+            // ray differential in x direction
+            let dy = (p_camera + self.dy_camera).to_vector().normalize();
+            let ft_y = self.focal_distance / dy.z;
+            let p_focus_y = (ft_y * dy).to_point();
+            let ry_dir = (p_focus_y - origin).normalize();
+
+            RayDifferential {
+                rx_origin: origin,
+                ry_origin: origin,
+                rx_direction: rx_dir,
+                ry_direction: ry_dir,
+            }
+        } else {
+            RayDifferential {
+                rx_origin: ray.o,
+                ry_origin: ray.o,
+                rx_direction: (p_camera.to_vector() + self.dx_camera).normalize(),
+                ry_direction: (p_camera.to_vector() + self.dy_camera).normalize(),
+            }
         };
 
         ray.differential = Some(diff);
 
-        ray
+        ray.transform(&self.camera_to_world).0
     }
 }
 
