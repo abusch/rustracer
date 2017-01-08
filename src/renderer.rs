@@ -43,13 +43,13 @@ pub fn render(scene: Scene,
                     for p in block {
                         sampler.start_pixel(&p);
                         loop {
-                            let s = sampler.get_camera_sample();
+                            let s = sampler.get_camera_sample(&p);
                             let mut ray = scene.camera.generate_ray(&s);
                             let sample_colour = scene.integrator
                                 .li(scene, &mut ray, &mut sampler, 0);
                             let film_sample = FilmSample {
-                                x: s.x,
-                                y: s.y,
+                                x: s.p_film.x,
+                                y: s.p_film.y,
                                 c: sample_colour,
                             };
                             pixel_tx.send(film_sample)

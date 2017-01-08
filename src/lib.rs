@@ -69,6 +69,9 @@ pub fn gamma(n: u32) -> f32 {
 pub const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
 
 /// Linear interpolation between 2 values.
+///
+/// This version should be generic enough to linearly interpolate between 2 Spectrums using an f32
+/// parameter.
 pub fn lerp<S, T>(t: S, a: T, b: T) -> T
     where S: One,
           S: Sub<S, Output = S>,
@@ -107,7 +110,7 @@ pub fn permute_p<T>(v: &Point3<T>, x: usize, y: usize, z: usize) -> Point3<T>
     Point3::new(v[x], v[y], v[z])
 }
 
-/// Created an orthogonal coordinate system from a single vector.
+/// Create an orthogonal coordinate system from a single vector.
 pub fn coordinate_system(v1: &Vector3f) -> (Vector3f, Vector3f) {
     let v2 = if v1.x.abs() > v1.y.abs() {
         Vector3::new(-v1.z, 0.0, v1.x) / (v1.x * v1.x + v1.z * v1.z).sqrt()

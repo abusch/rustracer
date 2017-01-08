@@ -11,6 +11,8 @@ pub struct Camera {
     camera_to_world: Transform,
     camera_to_screen: Matrix4<f32>,
     raster_to_camera: Matrix4<f32>,
+    lens_radius: f32,
+    focal_distance: f32,
     dx_camera: Vector3f,
     dy_camera: Vector3f,
 }
@@ -81,23 +83,27 @@ impl Camera {
             camera_to_world: camera_to_world,
             camera_to_screen: camera_to_screen,
             raster_to_camera: raster_to_camera,
+            lens_radius: lens_radius,
+            focal_distance: focal_distance,
             dx_camera: dx_camera,
             dy_camera: dy_camera,
         }
     }
 
-    pub fn generate_ray(&self, sample: &Point2f) -> Ray {
-        let p_film = Point3f::new(sample.x, sample.y, 0.0);
+    pub fn generate_ray(&self, sample: &CameraSample) -> Ray {
+        let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
         let p_camera: Point3f = na::from_homogeneous(&(self.raster_to_camera *
                                                        p_film.to_homogeneous()));
 
         let ray = Ray::new(na::origin(), p_camera.to_vector().normalize());
         // TODO modify ray for depth of field
+        if self.lens_radius > 0.0 {
+        }
         ray.transform(&self.camera_to_world).0
     }
 
-    pub fn generate_ray_differential(&self, sample: &Point2f) -> Ray {
-        let p_film = Point3f::new(sample.x, sample.y, 0.0);
+    pub fn generate_ray_differential(&self, sample: &CameraSample) -> Ray {
+        let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
         let p_camera: Point3f = na::from_homogeneous(&(self.raster_to_camera *
                                                        p_film.to_homogeneous()));
 
