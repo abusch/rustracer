@@ -15,7 +15,7 @@ clap = "2"
 crossbeam = "0.2"
 # ieee754 = "0.2"
 ieee754 = { git = "https://github.com/abusch/ieee754.git" }
-image = "0.10"
+image = "0.12"
 itertools = "0.5"
 nalgebra = "0.10"
 num = "0.1"
