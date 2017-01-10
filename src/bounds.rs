@@ -1,12 +1,14 @@
 use std::f32;
 use std::ops::Index;
 use std::cmp::PartialOrd;
-use {Vector3f, Point3f, Point2f, Point2i, lerp};
-use na::{Point3, Point2, Norm};
+use std::fmt;
+
+use na::{Point3, Point2, Norm, BaseNum};
+use num::Bounded;
+
+use {Vector3f, Point3f, Point2f, Point2i, lerp, min, max};
 use ray::Ray;
 use stats;
-use num::Bounded;
-use na::BaseNum;
 
 pub type Bounds3f = Bounds3<f32>;
 
@@ -179,7 +181,7 @@ pub struct Bounds2<T> {
 }
 
 impl<T> Bounds2<T>
-    where T: BaseNum + Bounded + PartialOrd
+    where T: BaseNum + Bounded + PartialOrd + fmt::Display
 {
     pub fn new() -> Bounds2<T> {
         let min = T::min_value();
@@ -198,7 +200,8 @@ impl<T> Bounds2<T>
     }
 
     pub fn from_points(min: &Point2<T>, max: &Point2<T>) -> Bounds2<T> {
-        assert!(min.x <= max.x && min.y <= max.y, "Invalid bounds");
+        assert!(min.x <= max.x && min.y <= max.y,
+                format!("Invalid bounds: {} - {}", min, max));
         Bounds2 {
             p_min: *min,
             p_max: *max,
@@ -268,6 +271,18 @@ impl<T> Bounds2<T>
     pub fn get_area(&self) -> T {
         (self.p_max.x - self.p_min.x) * (self.p_max.y - self.p_min.y)
     }
+
+    pub fn intersect(bbox1: &Bounds2<T>, bbox2: &Bounds2<T>) -> Bounds2<T> {
+        let p_min = Point2::new(max(bbox1.p_min.x, bbox2.p_min.x),
+                                max(bbox1.p_min.y, bbox2.p_min.y));
+        let p_max = Point2::new(min(bbox1.p_max.x, bbox2.p_max.x),
+                                min(bbox1.p_max.y, bbox2.p_max.y));
+
+        Bounds2 {
+            p_min: p_min,
+            p_max: p_max,
+        }
+    }
 }
 
 impl<T> Index<usize> for Bounds3<T> {
@@ -323,12 +338,11 @@ impl From<Bounds2i> for Bounds2f {
     }
 }
 
-fn min<T: PartialOrd>(a: T, b: T) -> T {
-    if a.lt(&b) { a } else { b }
-}
-
-fn max<T: PartialOrd>(a: T, b: T) -> T {
-    if a.gt(&b) { a } else { b }
+impl From<Bounds2f> for Bounds2i {
+    fn from(b: Bounds2f) -> Self {
+        Bounds2i::from_points(&Point2i::new(b.p_min.x as u32, b.p_min.y as u32),
+                              &Point2i::new(b.p_max.x as u32, b.p_max.y as u32))
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -347,5 +361,13 @@ impl Index<Axis> for Point3<f32> {
             Axis::Y => &self.y,
             Axis::Z => &self.z,
         }
+    }
+}
+
+impl<T> fmt::Display for Bounds2<T>
+    where T: fmt::Display
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} → {}", self.p_min, self.p_max)
     }
 }
