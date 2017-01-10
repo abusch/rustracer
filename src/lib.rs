@@ -143,6 +143,17 @@ pub fn find_interval<P>(size: usize, pred: P) -> usize
     na::clamp(first - 1, 0, size - 2)
 }
 
+/// Version of min() that works on PartialOrd, so it works for both u32 and f32.
+pub fn min<T: PartialOrd + Copy>(a: T, b: T) -> T {
+    if a.lt(&b) { a } else { b }
+}
+
+/// Version of max() that works on PartialOrd, so it works for both u32 and f32.
+pub fn max<T: PartialOrd + Copy>(a: T, b: T) -> T {
+    if a.gt(&b) { a } else { b }
+}
+
+
 #[test]
 fn test_gamma() {
     let g5 = gamma(5);

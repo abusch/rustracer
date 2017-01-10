@@ -22,7 +22,7 @@ pub fn render(scene: Scene,
               spp: usize,
               bs: u32)
               -> stats::Stats {
-    let mut film = Film::new(dim, Box::new(BoxFilter {}));
+    let film = Film::new(dim, Box::new(BoxFilter {}));
 
     let block_size = bs;
     let block_queue = BlockQueue::new(dim, block_size);
@@ -31,6 +31,7 @@ pub fn render(scene: Scene,
     info!("Rendering scene using {} threads", num_threads);
     crossbeam::scope(|scope| {
         for _ in 0..num_threads {
+            let film = &film;
             let scene = &scene;
             let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
@@ -39,26 +40,23 @@ pub fn render(scene: Scene,
                 let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
+                    let mut tile = film.get_film_tile(&block.bounds());
                     bq.report_progress();
-                    for p in block {
+                    for p in &tile.get_pixel_bounds() {
                         sampler.start_pixel(&p);
                         loop {
                             let s = sampler.get_camera_sample(&p);
                             let mut ray = scene.camera.generate_ray(&s);
                             let sample_colour = scene.integrator
                                 .li(scene, &mut ray, &mut sampler, 0);
-                            let film_sample = FilmSample {
-                                x: s.p_film.x,
-                                y: s.p_film.y,
-                                c: sample_colour,
-                            };
-                            pixel_tx.send(film_sample)
-                                .expect(&format!("Failed to send sample {:?}", film_sample));
+                            tile.add_sample(&s.p_film, sample_colour);
                             if !sampler.start_next_sample() {
                                 break;
                             }
                         }
                     }
+                    pixel_tx.send(tile)
+                        .expect(&format!("Failed to send tile"));
                 }
                 stats_tx.send(stats::get_stats()).expect("Failed to send thread stats");
             });
@@ -66,9 +64,9 @@ pub fn render(scene: Scene,
     });
 
     // Write all pixels to the image
-    for s in pixel_rx.iter()
-        .take(block_queue.num_blocks as usize * block_size as usize * block_size as usize * spp) {
-        film.add_sample(s.x, s.y, s.c);
+    for tile in pixel_rx.iter()
+        .take(block_queue.num_blocks as usize) {
+        film.merge_film_tile(tile);
     }
     // Collect all the stats from the threads
     let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);

@@ -5,12 +5,14 @@ use std::fmt;
 
 use na::Point2;
 
+use bounds::Bounds2i;
+
 /// A block of pixels that a thread is responsible for rendering (i.e a bucket).
 #[derive(Debug)]
 pub struct Block {
-    start: Point2<u32>,
+    pub start: Point2<u32>,
     current: Point2<u32>,
-    end: Point2<u32>,
+    pub end: Point2<u32>,
 }
 
 impl Block {
@@ -26,6 +28,10 @@ impl Block {
     /// block covers)
     pub fn area(&self) -> u32 {
         (self.end.x - self.start.x) * (self.end.y - self.start.y)
+    }
+
+    pub fn bounds(&self) -> Bounds2i {
+        Bounds2i::from_points(&self.start, &self.end)
     }
 }
 
@@ -130,4 +136,12 @@ fn test_queue_iter() {
     // 100 is not a multiple of 8, so make sure we generate enough blocks to cover the whole image.
     // In this case, we need 13 * 13.
     assert_eq!(blocks.len(), 169);
+}
+
+#[test]
+fn test_power_of_two() {
+    let queue = BlockQueue::new((96, 96), 8);
+    let blocks: Vec<Block> = queue.into_iter().collect();
+
+    assert_eq!(blocks.len(), 144);
 }
