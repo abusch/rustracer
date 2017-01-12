@@ -13,33 +13,33 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
 ![example1](example1.png)
 
 ## Currently supported
-[x] Whitted and Direct Lighting integrators
-[x] Basic shapes (disc, sphere) + triangle meshes
-[x] Perspective camera with thin-lens depth-of-field
-[x] Point lights, distant lights
-[x] diffuse area lights (only with UniformSampleOne strategy), 
-[x] infinite light (only plain colour, no HDR textures yet)
-[x] BxDF for lambertian, perfect specular reflection / transmission, microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
-[x] Matte, Plastic, Metal materials
-[x] Textures (imagemaps with MIPMapping, UV, CheckerBoard)
-[x] BVH (only with MIDDLE splitting strategy)
-[x] multi-threaded rendering
+ * Whitted and Direct Lighting integrators
+ * Basic shapes (disc, sphere) + triangle meshes
+ * Perspective camera with thin-lens depth-of-field
+ * Point lights, distant lights
+ * diffuse area lights (only with UniformSampleOne strategy), 
+ * infinite light (only plain colour, no HDR textures yet)
+ * BxDF for lambertian, perfect specular reflection / transmission, microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
+ * Matte, Plastic, Metal materials
+ * Textures (imagemaps with MIPMapping, UV, CheckerBoard)
+ * BVH (only with MIDDLE splitting strategy)
+ * multi-threaded rendering
 
 ## TODO
-[ ] More camera types (orthographic, realistic, environment)
-[ ] More shapes (cone, paraboloid, hyperboloid, NURBs...)
-[ ] More samplers
-[ ] More BxDFs and materials
-[ ] Volumetric rendering
-[ ] More integrators: path-tracing and bidirectional path tracing
-[ ] Animations
-[ ] Support for PBRT scene file format
-[ ] Support for reading/writing EXR files
-[ ] Support for PLY meshes
-[ ] more light types
-[ ] Finish ray-differential support
-[ ] Add support for EWA filtering for MIPMap
-[ ] SAH strategy for BVH
-[ ] k-d trees?
-[ ] Spectral rendering?
-[ ] ...
+ * More camera types (orthographic, realistic, environment)
+ * More shapes (cone, paraboloid, hyperboloid, NURBs...)
+ * More samplers
+ * More BxDFs and materials
+ * Volumetric rendering
+ * More integrators: path-tracing and bidirectional path tracing
+ * Animations
+ * Support for PBRT scene file format
+ * Support for reading/writing EXR files
+ * Support for PLY meshes
+ * more light types
+ * Finish ray-differential support
+ * Add support for EWA filtering for MIPMap
+ * SAH strategy for BVH
+ * k-d trees?
+ * Spectral rendering?
+ * ...
