@@ -20,13 +20,14 @@ pub fn render(scene: Scene,
               filename: &str,
               num_threads: usize,
               spp: usize,
-              bs: u32)
+              block_size: u32)
               -> stats::Stats {
     let film = Film::new(dim, Box::new(BoxFilter {}));
 
-    let block_size = bs;
     let block_queue = BlockQueue::new(dim, block_size);
+    // This channel will receive tiles of sampled pixels
     let (pixel_tx, pixel_rx) = channel();
+    // This channel will receive the stats from each worker thread
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     crossbeam::scope(|scope| {
@@ -40,6 +41,9 @@ pub fn render(scene: Scene,
                 let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
+                    let seed = block.start.y / bq.block_size * bq.dims.0 +
+                               block.start.x / bq.block_size;
+                    sampler.reseed(seed as u64);
                     let mut tile = film.get_film_tile(&block.bounds());
                     bq.report_progress();
                     for p in &tile.get_pixel_bounds() {
@@ -55,9 +59,13 @@ pub fn render(scene: Scene,
                             }
                         }
                     }
+                    // Once we've rendered all the samples for the tile, send the tile through the
+                    // channel to the main thread which will add it to the film.
                     pixel_tx.send(tile)
                         .expect(&format!("Failed to send tile"));
                 }
+                // Once there are no more tiles to render, send the thread's accumulated stats back
+                // to the main thread
                 stats_tx.send(stats::get_stats()).expect("Failed to send thread stats");
             });
         }
@@ -71,6 +79,7 @@ pub fn render(scene: Scene,
     // Collect all the stats from the threads
     let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
     println!("");
+
     write_png(dim, &film.render(), filename)
         .expect(&format!("Could not write image to file {}", filename));
 
@@ -96,11 +105,4 @@ fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
                      w as u32,
                      h as u32,
                      img::RGB(8))
-}
-
-#[derive(Debug, Copy, Clone)]
-struct FilmSample {
-    x: f32,
-    y: f32,
-    c: Spectrum,
 }
