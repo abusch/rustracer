@@ -1,12 +1,5 @@
-This is a toy [raytracer](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) written in Rust.
+# Rustracer is a toy [raytracer](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) written in [Rust](http://rust-lang.org).
 
-The code is based on the following resources:
+It started as a little playground to play with raytracing concepts that I found on [Scratchapixel](http://www.scratchapixel.com). I then found out about [tray_rust](http://github.com/TwinkleBear/tray_rust) and began refactoring my code to follow its design, but then eventually bought a copy of [Physically-Based Ray Tracing](http://www.pbrt.org) and decided to follow the [C++ implementation](https://github.com/mmp/pbrt-v3) as closely as possible to make it easier to follow along with the book.
 
-* [Scratchapixel](http://www.scratchapixel.com)
-* [Physically-Based Ray Tracing](http://www.pbrt.org)
-* [tray_rust](http://github.com/TwinkleBear/tray_rust)
-* Various papers found online.
-
-In particular, you should totally check out tray_rust as it's better in every
-way, well documented, and written by someone who actually knows what they're
-talking about.
+**Note**: I am very much a beginner in Rust as well as in raytracing and this project is a way for me to learn about both. If the code is ugly or broken, it is very much my fault :) This is not helped by the fact that the C++ implementation is _very_ object-oriented, and doesn't always translate cleanly or idomatically to Rust... If you want to see a good, clean, well documented raytracer written in Rust by someone who knows what they're talking about, I definitely recommend you look at [tray_rust](http://github.com/TwinkleBear/tray_rust) instead :) That being said, feedback is more than welcome!
