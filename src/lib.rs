@@ -9,7 +9,6 @@ extern crate image as img;
 extern crate itertools as it;
 extern crate nalgebra as na;
 extern crate num;
-extern crate rand;
 #[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
 extern crate slog;
 #[macro_use]
