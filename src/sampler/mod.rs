@@ -16,4 +16,5 @@ pub trait Sampler {
     fn get_1d_array(&mut self, n: usize) -> &[f32];
     fn get_2d_array(&mut self, n: usize) -> &[Point2f];
     fn start_next_sample(&mut self) -> bool;
+    fn reseed(&mut self, seed: u64);
 }

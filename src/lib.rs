@@ -42,6 +42,7 @@ pub mod mipmap;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
+mod rng;
 pub mod sampling;
 pub mod sampler;
 pub mod scene;
