@@ -31,7 +31,7 @@ impl RNG {
         loop {
             let r = self.uniform_u32();
             if r >= threshold {
-                return r & b;
+                return r % b;
             }
         }
     }
