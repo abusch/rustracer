@@ -19,20 +19,13 @@ pub struct Film {
     cropped_pixel_bounds: Bounds2i,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct PixelSample {
     pub c: Spectrum,
     pub weighted_sum: f32,
 }
 
 impl PixelSample {
-    pub fn new() -> PixelSample {
-        PixelSample {
-            c: Spectrum::black(),
-            weighted_sum: 0.0,
-        }
-    }
-
     pub fn render(&self) -> Spectrum {
         (self.c / self.weighted_sum)
     }
@@ -43,7 +36,7 @@ impl Film {
         let (w, h) = dim;
         let size = w * h;
         let mut samples = Vec::with_capacity(size as usize);
-        samples.resize(size as usize, PixelSample::new());
+        samples.resize(size as usize, PixelSample::default());
         let mut filter_table = [0f32; FILTER_TABLE_SIZE];
 
         let (xwidth, ywidth) = filter.width();
@@ -72,9 +65,9 @@ impl Film {
         let float_bounds: Bounds2f = (*sample_bounds).into();
         let float_cropped_pixel_bounds: Bounds2f = self.cropped_pixel_bounds.into();
 
-        // This is way too clunky but we need to make sure we don't underflow as we're using u32
+        // This is a bit clunky but we need to do all the computations as floats as the numbers can
+        // temporarily be negative which would cause u32 to wrap around.
         let p0 = ceil(float_bounds.p_min - half_pixel - self.filter_radius);
-
         let p1 = floor(float_bounds.p_max - half_pixel - self.filter_radius +
                        Vector2f::new(1.0, 1.0));
         let sample_extent_bounds = Bounds2f::from_points(&p0, &p1);

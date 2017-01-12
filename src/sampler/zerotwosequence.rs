@@ -1,7 +1,6 @@
-use rand::{thread_rng, Rng};
-
 use {Point2i, Point2f};
 use camera::CameraSample;
+use rng::RNG;
 use sampler::Sampler;
 use sampler::lowdiscrepancy::{sobol_2d, van_der_corput};
 
@@ -20,6 +19,7 @@ pub struct ZeroTwoSequence {
     samples_2d: Vec<Vec<Point2f>>,
     current_1d_dimension: usize,
     current_2d_dimension: usize,
+    rng: RNG,
 }
 
 impl ZeroTwoSequence {
@@ -46,19 +46,25 @@ impl ZeroTwoSequence {
             samples_2d: samples2d,
             current_1d_dimension: 0,
             current_2d_dimension: 0,
+            rng: RNG::new(),
         }
     }
 }
 
 impl Sampler for ZeroTwoSequence {
     fn start_pixel(&mut self, p: &Point2i) {
-        let mut rng = thread_rng();
         // Generate 1D and 2D pixel sample components using (0, 2)-sequence
         for i in 0..self.samples_1d.len() {
-            van_der_corput(1, self.spp as u32, &mut self.samples_1d[i][..], &mut rng);
+            van_der_corput(1,
+                           self.spp as u32,
+                           &mut self.samples_1d[i][..],
+                           &mut self.rng);
         }
         for i in 0..self.samples_2d.len() {
-            sobol_2d(1, self.spp as u32, &mut self.samples_2d[i][..], &mut rng);
+            sobol_2d(1,
+                     self.spp as u32,
+                     &mut self.samples_2d[i][..],
+                     &mut self.rng);
         }
 
         // TODO generate 1d and 2d array samples
@@ -119,7 +125,7 @@ impl Sampler for ZeroTwoSequence {
             self.current_1d_dimension += 1;
             res
         } else {
-            thread_rng().next_f32()
+            self.rng.uniform_f32()
         }
     }
 
@@ -129,7 +135,7 @@ impl Sampler for ZeroTwoSequence {
             self.current_2d_dimension += 1;
             res
         } else {
-            Point2f::new(thread_rng().next_f32(), thread_rng().next_f32())
+            Point2f::new(self.rng.uniform_f32(), self.rng.uniform_f32())
         }
     }
 
@@ -147,5 +153,9 @@ impl Sampler for ZeroTwoSequence {
 
     fn round_count(&self, count: u32) -> u32 {
         count.next_power_of_two()
+    }
+
+    fn reseed(&mut self, seed: u64) {
+        self.rng.set_sequence(seed);
     }
 }

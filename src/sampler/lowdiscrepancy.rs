@@ -1,12 +1,12 @@
-use rand::Rng;
+use rng::RNG;
 
 use {Point2i, Point2f, ONE_MINUS_EPSILON};
 
-pub fn van_der_corput<T: Rng>(n_samples_per_pixel_sample: u32,
-                              n_pixel_samples: u32,
-                              samples: &mut [f32],
-                              rng: &mut T) {
-    let scramble: u32 = rng.gen();
+pub fn van_der_corput(n_samples_per_pixel_sample: u32,
+                      n_pixel_samples: u32,
+                      samples: &mut [f32],
+                      rng: &mut RNG) {
+    let scramble: u32 = rng.uniform_u32();
     let total_samples = n_samples_per_pixel_sample * n_pixel_samples;
     gray_code_sample(&CVAN_DER_CORPUT, total_samples, scramble, &mut samples[..]);
     // Randomly shuffle 1D points
@@ -22,11 +22,11 @@ pub fn van_der_corput<T: Rng>(n_samples_per_pixel_sample: u32,
             rng);
 }
 
-pub fn sobol_2d<T: Rng>(n_samples_per_pixel_sample: u32,
-                        n_pixel_samples: u32,
-                        samples: &mut [Point2f],
-                        rng: &mut T) {
-    let scramble = Point2i::new(rng.gen(), rng.gen());
+pub fn sobol_2d(n_samples_per_pixel_sample: u32,
+                n_pixel_samples: u32,
+                samples: &mut [Point2f],
+                rng: &mut RNG) {
+    let scramble = Point2i::new(rng.uniform_u32(), rng.uniform_u32());
 
     gray_code_sample_2d(&CSOBOL[0],
                         &CSOBOL[1],
@@ -65,9 +65,9 @@ fn gray_code_sample_2d(c0: &[u32], c1: &[u32], n: u32, scramble: &Point2i, p: &m
     }
 }
 
-fn shuffle<R: Rng, T>(samp: &mut [T], count: u32, n_dimensions: u32, rng: &mut R) {
+fn shuffle<T>(samp: &mut [T], count: u32, n_dimensions: u32, rng: &mut RNG) {
     for i in 0..count {
-        let other: u32 = i + rng.gen_range(0, count - i);
+        let other: u32 = i + rng.uniform_u32_bounded(count - i);
         for j in 0..n_dimensions {
             samp.swap((n_dimensions * i + j) as usize,
                       (n_dimensions * other + j) as usize);

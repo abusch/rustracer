@@ -60,8 +60,6 @@ impl Camera {
                                   &Point2f::new(1.0, 1.0 / aspect_ratio))
         };
         let camera_to_screen = perspective(fov, 1e-2, 1000.0);
-        // PerspectiveMatrix3::<f32>::new(1.0, fov.to_radians(), 1e-2, 1000.0);
-        // let camera_to_screen = camera_to_screen_perspective.as_matrix();
         let screen_to_raster = scale(film_size.x, film_size.y, 1.0) *
                                scale(1.0 / (screen_window.p_max.x - screen_window.p_min.x),
                                      1.0 / (screen_window.p_min.y - screen_window.p_max.y),

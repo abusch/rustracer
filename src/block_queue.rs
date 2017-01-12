@@ -64,8 +64,8 @@ impl fmt::Display for Block {
 }
 
 pub struct BlockQueue {
-    dims: (u32, u32),
-    block_size: u32,
+    pub dims: (u32, u32),
+    pub block_size: u32,
     counter: AtomicUsize,
     pub num_blocks: u32,
 }
