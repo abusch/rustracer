@@ -31,6 +31,9 @@ tobj = "0.1"
 version = "0.3"
 features = ["v4"]
 
+[dev-dependencies]
+rand = "0.3"
+
 [profile.release]
 opt-level = 3
 debug = true
