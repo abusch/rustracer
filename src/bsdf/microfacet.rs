@@ -309,6 +309,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
 pub struct TrowbridgeReitzDistribution {
     alpha_x: f32,
     alpha_y: f32,
+    sample_visible_area: bool,
 }
 
 impl TrowbridgeReitzDistribution {
@@ -316,6 +317,7 @@ impl TrowbridgeReitzDistribution {
         TrowbridgeReitzDistribution {
             alpha_x: ax,
             alpha_y: ay,
+            sample_visible_area: true,
         }
     }
 
@@ -325,6 +327,71 @@ impl TrowbridgeReitzDistribution {
         1.62142 + 0.819955 * x + 0.1734 * x * x + 0.0171201 * x * x * x +
         0.000640711 * x * x * x * x
 
+    }
+
+    fn sample(&self, wi: &Vector3f, u1: f32, u2: f32) -> Vector3f {
+        // 1. stretch wi
+        let wi_stretched = Vector3f::new(self.alpha_x * wi.x, self.alpha_y * wi.y, wi.z)
+            .normalize();
+
+        // 2. simulate P22_{wi}(x_slope, y_slope, 1, 1)
+        let (mut slope_x, mut slope_y) = self.sample11(cos_theta(&wi_stretched), u1, u2);
+
+        // 3. rotate
+        let tmp = cos_phi(&wi_stretched) * slope_x - sin_phi(&wi_stretched) * slope_y;
+        slope_y = sin_phi(&wi_stretched) * slope_x + cos_phi(&wi_stretched) * slope_y;
+        slope_x = tmp;
+
+        // 4. unstretch
+        slope_x = self.alpha_x * slope_x;
+        slope_y = self.alpha_y * slope_y;
+
+        // 5. compute normal
+        Vector3f::new(-slope_x, -slope_y, 1.0).normalize()
+    }
+
+    fn sample11(&self, cos_theta: f32, u1: f32, u2: f32) -> (f32, f32) {
+        // special case (normal incidence)
+        if cos_theta > 0.9999 {
+            let r = (u1 / (1.0 - u1)).sqrt();
+            let phi = 6.28318530718 * u2;
+            return (r * phi.cos(), r * phi.sin());
+        }
+
+        let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
+        let tan_theta = sin_theta / cos_theta;
+        let a = 1.0 / tan_theta;
+        let G1 = 2.0 / (1.0 + (1.0 + 1.0 / (a * a)).sqrt());
+
+        // sample slope_x
+        let A = 2.0 * u1 / G1 - 1.0;
+        let mut tmp = 1.0 / (A * A - 1.0);
+        if tmp > 1e10 {
+            tmp = 1e10;
+        }
+        let B = tan_theta;
+        let D = (B * B * tmp * tmp - (A * A - B * B) * tmp).max(0.0).sqrt();
+        let slope_x_1 = B * tmp - D;
+        let slope_x_2 = B * tmp + D;
+        let slope_x = if A < 0.0 || slope_x_2 > 1.0 / tan_theta {
+            slope_x_1
+        } else {
+            slope_x_2
+        };
+
+        // sample slope_y
+        let (S, u2) = if u2 > 0.5 {
+            (1.0, 2.0 * (u2 - 0.5))
+        } else {
+            (-1.0, 2.0 * (0.5 - u2))
+        };
+        let z = (u2 * (u2 * (u2 * 0.27385 - 0.73369) + 0.46341)) /
+                (u2 * (u2 * (u2 * 0.093073 + 0.309420) - 1.000000) + 0.597999);
+        let slope_y = S * z * (1.0 + slope_x * slope_x).sqrt();
+
+        assert!(!slope_y.is_infinite());
+        assert!(!slope_y.is_nan());
+        (slope_x, slope_y)
     }
 }
 
@@ -357,10 +424,41 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
     }
 
     fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
-        unimplemented!();
+        if !self.sample_visible_area {
+            let mut cos_theta = 0.0;
+            let phi = (2.0 * consts::PI) * u[1];
+
+            if self.alpha_x == self.alpha_y {
+                let tan_theta2 = self.alpha_x * self.alpha_x * u[0] / (1.0 - u[0]);
+                cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
+            } else {
+                let mut phi = (self.alpha_y / self.alpha_x *
+                               (2.0 * consts::PI * u[1] + 0.5 * consts::PI).tan())
+                    .atan();
+                if u[1] > 0.5 {
+                    phi += consts::PI;
+                }
+                let sin_phi = phi.sin();
+                let cos_phi = phi.cos();
+                let alpha_x_2: f32 = self.alpha_x * self.alpha_x;
+                let alpha_y_2: f32 = self.alpha_y * self.alpha_y;
+                let alpha_2: f32 = 1.0 /
+                                   (cos_phi * cos_phi / alpha_x_2 + sin_phi * sin_phi / alpha_y_2);
+                let tan_theta2 = alpha_2 * u[0] / (1.0 - u[0]);
+                cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
+            }
+            let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
+            let mut wh = spherical_direction(sin_theta, cos_theta, phi);
+            if !same_hemisphere(wo, &wh) { -wh } else { wh }
+        } else {
+            let flip = wo.z < 0.0;
+            let wo = if flip { -(*wo) } else { *wo };
+            let mut wh = self.sample(&wo, u[0], u[1]);
+            if flip { -wh } else { wh }
+        }
     }
 
     fn sample_visible_area(&self) -> bool {
-        true
+        self.sample_visible_area
     }
 }
