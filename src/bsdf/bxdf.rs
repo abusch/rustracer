@@ -7,7 +7,13 @@ use sampling::cosine_sample_hemisphere;
 use spectrum::Spectrum;
 
 pub trait BxDF {
+    /// Evaluate the BxDF for the given incoming and outgoing directions.
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum;
+
+    /// Sample the BxDF for the given outgoing direction, using the given pair of uniform samples.
+    ///
+    /// The default implementation uses importance sampling by using a cosine-weighted
+    /// distribution.
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         let mut wi = cosine_sample_hemisphere(u);
         if wo.z < 0.0 {
@@ -25,6 +31,9 @@ pub trait BxDF {
 
     fn get_type(&self) -> BxDFType;
 
+    /// Evaluate the PDF for the given outgoing and incoming directions.
+    ///
+    /// Note: this method needs to be consistent with ```BxDF::sample_f()```.
     fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
         if same_hemisphere(wo, wi) {
             abs_cos_theta(wi) * consts::FRAC_1_PI

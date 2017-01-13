@@ -7,7 +7,7 @@ use spectrum::Spectrum;
 use na::{Dot, Norm, clamp};
 
 /// Compute the reflection direction
-fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {
+pub fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {
     (-(*wo) + *n * 2.0 * wo.dot(n)).normalize()
 }
 

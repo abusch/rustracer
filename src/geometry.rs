@@ -93,3 +93,64 @@ pub fn spherical_phi(v: &Vector3f) -> f32 {
     let p = v.y.atan2(v.x);
     if p < 0.0 { p + 2.0 * PI } else { p }
 }
+
+#[inline]
+pub fn spherical_direction(sin_theta: f32, cos_theta: f32, phi: f32) -> Vector3f {
+    Vector3f::new(sin_theta * phi.cos(), sin_theta * phi.sin(), cos_theta)
+}
+
+/// Polynomial approximation of the inverse Gauss error function
+#[inline]
+pub fn erf_inv(x: f32) -> f32 {
+    let x = na::clamp(x, -0.99999, 0.99999);
+    let mut w = -((1.0 - x) * (1.0 + x)).ln();
+    let mut p = 0.0;
+    if w < 5.0 {
+        w = w - 2.5;
+        p = 2.81022636e-08;
+        p = 3.43273939e-07 + p * w;
+        p = -3.5233877e-06 + p * w;
+        p = -4.39150654e-06 + p * w;
+        p = 0.00021858087 + p * w;
+        p = -0.00125372503 + p * w;
+        p = -0.00417768164 + p * w;
+        p = 0.246640727 + p * w;
+        p = 1.50140941 + p * w;
+    } else {
+        w = w.sqrt() - 3.0;
+        p = -0.000200214257;
+        p = 0.000100950558 + p * w;
+        p = 0.00134934322 + p * w;
+        p = -0.00367342844 + p * w;
+        p = 0.00573950773 + p * w;
+        p = -0.0076224613 + p * w;
+        p = 0.00943887047 + p * w;
+        p = 1.00167406 + p * w;
+        p = 2.83297682 + p * w;
+    }
+
+    p * x
+}
+
+/// Polynomial approximation of the Gauss error function.
+///
+/// See [https://en.wikipedia.org/wiki/Error_function]
+pub fn erf(x: f32) -> f32 {
+    // constants
+    const a1: f32 = 0.254829592;
+    const a2: f32 = -0.284496736;
+    const a3: f32 = 1.421413741;
+    const a4: f32 = -1.453152027;
+    const a5: f32 = 1.061405429;
+    const p: f32 = 0.3275911;
+
+    // Save the sign of x
+    let sign = if x < 0.0 { -1.0 } else { 1.0 };
+    let x = x.abs();
+
+    // A&S formula 7.1.26
+    let t = 1.0 / (1.0 + p * x);
+    let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-x * x).exp();
+
+    sign * y
+}
