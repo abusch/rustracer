@@ -57,6 +57,16 @@ impl Distribution1D {
         (x, pdf, offset)
     }
 
-    // TODO sample_discrete
+    pub fn sample_discrete(&self, u: f32) -> (usize, f32) {
+        let offset = find_interval(self.cdf.len(), |i| self.cdf[i] <= u);
+        let pdf = if self.func_int > 0.0 {
+            self.func[offset] / (self.func_int * self.count() as f32)
+        } else {
+            0.0
+        };
+
+        (offset, pdf)
+    }
+
     // TODO pdf_discrete
 }
