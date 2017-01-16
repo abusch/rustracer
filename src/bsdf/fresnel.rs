@@ -164,6 +164,10 @@ impl BxDF for SpecularReflection {
         (spectrum, wi, 1.0, BxDFType::empty())
     }
 
+    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+        0.0
+    }
+
     fn get_type(&self) -> BxDFType {
         BSDF_SPECULAR | BSDF_REFLECTION
     }
