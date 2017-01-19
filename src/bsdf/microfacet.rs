@@ -390,7 +390,18 @@ impl TrowbridgeReitzDistribution {
         let slope_y = S * z * (1.0 + slope_x * slope_x).sqrt();
 
         assert!(!slope_y.is_infinite());
-        assert!(!slope_y.is_nan());
+        assert!(!slope_y.is_nan(),
+                "slope_y has NaN! S={}, slope_x={}, z={}, cos_theta={}, u1={}, u2={}, B={}, \
+                 tmp={}, D={}",
+                S,
+                slope_x,
+                z,
+                cos_theta,
+                u1,
+                u2,
+                B,
+                tmp,
+                D);
         (slope_x, slope_y)
     }
 }
