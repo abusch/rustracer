@@ -10,6 +10,7 @@ use block_queue::BlockQueue;
 use display::DisplayUpdater;
 use filter::boxfilter::BoxFilter;
 use film::Film;
+use integrator::SamplerIntegrator;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
@@ -17,6 +18,7 @@ use spectrum::Spectrum;
 use stats;
 
 pub fn render(scene: Scene,
+              integrator: Box<SamplerIntegrator + Send + Sync>,
               dim: Dim,
               filename: &str,
               num_threads: usize,
@@ -37,6 +39,7 @@ pub fn render(scene: Scene,
         let film = &film;
         let scene = &scene;
         let bq = &block_queue;
+        let integrator = &integrator;
 
         // Spawn thread to collect pixels and render image to file
         scope.spawn(move || {
@@ -67,8 +70,7 @@ pub fn render(scene: Scene,
                         loop {
                             let s = sampler.get_camera_sample(&p);
                             let mut ray = scene.camera.generate_ray(&s);
-                            let sample_colour = scene.integrator
-                                .li(scene, &mut ray, &mut sampler, 0);
+                            let sample_colour = integrator.li(scene, &mut ray, &mut sampler, 0);
                             tile.add_sample(&s.p_film, sample_colour);
                             if !sampler.start_next_sample() {
                                 break;

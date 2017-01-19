@@ -49,7 +49,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
                     colour += match self.light_strategy {
                         LightStrategy::UniformSampleAll => unimplemented!(),
                         LightStrategy::UniformSampleOne => {
-                            uniform_sample_one_light(&isect, scene, sampler)
+                            uniform_sample_one_light(&isect, scene, sampler, None)
                         }
                     }
                 }

@@ -3,7 +3,6 @@ use std::mem;
 
 use bounds::Bounds3f;
 use camera::Camera;
-use integrator::SamplerIntegrator;
 use interaction::SurfaceInteraction;
 use light::Light;
 use primitive::Primitive;
@@ -12,20 +11,17 @@ use ray::Ray;
 pub struct Scene {
     pub camera: Camera,
     pub lights: Vec<Arc<Light + Sync + Send>>,
-    pub integrator: Box<SamplerIntegrator + Sync + Send>,
     pub primitives: Vec<Box<Primitive + Sync + Send>>,
 }
 
 impl Scene {
     pub fn new(camera: Camera,
-               integrator: Box<SamplerIntegrator + Sync + Send>,
                primitives: Vec<Box<Primitive + Sync + Send>>,
                lights: Vec<Arc<Light + Sync + Send>>)
                -> Scene {
         let mut scene = Scene {
             camera: camera,
             lights: Vec::new(),
-            integrator: integrator,
             primitives: primitives,
         };
         // TODO There's a bit of a circular reference with AreaLight <-> Shape <-> GeometricPrimitive which
