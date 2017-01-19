@@ -4,6 +4,7 @@ use std::sync::mpsc::channel;
 
 use crossbeam;
 use img;
+use minifb;
 
 use Dim;
 use block_queue::BlockQueue;
@@ -25,18 +26,37 @@ pub fn render(scene: Scene,
     let film = Film::new(dim, Box::new(BoxFilter {}));
 
     let block_queue = BlockQueue::new(dim, block_size);
+    let num_blocks = block_queue.num_blocks;
     // This channel will receive tiles of sampled pixels
     let (pixel_tx, pixel_rx) = channel();
     // This channel will receive the stats from each worker thread
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     crossbeam::scope(|scope| {
+        let film = &film;
+        let scene = &scene;
+        let bq = &block_queue;
+
+        // Spawn thread to collect pixels and render image to file
+        scope.spawn(move || {
+            let mut window = minifb::Window::new("Rustracer",
+                                                 dim.0 as usize,
+                                                 dim.1 as usize,
+                                                 minifb::WindowOptions::default())
+                .expect("Unable to open a window");
+            // Write all tiles to the image
+            info!("Receiving tiles...");
+            for _ in 0..num_blocks {
+                let tile = pixel_rx.recv().unwrap();
+                &film.merge_film_tile(tile);
+                update_display(&mut window, &film);
+            }
+        });
+
+        // Spawn worker threads
         for _ in 0..num_threads {
-            let film = &film;
-            let scene = &scene;
             let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
-            let bq = &block_queue;
             scope.spawn(move || {
                 let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
@@ -71,11 +91,6 @@ pub fn render(scene: Scene,
         }
     });
 
-    // Write all pixels to the image
-    for tile in pixel_rx.iter()
-        .take(block_queue.num_blocks as usize) {
-        film.merge_film_tile(tile);
-    }
     // Collect all the stats from the threads
     let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
     println!("");
@@ -84,6 +99,19 @@ pub fn render(scene: Scene,
         .expect(&format!("Could not write image to file {}", filename));
 
     global_stats
+}
+
+fn update_display(window: &mut minifb::Window, film: &Film) {
+    let buffer: Vec<u32> = film.render()
+        .iter()
+        .map(|p| {
+            let rgb = p.to_srgb();
+            (rgb[0] as u32) << 16 | (rgb[1] as u32) << 8 | (rgb[2] as u32)
+
+        })
+        .collect();
+
+    window.update_with_buffer(&buffer[..]);
 }
 
 fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {

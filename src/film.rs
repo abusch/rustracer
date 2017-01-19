@@ -27,7 +27,11 @@ pub struct PixelSample {
 
 impl PixelSample {
     pub fn render(&self) -> Spectrum {
-        (self.c / self.weighted_sum)
+        if self.weighted_sum == 0.0 {
+            Spectrum::black()
+        } else {
+            self.c / self.weighted_sum
+        }
     }
 }
 

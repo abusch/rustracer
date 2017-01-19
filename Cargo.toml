@@ -26,6 +26,7 @@ slog-scope = "0.2"
 slog-stream = "1"
 thread-id = "3"
 tobj = "0.1"
+minifb = "0.9"
 
 [dependencies.uuid]
 version = "0.3"

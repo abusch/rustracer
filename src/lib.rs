@@ -7,6 +7,7 @@ extern crate crossbeam;
 extern crate ieee754 as fp;
 extern crate image as img;
 extern crate itertools as it;
+extern crate minifb;
 extern crate nalgebra as na;
 extern crate num;
 #[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
