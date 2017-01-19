@@ -51,10 +51,17 @@ arg_enum! {
 }
 
 fn main() {
-    // configure logger
-    configure_logger();
-
     let matches = parse_args();
+
+    // configure logger
+    let level = if matches.is_present("verbose") {
+        slog::Level::Debug
+    } else {
+        slog::Level::Info
+    };
+    configure_logger(level);
+
+
     if let Err(e) = run(matches) {
         println!("Application error: {}", e);
         process::exit(1);
@@ -253,10 +260,13 @@ fn parse_args<'a>() -> ArgMatches<'a> {
             .long("spp")
             .help("Sample per pixels")
             .default_value("4"))
+        .arg(Arg::with_name("verbose")
+            .short("v")
+            .help("log debug information"))
         .get_matches()
 }
 
-fn configure_logger() {
+fn configure_logger(level: Level) {
     let log_path = "/tmp/rustracer.log";
     let file = OpenOptions::new()
         .create(true)
@@ -265,8 +275,8 @@ fn configure_logger() {
         .open(log_path)
         .unwrap();
 
-    let drain = slog_stream::stream(file, MyFormat).fuse();
-    let log = Logger::root(drain, o!());
+    let drain = slog::level_filter(level, slog_stream::stream(file, MyFormat));
+    let log = Logger::root(drain.fuse(), o!());
     slog_scope::set_global_logger(log);
 
 }
@@ -304,13 +314,12 @@ impl slog_stream::Format for MyFormat {
               rinfo: &slog::Record,
               _logger_values: &slog::OwnedKeyValueList)
               -> io::Result<()> {
-        let msg = format!("{} [{}][{:x}][{}:{} {}] - {}\n",
+        let msg = format!("{} [{}][{:x}][{}:{}] - {}\n",
                           now!(),
                           rinfo.level(),
                           thread_id::get(),
                           rinfo.file(),
                           rinfo.line(),
-                          rinfo.module(),
                           rinfo.msg());
         try!(io.write_all(msg.as_bytes()));
         Ok(())

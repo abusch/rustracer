@@ -21,7 +21,7 @@ nalgebra = "0.10"
 num = "0.1"
 num_cpus = "1"
 rustc-serialize = "0.3"
-slog = "1"
+slog = { version = "1", features = ["max_level_debug", "release_max_level_debug"] }
 slog-scope = "0.2"
 slog-stream = "1"
 thread-id = "3"
