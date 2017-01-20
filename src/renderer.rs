@@ -4,10 +4,10 @@ use std::sync::mpsc::channel;
 
 use crossbeam;
 use img;
-use minifb;
 
 use Dim;
 use block_queue::BlockQueue;
+use display::DisplayUpdater;
 use filter::boxfilter::BoxFilter;
 use film::Film;
 use sampler::Sampler;
@@ -21,7 +21,8 @@ pub fn render(scene: Scene,
               filename: &str,
               num_threads: usize,
               spp: usize,
-              block_size: u32)
+              block_size: u32,
+              mut display: Box<DisplayUpdater + Send>)
               -> stats::Stats {
     let film = Film::new(dim, Box::new(BoxFilter {}));
 
@@ -39,17 +40,12 @@ pub fn render(scene: Scene,
 
         // Spawn thread to collect pixels and render image to file
         scope.spawn(move || {
-            let mut window = minifb::Window::new("Rustracer",
-                                                 dim.0 as usize,
-                                                 dim.1 as usize,
-                                                 minifb::WindowOptions::default())
-                .expect("Unable to open a window");
             // Write all tiles to the image
             info!("Receiving tiles...");
             for _ in 0..num_blocks {
                 let tile = pixel_rx.recv().unwrap();
                 &film.merge_film_tile(tile);
-                update_display(&mut window, &film);
+                display.update(&film);
             }
         });
 
@@ -99,19 +95,6 @@ pub fn render(scene: Scene,
         .expect(&format!("Could not write image to file {}", filename));
 
     global_stats
-}
-
-fn update_display(window: &mut minifb::Window, film: &Film) {
-    let buffer: Vec<u32> = film.render()
-        .iter()
-        .map(|p| {
-            let rgb = p.to_srgb();
-            (rgb[0] as u32) << 16 | (rgb[1] as u32) << 8 | (rgb[2] as u32)
-
-        })
-        .collect();
-
-    window.update_with_buffer(&buffer[..]);
 }
 
 fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {

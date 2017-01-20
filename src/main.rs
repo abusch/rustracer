@@ -25,6 +25,7 @@ use slog::*;
 
 use rt::bvh::BVH;
 use rt::camera::Camera;
+use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
                      AmbientOcclusion};
 use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
@@ -102,6 +103,11 @@ fn run(matches: ArgMatches) -> Result<(), String> {
         };
 
     let scene = build_scene(dim, integrator);
+    let disp: Box<DisplayUpdater + Send> = if matches.is_present("display") {
+        Box::new(MinifbDisplayUpdater::new(dim))
+    } else {
+        Box::new(NoopDisplayUpdater)
+    };
 
     let start_time = std::time::Instant::now();
     let stats =
@@ -112,7 +118,8 @@ fn run(matches: ArgMatches) -> Result<(), String> {
                              .and_then(|s| s.parse::<usize>().ok())
                              .unwrap_or_else(num_cpus::get),
                          matches.value_of("spp").and_then(|s| s.parse::<usize>().ok()).unwrap(),
-                         32);
+                         32,
+                         disp);
     // args.flag_block_size);
     let duration = start_time.elapsed();
     println!("Render time                : {}", duration.human_display());
@@ -156,11 +163,11 @@ fn build_scene2(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> S
 
 fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Scene {
     info!("Building scene");
-    let camera = Camera::new(transform::translate_z(-5.0),
+    let camera = Camera::new(transform::translate_z(-3.0),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
-                             0.2,
-                             5.0,
-                             50.0);
+                             0.07,
+                             2.5,
+                             60.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
@@ -175,7 +182,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let bronze = Arc::new(Metal::new());
     let gold = Arc::new(Metal::gold());
     let plastic = Arc::new(Plastic::new(Spectrum::rgb(0.3, 0.3, 1.0), Spectrum::white()));
-    let plastic_lines = Arc::new(Plastic::new_tex("grid.png", Spectrum::white()));
+    let plastic_lines = Arc::new(MatteMaterial::new_image("grid.png"));
     // let plastic_lines = Arc::new(MatteMaterial::new_uv_texture());
     // let sphere = Box::new(GeometricPrimitive {
     //     shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
@@ -205,8 +212,8 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
                                                            "dragon",
                                                            gold.clone(),
                                                            &Transform::new(
-                                                             Vector3f::new(0.0, 0.0, 0.0),
-                                                             Vector3f::new(0.0, -80.0f32.to_radians(), 0.0),
+                                                             Vector3f::new(-0.2, 0.0, 0.0),
+                                                             Vector3f::new(0.0, -70.0f32.to_radians(), 0.0),
                                                              3.0
                                                              ))) as Box<Primitive + Send + Sync>;
     let floor = Box::new(GeometricPrimitive {
@@ -222,7 +229,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     // Spectrum::rgb(1.0, 1.0, 1.0))));
     lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
                                                 16,
-                                                Spectrum::grey(0.5),
+                                                Spectrum::grey(1.0),
                                                 Path::new("foo"))));
 
     Scene::new(camera, integrator, primitives, lights)
@@ -263,6 +270,9 @@ fn parse_args<'a>() -> ArgMatches<'a> {
         .arg(Arg::with_name("verbose")
             .short("v")
             .help("log debug information"))
+        .arg(Arg::with_name("display")
+            .short("p")
+            .help("Display image as it is rendered"))
         .get_matches()
 }
 
@@ -303,7 +313,7 @@ impl HumanDisplay for std::time::Duration {
 }
 
 macro_rules! now {
-    () => ( Local::now().format("%m-%d %H:%M:%S%.3f") )
+    () => ( Local::now().format("%yy-m-%d %H:%M:%S%.3f") )
 }
 
 struct MyFormat;

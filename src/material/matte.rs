@@ -30,7 +30,7 @@ impl MatteMaterial {
     pub fn new_image(kd: &str) -> MatteMaterial {
         MatteMaterial {
             kd: Arc::new(ImageTexture::new(Path::new(kd))),
-            sigma: 0.0,
+            sigma: 0.5,
         }
     }
 
