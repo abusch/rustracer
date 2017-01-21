@@ -5,5 +5,5 @@ pipelines:
     master:
       - step:
           script:
-            - echo "Build project"; cargo build --release
-            - echo "Running tests"; cargo test --release
+            - echo "Build project"; cargo build --release --no-default-features
+            - echo "Running tests"; cargo test --release --no-default-features
