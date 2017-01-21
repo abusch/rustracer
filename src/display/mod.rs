@@ -1,4 +1,5 @@
-use minifb;
+#[cfg(feature = "minifb")]
+extern crate minifb;
 
 use ::Dim;
 use film::Film;
@@ -8,10 +9,12 @@ pub trait DisplayUpdater {
 }
 
 pub struct MinifbDisplayUpdater {
+    #[cfg(feature = "minifb")]
     window: minifb::Window,
 }
 
 impl MinifbDisplayUpdater {
+    #[cfg(feature = "minifb")]
     pub fn new(dim: Dim) -> MinifbDisplayUpdater {
         MinifbDisplayUpdater {
             window: minifb::Window::new("Rustracer",
@@ -21,9 +24,15 @@ impl MinifbDisplayUpdater {
                 .expect("Unable to open a window"),
         }
     }
+
+    #[cfg(not(feature = "minifb"))]
+    pub fn new(dim: Dim) -> MinifbDisplayUpdater {
+        panic!("minifb support not compiled in!");
+    }
 }
 
 impl DisplayUpdater for MinifbDisplayUpdater {
+    #[cfg(feature = "minifb")]
     fn update(&mut self, film: &Film) {
         let buffer: Vec<u32> = film.render()
             .iter()
@@ -36,6 +45,8 @@ impl DisplayUpdater for MinifbDisplayUpdater {
 
         self.window.update_with_buffer(&buffer[..]);
     }
+    #[cfg(not(feature = "minifb"))]
+    fn update(&mut self, film: &Film) {}
 }
 
 // minifb::Window is not Send because of some callback it holds, but we need MinifbDisplayUpdater
