@@ -1,7 +1,8 @@
 use std::f32::consts::{PI, FRAC_1_PI};
 use std::path::Path;
-use std::cmp::max;
+use std::cmp::min;
 
+use img;
 use na::{Norm, Inverse, origin};
 use uuid::Uuid;
 
@@ -31,13 +32,28 @@ impl InfiniteAreaLight {
                power: Spectrum,
                texmap: &Path)
                -> InfiniteAreaLight {
-        // Read texel data from texmap and initialise Lmap TODO
-        let resolution = Point2i::new(1, 1);
-        let l_map = Box::new(MIPMap::new(&resolution, &[power; 1], false, 0.0, WrapMode::Repeat));
-        // initialize sampling PDFs for infinite area light TODO
+        // Read texel data from texmap and initialise Lmap
+        let (resolution, mut texels) = if let Ok(buf) = img::open(texmap) {
+            info!("Loading environment map {} for infinite light",
+                  texmap.display());
+            let rgb = buf.to_rgb();
+            let resolution = Point2i::new(rgb.width(), rgb.height());
+            let mut pixels: Vec<Spectrum> = rgb.pixels()
+                .map(|p| Spectrum::from_srgb(&p.data) * power)
+                .collect();
+            (resolution, pixels)
+        } else {
+            warn!("Environment map {} for infinite light not found! Using constant texture \
+                   instead.",
+                  texmap.display());
+            (Point2i::new(1, 1), vec![power])
+        };
+        //
+        let l_map = Box::new(MIPMap::new(&resolution, &texels[..], false, 0.0, WrapMode::Repeat));
+        // initialize sampling PDFs for infinite area light
         // - compute scalar-valued image img from environment map
         let (width, height) = (2 * l_map.width(), 2 * l_map.height());
-        let filter = 0.5 / max(width, height) as f32;
+        let filter = 0.5 / min(width, height) as f32;
         let mut img = Vec::with_capacity(width * height);
         for v in 0..height {
             let vp = (v as f32 + 0.5) / height as f32;
