@@ -46,9 +46,11 @@ impl<T> MIPMap<T>
         let mut resolution = *res;
         let mut resampled_image = Vec::new();
         if !res.x.is_power_of_two() || !res.y.is_power_of_two() {
-            info!("Texture dimensions are not powers of 2: re-sampling.");
             // resample image to power of two resolution
             let res_pow2 = Point2i::new(res.x.next_power_of_two(), res.y.next_power_of_two());
+            info!("Texture dimensions are not powers of 2: re-sampling MIPMap from {} to {}.",
+                  res,
+                  res_pow2);
             // resample image in s direction
             resampled_image.resize(res_pow2.x as usize * res_pow2.y as usize, zero());
             let s_weights = MIPMap::<T>::resample_weights(res.x as usize, res_pow2.x as usize);
@@ -57,16 +59,16 @@ impl<T> MIPMap<T>
                 for s in 0..res_pow2.x as usize {
                     // Compute texel (s,t) in s-zoomed image
                     resampled_image[t * res_pow2.x as usize + s] = zero();
-                    for j in 0..4 {
-                        let mut orig_s = s_weights[s].first_texel as usize + j;
+                    for j in 0..4usize {
+                        let mut orig_s = s_weights[s].first_texel as isize + j as isize;
                         orig_s = match wrap_mode {
-                            WrapMode::Repeat => orig_s % res.x as usize,
-                            WrapMode::Clamp => na::clamp(orig_s, 0, res.x as usize - 1),
+                            WrapMode::Repeat => orig_s % res.x as isize,
+                            WrapMode::Clamp => na::clamp(orig_s, 0, res.x as isize - 1),
                             WrapMode::Black => orig_s,
                         };
-                        if orig_s < res.x as usize {
+                        if orig_s >= 0 && orig_s < res.x as isize {
                             resampled_image[t * res_pow2.x as usize + s] +=
-                                img[(t * res.x as usize + orig_s) as usize] *
+                                img[(t * res.x as usize + orig_s as usize) as usize] *
                                 s_weights[s].weights[j];
                         }
                     }
@@ -83,15 +85,16 @@ impl<T> MIPMap<T>
                     // work_data[t] = zero();
                     // Compute texel (s,t) in t-zoomed image
                     for j in 0..4 {
-                        let mut offset = t_weights[t].first_texel as usize + j;
+                        let mut offset = t_weights[t].first_texel as isize + j as isize;
                         offset = match wrap_mode {
-                            WrapMode::Repeat => offset % res.y as usize,
-                            WrapMode::Clamp => na::clamp(offset, 0, res.y as usize - 1),
+                            WrapMode::Repeat => offset % res.y as isize,
+                            WrapMode::Clamp => na::clamp(offset, 0, res.y as isize - 1),
                             WrapMode::Black => offset,
                         };
-                        if offset < res.y as usize {
-                            work_data[t] += img[(offset * res_pow2.x as usize + s) as usize] *
-                                            t_weights[t].weights[j];
+                        if offset >= 0 && offset < res.y as isize {
+                            work_data[t] +=
+                                resampled_image[(offset * res_pow2.x as isize + s as isize) as usize] *
+                                t_weights[t].weights[j];
                         }
                     }
                 }
@@ -225,19 +228,22 @@ impl<T> MIPMap<T>
         for i in 0..new_res {
             // compute image resampling weights for ith texel
             let center = (i as f32 + 0.5) * (old_res as f32 / new_res as f32);
-            let first_texel = ((center - filter_width) + 0.5).floor() as u32;
+            let first_texel = ((center - filter_width) + 0.5).floor();
             for j in 0..4 {
-                let pos = first_texel as f32 + j as f32 + 0.5;
+                let pos = first_texel + j as f32 + 0.5;
                 w[j] = Self::lanczos((pos - center) / filter_width);
             }
             // Normalize filter weights for texel resampling
             let inv_sum_weights = 1.0 / (w[0] + w[1] + w[2] + w[3]);
             for j in 0..4 {
                 w[j] *= inv_sum_weights;
-                assert!(w[j] <= 1.0);
+                assert!(w[j] <= 1.0,
+                        "w[j]={}, inv_sum_weights={}",
+                        w[j],
+                        inv_sum_weights);
             }
             wt.push(ResampleWeight {
-                first_texel: first_texel,
+                first_texel: first_texel as i32,
                 weights: w,
             });
         }
@@ -262,7 +268,7 @@ impl<T> MIPMap<T>
 }
 
 struct ResampleWeight {
-    pub first_texel: u32,
+    pub first_texel: i32,
     pub weights: [f32; 4],
 }
 
