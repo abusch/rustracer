@@ -313,7 +313,7 @@ impl HumanDisplay for std::time::Duration {
 }
 
 macro_rules! now {
-    () => ( Local::now().format("%yy-m-%d %H:%M:%S%.3f") )
+    () => ( Local::now().format("%Y-%m-%d %H:%M:%S%.3f") )
 }
 
 struct MyFormat;
