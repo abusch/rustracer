@@ -20,7 +20,7 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * Perspective camera with thin-lens depth-of-field
  * Point lights, distant lights
  * diffuse area lights (only with UniformSampleOne strategy), 
- * infinite light (only plain colour, no HDR textures yet)
+ * infinite light
  * BxDF for lambertian, perfect specular reflection / transmission, microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
  * Matte, Plastic, Metal materials
  * Textures (imagemaps with MIPMapping, UV, CheckerBoard)
@@ -33,6 +33,7 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * More samplers (Haldon...)
  * More BxDFs and materials
  * Implement subsurface scattering
+ * Bump mapping
  * Volumetric rendering
  * More integrators: path-tracing and bidirectional path tracing
  * Animations
