@@ -70,3 +70,19 @@ impl Distribution1D {
 
     // TODO pdf_discrete
 }
+
+#[test]
+fn test_discrete() {
+    let func = [0.0, 1.0, 0.0, 3.0];
+    let distrib = Distribution1D::new(&func[..]);
+
+    assert_eq!(4, distrib.count());
+
+    assert_eq!((1, 0.25), distrib.sample_discrete(0.0));
+    assert_eq!((1, 0.25), distrib.sample_discrete(0.125));
+    assert_eq!((1, 0.25), distrib.sample_discrete(0.24999));
+    assert_eq!((3, 0.75), distrib.sample_discrete(0.250001));
+    assert_eq!((3, 0.75), distrib.sample_discrete(0.625));
+    assert_eq!((3, 0.75), distrib.sample_discrete(::ONE_MINUS_EPSILON));
+    assert_eq!((3, 0.75), distrib.sample_discrete(1.0));
+}
