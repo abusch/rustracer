@@ -118,7 +118,7 @@ fn run(matches: ArgMatches) -> Result<(), String> {
                              .and_then(|s| s.parse::<usize>().ok())
                              .unwrap_or_else(num_cpus::get),
                          matches.value_of("spp").and_then(|s| s.parse::<usize>().ok()).unwrap(),
-                         32,
+                         16,
                          disp);
     // args.flag_block_size);
     let duration = start_time.elapsed();
