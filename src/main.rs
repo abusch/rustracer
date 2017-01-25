@@ -165,14 +165,14 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     info!("Building scene");
     let camera = Camera::new(transform::translate_z(-3.0),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
-                             0.07,
+                             0.05,
                              2.5,
                              60.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
     let area_light =
-        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(2.0, 2.0, 2.0), disk.clone(), 16));
+        Arc::new(DiffuseAreaLight::new(Spectrum::rgb(1.0, 1.0, 1.0), disk.clone(), 16));
     let area_light_prim = Box::new(GeometricPrimitive {
         shape: disk.clone(),
         area_light: Some(area_light.clone()),
@@ -182,13 +182,15 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let bronze = Arc::new(Metal::new());
     let gold = Arc::new(Metal::gold());
     let plastic = Arc::new(Plastic::new(Spectrum::rgb(0.3, 0.3, 1.0), Spectrum::white()));
-    let plastic_lines = Arc::new(MatteMaterial::new_image("grid.png"));
+    let matte_red = Arc::new(MatteMaterial::new(Spectrum::rgb(1.0, 0.0, 0.0), 0.0));
+    let plastic_white = Arc::new(Plastic::new(Spectrum::rgb(1.0, 1.0, 1.0), Spectrum::white()));
+    let plastic_lines = Arc::new(Plastic::new_tex("grid.png", Spectrum::white()));
     // let plastic_lines = Arc::new(MatteMaterial::new_uv_texture());
-    // let sphere = Box::new(GeometricPrimitive {
-    //     shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
-    //     area_light: None,
-    //     material: Some(bronze.clone()),
-    // });
+    let sphere = Box::new(GeometricPrimitive {
+        shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
+        area_light: None,
+        material: Some(plastic_white.clone()),
+    });
     // let bunny =
     //     Box::new(BVH::<GeometricPrimitive>::from_mesh_file(Path::new("models/bunny.obj"),
     //                                                        "bunny",
@@ -219,18 +221,18 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let floor = Box::new(GeometricPrimitive {
         shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
         area_light: None,
-        material: Some(plastic_lines.clone()),
+        material: Some(matte_red.clone()),
     });
 
     let primitives: Vec<Box<Primitive + Sync + Send>> = vec![dragon, floor];
     // Light
     // lights.push(area_light);
     // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, 5.0),
-    // Spectrum::rgb(1.0, 1.0, 1.0))));
+    //                                        Spectrum::rgb(1.0, 1.0, 1.0))));
     lights.push(Arc::new(InfiniteAreaLight::new(na::one(),
                                                 16,
                                                 Spectrum::grey(1.0),
-                                                Path::new("foo"))));
+                                                Path::new("sky_sanmiguel.tga"))));
 
     Scene::new(camera, integrator, primitives, lights)
 }
