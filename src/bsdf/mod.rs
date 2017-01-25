@@ -118,6 +118,10 @@ impl BSDF {
                             matching_comps.len() - 1);
         let bxdf = matching_comps.get(comp).expect("Was expecting a BxDF with this index!");
 
+        debug!("BDDF::sample_f chose comp = {} / matching {}",
+               comp,
+               matching_comps.len());
+
         // Remap BxDF sample u to [0,1)^2
         let u_remapped = Point2f::new((u[0] * matching_comps.len() as f32 - comp as f32)
                                           .min(ONE_MINUS_EPSILON),
@@ -127,7 +131,17 @@ impl BSDF {
         if wo.z == 0.0 {
             return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, bxdf.get_type());
         }
-        let (f, wi, mut pdf, sampled_type) = bxdf.sample_f(&wo, &u_remapped);
+        let (mut f, wi, mut pdf, sampled_type) = bxdf.sample_f(&wo, &u_remapped);
+        debug!("For wo = {:?}, sampled f = {}, pdf = {}, ratio = {}, wi = {:?}",
+               wo,
+               f,
+               pdf,
+               if pdf > 0.0 {
+                   f / pdf
+               } else {
+                   Spectrum::black()
+               },
+               wi);
         if pdf == 0.0 {
             return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
         }
@@ -146,10 +160,8 @@ impl BSDF {
         }
 
         // Compute value of BSDF for sampled direction
-        let mut f = Spectrum::black();
         if !bxdf.get_type().contains(BSDF_SPECULAR) && matching_comps.len() > 1 {
             let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
-
             f = matching_comps.iter()
                 .filter(|b| {
                     (reflect && b.get_type().contains(BSDF_REFLECTION)) ||
@@ -158,6 +170,14 @@ impl BSDF {
                 .fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
         }
 
+        debug!("Overall f = {}, pdf = {}, ratio = {}",
+               f,
+               pdf,
+               if pdf > 0.0 {
+                   f / pdf
+               } else {
+                   Spectrum::black()
+               });
         (f, wi, pdf, sampled_type)
     }
 
