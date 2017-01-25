@@ -39,7 +39,12 @@ impl InfiniteAreaLight {
             let rgb = buf.to_rgb();
             let resolution = Point2i::new(rgb.width(), rgb.height());
             let mut pixels: Vec<Spectrum> = rgb.pixels()
-                .map(|p| Spectrum::from_srgb(&p.data) * power)
+                .map(|p| {
+                    let r = p.data[0] as f32 / 255.0;
+                    let g = p.data[1] as f32 / 255.0;
+                    let b = p.data[2] as f32 / 255.0;
+                    Spectrum::rgb(r, g, b) * power
+                })
                 .collect();
             (resolution, pixels)
         } else {
@@ -73,7 +78,7 @@ impl InfiniteAreaLight {
             n_samples: n_samples,
             l_map: l_map,
             world_center: origin(),
-            world_radius: 100.0, // TODO
+            world_radius: 28.0, // TODO
             distribution: distribution,
         }
     }
