@@ -1,4 +1,5 @@
 use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
+use std::fmt;
 
 use na;
 use num::{Zero, One};
@@ -294,5 +295,11 @@ impl Zero for Spectrum {
 impl One for Spectrum {
     fn one() -> Spectrum {
         Spectrum::white()
+    }
+}
+
+impl fmt::Display for Spectrum {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[ {}, {}, {} ]", self.r, self.g, self.b)
     }
 }
