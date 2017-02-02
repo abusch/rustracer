@@ -178,7 +178,7 @@ impl BSDF {
                } else {
                    Spectrum::black()
                });
-        (f, wi, pdf, sampled_type)
+        (f, wi_w, pdf, sampled_type)
     }
 
     fn world_to_local(&self, v: &Vector3f) -> Vector3f {
@@ -195,4 +195,12 @@ impl BSDF {
     fn num_components(&self, flags: BxDFType) -> usize {
         self.bxdfs.iter().filter(|b| b.matches(flags)).count()
     }
+}
+
+#[test]
+fn test_flags() {
+    let flags = BSDF_SPECULAR | BSDF_REFLECTION;
+    let bxdf_type = BSDF_SPECULAR | BSDF_REFLECTION | BSDF_TRANSMISSION;
+
+    assert!((bxdf_type & flags) == flags);
 }
