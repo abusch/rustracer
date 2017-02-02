@@ -32,7 +32,7 @@ bitflags! {
 /// It represents the properties of a material at a given point.
 pub struct BSDF {
     /// Index of refraction of the surface
-    eta: f32,
+    pub eta: f32,
     /// Shading normal (i.e. potentially affected by bump-mapping)
     ns: Vector3f,
     /// Geometry normal
@@ -192,7 +192,7 @@ impl BSDF {
     }
 
     /// Return the number of BxDFs matching the given flags
-    fn num_components(&self, flags: BxDFType) -> usize {
+    pub fn num_components(&self, flags: BxDFType) -> usize {
         self.bxdfs.iter().filter(|b| b.matches(flags)).count()
     }
 }

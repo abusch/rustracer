@@ -36,6 +36,7 @@ mod geometry;
 pub mod integrator;
 mod interaction;
 pub mod light;
+pub mod lightdistrib;
 pub mod material;
 pub mod mipmap;
 pub mod primitive;

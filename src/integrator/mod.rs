@@ -10,16 +10,18 @@ use interaction::SurfaceInteraction;
 use light::{Light, is_delta_light};
 use ray::Ray;
 use sampler::Sampler;
-use sampling::power_heuristic;
+use sampling::{power_heuristic, Distribution1D};
 use scene::Scene;
 
 mod whitted;
 mod directlighting;
+mod path;
 mod ao;
 mod normal;
 
 pub use self::whitted::Whitted;
 pub use self::directlighting::DirectLightingIntegrator;
+pub use self::path::PathIntegrator;
 pub use self::ao::AmbientOcclusion;
 pub use self::normal::Normal;
 
@@ -67,26 +69,36 @@ pub trait SamplerIntegrator {
     }
 }
 
-pub fn uniform_sample_one_light(it: &SurfaceInteraction,
-                                scene: &Scene,
-                                sampler: &mut Sampler)
-                                -> Spectrum {
+pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(it: &SurfaceInteraction,
+                                                                         scene: &Scene,
+                                                                         sampler: &mut Sampler,
+                                                                         distrib: D)
+                                                                         -> Spectrum {
+    let distrib = distrib.into();
     let n_lights = scene.lights.len();
     if n_lights == 0 {
         Spectrum::black()
     } else {
         // Randomly chose a light to sample
         let s = sampler.get_1d();
-        let num_light = cmp::min(n_lights - 1, (s * n_lights as f32) as usize);
-        debug!("sampler.get_1d()={}, n_lights={}, num_light={}, num_light as usize={}",
+        let (light_num, light_pdf) = match distrib {
+            Some(distrib) => distrib.sample_discrete(s),
+            None => (cmp::min(n_lights - 1, (s * n_lights as f32) as usize), 1.0 / n_lights as f32),
+        };
+
+        debug!("sampler.get_1d()={}, n_lights={}, light_num={}, light_pdf={}",
                s,
                n_lights,
-               s * n_lights as f32,
-               num_light);
-        let light = &scene.lights[num_light];
+               light_num,
+               light_pdf);
+
+        if light_pdf == 0.0 {
+            return Spectrum::black();
+        }
+        let light = &scene.lights[light_num];
         let u_light = sampler.get_2d();
         let u_scattering = sampler.get_2d();
-        estimate_direct(it, &u_scattering, light, &u_light, scene, sampler) * n_lights as f32
+        estimate_direct(it, &u_scattering, light, &u_light, scene, sampler) / light_pdf
     }
 }
 

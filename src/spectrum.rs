@@ -133,6 +133,10 @@ impl Spectrum {
         return y_height[0] * self[0] + y_height[1] * self[1] + y_height[2] * self[2];
 
     }
+
+    pub fn max_component_value(&self) -> f32 {
+        self.r.max(self.g).max(self.b)
+    }
 }
 
 fn interpolate_spectrum_samples(lambda: &[f32], vals: &[f32], n: usize, l: f32) -> f32 {

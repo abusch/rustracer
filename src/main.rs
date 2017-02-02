@@ -27,7 +27,7 @@ use rt::bvh::BVH;
 use rt::camera::Camera;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
-                     AmbientOcclusion};
+                     AmbientOcclusion, PathIntegrator};
 use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::metal::Metal;
@@ -46,6 +46,7 @@ arg_enum! {
   enum SamplerIntegratorType {
       Whitted,
       DirectLighting,
+      PathTracing,
       Ao,
       Normal
   }
@@ -78,6 +79,8 @@ fn run(matches: ArgMatches) -> Result<(), String> {
     }
     let dim = (dims[0], dims[1]);
 
+    let scene = build_scene(dim);
+
     let integrator: Box<SamplerIntegrator + Send + Sync> =
         match value_t!(matches.value_of("integrator"), SamplerIntegratorType)
             .unwrap_or(SamplerIntegratorType::Whitted) {
@@ -92,6 +95,10 @@ fn run(matches: ArgMatches) -> Result<(), String> {
                 // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
                 Box::new(DirectLightingIntegrator::new(8))
             }
+            SamplerIntegratorType::PathTracing => {
+                info!("Using path tracing integrator");
+                Box::new(PathIntegrator::new(&scene))
+            }
             SamplerIntegratorType::Ao => {
                 info!("Using Ambient Occlusion integrator with {} samples", 32);
                 Box::new(AmbientOcclusion::new(32))
@@ -102,7 +109,6 @@ fn run(matches: ArgMatches) -> Result<(), String> {
             }
         };
 
-    let scene = build_scene(dim, integrator);
     let disp: Box<DisplayUpdater + Send> = if matches.is_present("display") {
         Box::new(MinifbDisplayUpdater::new(dim))
     } else {
@@ -112,6 +118,7 @@ fn run(matches: ArgMatches) -> Result<(), String> {
     let start_time = std::time::Instant::now();
     let stats =
         renderer::render(scene,
+                         integrator,
                          dim,
                          matches.value_of("output").unwrap(),
                          matches.value_of("threads")
@@ -135,7 +142,7 @@ fn run(matches: ArgMatches) -> Result<(), String> {
     Ok(())
 }
 
-fn build_scene2(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Scene {
+fn build_scene2(dim: Dim) -> Scene {
     info!("Building scene");
     let camera = Camera::new(na::one(),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
@@ -158,10 +165,10 @@ fn build_scene2(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> S
     // Light
     lights.push(Arc::new(DistantLight::new(Vector3f::z(), Spectrum::white())));
 
-    Scene::new(camera, integrator, primitives, lights)
+    Scene::new(camera, primitives, lights)
 }
 
-fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Scene {
+fn build_scene(dim: Dim) -> Scene {
     info!("Building scene");
     let camera = Camera::new(transform::translate_z(-3.0),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
@@ -186,11 +193,11 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
     let plastic_white = Arc::new(Plastic::new(Spectrum::rgb(1.0, 1.0, 1.0), Spectrum::white()));
     let plastic_lines = Arc::new(Plastic::new_tex("grid.png", Spectrum::white()));
     // let plastic_lines = Arc::new(MatteMaterial::new_uv_texture());
-    let sphere = Box::new(GeometricPrimitive {
-        shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
-        area_light: None,
-        material: Some(plastic_white.clone()),
-    });
+    // let sphere = Box::new(GeometricPrimitive {
+    //     shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
+    //     area_light: None,
+    //     material: Some(plastic_white.clone()),
+    // });
     // let bunny =
     //     Box::new(BVH::<GeometricPrimitive>::from_mesh_file(Path::new("models/bunny.obj"),
     //                                                        "bunny",
@@ -234,7 +241,7 @@ fn build_scene(dim: Dim, integrator: Box<SamplerIntegrator + Send + Sync>) -> Sc
                                                 Spectrum::grey(1.0),
                                                 Path::new("sky_sanmiguel.tga"))));
 
-    Scene::new(camera, integrator, primitives, lights)
+    Scene::new(camera, primitives, lights)
 }
 
 fn parse_args<'a>() -> ArgMatches<'a> {
