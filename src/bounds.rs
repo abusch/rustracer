@@ -325,7 +325,8 @@ impl<'a> IntoIterator for &'a Bounds2<u32> {
 
     fn into_iter(self) -> Self::IntoIter {
         Bounds2Iterator {
-            p: self.p_min,
+            // Need to start 1 before p_min.x as next() will be called to get the first element
+            p: Point2i::new(self.p_min.x - 1, self.p_min.y),
             bounds: self,
         }
     }
