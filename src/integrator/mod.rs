@@ -38,7 +38,7 @@ pub trait SamplerIntegrator {
         let (f, wi, pdf, bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
-            let mut r = ray.spawn(isect.p, wi);
+            let mut r = isect.spawn_ray(&wi);
             let refl = self.li(scene, &mut r, sampler, depth + 1);
             f * refl * wi.dot(&ns).abs() / pdf
         } else {
@@ -55,11 +55,10 @@ pub trait SamplerIntegrator {
                              depth: u32)
                              -> Spectrum {
         let flags = bsdf::BSDF_TRANSMISSION | bsdf::BSDF_SPECULAR;
-        // TODO use sampler.get_2d()
         let (f, wi, pdf, bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
-            let mut r = ray.spawn(isect.p, wi);
+            let mut r = isect.spawn_ray(&wi);
             let refr = self.li(scene, &mut r, sampler, depth + 1);
             f * refr * wi.dot(&ns).abs() / pdf
         } else {
