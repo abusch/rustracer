@@ -1,5 +1,7 @@
 use std::mem;
 
+use ::ONE_MINUS_EPSILON;
+
 const PCG32_DEFAULT_STATE: u64 = 0x853c49e6748fea9b;
 const PCG32_DEFAULT_STREAM: u64 = 0xda3e39cb94b95bdb;
 const PCG32_MULT: u64 = 0x5851f42d4c957f2d;
@@ -37,11 +39,8 @@ impl RNG {
     }
 
     pub fn uniform_f32(&mut self) -> f32 {
-        const UPPER_MASK: u32 = 0x3F800000;
-        const LOWER_MASK: u32 = 0x7FFFFF;
-        let tmp = UPPER_MASK | (self.uniform_u32() & LOWER_MASK);
-        let result: f32 = unsafe { mem::transmute(tmp) };
-        result - 1.0
+        (self.uniform_u32() as f32 * 2.3283064365386963e-10).min(ONE_MINUS_EPSILON)
+
     }
 
     pub fn set_sequence(&mut self, seed: u64) {
