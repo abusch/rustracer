@@ -1,7 +1,7 @@
 use std::mem;
 
 use ::{Vector3f, Point2f};
-use bsdf::{BxDF, BxDFType, BSDF_SPECULAR, BSDF_REFLECTION};
+use bsdf::{BxDF, BxDFType, BSDF_SPECULAR, BSDF_REFLECTION, BSDF_TRANSMISSION};
 use geometry::*;
 use spectrum::Spectrum;
 use na::{Dot, Norm, clamp};
@@ -171,4 +171,148 @@ impl BxDF for SpecularReflection {
     fn get_type(&self) -> BxDFType {
         BSDF_SPECULAR | BSDF_REFLECTION
     }
+}
+
+pub struct SpecularTransmission {
+    t: Spectrum,
+    eta_a: f32,
+    eta_b: f32,
+    fresnel: FresnelDielectric,
+}
+
+impl SpecularTransmission {
+    pub fn new(t: Spectrum, eta_a: f32, eta_b: f32) -> SpecularTransmission {
+        SpecularTransmission {
+            t: t,
+            eta_a: eta_a,
+            eta_b: eta_b,
+            fresnel: Fresnel::dielectric(eta_a, eta_b),
+        }
+    }
+}
+
+impl BxDF for SpecularTransmission {
+    fn f(&self, _wo: &Vector3f, _wi: &Vector3f) -> Spectrum {
+        // The probability to call f() with the exact (wo, wi) for specular transmission is 0, so we
+        // return black here. Use sample_f() instead.
+        Spectrum::black()
+    }
+
+    fn sample_f(&self, wo: &Vector3f, _sample: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+        // Figure out which $\eta$ is incident and which is transmitted
+        let entering = cos_theta(wo) > 0.0;
+        let eta_i = if entering { self.eta_a } else { self.eta_b };
+        let eta_t = if entering { self.eta_b } else { self.eta_a };
+
+        // Compute ray direction for specular transmission
+        if let Some(wi) = refract(wo,
+                                  &face_forward(&Vector3f::new(0.0, 0.0, 1.0), wo),
+                                  eta_i / eta_t) {
+            let mut ft = self.t * (Spectrum::white() - self.fresnel.evaluate(cos_theta(&wi)));
+
+            // Account for non-symmetry with transmission to different medium TODO
+            ft = ft * (eta_i * eta_i) / (eta_t * eta_t);
+            info!("wo={}. wi={}, cos_theta(wo)={}, cos_theta(wi)={}, abs_cos_theta(wi)={}, ft={}",
+                  wo,
+                  wi,
+                  cos_theta(wo),
+                  cos_theta(&wi),
+                  abs_cos_theta(&wi),
+                  ft);
+
+            return (ft / abs_cos_theta(&wi), wi, 1.0, BSDF_SPECULAR | BSDF_TRANSMISSION);
+        } else {
+            return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+        }
+    }
+
+    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+        0.0
+    }
+
+    fn get_type(&self) -> BxDFType {
+        BSDF_SPECULAR | BSDF_TRANSMISSION
+    }
+}
+
+pub struct FresnelSpecular {
+    r: Spectrum,
+    t: Spectrum,
+    eta_a: f32,
+    eta_b: f32,
+}
+
+impl FresnelSpecular {
+    pub fn new() -> FresnelSpecular {
+        FresnelSpecular {
+            r: Spectrum::white(),
+            t: Spectrum::white(),
+            eta_a: 1.0,
+            eta_b: 1.5,
+        }
+    }
+}
+
+impl BxDF for FresnelSpecular {
+    fn f(&self, _wo: &Vector3f, _wi: &Vector3f) -> Spectrum {
+        // The probability to call f() with the exact (wo, wi) for specular reflection is 0, so we
+        // return black here. Use sample_f() instead.
+        Spectrum::black()
+    }
+
+    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+        let fr = fr_dielectric(cos_theta(wo), self.eta_a, self.eta_b);
+        if u[0] < fr {
+            // Compute specular reflection for FresnelSpecular
+
+            // Compute perfect specular reflection direction
+            let wi = Vector3f::new(-wo.x, -wo.y, wo.z);
+
+            return (fr * self.r * abs_cos_theta(&wi), wi, fr, BSDF_SPECULAR | BSDF_REFLECTION);
+        } else {
+            // Compute specular transmission for FresnelSpecular
+
+            // Figure out which $\eta$ is incident and which is transmitted
+            let entering = cos_theta(wo) > 0.0;
+            let eta_i = if entering { self.eta_a } else { self.eta_b };
+            let eta_t = if entering { self.eta_b } else { self.eta_a };
+
+            // Compute ray direction for specular transmission
+            if let Some(wi) = refract(wo,
+                                      &face_forward(&Vector3f::new(0.0, 0.0, 1.0), wo),
+                                      eta_i / eta_t) {
+                let ft = self.t * (1.0 - fr);
+
+                // Account for non-symmetry with transmission to different medium
+                // TODO
+                //
+                return (ft / abs_cos_theta(&wi), wi, 1.0 - fr, BSDF_SPECULAR | BSDF_TRANSMISSION);
+            } else {
+                return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            }
+        }
+    }
+
+    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+        0.0
+    }
+
+    fn get_type(&self) -> BxDFType {
+        BSDF_SPECULAR | BSDF_REFLECTION | BSDF_TRANSMISSION
+    }
+}
+
+fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
+    if v1.dot(v2) < 0.0 { -(*v1) } else { *v1 }
+}
+
+#[test]
+fn test_reflect() {
+    let wo = Vector3f::new(-0.0137817357, -0.999056697, 0.0411854088);
+    let n = Vector3f::new(-0.000777989568, 0.000739870942, 0.999999404);
+    let wi = ::bsdf::reflect(&wo, &n);
+
+    assert_relative_eq!(0.0137187857, wi.x);
+    assert_relative_eq!(0.99911654, wi.y);
+    assert_relative_eq!(0.0397284105, wi.z);
 }
