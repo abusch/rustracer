@@ -3,6 +3,7 @@ use interaction::SurfaceInteraction;
 pub mod matte;
 pub mod metal;
 pub mod plastic;
+pub mod glass;
 
 pub enum TransportMode {
     RADIANCE,
