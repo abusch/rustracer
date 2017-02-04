@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use bsdf::{BSDF, BxDF, FresnelSpecular, SpecularTransmission, SpecularReflection, Fresnel};
+use bsdf::{BSDF, BxDF, FresnelSpecular, SpecularTransmission, SpecularReflection, Fresnel,
+           MicrofacetReflection, MicrofacetTransmission, TrowbridgeReitzDistribution};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use spectrum::Spectrum;
@@ -26,6 +27,13 @@ impl GlassMaterial {
             remap_roughness: true,
         }
     }
+
+    pub fn roughness(mut self, u_rough: f32, v_rough: f32) -> GlassMaterial {
+        self.u_roughness = Arc::new(ConstantTexture::new(::na::clamp(u_rough, 0.0, 1.0)));
+        self.v_roughness = Arc::new(ConstantTexture::new(::na::clamp(v_rough, 0.0, 1.0)));
+
+        self
+    }
 }
 
 
@@ -35,8 +43,8 @@ impl Material for GlassMaterial {
                                     mode: TransportMode,
                                     allow_multiple_lobes: bool) {
         let eta = self.index.evaluate(isect);
-        let u_rough = self.u_roughness.evaluate(isect);
-        let v_rough = self.v_roughness.evaluate(isect);
+        let mut u_rough = self.u_roughness.evaluate(isect);
+        let mut v_rough = self.v_roughness.evaluate(isect);
         let r = self.kr.evaluate(isect);
         let t = self.kt.evaluate(isect);
 
@@ -47,15 +55,18 @@ impl Material for GlassMaterial {
             if is_specular && allow_multiple_lobes {
                 bxdfs.push(Box::new(FresnelSpecular::new()));
             } else {
-                // TODO remap roughness
+                if self.remap_roughness {
+                    u_rough = TrowbridgeReitzDistribution::roughness_to_alpha(u_rough);
+                    v_rough = TrowbridgeReitzDistribution::roughness_to_alpha(v_rough);
+                }
                 if !r.is_black() {
                     let fresnel = Box::new(Fresnel::dielectric(1.0, eta));
                     if is_specular {
                         let bxdf = Box::new(SpecularReflection::new(r, fresnel));
                         bxdfs.push(bxdf);
                     } else {
-                        // TODO
-                        unimplemented!();
+                        let distrib = Box::new(TrowbridgeReitzDistribution::new(u_rough, v_rough));
+                        let bxdf = Box::new(MicrofacetReflection::new(r, distrib, fresnel));
                     }
                 }
                 if !t.is_black() {
@@ -63,8 +74,8 @@ impl Material for GlassMaterial {
                         let bxdf = Box::new(SpecularTransmission::new(t, 1.0, eta));
                         bxdfs.push(bxdf);
                     } else {
-                        // TODO
-                        unimplemented!();
+                        let distrib = Box::new(TrowbridgeReitzDistribution::new(u_rough, v_rough));
+                        let bxdf = Box::new(MicrofacetTransmission::new(r, distrib, 1.0, eta));
                     }
                 }
             }

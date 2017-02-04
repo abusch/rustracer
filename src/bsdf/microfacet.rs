@@ -2,12 +2,13 @@ use std::f32::consts;
 
 use na::{Norm, Dot};
 
-use ::{Vector3f, Point2f};
+use {Vector3f, Point2f};
 use spectrum::Spectrum;
-use bsdf::{BxDF, BxDFType, BSDF_REFLECTION, BSDF_GLOSSY, reflect};
+use bsdf::{BxDF, BxDFType, BSDF_REFLECTION, BSDF_TRANSMISSION, BSDF_GLOSSY, reflect, refract};
 use geometry::{tan_theta, tan2_theta, cos_theta, abs_cos_theta, cos2_theta, cos_phi, cos2_phi,
                sin_phi, sin2_phi, same_hemisphere, spherical_direction, erf, erf_inv};
-use bsdf::fresnel::Fresnel;
+use material::TransportMode;
+use bsdf::fresnel::{Fresnel, FresnelDielectric};
 
 pub struct MicrofacetReflection {
     r: Spectrum,
@@ -29,7 +30,7 @@ impl MicrofacetReflection {
 }
 
 impl BxDF for MicrofacetReflection {
-    fn f(&self, wi: &Vector3f, wo: &Vector3f) -> Spectrum {
+    fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
         let cos_theta_o = abs_cos_theta(wo);
         let cos_theta_i = abs_cos_theta(wi);
         let mut wh = *wi + *wo;
@@ -68,9 +69,128 @@ impl BxDF for MicrofacetReflection {
 
         (self.f(wo, &wi), wi, pdf, BxDFType::empty())
     }
+
+    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+        if !same_hemisphere(wo, &wi) {
+            return 0.0;
+        }
+        let wh = (*wo + *wi).normalize();
+
+        self.distribution.pdf(wo, &wh) / (4.0 * wo.dot(&wh))
+    }
 }
 
-// TODO MicrofacetTransmission
+// MicrofacetTransmission
+pub struct MicrofacetTransmission {
+    t: Spectrum,
+    distribution: Box<MicrofacetDistribution + Send + Sync>,
+    eta_a: f32,
+    eta_b: f32,
+    fresnel: FresnelDielectric,
+    mode: TransportMode,
+}
+
+impl MicrofacetTransmission {
+    pub fn new(t: Spectrum,
+               distribution: Box<MicrofacetDistribution + Send + Sync>,
+               eta_a: f32,
+               eta_b: f32)
+               -> MicrofacetTransmission {
+        MicrofacetTransmission {
+            t: t,
+            distribution: distribution,
+            eta_a: eta_a,
+            eta_b: eta_b,
+            fresnel: Fresnel::dielectric(eta_a, eta_b),
+            mode: TransportMode::RADIANCE,
+        }
+    }
+}
+
+impl BxDF for MicrofacetTransmission {
+    fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
+        if same_hemisphere(wo, wi) {
+            // transmission only
+            return Spectrum::black();
+        }
+
+        let cos_theta_o = abs_cos_theta(wo);
+        let cos_theta_i = abs_cos_theta(wi);
+        // Handle degenerate case for microfacet reflection
+        if cos_theta_o == 0.0 || cos_theta_i == 0.0 {
+            return Spectrum::black();
+        }
+
+        let eta = if cos_theta_o > 0.0 {
+            self.eta_b / self.eta_a
+        } else {
+            self.eta_a / self.eta_b
+        };
+
+        let mut wh = (*wo + *wi * eta).normalize();
+        if wh.z < 0.0 {
+            wh = -wh;
+        }
+
+        let f = self.fresnel.evaluate(wo.dot(&wh));
+
+        let sqrt_denom = wo.dot(&wh) + eta * wi.dot(&wh);
+        let factor = match self.mode {
+            TransportMode::RADIANCE => 1.0 / eta,
+            _ => 1.0,
+        };
+
+
+        (Spectrum::white() - f) * self.t * self.distribution.d(&wh).abs() *
+        self.distribution.g(wo, wi) * eta * eta * wi.dot(&wh).abs() *
+        wo.dot(&wh).abs() * factor * factor /
+        (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom)
+    }
+
+    fn get_type(&self) -> BxDFType {
+        BSDF_TRANSMISSION | BSDF_GLOSSY
+    }
+
+    /// Override sample_f() to use a better importance sampling method than weighted cosine based
+    /// on the microface distribution
+    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+        if wo.z == 0.0 {
+            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+        }
+
+        let wh = self.distribution.sample_wh(wo, u);
+        let eta = if cos_theta(wo) > 0.0 {
+            self.eta_b / self.eta_a
+        } else {
+            self.eta_a / self.eta_b
+        };
+
+        if let Some(wi) = refract(wo, &wh, eta) {
+            let pdf = self.pdf(wo, &wi);
+            (self.f(wo, &wi), wi, pdf, BxDFType::empty())
+        } else {
+            (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty())
+        }
+    }
+
+    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+        if same_hemisphere(wo, wi) {
+            return 0.0;
+        }
+
+        let eta = if cos_theta(wo) > 0.0 {
+            self.eta_b / self.eta_a
+        } else {
+            self.eta_a / self.eta_b
+        };
+        let wh = (*wo + *wi * eta).normalize();
+
+        let sqrt_denom = wo.dot(&wh) + eta * wi.dot(&wh);
+        let dwh_dwi = ((eta * eta * wi.dot(&wh)) / (sqrt_denom * sqrt_denom)).abs();
+
+        self.distribution.pdf(wo, &wh) * dwh_dwi
+    }
+}
 
 // Microfacet distributions
 pub trait MicrofacetDistribution {
