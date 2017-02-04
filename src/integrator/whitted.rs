@@ -8,7 +8,10 @@ use sampler::Sampler;
 use scene::Scene;
 use spectrum::Spectrum;
 
+/// Simple integrator using the original Whitted recursive algorithm. Only handles direct illumination. See
+/// ```DirectLightingIntegrator``` for a lighly better integrator that uses better light sampling.
 pub struct Whitted {
+    /// Maximum number of times a ray can bounce before being terminated.
     pub max_ray_depth: u8,
 }
 

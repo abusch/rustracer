@@ -5,13 +5,20 @@ use sampler::Sampler;
 use scene::Scene;
 use spectrum::Spectrum;
 
+/// Strategy to use for sampling lights
 pub enum LightStrategy {
+    /// For each pixel sample, sample every light in the scene
     UniformSampleAll,
+    /// For each pixel sample, only sample one light from the scene, chosen at random
     UniformSampleOne,
 }
 
+/// Integrator that only takes into account direct lighting i.e no global illumination. It is very
+/// similar to the Whitted integrator but has a better light sampling strategy.
 pub struct DirectLightingIntegrator {
+    /// The strategy to use to sample lights
     pub light_strategy: LightStrategy,
+    /// Maximum number of times a ray can bounce before terminating
     pub max_ray_depth: u8,
 }
 
@@ -60,10 +67,10 @@ impl SamplerIntegrator for DirectLightingIntegrator {
                 }
             }
             None => {
+                // If we didn't intersect anything, add the backgound radiance from every light
                 colour = scene.lights.iter().fold(Spectrum::black(), |c, l| c + l.le(ray));
             }
         }
-
 
         colour
     }
