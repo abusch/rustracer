@@ -12,26 +12,25 @@ extern crate slog_scope;
 extern crate slog_stream;
 extern crate thread_id;
 
+mod logging;
+
 use std::sync::Arc;
 use std::num::ParseIntError;
-use std::fs::OpenOptions;
 use std::path::Path;
-use std::io;
 use std::process;
 
-use chrono::Local;
 use clap::{Arg, ArgMatches, App};
-use slog::*;
 
 use rt::bvh::BVH;
 use rt::camera::Camera;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
-use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
-                     AmbientOcclusion, PathIntegrator};
+use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal, AmbientOcclusion,
+                     PathIntegrator};
 use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::metal::Metal;
 use rt::material::plastic::Plastic;
+use rt::material::glass::GlassMaterial;
 use rt::primitive::{Primitive, GeometricPrimitive};
 use rt::renderer;
 use rt::scene::Scene;
@@ -61,7 +60,7 @@ fn main() {
     } else {
         slog::Level::Info
     };
-    configure_logger(level);
+    logging::configure_logger(level);
 
 
     if let Err(e) = run(matches) {
@@ -285,21 +284,6 @@ fn parse_args<'a>() -> ArgMatches<'a> {
         .get_matches()
 }
 
-fn configure_logger(level: Level) {
-    let log_path = "/tmp/rustracer.log";
-    let file = OpenOptions::new()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open(log_path)
-        .unwrap();
-
-    let drain = slog::level_filter(level, slog_stream::stream(file, MyFormat));
-    let log = Logger::root(drain.fuse(), o!());
-    slog_scope::set_global_logger(log);
-
-}
-
 trait HumanDisplay {
     fn human_display(&self) -> String;
 }
@@ -318,29 +302,5 @@ impl HumanDisplay for std::time::Duration {
         }
         let millis = self.subsec_nanos() / 1000000;
         format!("{}:{}:{}.{}", hours, minutes, seconds, millis)
-    }
-}
-
-macro_rules! now {
-    () => ( Local::now().format("%Y-%m-%d %H:%M:%S%.3f") )
-}
-
-struct MyFormat;
-
-impl slog_stream::Format for MyFormat {
-    fn format(&self,
-              io: &mut io::Write,
-              rinfo: &slog::Record,
-              _logger_values: &slog::OwnedKeyValueList)
-              -> io::Result<()> {
-        let msg = format!("{} [{}][{:x}][{}:{}] - {}\n",
-                          now!(),
-                          rinfo.level(),
-                          thread_id::get(),
-                          rinfo.file(),
-                          rinfo.line(),
-                          rinfo.msg());
-        try!(io.write_all(msg.as_bytes()));
-        Ok(())
     }
 }
