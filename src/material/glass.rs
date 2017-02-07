@@ -61,22 +61,22 @@ impl Material for GlassMaterial {
                 }
                 if !r.is_black() {
                     let fresnel = Box::new(Fresnel::dielectric(1.0, eta));
-                    if is_specular {
-                        let bxdf = Box::new(SpecularReflection::new(r, fresnel));
-                        bxdfs.push(bxdf);
+                    let bxdf: Box<BxDF + Send + Sync> = if is_specular {
+                        Box::new(SpecularReflection::new(r, fresnel))
                     } else {
                         let distrib = Box::new(TrowbridgeReitzDistribution::new(u_rough, v_rough));
-                        let bxdf = Box::new(MicrofacetReflection::new(r, distrib, fresnel));
-                    }
+                        Box::new(MicrofacetReflection::new(r, distrib, fresnel))
+                    };
+                    bxdfs.push(bxdf);
                 }
                 if !t.is_black() {
-                    if is_specular {
-                        let bxdf = Box::new(SpecularTransmission::new(t, 1.0, eta));
-                        bxdfs.push(bxdf);
+                    let bxdf: Box<BxDF + Send + Sync> = if is_specular {
+                        Box::new(SpecularTransmission::new(t, 1.0, eta))
                     } else {
                         let distrib = Box::new(TrowbridgeReitzDistribution::new(u_rough, v_rough));
-                        let bxdf = Box::new(MicrofacetTransmission::new(r, distrib, 1.0, eta));
-                    }
+                        Box::new(MicrofacetTransmission::new(r, distrib, 1.0, eta))
+                    };
+                    bxdfs.push(bxdf);
                 }
             }
         }
