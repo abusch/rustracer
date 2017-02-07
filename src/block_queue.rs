@@ -1,4 +1,3 @@
-use std::io;
 use std::io::Write;
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 use std::fmt;
@@ -92,13 +91,6 @@ impl BlockQueue {
                              c / num_blocks_width * self.block_size),
                             self.block_size))
         }
-    }
-
-    pub fn report_progress(&self) {
-        print!("\rRendering block {}/{}...  ",
-               self.counter.load(Ordering::Relaxed),
-               self.num_blocks);
-        io::stdout().flush().expect("Could not flush stdout");;
     }
 }
 

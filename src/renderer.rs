@@ -1,3 +1,5 @@
+extern crate pbr;
+
 use std::io;
 use std::path::Path;
 use std::sync::mpsc::channel;
@@ -44,10 +46,12 @@ pub fn render(scene: Scene,
         // Spawn thread to collect pixels and render image to file
         scope.spawn(move || {
             // Write all tiles to the image
+            let mut pb = pbr::ProgressBar::new(num_blocks as _);
             info!("Receiving tiles...");
             for _ in 0..num_blocks {
                 let tile = pixel_rx.recv().unwrap();
                 &film.merge_film_tile(tile);
+                pb.inc();
                 display.update(&film);
             }
         });
@@ -64,7 +68,6 @@ pub fn render(scene: Scene,
                                block.start.x / bq.block_size;
                     sampler.reseed(seed as u64);
                     let mut tile = film.get_film_tile(&block.bounds());
-                    bq.report_progress();
                     for p in &tile.get_pixel_bounds() {
                         sampler.start_pixel(&p);
                         loop {
