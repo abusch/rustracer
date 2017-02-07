@@ -44,16 +44,6 @@ impl Ray {
         self.o + t * self.d
     }
 
-    pub fn spawn(&self, o: Point3f, d: Vector3f) -> Ray {
-        stats::inc_secondary_ray();
-        Ray {
-            o: o,
-            d: d,
-            t_max: INFINITY,
-            differential: None,
-        }
-    }
-
     pub fn transform(&self, transform: &Transform) -> (Ray, Vector3f, Vector3f) {
         let (mut o, o_error) = transform::transform_point(transform, &self.o);
         let (d, d_error) = transform::transform_vector(transform, &self.d);

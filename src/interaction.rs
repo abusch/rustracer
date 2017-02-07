@@ -1,14 +1,17 @@
 use std::sync::Arc;
-use ::{Point3f, Point2f, Vector3f, Transform};
+
+use fp::Ieee754;
+use na::{self, Dot, Cross, Norm};
+
+use {Point3f, Point2f, Vector3f, Transform};
 use bsdf::BSDF;
-use spectrum::Spectrum;
+use material::TransportMode;
 use primitive::Primitive;
 use ray::Ray;
 use shapes::Shape;
+use spectrum::Spectrum;
+use stats;
 use transform;
-use na::{self, Dot, Cross, Norm};
-use material::TransportMode;
-use fp::Ieee754;
 
 
 // TODO Find a better design for this mess of inheritance...
@@ -46,6 +49,7 @@ impl Interaction {
 
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 && dir.y != 0.0 && dir.z != 0.0);
+        stats::inc_secondary_ray();
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
     }
@@ -53,11 +57,13 @@ impl Interaction {
     pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
         let d = *p - self.p;
         assert!(d.x != 0.0 && d.y != 0.0 && d.z != 0.0);
+        stats::inc_secondary_ray();
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
 
     pub fn spawn_ray_to_interaction(&self, it: &Interaction) -> Ray {
+        stats::inc_secondary_ray();
         let origin = offset_origin(&self.p, &self.p_error, &self.n, &(it.p - self.p));
         let target = offset_origin(&it.p, &it.p_error, &it.n, &(origin - it.p));
         let d = target - origin;
@@ -170,6 +176,7 @@ impl<'a> SurfaceInteraction<'a> {
 
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
+        stats::inc_secondary_ray();
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
     }
@@ -177,6 +184,7 @@ impl<'a> SurfaceInteraction<'a> {
     pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
         let d = *p - self.p;
         assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
+        stats::inc_secondary_ray();
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
