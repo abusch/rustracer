@@ -67,7 +67,6 @@ fn run(matches: ArgMatches) -> Result<(), String> {
             SamplerIntegratorType::DirectLighting => {
                 info!("Using direct lighting integrator with max ray depth of {}",
                       8);
-                // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
                 Box::new(DirectLightingIntegrator::new(8))
             }
             SamplerIntegratorType::PathTracing => {

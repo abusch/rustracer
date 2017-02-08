@@ -6,8 +6,8 @@ use std::path::Path;
 use na::{Inverse, Cross, Norm};
 use na::abs;
 
-use ::{Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
-       coordinate_system, gamma};
+use {Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
+     coordinate_system, gamma};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
@@ -226,7 +226,7 @@ impl Shape for Triangle {
         Bounds3f::union_point(&Bounds3f::from_points(&p0, &p1), &p2)
     }
 
-    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
+    fn sample(&self, _u: &Point2f) -> (Interaction, f32) {
         unimplemented!();
     }
 }

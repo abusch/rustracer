@@ -1,7 +1,5 @@
 use std::f32;
-use std::iter;
 
-use ::Point2f;
 use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;

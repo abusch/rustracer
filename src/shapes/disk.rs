@@ -3,7 +3,7 @@ use std::f32::consts;
 use na;
 use na::{Norm, Inverse};
 
-use ::{Point3f, Vector3f, Transform, Point2f};
+use {Point3f, Vector3f, Transform, Point2f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;

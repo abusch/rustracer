@@ -41,8 +41,7 @@ pub trait Shape {
         (intr, pdf)
     }
 
-    fn pdf(&self, si: &SurfaceInteraction) -> f32 {
-        // TODO more stuff to do here?
+    fn pdf(&self, _si: &SurfaceInteraction) -> f32 {
         1.0 / self.area()
     }
 

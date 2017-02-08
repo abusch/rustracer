@@ -1,4 +1,4 @@
-use ::Point3f;
+use Point3f;
 use sampling::Distribution1D;
 use scene::Scene;
 
@@ -18,7 +18,7 @@ impl UniformLightDistribution {
 }
 
 impl LightDistribution for UniformLightDistribution {
-    fn lookup<'a>(&'a self, p: &Point3f) -> &'a Distribution1D {
+    fn lookup<'a>(&'a self, _p: &Point3f) -> &'a Distribution1D {
         &self.distrib
     }
 }

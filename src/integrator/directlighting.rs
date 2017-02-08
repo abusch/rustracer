@@ -37,7 +37,6 @@ impl SamplerIntegrator for DirectLightingIntegrator {
 
         match scene.intersect(ray) {
             Some(mut isect) => {
-                let n = isect.shading.n;
                 let wo = isect.wo;
 
                 // Compute scattering functions for surface interaction

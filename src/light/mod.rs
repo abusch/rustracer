@@ -71,7 +71,7 @@ pub trait Light {
 
     fn power(&self) -> Spectrum;
 
-    fn le(&self, ray: &Ray) -> Spectrum {
+    fn le(&self, _ray: &Ray) -> Spectrum {
         Spectrum::black()
     }
 }

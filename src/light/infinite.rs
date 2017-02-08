@@ -6,7 +6,7 @@ use img;
 use na::{Norm, Inverse, origin};
 use uuid::Uuid;
 
-use ::{Vector3f, Point2i, Point2f, Point3f, Transform};
+use {Vector3f, Point2i, Point2f, Point3f, Transform};
 use geometry::{spherical_phi, spherical_theta};
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, INFINITE};
@@ -33,12 +33,12 @@ impl InfiniteAreaLight {
                texmap: &Path)
                -> InfiniteAreaLight {
         // Read texel data from texmap and initialise Lmap
-        let (resolution, mut texels) = if let Ok(buf) = img::open(texmap) {
+        let (resolution, texels) = if let Ok(buf) = img::open(texmap) {
             info!("Loading environment map {} for infinite light",
                   texmap.display());
             let rgb = buf.to_rgb();
             let resolution = Point2i::new(rgb.width(), rgb.height());
-            let mut pixels: Vec<Spectrum> = rgb.pixels()
+            let pixels: Vec<Spectrum> = rgb.pixels()
                 .map(|p| {
                     let r = p.data[0] as f32 / 255.0;
                     let g = p.data[1] as f32 / 255.0;
