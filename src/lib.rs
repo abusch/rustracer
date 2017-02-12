@@ -39,6 +39,7 @@ pub mod light;
 pub mod lightdistrib;
 pub mod material;
 pub mod mipmap;
+mod noise;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
