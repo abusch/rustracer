@@ -1,4 +1,4 @@
-use ::find_interval;
+use find_interval;
 
 pub struct Distribution1D {
     pub func: Vec<f32>,

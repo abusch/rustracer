@@ -1,6 +1,6 @@
 use na;
 
-use ::Point2f;
+use Point2f;
 use sampling::Distribution1D;
 
 pub struct Distribution2D {

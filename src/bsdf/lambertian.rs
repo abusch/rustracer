@@ -1,7 +1,7 @@
 use std::f32::consts;
 
 use bsdf::{BxDF, BxDFType, BSDF_DIFFUSE, BSDF_REFLECTION};
-use ::Vector3f;
+use Vector3f;
 use spectrum::Spectrum;
 
 pub struct LambertianReflection {

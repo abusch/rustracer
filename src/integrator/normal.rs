@@ -6,8 +6,7 @@ use ray::Ray;
 use sampler::Sampler;
 use scene::Scene;
 
-pub struct Normal {
-}
+pub struct Normal {}
 
 impl SamplerIntegrator for Normal {
     fn li(&self, scene: &Scene, ray: &mut Ray, _: &mut Sampler, _: u32) -> Spectrum {

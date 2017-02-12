@@ -1,7 +1,7 @@
 #[cfg(feature = "minifb")]
 extern crate minifb;
 
-use ::Dim;
+use Dim;
 use film::Film;
 
 pub trait DisplayUpdater {

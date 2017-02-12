@@ -1,7 +1,7 @@
 use std::f32::consts;
 
 use super::BxDFType;
-use ::{Vector3f, Point2f};
+use {Vector3f, Point2f};
 use geometry::{abs_cos_theta, same_hemisphere};
 use sampling::cosine_sample_hemisphere;
 use spectrum::Spectrum;

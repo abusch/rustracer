@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use na;
 
-use ::Vector3f;
+use Vector3f;
 
 // Common geometric functions
 #[inline]

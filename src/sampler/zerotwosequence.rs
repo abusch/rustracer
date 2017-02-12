@@ -97,7 +97,7 @@ impl Sampler for ZeroTwoSequence {
     fn get_1d_array(&mut self, n: usize) -> &[f32] {
         assert!(self.array_1d_offset < self.sample_array_1d.len());
         let res = &self.sample_array_1d[self.array_1d_offset][(self.current_pixel_sample_index *
-                                                               n)..];
+                    n)..];
         self.array_1d_offset += 1;
         res
     }
@@ -105,7 +105,7 @@ impl Sampler for ZeroTwoSequence {
     fn get_2d_array(&mut self, n: usize) -> &[Point2f] {
         assert!(self.array_2d_offset < self.sample_array_2d.len());
         let res = &self.sample_array_2d[self.array_2d_offset][(self.current_pixel_sample_index *
-                                                               n)..];
+                    n)..];
         self.array_2d_offset += 1;
         res
     }

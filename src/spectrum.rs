@@ -4,7 +4,7 @@ use std::fmt;
 use na;
 use num::{Zero, One};
 
-use ::{lerp, find_interval};
+use {lerp, find_interval};
 use cie;
 
 /// Represents a linear RGB spectrum.

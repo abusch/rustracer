@@ -6,9 +6,9 @@ use std::fmt::Debug;
 use na;
 use num::{zero, Zero};
 
-use ::Point2i;
-use ::Point2f;
-use ::lerp;
+use Point2i;
+use Point2f;
+use lerp;
 use blockedarray::BlockedArray;
 use spectrum::Spectrum;
 
@@ -92,9 +92,9 @@ impl<T> MIPMap<T>
                             WrapMode::Black => offset,
                         };
                         if offset >= 0 && offset < res.y as isize {
-                            work_data[t] +=
-                                resampled_image[(offset * res_pow2.x as isize + s as isize) as usize] *
-                                t_weights[t].weights[j];
+                            work_data[t] += resampled_image[(offset * res_pow2.x as isize + s as isize) as
+                                            usize] *
+                                            t_weights[t].weights[j];
                         }
                     }
                 }

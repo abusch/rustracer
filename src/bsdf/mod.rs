@@ -14,7 +14,7 @@ use std::cmp;
 
 use na::{Cross, Dot, Norm};
 
-use ::{Vector3f, Point2f, ONE_MINUS_EPSILON};
+use {Vector3f, Point2f, ONE_MINUS_EPSILON};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 

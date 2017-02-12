@@ -1,6 +1,6 @@
 use std::f32::consts;
 
-use ::Vector3f;
+use Vector3f;
 use spectrum::Spectrum;
 use bsdf::{BxDFType, BSDF_REFLECTION, BSDF_DIFFUSE};
 use geometry::{sin_theta, sin_phi, cos_phi, abs_cos_theta};

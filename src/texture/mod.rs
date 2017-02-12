@@ -1,4 +1,4 @@
-use ::Point2f;
+use Point2f;
 use interaction::SurfaceInteraction;
 use spectrum::Spectrum;
 

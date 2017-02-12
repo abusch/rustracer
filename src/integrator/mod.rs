@@ -3,7 +3,7 @@ use std::cmp;
 
 use na::Dot;
 
-use ::Point2f;
+use Point2f;
 use bsdf;
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;

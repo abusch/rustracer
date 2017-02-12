@@ -1,6 +1,6 @@
 use std::mem;
 
-use ::{Vector3f, Point2f};
+use {Vector3f, Point2f};
 use bsdf::{BxDF, BxDFType, BSDF_SPECULAR, BSDF_REFLECTION, BSDF_TRANSMISSION};
 use geometry::*;
 use spectrum::Spectrum;

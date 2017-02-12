@@ -3,7 +3,7 @@ use std::path::Path;
 
 use img;
 
-use ::Point2i;
+use Point2i;
 use interaction::SurfaceInteraction;
 use mipmap::{MIPMap, WrapMode};
 use spectrum::Spectrum;

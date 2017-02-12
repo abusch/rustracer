@@ -5,7 +5,7 @@ use std::path::Path;
 
 use it;
 
-use ::{Point3f, Vector3f, Transform};
+use {Point3f, Vector3f, Transform};
 use bounds::{Axis, Bounds3f};
 use interaction::SurfaceInteraction;
 use light::AreaLight;
