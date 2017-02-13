@@ -1,4 +1,100 @@
-use lerp;
+use na::{clamp, Norm};
+
+use {lerp, Point3f, Vector3f};
+
+/// Perlin noise
+pub fn noise3(p: &Point3f) -> f32 {
+    noise(p.x, p.y, p.z)
+}
+
+pub fn noise(x: f32, y: f32, z: f32) -> f32 {
+    // Compute noise cell coordinates and offsets
+    let mut ix = x.floor() as usize;
+    let mut iy = x.floor() as usize;
+    let mut iz = x.floor() as usize;
+    let dx = x - ix as f32;
+    let dy = y - iy as f32;
+    let dz = z - iz as f32;
+
+    // Compute gradient weights
+    ix &= NOISE_PERM_SIZE - 1;
+    iy &= NOISE_PERM_SIZE - 1;
+    iz &= NOISE_PERM_SIZE - 1;
+    let w000 = grad(ix, iy, iz, dx, dy, dz);
+    let w100 = grad(ix + 1, iy, iz, dx - 1.0, dy, dz);
+    let w010 = grad(ix, iy + 1, iz, dx, dy - 1.0, dz);
+    let w110 = grad(ix + 1, iy + 1, iz, dx - 1.0, dy - 1.0, dz);
+    let w001 = grad(ix, iy, iz + 1, dx, dy, dz - 1.0);
+    let w101 = grad(ix + 1, iy, iz + 1, dx - 1.0, dy, dz - 1.0);
+    let w011 = grad(ix, iy + 1, iz + 1, dx, dy - 1.0, dz - 1.0);
+    let w111 = grad(ix + 1, iy + 1, iz + 1, dx - 1.0, dy - 1.0, dz - 1.0);
+
+    // Compute trilinear interpolation of weights
+    let wx = noise_weight(dx);
+    let wy = noise_weight(dy);
+    let wz = noise_weight(dz);
+    let x00 = lerp(wx, w000, w100);
+    let x10 = lerp(wx, w010, w110);
+    let x01 = lerp(wx, w001, w101);
+    let x11 = lerp(wx, w011, w111);
+    let y0 = lerp(wy, x00, x10);
+    let y1 = lerp(wy, x10, x11);
+
+
+    lerp(wz, y0, y1)
+}
+
+/// Fractional Brownian Motion
+pub fn fbm(p: &Point3f,
+           dpdx: &Vector3f,
+           dpdy: &Vector3f,
+           dpdz: &Vector3f,
+           omega: f32,
+           max_octaves: u32)
+           -> f32 {
+    // Compute number of octaves for antialiased FBm
+    let len2 = dpdx.norm_squared().max(dpdy.norm_squared());
+    let n = clamp(-1.0 - 0.5 * len2.log2(), 0.0, max_octaves as f32);
+    let n_int = n.floor() as u32;
+
+    // Compute sum of octaves of noise for FBm
+    let mut sum = 0.0;
+    let mut lambda = 1.0;
+    let mut o = 1.0;
+    for i in 0..n_int {
+        sum += o * noise3(&(lambda * *p));
+        lambda *= 1.99;
+        o *= omega;
+    }
+    let n_partial = n - n_int as f32;
+    sum += o * smooth_step(0.3, 0.7, n_partial) * noise3(&(lambda * *p));
+
+    sum
+}
+
+#[inline]
+fn grad(x: usize, y: usize, z: usize, dx: f32, dy: f32, dz: f32) -> f32 {
+    let mut h = NOISE_PERM[NOISE_PERM[NOISE_PERM[x as usize] + y as usize] + z as usize];
+    h &= 15;
+    let u = if h < 8 || h == 12 || h == 13 { dx } else { dy };
+    let v = if h < 4 || h == 12 || h == 13 { dy } else { dz };
+
+    (if h & 1 != 0 { -u } else { u }) + (if h & 2 != 0 { -v } else { v })
+}
+
+#[inline]
+fn noise_weight(t: f32) -> f32 {
+    let t3 = t * t * t;
+    let t4 = t3 * t;
+    6.0 * t4 * t - 15.0 * t4 + 10.0 * t3
+}
+
+#[inline]
+fn smooth_step(min: f32, max: f32, value: f32) -> f32 {
+    let v = clamp((value - min) / (max - min), 0.0, 1.0);
+
+    v * v * (-2.0 * v + 3.0)
+}
 
 const NOISE_PERM_SIZE: usize = 256;
 const NOISE_PERM: [usize; 2 * NOISE_PERM_SIZE] = [151,
@@ -514,57 +610,3 @@ const NOISE_PERM: [usize; 2 * NOISE_PERM_SIZE] = [151,
                                                   61,
                                                   156,
                                                   180];
-
-pub fn noise(x: f32, y: f32, z: f32) -> f32 {
-    // Compute noise cell coordinates and offsets
-    let mut ix = x.floor() as usize;
-    let mut iy = x.floor() as usize;
-    let mut iz = x.floor() as usize;
-    let dx = x - ix as f32;
-    let dy = y - iy as f32;
-    let dz = z - iz as f32;
-
-    // Compute gradient weights
-    ix &= NOISE_PERM_SIZE - 1;
-    iy &= NOISE_PERM_SIZE - 1;
-    iz &= NOISE_PERM_SIZE - 1;
-    let w000 = grad(ix, iy, iz, dx, dy, dz);
-    let w100 = grad(ix + 1, iy, iz, dx - 1.0, dy, dz);
-    let w010 = grad(ix, iy + 1, iz, dx, dy - 1.0, dz);
-    let w110 = grad(ix + 1, iy + 1, iz, dx - 1.0, dy - 1.0, dz);
-    let w001 = grad(ix, iy, iz + 1, dx, dy, dz - 1.0);
-    let w101 = grad(ix + 1, iy, iz + 1, dx - 1.0, dy, dz - 1.0);
-    let w011 = grad(ix, iy + 1, iz + 1, dx, dy - 1.0, dz - 1.0);
-    let w111 = grad(ix + 1, iy + 1, iz + 1, dx - 1.0, dy - 1.0, dz - 1.0);
-
-    // Compute trilinear interpolation of weights
-    let wx = noise_weight(dx);
-    let wy = noise_weight(dy);
-    let wz = noise_weight(dz);
-    let x00 = lerp(wx, w000, w100);
-    let x10 = lerp(wx, w010, w110);
-    let x01 = lerp(wx, w001, w101);
-    let x11 = lerp(wx, w011, w111);
-    let y0 = lerp(wy, x00, x10);
-    let y1 = lerp(wy, x10, x11);
-
-
-    lerp(wz, y0, y1)
-}
-
-#[inline]
-fn grad(x: usize, y: usize, z: usize, dx: f32, dy: f32, dz: f32) -> f32 {
-    let mut h = NOISE_PERM[NOISE_PERM[NOISE_PERM[x as usize] + y as usize] + z as usize];
-    h &= 15;
-    let u = if h < 8 || h == 12 || h == 13 { dx } else { dy };
-    let v = if h < 4 || h == 12 || h == 13 { dy } else { dz };
-
-    (if h & 1 != 0 { -u } else { u }) + (if h & 2 != 0 { -v } else { v })
-}
-
-#[inline]
-fn noise_weight(t: f32) -> f32 {
-    let t3 = t * t * t;
-    let t4 = t3 * t;
-    6.0 * t4 * t - 15.0 * t4 + 10.0 * t3
-}
