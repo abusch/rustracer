@@ -88,6 +88,9 @@ pub struct SurfaceInteraction<'a> {
     /// Partial derivatives of the normal
     pub dndu: Vector3f,
     pub dndv: Vector3f,
+    /// Ray differentials
+    pub dpdx: Vector3f,
+    pub dpdy: Vector3f,
     /// Hit shape
     pub shape: &'a Shape,
     /// Hit primitive
@@ -119,6 +122,8 @@ impl<'a> SurfaceInteraction<'a> {
             dpdv: dpdv,
             dndu: na::zero(),
             dndv: na::zero(),
+            dpdx: na::zero(),
+            dpdy: na::zero(),
             shape: shape,
             primitive: None,
             // Initialize shading geometry from true geometry
@@ -152,6 +157,8 @@ impl<'a> SurfaceInteraction<'a> {
             dpdv: *t * self.dpdv,
             dndu: na::zero(),
             dndv: na::zero(),
+            dpdx: na::zero(),
+            dpdy: na::zero(),
             shape: self.shape,
             primitive: self.primitive,
             shading: Shading {

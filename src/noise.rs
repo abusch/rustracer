@@ -45,13 +45,7 @@ pub fn noise(x: f32, y: f32, z: f32) -> f32 {
 }
 
 /// Fractional Brownian Motion
-pub fn fbm(p: &Point3f,
-           dpdx: &Vector3f,
-           dpdy: &Vector3f,
-           dpdz: &Vector3f,
-           omega: f32,
-           max_octaves: u32)
-           -> f32 {
+pub fn fbm(p: &Point3f, dpdx: &Vector3f, dpdy: &Vector3f, omega: f32, max_octaves: u32) -> f32 {
     // Compute number of octaves for antialiased FBm
     let len2 = dpdx.norm_squared().max(dpdy.norm_squared());
     let n = clamp(-1.0 - 0.5 * len2.log2(), 0.0, max_octaves as f32);
