@@ -5,6 +5,7 @@ use na::{self, Dot, Cross, Norm};
 
 use {Point3f, Point2f, Vector3f, Transform};
 use bsdf::BSDF;
+use geometry::face_forward;
 use material::TransportMode;
 use primitive::Primitive;
 use ray::Ray;
@@ -71,6 +72,7 @@ impl Interaction {
     }
 }
 
+#[derive(Clone)]
 pub struct SurfaceInteraction<'a> {
     /// The point where the ray hit the primitive
     pub p: Point3f,
@@ -91,6 +93,11 @@ pub struct SurfaceInteraction<'a> {
     /// Ray differentials
     pub dpdx: Vector3f,
     pub dpdy: Vector3f,
+    ///
+    pub dudx: f32,
+    pub dvdx: f32,
+    pub dudy: f32,
+    pub dvdy: f32,
     /// Hit shape
     pub shape: &'a Shape,
     /// Hit primitive
@@ -124,6 +131,10 @@ impl<'a> SurfaceInteraction<'a> {
             dndv: na::zero(),
             dpdx: na::zero(),
             dpdy: na::zero(),
+            dudx: 0.0,
+            dvdx: 0.0,
+            dudy: 0.0,
+            dvdy: 0.0,
             shape: shape,
             primitive: None,
             // Initialize shading geometry from true geometry
@@ -159,6 +170,10 @@ impl<'a> SurfaceInteraction<'a> {
             dndv: na::zero(),
             dpdx: na::zero(),
             dpdy: na::zero(),
+            dudx: 0.0,
+            dvdx: 0.0,
+            dudy: 0.0,
+            dvdy: 0.0,
             shape: self.shape,
             primitive: self.primitive,
             shading: Shading {
@@ -195,6 +210,28 @@ impl<'a> SurfaceInteraction<'a> {
         let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
+
+    pub fn set_shading_geometry(&mut self,
+                                dpdus: &Vector3f,
+                                dpdvs: &Vector3f,
+                                dndus: &Vector3f,
+                                dndvs: &Vector3f,
+                                is_orientation_authoritative: bool) {
+        // Compute shading.n for SurfaceInteraction
+        self.shading.n = dpdus.cross(&dpdvs).normalize();
+        // TODO handle handedness
+        if is_orientation_authoritative {
+            self.n = face_forward(&self.n, &self.shading.n);
+        } else {
+            self.shading.n = face_forward(&self.shading.n, &self.n);
+        }
+
+        // Initialize shading partial derivative values
+        self.shading.dpdu = *dpdus;
+        self.shading.dpdv = *dpdvs;
+        self.shading.dndu = *dndus;
+        self.shading.dndv = *dndvs;
+    }
 }
 
 fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point3f {
@@ -228,6 +265,7 @@ impl<'a> From<&'a SurfaceInteraction<'a>> for Interaction {
 
 /// Normal and partial derivatives used for shading. Can be different from geometric ones due to
 /// bump mapping, etc.
+#[derive(Clone)]
 pub struct Shading {
     pub n: Vector3f,
     pub dpdu: Vector3f,

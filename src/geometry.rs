@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use na;
+use na::{self, Dot};
 
 use Vector3f;
 
@@ -98,6 +98,12 @@ pub fn spherical_phi(v: &Vector3f) -> f32 {
 pub fn spherical_direction(sin_theta: f32, cos_theta: f32, phi: f32) -> Vector3f {
     Vector3f::new(sin_theta * phi.cos(), sin_theta * phi.sin(), cos_theta)
 }
+
+#[inline]
+pub fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
+    if v1.dot(v2) < 0.0 { -(*v1) } else { *v1 }
+}
+
 
 /// Polynomial approximation of the inverse Gauss error function
 #[inline]

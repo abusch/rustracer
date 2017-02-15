@@ -302,10 +302,6 @@ impl BxDF for FresnelSpecular {
     }
 }
 
-fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
-    if v1.dot(v2) < 0.0 { -(*v1) } else { *v1 }
-}
-
 #[test]
 fn test_reflect() {
     let wo = Vector3f::new(-0.0137817357, -0.999056697, 0.0411854088);
