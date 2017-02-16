@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use bsdf::{BSDF, BxDF, Fresnel, TrowbridgeReitzDistribution, MicrofacetReflection};
 use interaction::SurfaceInteraction;
-use material::{Material, TransportMode};
+use material::{self, Material, TransportMode};
 use spectrum::Spectrum;
 use texture::{Texture, ConstantTexture};
 
@@ -10,6 +10,7 @@ pub struct Metal {
     eta: Box<Texture<Spectrum> + Send + Sync>,
     k: Box<Texture<Spectrum> + Send + Sync>,
     rough: Box<Texture<f32> + Send + Sync>,
+    bump: Option<Box<Texture<f32> + Send + Sync>>,
     // urough: Box<Texture<f32>>,
     // vrough: Box<Texture<f32>>,
     remap_roughness: bool,
@@ -28,6 +29,7 @@ impl Metal {
             // urough: Box::new(ConstantTexture::new(...)),
             // vrough: Box::new(ConstantTexture::new(...)),
             remap_roughness: true,
+            bump: None,
         }
     }
 
@@ -43,6 +45,7 @@ impl Metal {
             // urough: Box::new(ConstantTexture::new(...)),
             // vrough: Box::new(ConstantTexture::new(...)),
             remap_roughness: true,
+            bump: None,
         }
     }
 }
@@ -52,6 +55,9 @@ impl Material for Metal {
                                     si: &mut SurfaceInteraction,
                                     mode: TransportMode,
                                     allow_multiple_lobes: bool) {
+        if let Some(ref bump) = self.bump {
+            material::bump(bump, si);
+        }
         let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
         let mut rough = self.rough.evaluate(si);
         if self.remap_roughness {

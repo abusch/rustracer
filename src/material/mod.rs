@@ -24,7 +24,7 @@ pub trait Material {
 }
 
 
-pub fn bump(d: &Arc<Texture<f32>>, si: &mut SurfaceInteraction) {
+pub fn bump(d: &Box<Texture<f32> + Send + Sync>, si: &mut SurfaceInteraction) {
     let mut si_eval = si.clone();
     // Shift si du in the du direction
     let mut du = 0.5 * (si.dudx.abs() + si.dudy.abs());
