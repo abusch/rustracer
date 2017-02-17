@@ -42,12 +42,12 @@ pub fn build_scene(dim: Dim) -> Scene {
     let plastic_white = Arc::new(Plastic::new(Spectrum::white(), Spectrum::white()));
     // let plastic_lines = Arc::new(Plastic::new_tex("grid.png", Spectrum::white()));
     // let plastic_lines = Arc::new(MatteMaterial::new_uv_texture());
-    let glass = Arc::new(GlassMaterial::new().roughness(0.01, 0.01));
+    let glass = Arc::new(GlassMaterial::new().roughness(0.00, 0.00));
     let matte_red = Arc::new(MatteMaterial::new(Spectrum::rgb(1.0, 0.0, 0.0), 0.0));
     let sphere = Box::new(GeometricPrimitive {
         shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
         area_light: None,
-        material: Some(plastic_white.clone()),
+        material: Some(glass.clone()),
     });
     // let bunny =
     //     Box::new(BVH::<GeometricPrimitive>::from_mesh_file(Path::new("models/bunny.obj"),

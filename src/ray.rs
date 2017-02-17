@@ -3,7 +3,7 @@ use stats;
 use transform;
 use std::f32::INFINITY;
 use std::ops::Mul;
-use na::{self, Norm, Dot};
+use na;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {
@@ -51,7 +51,7 @@ impl Ray {
         let length_squared = d.norm_squared();
 
         if length_squared > 0.0 {
-            let dt = na::abs(&d).dot(&o_error) / length_squared;
+            let dt = d.abs().dot(&o_error) / length_squared;
             o += d * dt;
         }
         let r = Ray {

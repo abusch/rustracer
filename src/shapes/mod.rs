@@ -1,5 +1,3 @@
-use na::{Dot, Norm};
-
 use {Point2f, Vector3f};
 use ray::Ray;
 use bounds::Bounds3f;

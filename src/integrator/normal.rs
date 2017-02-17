@@ -1,5 +1,3 @@
-use na::Dot;
-
 use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;

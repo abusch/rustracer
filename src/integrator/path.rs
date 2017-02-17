@@ -1,5 +1,3 @@
-use na::Dot;
-
 use bsdf::{self, BxDFType};
 use integrator::{SamplerIntegrator, uniform_sample_one_light};
 use lightdistrib::{LightDistribution, UniformLightDistribution};

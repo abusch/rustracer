@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use fp::Ieee754;
-use na::{self, Dot, Cross, Norm};
+use na;
 
 use {Point3f, Point2f, Vector3f, Transform};
 use bsdf::BSDF;
@@ -235,7 +235,7 @@ impl<'a> SurfaceInteraction<'a> {
 }
 
 fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point3f {
-    let d = na::abs(n).dot(p_err);
+    let d = n.abs().dot(p_err);
     let mut offset = d * *n;
     if w.dot(n) < 0.0 {
         offset = -offset;

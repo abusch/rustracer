@@ -1,4 +1,5 @@
 #![deny(trivial_casts, unused_qualifications)]
+extern crate alga;
 #[macro_use]
 extern crate approx;
 #[macro_use]
@@ -18,7 +19,8 @@ extern crate uuid;
 use std::f32;
 use std::ops::{Add, Mul, Sub};
 
-use na::{Vector2, Vector3, Point2, Point3, Similarity3, Cross};
+use na::{Vector2, Vector3, Point2, Point3, Similarity3};
+use na::core::Scalar;
 use num::One;
 
 mod blockedarray;
@@ -88,7 +90,7 @@ pub fn lerp<S, T>(t: S, a: T, b: T) -> T
 
 /// Return the dimension index (0, 1 or 2) that contains the largest component.
 pub fn max_dimension<T>(v: Vector3<T>) -> usize
-    where T: PartialOrd
+    where T: Scalar + PartialOrd
 {
     if v.x > v.y {
         if v.x > v.z { 0 } else { 2 }
@@ -101,14 +103,14 @@ pub fn max_dimension<T>(v: Vector3<T>) -> usize
 
 /// Permute the components of this vector based on the given indices for x, y and z.
 pub fn permute_v<T>(v: &Vector3<T>, x: usize, y: usize, z: usize) -> Vector3<T>
-    where T: Copy
+    where T: Scalar
 {
     Vector3::new(v[x], v[y], v[z])
 }
 
 /// Permute the components of this point based on the given indices for x, y and z.
 pub fn permute_p<T>(v: &Point3<T>, x: usize, y: usize, z: usize) -> Point3<T>
-    where T: Copy
+    where T: Scalar
 {
     Point3::new(v[x], v[y], v[z])
 }

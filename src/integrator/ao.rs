@@ -6,7 +6,6 @@ use ray::Ray;
 use sampler::Sampler;
 use sampling::uniform_sample_sphere;
 use scene::Scene;
-use na::Dot;
 
 pub struct AmbientOcclusion {
     n_samples: usize,

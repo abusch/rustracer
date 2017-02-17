@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::path::Path;
 
 use it;
+use na::Point3;
 
 use {Point3f, Vector3f, Transform};
 use bounds::{Axis, Bounds3f};
@@ -342,7 +343,7 @@ impl BVHPrimitiveInfo {
     fn new(pn: usize, bb: Bounds3f) -> BVHPrimitiveInfo {
         BVHPrimitiveInfo {
             prim_number: pn,
-            centroid: (0.5 * bb[0].to_vector() + 0.5 * bb[1].to_vector()).to_point(),
+            centroid: Point3::from_coordinates(0.5 * bb[0].coords + 0.5 * bb[1].coords),
             bounds: bb,
         }
     }

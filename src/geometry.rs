@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use na::{self, Dot};
+use na;
 
 use Vector3f;
 

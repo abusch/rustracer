@@ -1,4 +1,4 @@
-use na::{self, Norm, Inverse, Matrix4, ToHomogeneous};
+use na::{self, Matrix4, Point3, Vector3};
 
 use {Vector3f, Point3f, Point2f, Transform};
 use bounds::Bounds2f;
@@ -65,18 +65,20 @@ impl Camera {
                                      1.0 / (screen_window.p_min.y - screen_window.p_max.y),
                                      1.0) *
                                translate(-screen_window.p_min.x, -screen_window.p_max.y, 0.0);
-        let raster_to_screen = screen_to_raster.inverse().unwrap();
-        let raster_to_camera = camera_to_screen.inverse().unwrap() * raster_to_screen;
+        let raster_to_screen = screen_to_raster.try_inverse().unwrap();
+        let raster_to_camera = camera_to_screen.try_inverse().unwrap() * raster_to_screen;
 
         // compute differential changes in origin for perspective camera rays
-        let dx_camera = na::from_homogeneous(&((raster_to_camera *
-                                                Point3f::new(1.0, 0.0, 0.0).to_homogeneous()) -
-                                               (raster_to_camera *
-                                                Point3f::new(0.0, 0.0, 0.0).to_homogeneous())));
-        let dy_camera = na::from_homogeneous(&((raster_to_camera *
-                                                Point3f::new(0.0, 1.0, 0.0).to_homogeneous()) -
-                                               (raster_to_camera *
-                                                Point3f::new(0.0, 0.0, 0.0).to_homogeneous())));
+        let dx_camera = Vector3::from_homogeneous((raster_to_camera *
+                                                   Point3f::new(1.0, 0.0, 0.0).to_homogeneous()) -
+                                                  (raster_to_camera *
+                                                   Point3f::new(0.0, 0.0, 0.0).to_homogeneous()))
+            .unwrap();
+        let dy_camera = Vector3::from_homogeneous((raster_to_camera *
+                                                   Point3f::new(0.0, 1.0, 0.0).to_homogeneous()) -
+                                                  (raster_to_camera *
+                                                   Point3f::new(0.0, 0.0, 0.0).to_homogeneous()))
+            .unwrap();
 
         Camera {
             camera_to_world: camera_to_world,
@@ -91,10 +93,10 @@ impl Camera {
 
     pub fn generate_ray(&self, sample: &CameraSample) -> Ray {
         let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
-        let p_camera: Point3f = na::from_homogeneous(&(self.raster_to_camera *
-                                                       p_film.to_homogeneous()));
+        let p_camera: Point3f =
+            Point3::from_homogeneous(self.raster_to_camera * p_film.to_homogeneous()).unwrap();
 
-        let mut ray = Ray::new(na::origin(), p_camera.to_vector().normalize());
+        let mut ray = Ray::new(na::origin(), p_camera.coords.normalize());
         // modify ray for depth of field
         if self.lens_radius > 0.0 {
             // Sample point on lens
@@ -111,10 +113,10 @@ impl Camera {
 
     pub fn generate_ray_differential(&self, sample: &CameraSample) -> Ray {
         let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
-        let p_camera: Point3f = na::from_homogeneous(&(self.raster_to_camera *
-                                                       p_film.to_homogeneous()));
+        let p_camera: Point3f =
+            Point3::from_homogeneous(self.raster_to_camera * p_film.to_homogeneous()).unwrap();
 
-        let mut ray = Ray::new(na::origin(), p_camera.to_vector().normalize());
+        let mut ray = Ray::new(na::origin(), p_camera.coords.normalize());
         // modify ray for depth of field
         if self.lens_radius > 0.0 {
             // Sample point on lens
@@ -133,15 +135,15 @@ impl Camera {
             let origin = Point3f::new(p_lens.x, p_lens.y, 0.0);
 
             // ray differential in x direction
-            let dx = (p_camera + self.dx_camera).to_vector().normalize();
+            let dx = (p_camera + self.dx_camera).coords.normalize();
             let ft_x = self.focal_distance / dx.z;
-            let p_focus_x = (ft_x * dx).to_point();
+            let p_focus_x = Point3::from_coordinates(ft_x * dx);
             let rx_dir = (p_focus_x - origin).normalize();
 
             // ray differential in x direction
-            let dy = (p_camera + self.dy_camera).to_vector().normalize();
+            let dy = (p_camera + self.dy_camera).coords.normalize();
             let ft_y = self.focal_distance / dy.z;
-            let p_focus_y = (ft_y * dy).to_point();
+            let p_focus_y = Point3::from_coordinates(ft_y * dy);
             let ry_dir = (p_focus_y - origin).normalize();
 
             RayDifferential {
@@ -154,8 +156,8 @@ impl Camera {
             RayDifferential {
                 rx_origin: ray.o,
                 ry_origin: ray.o,
-                rx_direction: (p_camera.to_vector() + self.dx_camera).normalize(),
-                ry_direction: (p_camera.to_vector() + self.dy_camera).normalize(),
+                rx_direction: (p_camera.coords + self.dx_camera).normalize(),
+                ry_direction: (p_camera.coords + self.dy_camera).normalize(),
             }
         };
 

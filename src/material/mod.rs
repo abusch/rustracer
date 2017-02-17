@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-use na::{Norm, Cross};
-
 use Vector2f;
 use interaction::SurfaceInteraction;
 use texture::Texture;

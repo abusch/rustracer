@@ -1,5 +1,3 @@
-use na::Dot;
-
 use bsdf;
 use integrator::SamplerIntegrator;
 use material::TransportMode;

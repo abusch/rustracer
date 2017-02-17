@@ -75,9 +75,7 @@ pub struct TransformMapping3D {
 
 impl TransformMapping3D {
     pub fn new() -> TransformMapping3D {
-        TransformMapping3D  {
-            world_to_texture: na::one(),
-        }
+        TransformMapping3D { world_to_texture: na::one() }
     }
 }
 

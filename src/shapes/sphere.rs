@@ -1,6 +1,6 @@
 use std::f32::consts;
 
-use na::{self, Inverse, Norm, one};
+use na::{self, one};
 
 use {gamma, Transform, Point2f, Point3f, Vector3f};
 use bounds::Bounds3f;
@@ -70,31 +70,10 @@ impl Sphere {
 
     pub fn transform(mut self, object_to_world: Transform) -> Self {
         self.object_to_world = object_to_world;
-        self.world_to_object = object_to_world.inverse().unwrap();
+        self.world_to_object = object_to_world.inverse();
 
         self
     }
-
-    // pub fn new(object_to_world: Transform,
-    //            radius: f32,
-    //            z_min: f32,
-    //            z_max: f32,
-    //            phi_max: f32)
-    //            -> Self {
-    //     assert!(radius > 0.0);
-    //     let zmin = f32::min(z_min, z_max);
-    //     let zmax = f32::max(z_min, z_max);
-    //     Sphere {
-    //         object_to_world: object_to_world,
-    //         world_to_object: object_to_world.inverse().unwrap(),
-    //         radius: radius,
-    //         z_min: na::clamp(zmin, -radius, radius),
-    //         z_max: na::clamp(zmax, -radius, radius),
-    //         theta_min: na::clamp(z_min / radius, -1.0, 1.0).acos(),
-    //         theta_max: na::clamp(z_max / radius, -1.0, 1.0).acos(),
-    //         phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
-    //     }
-    // }
 }
 
 impl Shape for Sphere {
@@ -134,7 +113,7 @@ impl Shape for Sphere {
             if p_hit.x == 0.0 && p_hit.y == 0.0 {
                 p_hit.x = 1e-5 * self.radius;
             }
-            p_hit *= self.radius / p_hit.to_vector().norm();
+            p_hit *= self.radius / p_hit.coords.norm();
             let mut phi = f32::atan2(p_hit.x, p_hit.y);
             if phi < 0.0 {
                 phi += 2.0 * consts::PI;
@@ -155,7 +134,7 @@ impl Shape for Sphere {
                 if p_hit.x == 0.0 && p_hit.y == 0.0 {
                     p_hit.x = 1e-5 * self.radius;
                 }
-                p_hit *= self.radius / p_hit.to_vector().norm();
+                p_hit *= self.radius / p_hit.coords.norm();
                 phi = f32::atan2(p_hit.x, p_hit.y);
                 if phi < 0.0 {
                     phi += 2.0 * consts::PI;
@@ -171,7 +150,7 @@ impl Shape for Sphere {
             let theta = na::clamp(p_hit.z / self.radius, -1.0, 1.0).acos();
             let v = (theta - self.theta_min) / (self.theta_max - self.theta_min);
             // Compute error bound for sphere intersection
-            let p_error = gamma(5) * na::abs(&p_hit.to_vector());
+            let p_error = gamma(5) * p_hit.coords.abs();
             // Compute dp/du and dp/dv
             let z_radius = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
             let inv_z_radius = 1.0 / z_radius;
@@ -213,9 +192,9 @@ impl Shape for Sphere {
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
-        let n = transform_normal(&p_obj.to_vector(), &self.object_to_world).normalize();
-        p_obj = p_obj * self.radius / p_obj.to_vector().norm();
-        let p_obj_error = gamma(5) * na::abs(&p_obj.to_vector());
+        let n = transform_normal(&p_obj.coords, &self.object_to_world).normalize();
+        p_obj = p_obj * self.radius / p_obj.coords.norm();
+        let p_obj_error = gamma(5) * p_obj.coords.abs();
         let (p, p_err) = transform_point_with_error(&self.object_to_world, &p_obj, &p_obj_error);
         let pdf = 1.0 / self.area();
         (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)

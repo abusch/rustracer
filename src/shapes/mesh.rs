@@ -3,8 +3,7 @@ extern crate tobj;
 use std::sync::Arc;
 use std::path::Path;
 
-use na::{Inverse, Cross, Norm};
-use na::abs;
+use na::{Point2, Point3, abs};
 
 use {Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
      coordinate_system, gamma};
@@ -33,7 +32,7 @@ impl TriangleMesh {
                -> Self {
         let points: Vec<Point3f> = p.iter().map(|pt| *object_to_world * *pt).collect();
         TriangleMesh {
-            world_to_object: object_to_world.inverse().unwrap(),
+            world_to_object: object_to_world.inverse(),
             vertex_indices: Vec::from(vertex_indices),
             p: points,
             n: n.map(Vec::from),
@@ -80,11 +79,11 @@ impl Shape for Triangle {
         // Perform ray-triangle intersection test
         // - transform triangle vertices to ray coordinate space
         // -- translate vertices based on ray origin
-        let mut p0t = p0 - ray.o.to_vector();
-        let mut p1t = p1 - ray.o.to_vector();
-        let mut p2t = p2 - ray.o.to_vector();
+        let mut p0t = p0 - ray.o.coords;
+        let mut p1t = p1 - ray.o.coords;
+        let mut p2t = p2 - ray.o.coords;
         // -- permute components of triangle vertices and ray direction
-        let kz = max_dimension(abs(&ray.d));
+        let kz = max_dimension(ray.d.abs());
         let mut kx = kz + 1;
         if kx == 3 {
             kx = 0;
@@ -160,9 +159,9 @@ impl Shape for Triangle {
         let z_abs_sum = (b0 * p0.z).abs() + (b1 * p1.z).abs() + (b2 * p2.z).abs();
         let p_error = gamma(7) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
         // interpolate (u,v) parametric coordinates and hit point
-        let p_hit = (p0.to_vector() * b0 + p1.to_vector() * b1 + p2.to_vector() * b2).to_point();
-        let uv_hit = (uv[0].to_vector() * b0 + uv[1].to_vector() * b1 + uv[2].to_vector() * b2)
-            .to_point();
+        let p_hit = Point3::from_coordinates(p0.coords * b0 + p1.coords * b1 + p2.coords * b2);
+        let uv_hit = Point2::from_coordinates(uv[0].coords * b0 + uv[1].coords * b1 +
+                                              uv[2].coords * b2);
         // test intersection against alpha texture if present
         // TODO
         // Fill in SurfaceInteraction from triangle hit

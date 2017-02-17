@@ -1,4 +1,5 @@
-use na::{self, FromHomogeneous, ToHomogeneous, Matrix3, Matrix4, Transpose};
+use alga::linear::Transformation;
+use na::{self, Matrix3, Matrix4, Vector3, Vector4, U3};
 
 use {Vector3f, Point3f, Transform, gamma};
 
@@ -67,10 +68,9 @@ pub fn transform_vector(t: &Transform, v: &Vector3f) -> (Vector3f, Vector3f) {
 }
 
 pub fn transform_normal(normal: &Vector3f, transform: &Transform) -> Vector3f {
-    let hom: Matrix4<f32> = transform.to_homogeneous();
-    let m: Matrix3<f32> = FromHomogeneous::from(&hom);
-    let m_transp = m.transpose();
-    *normal * m_transp
+    let m = transform.inverse().to_homogeneous().transpose();
+    // Vector3::from_homogeneous(n_hom).unwrap_or_else(|| Vector3::new(n_hom.x, n_hom.y, n_hom.z))
+    m.fixed_slice::<U3, U3>(0, 0) * *normal
 }
 
 pub fn rot_x(angle: f32) -> Transform {

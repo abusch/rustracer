@@ -3,7 +3,7 @@ use std::path::Path;
 use std::cmp::min;
 
 use img;
-use na::{Norm, Inverse, origin};
+use na::origin;
 use uuid::Uuid;
 
 use {Vector3f, Point2i, Point2f, Point3f, Transform};
@@ -74,7 +74,7 @@ impl InfiniteAreaLight {
         InfiniteAreaLight {
             id: Uuid::new_v4(),
             light_to_world: l2w,
-            world_to_light: l2w.inverse().unwrap(),
+            world_to_light: l2w.inverse(),
             n_samples: n_samples,
             l_map: l_map,
             world_center: origin(),

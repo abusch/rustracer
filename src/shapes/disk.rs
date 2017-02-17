@@ -1,7 +1,6 @@
 use std::f32::consts;
 
 use na;
-use na::{Norm, Inverse};
 
 use {Point3f, Vector3f, Transform, Point2f};
 use bounds::Bounds3f;
@@ -34,7 +33,7 @@ impl Disk {
             inner_radius: inner_radius,
             phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
             object_to_world: object_to_world,
-            world_to_object: object_to_world.inverse().unwrap(),
+            world_to_object: object_to_world.inverse(),
         }
     }
 }

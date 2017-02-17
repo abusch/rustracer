@@ -1,4 +1,4 @@
-use na::{clamp, Norm};
+use na::clamp;
 
 use {lerp, Point3f, Vector3f};
 

@@ -1,6 +1,5 @@
 use std::f32::consts::PI;
 
-use na::Norm;
 use uuid::Uuid;
 
 use {Point3f, Vector3f, Point2f};

@@ -1,7 +1,6 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
 
-use na::{Dot, Norm};
 use uuid::Uuid;
 
 use {Vector3f, Point2f};

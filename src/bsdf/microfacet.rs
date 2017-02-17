@@ -1,7 +1,5 @@
 use std::f32::consts;
 
-use na::{Norm, Dot};
-
 use {Vector3f, Point2f};
 use spectrum::Spectrum;
 use bsdf::{BxDF, BxDFType, BSDF_REFLECTION, BSDF_TRANSMISSION, BSDF_GLOSSY, reflect, refract};

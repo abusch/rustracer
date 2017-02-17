@@ -1,10 +1,11 @@
 use std::f32;
-use std::ops::Index;
+use std::ops::{Index, Sub, Mul, Add, SubAssign};
 use std::cmp::PartialOrd;
 use std::fmt;
 
-use na::{Point3, Point2, Norm, BaseNum};
-use num::Bounded;
+use na::{Point3, Point2};
+use na::core::Scalar;
+use num::{One, Bounded};
 
 use {Vector3f, Point3f, Point2f, Point2i, lerp, min, max};
 use ray::Ray;
@@ -14,13 +15,13 @@ pub type Bounds3f = Bounds3<f32>;
 
 /// Axis Aligned Bounding Box
 #[derive(Debug, Copy, Clone)]
-pub struct Bounds3<T> {
+pub struct Bounds3<T: Scalar> {
     pub p_min: Point3<T>,
     pub p_max: Point3<T>,
 }
 
 impl<T> Bounds3<T>
-    where T: BaseNum + Bounded + PartialOrd + Into<f32>
+    where T: Bounded + PartialOrd + Into<f32> + Scalar + Add<Output = T> + Sub<Output = T> + Mul<Output = T> + One + SubAssign
 {
     pub fn new() -> Bounds3<T> {
         let min = T::min_value();
@@ -112,7 +113,7 @@ impl<T> Bounds3<T>
 
     pub fn intersect_p_fast(&self, ray: &Ray, inv_dir: &Vector3f, dir_is_neg: &[usize; 3]) -> bool {
         stats::inc_fast_bbox_isect();
-        // Check intersection with X and Y slab
+// Check intersection with X and Y slab
         let mut tmin = (self[dir_is_neg[0]].x.into() - ray.o.x) * inv_dir.x;
         let mut tmax = (self[1 - dir_is_neg[0]].x.into() - ray.o.x) * inv_dir.x;
         let tymin = (self[dir_is_neg[1]].y.into() - ray.o.y) * inv_dir.y;
@@ -126,7 +127,7 @@ impl<T> Bounds3<T>
         if tymax < tmax {
             tmax = tymax;
         }
-        // Check intersection with Z slab
+// Check intersection with Z slab
         let tzmin = (self[dir_is_neg[2]].z.into() - ray.o.z) * inv_dir.z;
         let tzmax = (self[1 - dir_is_neg[2]].z.into() - ray.o.z) * inv_dir.z;
         if (tmin > tzmax) || (tzmin > tmax) {
@@ -142,7 +143,7 @@ impl<T> Bounds3<T>
         tmin < ray.t_max && tmax > 0.0
     }
 
-    /// Linearly interpolate a point inside the bounds
+/// Linearly interpolate a point inside the bounds
     pub fn lerp(&self, t: &Point3<T>) -> Point3<T> {
         Point3::new(lerp(t.x, self.p_min.x, self.p_max.x),
                     lerp(t.y, self.p_min.y, self.p_max.y),
@@ -175,13 +176,13 @@ pub type Bounds2i = Bounds2<u32>;
 pub type Bounds2f = Bounds2<f32>;
 
 #[derive(Debug, Copy, Clone)]
-pub struct Bounds2<T> {
+pub struct Bounds2<T: Scalar> {
     pub p_min: Point2<T>,
     pub p_max: Point2<T>,
 }
 
 impl<T> Bounds2<T>
-    where T: BaseNum + Bounded + PartialOrd + fmt::Display
+    where T: Bounded + PartialOrd + fmt::Display + Scalar + Add<Output = T> + Sub<Output = T> + Mul<Output = T> + One
 {
     pub fn new() -> Bounds2<T> {
         let min = T::min_value();
@@ -208,11 +209,11 @@ impl<T> Bounds2<T>
         }
     }
 
-    // pub fn corner(&self, corner: usize) -> Point2<T> {
-    //     Point3::new(self[corner & 1].x,
-    //                 self[if corner & 2 != 0 { 1 } else { 0 }].y,
-    //                 self[if corner & 4 != 0 { 1 } else { 0 }].y)
-    // }
+// pub fn corner(&self, corner: usize) -> Point2<T> {
+//     Point3::new(self[corner & 1].x,
+//                 self[if corner & 2 != 0 { 1 } else { 0 }].y,
+//                 self[if corner & 4 != 0 { 1 } else { 0 }].y)
+// }
 
     pub fn extend(&mut self, p: Point2<T>) {
         if p.x < self.p_min.x {
@@ -229,16 +230,16 @@ impl<T> Bounds2<T>
         }
     }
 
-    // pub fn maximum_extent(&self) -> Axis {
-    //     let v = self.p_max - self.p_min;
-    //     if v.x > v.y {
-    //         if v.x > v.z { Axis::X } else { Axis::Z }
-    //     } else if v.y > v.z {
-    //         Axis::Y
-    //     } else {
-    //         Axis::Z
-    //     }
-    // }
+// pub fn maximum_extent(&self) -> Axis {
+//     let v = self.p_max - self.p_min;
+//     if v.x > v.y {
+//         if v.x > v.z { Axis::X } else { Axis::Z }
+//     } else if v.y > v.z {
+//         Axis::Y
+//     } else {
+//         Axis::Z
+//     }
+// }
 
     pub fn union(bbox1: &Bounds2<T>, bbox2: &Bounds2<T>) -> Bounds2<T> {
         let min = Point2::new(min(bbox1.p_min.x, bbox2.p_min.x),
@@ -258,7 +259,7 @@ impl<T> Bounds2<T>
         b
     }
 
-    /// Linearly interpolate a point inside the bounds
+/// Linearly interpolate a point inside the bounds
     pub fn lerp(&self, t: &Point2<T>) -> Point2<T> {
         Point2::new(lerp(t.x, self.p_min.x, self.p_max.x),
                     lerp(t.y, self.p_min.y, self.p_max.y))
@@ -285,7 +286,9 @@ impl<T> Bounds2<T>
     }
 }
 
-impl<T> Index<usize> for Bounds3<T> {
+impl<T> Index<usize> for Bounds3<T>
+    where T: Copy + Scalar
+{
     type Output = Point3<T>;
 
     fn index(&self, i: usize) -> &Point3<T> {
@@ -366,7 +369,7 @@ impl Index<Axis> for Point3<f32> {
 }
 
 impl<T> fmt::Display for Bounds2<T>
-    where T: fmt::Display
+    where T: fmt::Display + Scalar
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} → {}", self.p_min, self.p_max)
