@@ -164,7 +164,7 @@ impl BxDF for SpecularReflection {
         (spectrum, wi, 1.0, BxDFType::empty())
     }
 
-    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+    fn pdf(&self, _wo: &Vector3f, _wi: &Vector3f) -> f32 {
         0.0
     }
 
@@ -226,7 +226,7 @@ impl BxDF for SpecularTransmission {
         }
     }
 
-    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+    fn pdf(&self, _wo: &Vector3f, _wi: &Vector3f) -> f32 {
         0.0
     }
 
@@ -293,7 +293,7 @@ impl BxDF for FresnelSpecular {
         }
     }
 
-    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+    fn pdf(&self, _wo: &Vector3f, _wi: &Vector3f) -> f32 {
         0.0
     }
 

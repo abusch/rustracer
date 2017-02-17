@@ -3,7 +3,6 @@ use stats;
 use transform;
 use std::f32::INFINITY;
 use std::ops::Mul;
-use na;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {

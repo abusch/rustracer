@@ -414,7 +414,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
             // Sample visible area of normals
             let flip = wo.z < 0.0;
             let wo = if flip { -(*wo) } else { *wo };
-            let mut wh = self.sample(&wo, u[0], u[1]);
+            let wh = self.sample(&wo, u[0], u[1]);
             if flip { -wh } else { wh }
         }
     }
@@ -554,7 +554,7 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
 
     fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
         if !self.sample_visible_area {
-            let mut cos_theta = 0.0;
+            let mut cos_theta;
             let phi = (2.0 * consts::PI) * u[1];
 
             if self.alpha_x == self.alpha_y {
@@ -577,12 +577,12 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
                 cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
             }
             let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
-            let mut wh = spherical_direction(sin_theta, cos_theta, phi);
+            let wh = spherical_direction(sin_theta, cos_theta, phi);
             if !same_hemisphere(wo, &wh) { -wh } else { wh }
         } else {
             let flip = wo.z < 0.0;
             let wo = if flip { -(*wo) } else { *wo };
-            let mut wh = self.sample(&wo, u[0], u[1]);
+            let wh = self.sample(&wo, u[0], u[1]);
             if flip { -wh } else { wh }
         }
     }

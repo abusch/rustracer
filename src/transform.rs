@@ -1,5 +1,4 @@
-use alga::linear::Transformation;
-use na::{self, Matrix3, Matrix4, Vector3, Vector4, U3};
+use na::{self, Matrix4, U3};
 
 use {Vector3f, Point3f, Transform, gamma};
 

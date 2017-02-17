@@ -51,11 +51,12 @@ pub fn fbm(p: &Point3f, dpdx: &Vector3f, dpdy: &Vector3f, omega: f32, max_octave
     let n = clamp(-1.0 - 0.5 * len2.log2(), 0.0, max_octaves as f32);
     let n_int = n.floor() as u32;
 
+    // TODO replace with fold()?
     // Compute sum of octaves of noise for FBm
     let mut sum = 0.0;
     let mut lambda = 1.0;
     let mut o = 1.0;
-    for i in 0..n_int {
+    for _ in 0..n_int {
         sum += o * noise3(&(lambda * *p));
         lambda *= 1.99;
         o *= omega;

@@ -326,9 +326,9 @@ impl<T: Primitive> Primitive for BVH<T> {
     }
 
     fn compute_scattering_functions(&self,
-                                    isect: &mut SurfaceInteraction,
-                                    mode: TransportMode,
-                                    allow_multiple_lobes: bool) {
+                                    _isect: &mut SurfaceInteraction,
+                                    _mode: TransportMode,
+                                    _allow_multiple_lobes: bool) {
         panic!("compute_scattering_functions() should not be called on an Aggregate Primitive!");
     }
 }

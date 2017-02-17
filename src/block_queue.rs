@@ -1,4 +1,3 @@
-use std::io::Write;
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 use std::fmt;
 

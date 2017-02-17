@@ -3,7 +3,7 @@ extern crate tobj;
 use std::sync::Arc;
 use std::path::Path;
 
-use na::{Point2, Point3, abs};
+use na::{Point2, Point3};
 
 use {Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
      coordinate_system, gamma};

@@ -110,7 +110,7 @@ pub fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
 pub fn erf_inv(x: f32) -> f32 {
     let x = na::clamp(x, -0.99999, 0.99999);
     let mut w = -((1.0 - x) * (1.0 + x)).ln();
-    let mut p = 0.0;
+    let mut p;
     if w < 5.0 {
         w = w - 2.5;
         p = 2.81022636e-08;

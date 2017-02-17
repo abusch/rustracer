@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use Vector2f;
 use interaction::SurfaceInteraction;
 use texture::Texture;
