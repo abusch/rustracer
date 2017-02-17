@@ -4,7 +4,7 @@ use {Vector3f, Point2f};
 use bsdf::{BxDF, BxDFType, BSDF_SPECULAR, BSDF_REFLECTION, BSDF_TRANSMISSION};
 use geometry::*;
 use spectrum::Spectrum;
-use na::{Dot, Norm, clamp};
+use na::clamp;
 
 /// Compute the reflection direction
 pub fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {
@@ -212,13 +212,13 @@ impl BxDF for SpecularTransmission {
 
             // Account for non-symmetry with transmission to different medium TODO
             ft = ft * (eta_i * eta_i) / (eta_t * eta_t);
-            info!("wo={}. wi={}, cos_theta(wo)={}, cos_theta(wi)={}, abs_cos_theta(wi)={}, ft={}",
-                  wo,
-                  wi,
-                  cos_theta(wo),
-                  cos_theta(&wi),
-                  abs_cos_theta(&wi),
-                  ft);
+            debug!("wo={}. wi={}, cos_theta(wo)={}, cos_theta(wi)={}, abs_cos_theta(wi)={}, ft={}",
+                   wo,
+                   wi,
+                   cos_theta(wo),
+                   cos_theta(&wi),
+                   abs_cos_theta(&wi),
+                   ft);
 
             return (ft / abs_cos_theta(&wi), wi, 1.0, BSDF_SPECULAR | BSDF_TRANSMISSION);
         } else {
