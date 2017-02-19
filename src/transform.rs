@@ -1,6 +1,22 @@
-use na::{self, Matrix4, U3};
+use na::{self, Matrix4, Matrix2, U3};
 
-use {Vector3f, Point3f, Transform, gamma};
+use {Vector2f, Vector3f, Point3f, Transform, gamma};
+
+pub fn solve_linear_system2x2(A: &Matrix2<f32>, B: &Vector2f) -> Option<(f32, f32)> {
+    let det = A.determinant();
+    if det.abs() < 1e-10 {
+        return None;
+    }
+    let x0 = (A[(1, 1)] * B[0] - A[(0, 1)] * B[1]) / det;
+    let x1 = (A[(0, 0)] * B[1] - A[(1, 0)] * B[0]) / det;
+
+    if x0.is_nan() || x1.is_nan() {
+        return None;
+    }
+    return Some((x0, x1));
+}
+
+
 
 /// Transform the given point using the given transformation and also return a vector of the
 /// absolute error introduced for each coordinate.

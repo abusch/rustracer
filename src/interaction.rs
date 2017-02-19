@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use fp::Ieee754;
-use na;
+use na::{self, Matrix2};
+use num::Zero;
 
-use {Point3f, Point2f, Vector3f, Transform};
+use {Point3f, Point2f, Vector2f, Vector3f, Transform};
 use bsdf::BSDF;
 use geometry::face_forward;
 use material::TransportMode;
@@ -188,9 +189,10 @@ impl<'a> SurfaceInteraction<'a> {
     }
 
     pub fn compute_scattering_functions(&mut self,
-                                        _ray: &Ray,
+                                        ray: &Ray,
                                         transport: TransportMode,
                                         allow_multiple_lobes: bool) {
+        self.compute_differential(ray);
         if let Some(primitive) = self.primitive {
             primitive.compute_scattering_functions(self, transport, allow_multiple_lobes);
         }
@@ -231,6 +233,58 @@ impl<'a> SurfaceInteraction<'a> {
         self.shading.dpdv = *dpdvs;
         self.shading.dndu = *dndus;
         self.shading.dndv = *dndvs;
+    }
+
+    pub fn compute_differential(&mut self, ray: &Ray) {
+        if let Some(ref diff) = ray.differential {
+            // Estimate screen space change in p and (u,v)
+
+            // Compute auxiliary intersection points with plane
+            let d = self.n.dot(&Vector3f::new(self.p.x, self.p.y, self.p.z));
+            let tx = -(self.n.dot(&diff.rx_origin.coords) - d) / self.n.dot(&diff.rx_direction);
+            let px = diff.rx_origin + tx * diff.rx_direction;
+            let ty = -(self.n.dot(&diff.ry_origin.coords) - d) / self.n.dot(&diff.ry_direction);
+            let py = diff.ry_origin + ty * diff.ry_direction;
+            self.dpdx = px - self.p;
+            self.dpdy = py - self.p;
+            // Compute (u,v) offsets at auxiliary points
+
+            // Choose two dimensions to use for ray offset computation
+            let mut dim: [usize; 2] = [0; 2];
+            if self.n.x.abs() > self.n.y.abs() && self.n.x.abs() > self.n.z.abs() {
+                dim[0] = 1;
+                dim[1] = 2;
+            } else if self.n.y.abs() > self.n.z.abs() {
+                dim[0] = 0;
+                dim[1] = 2;
+            } else {
+                dim[0] = 0;
+                dim[1] = 1;
+            }
+            // Initialize A, Bx, and By matrices for offset computation
+            let A = Matrix2::new(self.dpdu[dim[0]],
+                                 self.dpdv[dim[0]],
+                                 self.dpdu[dim[1]],
+                                 self.dpdv[dim[1]]);
+            let Bx = Vector2f::new(px[dim[0]] - self.p[dim[0]], px[dim[1]] - self.p[dim[1]]);
+            let By = Vector2f::new(py[dim[0]] - self.p[dim[0]], py[dim[1]] - self.p[dim[1]]);
+
+
+            let (dudx, dvdx) = transform::solve_linear_system2x2(&A, &Bx).unwrap_or((0.0, 0.0));
+            let (dudy, dvdy) = transform::solve_linear_system2x2(&A, &By).unwrap_or((0.0, 0.0));
+            self.dudx = dudx;
+            self.dvdx = dvdx;
+            self.dudy = dudy;
+            self.dvdy = dvdy;
+
+        } else {
+            self.dudx = 0.0;
+            self.dudy = 0.0;
+            self.dvdx = 0.0;
+            self.dvdy = 0.0;
+            self.dpdx = Vector3f::zero();
+            self.dpdy = Vector3f::zero();
+        }
     }
 }
 

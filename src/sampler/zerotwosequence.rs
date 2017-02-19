@@ -158,4 +158,8 @@ impl Sampler for ZeroTwoSequence {
     fn reseed(&mut self, seed: u64) {
         self.rng.set_sequence(seed);
     }
+
+    fn spp(&self) -> usize {
+        self.spp
+    }
 }

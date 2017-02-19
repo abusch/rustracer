@@ -72,7 +72,8 @@ pub fn render(scene: Scene,
                         sampler.start_pixel(&p);
                         loop {
                             let s = sampler.get_camera_sample(&p);
-                            let mut ray = scene.camera.generate_ray(&s);
+                            let mut ray = scene.camera.generate_ray_differential(&s);
+                            ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
                             let sample_colour = integrator.li(scene, &mut ray, &mut sampler, 0);
                             tile.add_sample(&s.p_film, sample_colour);
                             if !sampler.start_next_sample() {

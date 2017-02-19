@@ -53,13 +53,32 @@ impl Ray {
             let dt = d.abs().dot(&o_error) / length_squared;
             o += d * dt;
         }
+
+        let diff = self.differential.map(|d| {
+            RayDifferential {
+                rx_origin: transform * d.rx_origin,
+                ry_origin: transform * d.ry_origin,
+                rx_direction: transform * d.rx_direction,
+                ry_direction: transform * d.ry_direction,
+            }
+        });
+
         let r = Ray {
             o: o,
             d: d,
             t_max: t_max,
-            differential: None,
+            differential: diff,
         };
         (r, o_error, d_error)
+    }
+
+    pub fn scale_differentials(&mut self, s: f32) {
+        if let Some(d) = self.differential.iter_mut().next() {
+            d.rx_origin = self.o + (d.rx_origin - self.o) * s;
+            d.ry_origin = self.o + (d.ry_origin - self.o) * s;
+            d.rx_direction = self.d + (d.rx_direction - self.d) * s;
+            d.ry_direction = self.d + (d.ry_direction - self.d) * s;
+        }
     }
 }
 
