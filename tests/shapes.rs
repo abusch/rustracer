@@ -5,7 +5,6 @@ extern crate nalgebra as na;
 use std::f32;
 use rand::{Rng, StdRng, SeedableRng};
 use rand::distributions::{Range, IndependentSample};
-use na::{Norm, Dot};
 
 use rt::{Point3f, Point2f};
 use rt::ray::Ray;

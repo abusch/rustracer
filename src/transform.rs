@@ -116,15 +116,12 @@ pub fn translate_z(t: f32) -> Transform {
     Transform::new(Vector3f::z() * t, na::zero(), 1.0)
 }
 
-#[cfg(test)]
-use na::{Dot, Inverse};
-
 #[test]
 fn test_normal_transform() {
     let t = Transform::new(Vector3f::new(0.0, 0.0, 0.0),
                            Vector3f::new(4.0, 5.0, 6.0),
                            4.0);
-    let t_inv = t.inverse().unwrap();
+    let t_inv = t.inverse();
 
     let v = Vector3f::x();
     let n = Vector3f::y();

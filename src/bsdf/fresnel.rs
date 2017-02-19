@@ -301,14 +301,3 @@ impl BxDF for FresnelSpecular {
         BSDF_SPECULAR | BSDF_REFLECTION | BSDF_TRANSMISSION
     }
 }
-
-#[test]
-fn test_reflect() {
-    let wo = Vector3f::new(-0.0137817357, -0.999056697, 0.0411854088);
-    let n = Vector3f::new(-0.000777989568, 0.000739870942, 0.999999404);
-    let wi = ::bsdf::reflect(&wo, &n);
-
-    assert_relative_eq!(0.0137187857, wi.x);
-    assert_relative_eq!(0.99911654, wi.y);
-    assert_relative_eq!(0.0397284105, wi.z);
-}
