@@ -25,21 +25,6 @@ impl Camera {
                focal_distance: f32,
                fov: f32)
                -> Camera {
-        #[cfg_attr(rustfmt, rustfmt_skip)]
-        fn scale(x: f32, y: f32, z: f32) -> Matrix4<f32> {
-            Matrix4::<f32>::new(x, 0.0, 0.0, 0.0,
-                                0.0, y, 0.0, 0.0,
-                                0.0, 0.0, z, 0.0,
-                                0.0, 0.0, 0.0, 1.0)
-        }
-
-        #[cfg_attr(rustfmt, rustfmt_skip)]
-        fn translate(x: f32, y: f32, z: f32) -> Matrix4<f32> {
-            Matrix4::<f32>::new(1.0, 0.0, 0.0, x,
-                                0.0, 1.0, 0.0, y,
-                                0.0, 0.0, 1.0, z,
-                                0.0, 0.0, 0.0, 1.0)
-        }
 
         #[cfg_attr(rustfmt, rustfmt_skip)]
         fn perspective(fov: f32, n: f32, f: f32) -> Matrix4<f32> {
@@ -48,7 +33,7 @@ impl Camera {
                                             0.0, 0.0, f / (f - n), -f * n / (f - n),
                                             0.0, 0.0, 1.0, 0.0);
             let inv_tan_ang = 1.0 / (fov.to_radians() / 2.0).tan();
-            scale(inv_tan_ang, inv_tan_ang, 1.0) * persp
+            Matrix4::new_nonuniform_scaling(&Vector3f::new(inv_tan_ang, inv_tan_ang, 1.0)) * persp
         }
 
         let aspect_ratio = film_size.x / film_size.y;
@@ -60,11 +45,18 @@ impl Camera {
                                   &Point2f::new(1.0, 1.0 / aspect_ratio))
         };
         let camera_to_screen = perspective(fov, 1e-2, 1000.0);
-        let screen_to_raster = scale(film_size.x, film_size.y, 1.0) *
-                               scale(1.0 / (screen_window.p_max.x - screen_window.p_min.x),
-                                     1.0 / (screen_window.p_min.y - screen_window.p_max.y),
-                                     1.0) *
-                               translate(-screen_window.p_min.x, -screen_window.p_max.y, 0.0);
+        let screen_to_raster =
+            Matrix4::new_nonuniform_scaling(&Vector3f::new(film_size.x, film_size.y, 1.0)) *
+            Matrix4::new_nonuniform_scaling(&Vector3f::new(1.0 /
+                                                           (screen_window.p_max.x -
+                                                            screen_window.p_min.x),
+                                                           1.0 /
+                                                           (screen_window.p_min.y -
+                                                            screen_window.p_max.y),
+                                                           1.0)) *
+            Matrix4::new_translation(&Vector3f::new(-screen_window.p_min.x,
+                                                    -screen_window.p_max.y,
+                                                    0.0));
         let raster_to_screen = screen_to_raster.try_inverse().unwrap();
         let raster_to_camera = camera_to_screen.try_inverse().unwrap() * raster_to_screen;
 
