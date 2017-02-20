@@ -6,7 +6,7 @@ use bsdf;
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use light::{Light, is_delta_light};
-use ray::Ray;
+use ray::{Ray, RayDifferential};
 use sampler::Sampler;
 use sampling::{power_heuristic, Distribution1D};
 use scene::Scene;
@@ -36,9 +36,25 @@ pub trait SamplerIntegrator {
                            -> Spectrum {
         let flags = bsdf::BSDF_REFLECTION | bsdf::BSDF_SPECULAR;
         let (f, wi, pdf, bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
-        let ns = isect.shading.n;
+        let ns = &isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
             let mut r = isect.spawn_ray(&wi);
+            if let Some(diff) = ray.differential {
+                let mut rddiff = RayDifferential::default();
+                rddiff.rx_origin = isect.p + isect.dpdx;
+                rddiff.ry_origin = isect.p + isect.dpdy;
+                // Compute differential reflected direction
+                let dndx = isect.shading.dndu * isect.dudx + isect.dndv * isect.dvdx;
+                let dndy = isect.shading.dndu * isect.dudy + isect.dndv * isect.dvdy;
+                let dwodx = -diff.rx_direction - isect.wo;
+                let dwody = -diff.ry_direction - isect.wo;
+                let dDNdx = dwodx.dot(ns) + isect.wo.dot(&dndx);
+                let dDNdy = dwody.dot(ns) + isect.wo.dot(&dndy);
+                rddiff.rx_direction = wi - dwodx + 2.0 * (isect.wo.dot(ns) * dndx + dDNdx * ns);
+                rddiff.ry_direction = wi - dwody + 2.0 * (isect.wo.dot(ns) * dndy + dDNdy * ns);
+
+                r.differential = Some(rddiff);
+            }
             let refl = self.li(scene, &mut r, sampler, depth + 1);
             f * refl * wi.dot(&ns).abs() / pdf
         } else {
@@ -56,9 +72,37 @@ pub trait SamplerIntegrator {
                              -> Spectrum {
         let flags = bsdf::BSDF_TRANSMISSION | bsdf::BSDF_SPECULAR;
         let (f, wi, pdf, bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
-        let ns = isect.shading.n;
-        if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
+        let ns = &isect.shading.n;
+        if !f.is_black() && pdf != 0.0 && wi.dot(ns) != 0.0 {
             let mut r = isect.spawn_ray(&wi);
+            if let Some(diff) = ray.differential {
+                let mut rddiff = RayDifferential::default();
+                rddiff.rx_origin = isect.p + isect.dpdx;
+                rddiff.ry_origin = isect.p + isect.dpdy;
+
+                let mut eta = bsdf.eta;
+                let w = -isect.wo;
+                if isect.wo.dot(ns) < 0.0 {
+                    eta = 1.0 / eta;
+                }
+
+                // Compute differential reflected direction
+                let dndx = isect.shading.dndu * isect.dudx + isect.dndv * isect.dvdx;
+                let dndy = isect.shading.dndu * isect.dudy + isect.dndv * isect.dvdy;
+                let dwodx = -diff.rx_direction - isect.wo;
+                let dwody = -diff.ry_direction - isect.wo;
+                let dDNdx = dwodx.dot(ns) + isect.wo.dot(&dndx);
+                let dDNdy = dwody.dot(ns) + isect.wo.dot(&dndy);
+
+                let mu = eta * w.dot(ns) - wi.dot(ns);
+                let dmudx = (eta - (eta * eta * w.dot(ns)) / wi.dot(ns)) * dDNdx;
+                let dmudy = (eta - (eta * eta * w.dot(ns)) / wi.dot(ns)) * dDNdy;
+
+                rddiff.rx_direction = wi + eta * dwodx - (mu * dndx + dDNdx * ns);
+                rddiff.ry_direction = wi + eta * dwody - (mu * dndy + dDNdy * ns);
+
+                r.differential = Some(rddiff);
+            }
             let refr = self.li(scene, &mut r, sampler, depth + 1);
             f * refr * wi.dot(&ns).abs() / pdf
         } else {

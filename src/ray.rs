@@ -1,8 +1,11 @@
+use std::f32::INFINITY;
+use std::ops::Mul;
+
+use num::Zero;
+
 use {Vector3f, Point3f, Transform};
 use stats;
 use transform;
-use std::f32::INFINITY;
-use std::ops::Mul;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {
@@ -100,6 +103,17 @@ pub struct RayDifferential {
     pub ry_origin: Point3f,
     pub rx_direction: Vector3f,
     pub ry_direction: Vector3f,
+}
+
+impl Default for RayDifferential {
+    fn default() -> Self {
+        RayDifferential {
+            rx_origin: Point3f::origin(),
+            ry_origin: Point3f::origin(),
+            rx_direction: Vector3f::zero(),
+            ry_direction: Vector3f::zero(),
+        }
+    }
 }
 
 #[test]
