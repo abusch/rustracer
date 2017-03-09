@@ -2,6 +2,11 @@ use na::{self, Matrix4, Matrix2, U3};
 
 use {Vector2f, Vector3f, Point3f, Transform, gamma};
 
+pub struct Transform {
+    m: Matrix4<f32>,
+    m_inv: Matrix4<f32>,
+}
+
 pub fn solve_linear_system2x2(A: &Matrix2<f32>, B: &Vector2f) -> Option<(f32, f32)> {
     let det = A.determinant();
     if det.abs() < 1e-10 {
