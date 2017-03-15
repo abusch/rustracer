@@ -4,6 +4,8 @@ extern crate alga;
 extern crate approx;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate combine;
 extern crate crossbeam;
 extern crate ieee754 as fp;
 extern crate image as img;
@@ -43,6 +45,7 @@ pub mod lightdistrib;
 pub mod material;
 pub mod mipmap;
 mod noise;
+mod parser;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
