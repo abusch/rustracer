@@ -23,6 +23,7 @@ use na::{Vector2, Vector3, Point2, Point3, Similarity3};
 use na::core::Scalar;
 use num::One;
 
+mod api;
 mod blockedarray;
 mod block_queue;
 pub mod bounds;
