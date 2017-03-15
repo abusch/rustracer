@@ -16,6 +16,7 @@ approx = "0.1"
 bitflags = "0.8"
 chrono = "0.3"
 clap = "2"
+combine = "2"
 crossbeam = "0.2"
 # ieee754 = "0.2"
 ieee754 = { git = "https://github.com/abusch/ieee754.git" }
