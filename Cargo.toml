@@ -13,8 +13,8 @@ default = ["minifb"]
 [dependencies]
 alga = "0.5"
 approx = "0.1"
-bitflags = "0.7"
-chrono = "0.2"
+bitflags = "0.8"
+chrono = "0.3"
 clap = "2"
 crossbeam = "0.2"
 # ieee754 = "0.2"
@@ -34,7 +34,7 @@ tobj = "0.1"
 minifb = { version = "0.9", optional = true }
 
 [dependencies.uuid]
-version = "0.3"
+version = "0.4"
 features = ["v4"]
 
 [dev-dependencies]
