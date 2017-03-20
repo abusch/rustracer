@@ -80,7 +80,7 @@ pub fn build_scene(dim: Dim) -> Scene {
     //                                                          ))) as Box<Primitive + Send + Sync>;
     let floor =
         Box::new(GeometricPrimitive {
-                     shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
+                     shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, &transform::rot_x(-90.0))),
                      area_light: None,
                      material: Some(matte_red.clone()),
                  });
@@ -107,7 +107,7 @@ pub fn build_scene2(dim: Dim) -> Scene {
                              50.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
-    let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, na::one()));
+    let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, &na::one()));
     let material = Arc::new(MatteMaterial::new_image("grid.png"));
     // let material = Arc::new(MatteMaterial::new_uv_texture());
 
