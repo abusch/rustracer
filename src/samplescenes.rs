@@ -45,10 +45,12 @@ pub fn build_scene(dim: Dim) -> Scene {
     let glass = Arc::new(GlassMaterial::new().roughness(0.00, 0.00));
     let matte_red = Arc::new(MatteMaterial::new(Spectrum::rgb(1.0, 0.0, 0.0), 0.0));
     let sphere = Box::new(GeometricPrimitive {
-        shape: Arc::new(Sphere::new().radius(0.7).transform(transform::translate_y(-0.3))),
-        area_light: None,
-        material: Some(glass.clone()),
-    });
+                              shape: Arc::new(Sphere::new()
+                                                  .radius(0.7)
+                                                  .transform(&transform::translate_y(-0.3))),
+                              area_light: None,
+                              material: Some(glass.clone()),
+                          });
     // let bunny =
     //     Box::new(BVH::<GeometricPrimitive>::from_mesh_file(Path::new("models/bunny.obj"),
     //                                                        "bunny",
@@ -76,11 +78,12 @@ pub fn build_scene(dim: Dim) -> Scene {
     //                                                          Vector3f::new(0.0, -70.0f32.to_radians(), 0.0),
     //                                                          3.0
     //                                                          ))) as Box<Primitive + Send + Sync>;
-    let floor = Box::new(GeometricPrimitive {
-        shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
-        area_light: None,
-        material: Some(matte_red.clone()),
-    });
+    let floor =
+        Box::new(GeometricPrimitive {
+                     shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, transform::rot_x(-90.0))),
+                     area_light: None,
+                     material: Some(matte_red.clone()),
+                 });
 
     let primitives: Vec<Box<Primitive + Sync + Send>> = vec![sphere, floor];
     // Light
@@ -109,10 +112,10 @@ pub fn build_scene2(dim: Dim) -> Scene {
     // let material = Arc::new(MatteMaterial::new_uv_texture());
 
     let disk = Box::new(GeometricPrimitive {
-        shape: shape,
-        area_light: None,
-        material: Some(material.clone()),
-    });
+                            shape: shape,
+                            area_light: None,
+                            material: Some(material.clone()),
+                        });
 
     let primitives: Vec<Box<Primitive + Sync + Send>> = vec![disk];
     // Light

@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::f32::consts;
 
 use na::{self, one};
@@ -6,6 +7,7 @@ use {gamma, Transform, Point2f, Point3f, Vector3f};
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
 use interaction::{Interaction, SurfaceInteraction};
+use paramset::ParamSet;
 use ray::Ray;
 use sampling::uniform_sample_sphere;
 use shapes::Shape;
@@ -68,11 +70,26 @@ impl Sphere {
         self
     }
 
-    pub fn transform(mut self, object_to_world: Transform) -> Self {
-        self.object_to_world = object_to_world;
+    pub fn transform(mut self, object_to_world: &Transform) -> Self {
+        self.object_to_world = *object_to_world;
         self.world_to_object = object_to_world.inverse();
 
         self
+    }
+
+    pub fn create(o2w: &Transform, reverse_orientation: bool, params: &mut ParamSet) -> Arc<Shape> {
+        let radius = params.find_one_float("radius", 1.0);
+        let zmin = params.find_one_float("zmin", -radius);
+        let zmax = params.find_one_float("zmax", radius);
+        let phimax = params.find_one_float("phimax", 360.0);
+
+
+        Arc::new(Sphere::new()
+                     .radius(radius)
+                     .z_min(zmin)
+                     .z_max(zmax)
+                     .phi_max(phimax)
+                     .transform(o2w))
     }
 }
 
