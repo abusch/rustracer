@@ -1,5 +1,7 @@
 use std::cell::RefCell;
 
+use paramset::ParamSet;
+
 #[derive(Debug, Copy, Clone)]
 pub enum ApiState {
     Uninitialized,
@@ -41,29 +43,35 @@ pub enum ParamType {
     String,
     Texture,
 }
-
-#[derive(Debug)]
-pub struct ParamSet {
-    pub params: Vec<ParamListEntry>,
-}
-
-impl Default for ParamSet {
-    fn default() -> Self {
-        ParamSet { params: Vec::new() }
-    }
-}
-
 #[derive(Debug, PartialEq)]
 pub enum Array {
     NumArray(Vec<f32>),
     StrArray(Vec<String>),
 }
 
+impl Array {
+    pub fn as_num_array(&self) -> Vec<f32> {
+        // TODO proper error handling
+        return match *self {
+                   Array::NumArray(ref a) => a.clone(),
+                   _ => panic!("Attempted to cast a num array to a String array"),
+               };
+    }
+
+    // TODO proper error handling
+    pub fn as_str_array(&self) -> Vec<String> {
+        return match *self {
+                   Array::StrArray(ref a) => a.clone(),
+                   _ => panic!("Attempted to cast a string array to a num array"),
+               };
+    }
+}
+
 #[derive(Debug)]
 pub struct ParamListEntry {
-    param_type: ParamType,
-    param_name: String,
-    values: Array,
+    pub param_type: ParamType,
+    pub param_name: String,
+    pub values: Array,
 }
 
 impl ParamListEntry {

@@ -3,7 +3,8 @@ use combine::{value, satisfy_map, satisfy, skip_many, none_of, token, any, betwe
 use combine::char::{alpha_num, string, spaces, digit, char, newline, Str};
 use combine::primitives::Error;
 
-use api::{Api, DummyApi, ParamType, ParamListEntry, ParamSet, Array};
+use api::{Api, DummyApi, ParamType, ParamListEntry, Array};
+use paramset::ParamSet;
 use super::lexer::Tokens;
 
 pub fn parse<I: Stream<Item = Tokens>>(input: I) -> ParseResult<Vec<()>, I> {
@@ -16,24 +17,36 @@ pub fn parse<I: Stream<Item = Tokens>>(input: I) -> ParseResult<Vec<()>, I> {
     let look_at =
         (token(Tokens::LOOKAT), num(), num(), num(), num(), num(), num(), num(), num(), num())
             .map(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
-                api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, lz);
-            });
-    let camera = (token(Tokens::CAMERA), string_(), param_list())
-        .map(|(_, name, params)| { api.camera(name, &params); });
-    let film = (token(Tokens::FILM), string_(), param_list())
-        .map(|(_, name, params)| { api.film(name, &params); });
-    let integrator = (token(Tokens::INTEGRATOR), string_(), param_list())
-        .map(|(_, name, params)| { api.integrator(name, &params); });
+                     api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, lz);
+                 });
+    let camera = (token(Tokens::CAMERA), string_(), param_list()).map(|(_, name, params)| {
+                                                                          api.camera(name, &params);
+                                                                      });
+    let film = (token(Tokens::FILM), string_(), param_list()).map(|(_, name, params)| {
+                                                                      api.film(name, &params);
+                                                                  });
+    let integrator =
+        (token(Tokens::INTEGRATOR), string_(), param_list()).map(|(_, name, params)| {
+                                                                     api.integrator(name, &params);
+                                                                 });
     let arealightsource = (token(Tokens::AREALIGHTSOURCE), string_(), param_list())
         .map(|(_, name, params)| { api.arealightsource(name, &params); });
-    let lightsource = (token(Tokens::LIGHTSOURCE), string_(), param_list())
-        .map(|(_, name, params)| { api.lightsource(name, &params); });
-    let material = (token(Tokens::MATERIAL), string_(), param_list())
-        .map(|(_, name, params)| { api.material(name, &params); });
-    let shape = (token(Tokens::SHAPE), string_(), param_list())
-        .map(|(_, name, params)| { api.shape(name, &params); });
-    let rotate = (token(Tokens::ROTATE), num(), num(), num(), num())
-        .map(|(_, angle, dx, dy, dz)| { api.rotate(angle, dx, dy, dz); });
+    let lightsource =
+        (token(Tokens::LIGHTSOURCE), string_(), param_list()).map(|(_, name, params)| {
+                                                                      api.lightsource(name,
+                                                                                      &params);
+                                                                  });
+    let material = (token(Tokens::MATERIAL), string_(), param_list()).map(|(_, name, params)| {
+                                                                              api.material(name,
+                                                                                           &params);
+                                                                          });
+    let shape = (token(Tokens::SHAPE), string_(), param_list()).map(|(_, name, params)| {
+                                                                        api.shape(name, &params);
+                                                                    });
+    let rotate =
+        (token(Tokens::ROTATE), num(), num(), num(), num()).map(|(_, angle, dx, dy, dz)| {
+                                                                    api.rotate(angle, dx, dy, dz);
+                                                                });
 
     api.init();
 
@@ -50,7 +63,7 @@ pub fn parse<I: Stream<Item = Tokens>>(input: I) -> ParseResult<Vec<()>, I> {
                                try(material),
                                try(shape),
                                try(rotate)))
-        .parse_stream(input)
+            .parse_stream(input)
 }
 
 
@@ -60,7 +73,11 @@ fn param_list<'a, I: Stream<Item = Tokens> + 'a>
     -> Box<Parser<Input = I, Output = ParamSet> + 'a>
 {
     many(param_list_entry())
-        .map(|x| ParamSet { params: x })
+        .map(|x| {
+                 let mut ps = ParamSet::default();
+                 ps.init(x);
+                 ps
+             })
         .boxed()
 }
 
@@ -68,7 +85,7 @@ fn param_type<'a, I: Stream<Item = char> + 'a>
     ()
     -> Box<Parser<Input = I, Output = ParamType> + 'a>
 {
-    choice!(try(string("int").with(value(ParamType::Int))),
+    choice!(try(string("integer").with(value(ParamType::Int))),
             try(string("bool").with(value(ParamType::Bool))),
             try(string("float").with(value(ParamType::Float))),
             try(string("point2").with(value(ParamType::Point2))),
@@ -84,7 +101,7 @@ fn param_type<'a, I: Stream<Item = char> + 'a>
             try(string("spectrum").with(value(ParamType::Spectrum))),
             try(string("string").with(value(ParamType::String))),
             try(string("texture").with(value(ParamType::Texture))))
-        .boxed()
+            .boxed()
 }
 
 fn param_list_entry_header<'a, I: Stream<Item = Tokens> + 'a>
@@ -93,11 +110,11 @@ fn param_list_entry_header<'a, I: Stream<Item = Tokens> + 'a>
 {
     string_()
         .and_then(|s| match param_type().skip(spaces()).parse(&s[..]) {
-            Ok((t, n)) => Ok((t, n.to_owned())),
-            Err(error) => {
-                Err(Error::Message(format!("Invalid param list entry: {}", error).into()))
-            }
-        })
+                      Ok((t, n)) => Ok((t, n.to_owned())),
+                      Err(error) => {
+                          Err(Error::Message(format!("Invalid param list entry: {}", error).into()))
+                      }
+                  })
         .boxed()
 }
 
@@ -113,7 +130,7 @@ fn param_list_entry<'a, I: Stream<Item = Tokens> + 'a>
 fn array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = Array> + 'a> {
     choice!(try(string_array().map(Array::StrArray)),
             try(num_array().map(Array::NumArray)))
-        .boxed()
+            .boxed()
 }
 
 fn string_array<'a, I: Stream<Item = Tokens> + 'a>
@@ -124,7 +141,7 @@ fn string_array<'a, I: Stream<Item = Tokens> + 'a>
                         token(Tokens::RBRACK),
                         many1::<Vec<_>, _>(string_()))),
             try(string_().map(|x| vec![x])))
-        .boxed()
+            .boxed()
 }
 
 fn num_array<'a, I: Stream<Item = Tokens> + 'a>
@@ -135,23 +152,23 @@ fn num_array<'a, I: Stream<Item = Tokens> + 'a>
                         token(Tokens::RBRACK),
                         many1::<Vec<_>, _>(num()))),
             try(num().map(|x| vec![x])))
-        .boxed()
+            .boxed()
 }
 
 fn num<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = f32> + 'a> {
     satisfy_map(|t| match t {
-            Tokens::NUMBER(n) => Some(n),
-            _ => None,
-        })
-        .boxed()
+                    Tokens::NUMBER(n) => Some(n),
+                    _ => None,
+                })
+            .boxed()
 }
 
 fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = String> + 'a> {
     satisfy_map(|t| match t {
-            Tokens::STR(s) => Some(s),
-            _ => None,
-        })
-        .boxed()
+                    Tokens::STR(s) => Some(s),
+                    _ => None,
+                })
+            .boxed()
 }
 
 #[test]
