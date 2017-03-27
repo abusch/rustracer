@@ -40,10 +40,6 @@ impl Disk {
     }
 
     pub fn create(o2w: &Transform, reverse_orientation: bool, params: &mut ParamSet) -> Arc<Shape> {
-        // Float height = params.FindOneFloat("height", 0.);
-        // Float radius = params.FindOneFloat("radius", 1);
-        // Float inner_radius = params.FindOneFloat("innerradius", 0);
-        // Float phimax = params.FindOneFloat("phimax", 360);
         let height = params.find_one_float("height", 0.0);
         let radius = params.find_one_float("radius", 1.0);
         let inner_radius = params.find_one_float("innerradius", 0.0);

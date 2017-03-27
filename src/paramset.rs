@@ -33,10 +33,8 @@ macro_rules! find(
 );
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParamSet {
-    pub params: Vec<ParamListEntry>,
-
     ints: Vec<ParamSetItem<i32>>,
     floats: Vec<ParamSetItem<f32>>,
 }
@@ -89,14 +87,13 @@ impl ParamSet {
 impl Default for ParamSet {
     fn default() -> Self {
         ParamSet {
-            params: Vec::new(),
             ints: Vec::new(),
             floats: Vec::new(),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct ParamSetItem<T: Debug> {
     name: String,
     values: Vec<T>,
