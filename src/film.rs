@@ -154,14 +154,14 @@ impl FilmTile {
         for x in p0.x..p1.x {
             let fx = ((x as f32 - p_film_discrete.x) * self.inv_filter_radius.x *
                       filter_table_size)
-                .abs();
+                    .abs();
             ifx.push(fx.floor().min(filter_table_size - 1.0) as usize);
         }
         let mut ify = Vec::with_capacity(p1.y as usize - p0.y as usize);
         for y in p0.y..p1.y {
             let fy = ((y as f32 - p_film_discrete.y) * self.inv_filter_radius.y *
                       filter_table_size)
-                .abs();
+                    .abs();
             ify.push(fy.floor().min(filter_table_size - 1.0) as usize);
         }
 

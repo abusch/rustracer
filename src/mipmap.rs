@@ -67,9 +67,9 @@ impl<T> MIPMap<T>
                             WrapMode::Black => orig_s,
                         };
                         if orig_s >= 0 && orig_s < res.x as isize {
-                            resampled_image[t * res_pow2.x as usize + s] +=
-                                img[(t * res.x as usize + orig_s as usize) as usize] *
-                                s_weights[s].weights[j];
+                            resampled_image[t * res_pow2.x as usize + s] += img[(t * res.x as usize + orig_s as usize) as
+                            usize] *
+                                                                            s_weights[s].weights[j];
                         }
                     }
 
@@ -93,7 +93,7 @@ impl<T> MIPMap<T>
                         };
                         if offset >= 0 && offset < res.y as isize {
                             work_data[t] += resampled_image[(offset * res_pow2.x as isize + s as isize) as
-                                            usize] *
+                            usize] *
                                             t_weights[t].weights[j];
                         }
                     }
@@ -124,8 +124,9 @@ impl<T> MIPMap<T>
             &resampled_image[..]
         };
         // level 0
-        mipmap.pyramid
-            .push(BlockedArray::new_from(resolution.x as usize, resolution.y as usize, img_data));
+        mipmap.pyramid.push(BlockedArray::new_from(resolution.x as usize,
+                                                   resolution.y as usize,
+                                                   img_data));
         for i in 1..n_levels {
             // initialize ith level of the pyramid
             let s_res = cmp::max(1, mipmap.pyramid[i - 1].u_size() / 2);
@@ -243,9 +244,9 @@ impl<T> MIPMap<T>
                         inv_sum_weights);
             }
             wt.push(ResampleWeight {
-                first_texel: first_texel as i32,
-                weights: w,
-            });
+                        first_texel: first_texel as i32,
+                        weights: w,
+                    });
         }
 
         wt

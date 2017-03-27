@@ -21,7 +21,7 @@ impl MinifbDisplayUpdater {
                                         dim.0 as usize,
                                         dim.1 as usize,
                                         minifb::WindowOptions::default())
-                .expect("Unable to open a window"),
+                    .expect("Unable to open a window"),
         }
     }
 
@@ -37,10 +37,10 @@ impl DisplayUpdater for MinifbDisplayUpdater {
         let buffer: Vec<u32> = film.render()
             .iter()
             .map(|p| {
-                let rgb = p.to_srgb();
-                (rgb[0] as u32) << 16 | (rgb[1] as u32) << 8 | (rgb[2] as u32)
+                     let rgb = p.to_srgb();
+                     (rgb[0] as u32) << 16 | (rgb[1] as u32) << 8 | (rgb[2] as u32)
 
-            })
+                 })
             .collect();
 
         self.window.update_with_buffer(&buffer[..]);

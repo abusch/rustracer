@@ -352,7 +352,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
         (-tan2theta *
          (cos2_phi(wh) / (self.alpha_x * self.alpha_x) +
           sin2_phi(wh) / (self.alpha_y * self.alpha_y)))
-            .exp() / (consts::PI * self.alpha_x * self.alpha_y * cos4_theta)
+                .exp() / (consts::PI * self.alpha_x * self.alpha_y * cos4_theta)
     }
 
     fn lambda(&self, wh: &Vector3f) -> f32 {
@@ -364,7 +364,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
         // Compute alpha for direction w
         let alpha = (cos_phi(wh) * self.alpha_x * self.alpha_x +
                      sin_phi(wh) * self.alpha_y * self.alpha_y)
-            .sqrt();
+                .sqrt();
 
         let a = 1.0 / (alpha * abs_tan_theta);
         if a >= 1.6 {
@@ -391,7 +391,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
                 }
                 let mut phi = (self.alpha_y / self.alpha_x *
                                (2.0 * consts::PI * u[1] + consts::FRAC_PI_2).tan())
-                    .atan();
+                        .atan();
                 if u[1] > 0.5 {
                     phi += consts::PI;
                 }
@@ -547,7 +547,7 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
         // Compute alpha for direction w
         let alpha = (cos2_phi(wh) * self.alpha_x * self.alpha_x +
                      sin2_phi(wh) * self.alpha_y * self.alpha_y)
-            .sqrt();
+                .sqrt();
         let alpha2tan2theta = (alpha * abs_tan_theta) * (alpha * abs_tan_theta);
         (-1.0 + (1.0 + alpha2tan2theta).sqrt()) / 2.0
     }
@@ -563,7 +563,7 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
             } else {
                 let mut phi = (self.alpha_y / self.alpha_x *
                                (2.0 * consts::PI * u[1] + 0.5 * consts::PI).tan())
-                    .atan();
+                        .atan();
                 if u[1] > 0.5 {
                     phi += consts::PI;
                 }

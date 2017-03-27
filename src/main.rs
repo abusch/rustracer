@@ -46,8 +46,11 @@ fn main() {
 }
 
 fn run(matches: ArgMatches) -> Result<(), String> {
-    let parsed_dims: Result<Vec<u32>, ParseIntError> =
-        matches.value_of("dim").unwrap().split('x').map(|s| s.parse::<u32>()).collect();
+    let parsed_dims: Result<Vec<u32>, ParseIntError> = matches.value_of("dim")
+        .unwrap()
+        .split('x')
+        .map(|s| s.parse::<u32>())
+        .collect();
     let dims = parsed_dims.expect("Invalid dimensions");
     if dims.len() != 2 {
         panic!("Error: invalid dimension specification");
@@ -58,7 +61,7 @@ fn run(matches: ArgMatches) -> Result<(), String> {
 
     let integrator: Box<SamplerIntegrator + Send + Sync> =
         match value_t!(matches.value_of("integrator"), SamplerIntegratorType)
-            .unwrap_or(SamplerIntegratorType::Whitted) {
+                  .unwrap_or(SamplerIntegratorType::Whitted) {
             SamplerIntegratorType::Whitted => {
                 info!("Using Whitted integrator with max ray depth of {}", 8);
                 // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))

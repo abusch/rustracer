@@ -254,12 +254,14 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
 pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) -> Vec<Triangle> {
     info!("Loading {} model from OBJ file:", model_name);
     let (models, _) = tobj::load_obj(file.into()).unwrap();
-    let model = models.iter()
-        .find(|m| m.name == model_name)
-        .unwrap();
+    let model = models.iter().find(|m| m.name == model_name).unwrap();
 
     info!("\tProcessing indices");
-    let indices: Vec<usize> = model.mesh.indices.iter().map(|i| *i as usize).collect();
+    let indices: Vec<usize> = model.mesh
+        .indices
+        .iter()
+        .map(|i| *i as usize)
+        .collect();
 
     info!("\tProcessing vertices");
     let positions: Vec<Point3f> = model.mesh
