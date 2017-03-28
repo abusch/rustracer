@@ -1,10 +1,13 @@
-#![deny(trivial_casts, unused_qualifications)]
+#![recursion_limit = "1024"]
+#![deny(trivial_casts, unused_qualifications, unused_must_use)]
 extern crate alga;
 #[macro_use]
 extern crate approx;
 #[macro_use]
 extern crate bitflags;
 extern crate crossbeam;
+#[macro_use]
+extern crate error_chain;
 extern crate ieee754 as fp;
 extern crate image as img;
 extern crate itertools as it;
@@ -50,11 +53,14 @@ pub mod sampling;
 pub mod sampler;
 pub mod scene;
 pub mod shapes;
-// mod skydome;
 pub mod spectrum;
 mod stats;
 pub mod texture;
 pub mod transform;
+
+pub mod errors {
+    error_chain!{}
+}
 
 pub type Dim = (u32, u32);
 

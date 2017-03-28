@@ -18,21 +18,31 @@ impl ImageTexture {
     pub fn new(path: &Path) -> ImageTexture {
         info!("Loading texture {}", path.display());
         // TODO log warning and use constant texture if cannot open texture file
-        let buf = img::open(path).unwrap();
-        let rgb = buf.to_rgb();
-        let res = Point2i::new(rgb.width(), rgb.height());
-        let mut pixels: Vec<Spectrum> =
-            rgb.pixels().map(|p| Spectrum::from_srgb(&p.data)).collect();
+        let (res, pixels) = match img::open(path) {
+            Ok(buf) => {
+                let rgb = buf.to_rgb();
+                let res = Point2i::new(rgb.width(), rgb.height());
+                let mut pixels: Vec<Spectrum> =
+                    rgb.pixels().map(|p| Spectrum::from_srgb(&p.data)).collect();
 
-        // Flip image in y; texture coordinate space has (0,0) at the lower
-        // left corner.
-        for y in 0..res.y / 2 {
-            for x in 0..res.x {
-                let o1 = (y * res.x + x) as usize;
-                let o2 = ((res.y - 1 - y) * res.x + x) as usize;
-                pixels.swap(o1, o2);
+                // Flip image in y; texture coordinate space has (0,0) at the lower
+                // left corner.
+                for y in 0..res.y / 2 {
+                    for x in 0..res.x {
+                        let o1 = (y * res.x + x) as usize;
+                        let o2 = ((res.y - 1 - y) * res.x + x) as usize;
+                        pixels.swap(o1, o2);
+                    }
+                }
+
+                (res, pixels)
             }
-        }
+            Err(e) => {
+                warn!("Could not open texture file. Using grey texture instead: {}",
+                      e);
+                (Point2i::new(1, 1), vec![Spectrum::grey(0.18)])
+            }
+        };
 
         ImageTexture {
             mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),

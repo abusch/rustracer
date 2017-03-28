@@ -10,6 +10,7 @@ use img;
 use Dim;
 use block_queue::BlockQueue;
 use display::DisplayUpdater;
+use errors::*;
 use filter::boxfilter::BoxFilter;
 use film::Film;
 use integrator::SamplerIntegrator;
@@ -27,7 +28,7 @@ pub fn render(scene: Scene,
               spp: usize,
               block_size: u32,
               mut display: Box<DisplayUpdater + Send>)
-              -> stats::Stats {
+              -> Result<stats::Stats> {
     let film = Film::new(dim, Box::new(BoxFilter {}));
 
     let block_queue = BlockQueue::new(dim, block_size);
@@ -83,26 +84,22 @@ pub fn render(scene: Scene,
                     }
                     // Once we've rendered all the samples for the tile, send the tile through the
                     // channel to the main thread which will add it to the film.
-                    pixel_tx.send(tile).expect(&format!("Failed to send tile"));
+                    pixel_tx.send(tile).unwrap_or_else(|e| error!("Failed to send tile: {}", e));
                 }
                 // Once there are no more tiles to render, send the thread's accumulated stats back
                 // to the main thread
-                stats_tx.send(stats::get_stats()).expect("Failed to send thread stats");
+                stats_tx.send(stats::get_stats()).unwrap_or_else(|e| error!("Failed to send thread stats: {}", e));
             });
         }
     });
 
     // Collect all the stats from the threads
     let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
-    println!("");
 
-    write_png(dim, &film.render(), filename).expect(&format!("Could not write image to file {}",
-                                                             filename));
-
-    global_stats
+    write_png(dim, &film.render(), filename).map(|_| global_stats)
 }
 
-fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
+fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> Result<()> {
     let (w, h) = dim;
     let mut buffer = Vec::new();
 
@@ -121,4 +118,5 @@ fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> io::Result<()> {
                      w as u32,
                      h as u32,
                      img::RGB(8))
+            .chain_err(|| format!("Failed to save image file {}", filename))
 }
