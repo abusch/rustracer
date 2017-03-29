@@ -38,28 +38,6 @@ impl Default for Transform {
     }
 }
 
-impl<'a> Mul<&'a Point3f> for Transform {
-    type Output = Point3f;
-
-    fn mul(self, p: &'a Point3f) -> Point3f {
-        let x = p.x;
-        let y = p.y;
-        let z = p.z;
-        let xp = self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z + self.m[(0, 3)];
-        let yp = self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z + self.m[(1, 3)];
-        let zp = self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z + self.m[(2, 3)];
-        let wp = self.m[(3, 0)] * x + self.m[(3, 1)] * y + self.m[(3, 2)] * z + self.m[(3, 3)];
-
-        assert!(wp != 0.0);
-
-        if wp == 1.0 {
-            Point3f::new(xp, yp, zp)
-        } else {
-            Point3f::new(xp, yp, zp) / wp
-        }
-    }
-}
-
 impl<'a, 'b> Mul<&'a Point3f> for &'b Transform {
     type Output = Point3f;
 
@@ -79,21 +57,6 @@ impl<'a, 'b> Mul<&'a Point3f> for &'b Transform {
         } else {
             Point3f::new(xp, yp, zp) / wp
         }
-    }
-}
-
-impl<'a> Mul<&'a Vector3f> for Transform {
-    type Output = Vector3f;
-
-    fn mul(self, v: &'a Vector3f) -> Vector3f {
-        let x = v.x;
-        let y = v.y;
-        let z = v.z;
-
-        Vector3f::new(self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z,
-                      self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z,
-                      self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z)
-
     }
 }
 
@@ -238,7 +201,7 @@ fn test_normal_transform() {
     println!("v = {}, n = {}", v, n);
     assert_eq!(v.dot(&n), 0.0);
 
-    let v2 = t * &v;
+    let v2 = &t * &v;
     let n2 = transform_normal(&n, &t_inv);
     println!("v = {}, n = {}", v2, n2);
     relative_eq!(v2.dot(&n2), 0.0);
