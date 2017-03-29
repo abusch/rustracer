@@ -238,7 +238,7 @@ fn test_normal_transform() {
     println!("v = {}, n = {}", v, n);
     assert_eq!(v.dot(&n), 0.0);
 
-    let v2 = t * v;
+    let v2 = t * &v;
     let n2 = transform_normal(&n, &t_inv);
     println!("v = {}, n = {}", v2, n2);
     relative_eq!(v2.dot(&n2), 0.0);
