@@ -69,7 +69,7 @@ pub type Vector3f = Vector3<f32>;
 pub type Point2f = Point2<f32>;
 pub type Point2i = Point2<u32>;
 pub type Point3f = Point3<f32>;
-pub type Transform = Similarity3<f32>;
+pub use transform::Transform;
 
 pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
 pub fn gamma(n: u32) -> f32 {

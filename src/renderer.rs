@@ -1,6 +1,5 @@
 extern crate pbr;
 
-use std::io;
 use std::path::Path;
 use std::sync::mpsc::channel;
 

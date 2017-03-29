@@ -30,7 +30,7 @@ impl TriangleMesh {
                n: Option<&[Vector3f]>,
                uv: Option<&[Point2f]>)
                -> Self {
-        let points: Vec<Point3f> = p.iter().map(|pt| *object_to_world * *pt).collect();
+        let points: Vec<Point3f> = p.iter().map(|pt| object_to_world * pt).collect();
         TriangleMesh {
             world_to_object: object_to_world.inverse(),
             vertex_indices: Vec::from(vertex_indices),
@@ -212,9 +212,9 @@ impl Shape for Triangle {
     }
 
     fn object_bounds(&self) -> Bounds3f {
-        let p0 = self.mesh.world_to_object * self.mesh.p[self.v(0)];
-        let p1 = self.mesh.world_to_object * self.mesh.p[self.v(1)];
-        let p2 = self.mesh.world_to_object * self.mesh.p[self.v(2)];
+        let p0 = &self.mesh.world_to_object * &self.mesh.p[self.v(0)];
+        let p1 = &self.mesh.world_to_object * &self.mesh.p[self.v(1)];
+        let p2 = &self.mesh.world_to_object * &self.mesh.p[self.v(2)];
         Bounds3f::union_point(&Bounds3f::from_points(&p0, &p1), &p2)
     }
 

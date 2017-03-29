@@ -1,6 +1,6 @@
 use std::f32::consts;
 
-use na::{self, one};
+use na;
 
 use {gamma, Transform, Point2f, Point3f, Vector3f};
 use bounds::Bounds3f;
@@ -25,8 +25,8 @@ pub struct Sphere {
 impl Sphere {
     pub fn new() -> Self {
         Sphere {
-            object_to_world: one(),
-            world_to_object: one(),
+            object_to_world: Transform::default(),
+            world_to_object: Transform::default(),
             radius: 1.0,
             z_min: -1.0,
             z_max: 1.0,
@@ -69,8 +69,8 @@ impl Sphere {
     }
 
     pub fn transform(mut self, object_to_world: Transform) -> Self {
-        self.object_to_world = object_to_world;
         self.world_to_object = object_to_world.inverse();
+        self.object_to_world = object_to_world;
 
         self
     }
@@ -178,14 +178,14 @@ impl Shape for Sphere {
     fn world_bounds(&self) -> Bounds3f {
         let mut bounds = Bounds3f::new();
         let b = self.object_bounds();
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[0].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[0].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[1].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[0].y, b[1].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[1].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[0].y, b[1].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[1].y, b[1].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[1].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[0].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[0].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[1].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[0].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[1].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[0].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[1].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[1].y, b[1].z));
 
         bounds
     }

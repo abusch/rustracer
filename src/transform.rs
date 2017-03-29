@@ -1,12 +1,118 @@
-use na::{self, Matrix4, Matrix2, U3};
+use std::ops::Mul;
+use na::{self, Matrix4, Matrix2, Similarity3, U3};
 
-use {Vector2f, Vector3f, Point3f, Transform, gamma};
+use {Vector2f, Vector3f, Point3f, gamma};
 
+#[derive(Debug)]
 pub struct Transform {
-    m: Matrix4<f32>,
-    m_inv: Matrix4<f32>,
+    pub m: Matrix4<f32>,
+    pub m_inv: Matrix4<f32>,
 }
 
+impl Transform {
+    pub fn new(t: Vector3f, r: Vector3f, s: f32) -> Transform {
+        Transform::from_similarity(&Similarity3::new(t, r, s))
+    }
+
+    pub fn from_similarity(s: &Similarity3<f32>) -> Transform {
+        Transform {
+            m: s.to_homogeneous(),
+            m_inv: s.inverse().to_homogeneous(),
+        }
+    }
+
+    pub fn inverse(&self) -> Self {
+        Transform {
+            m: self.m_inv,
+            m_inv: self.m,
+        }
+    }
+}
+
+impl Default for Transform {
+    fn default() -> Self {
+        Transform {
+            m: na::one(),
+            m_inv: na::one(),
+        }
+    }
+}
+
+impl<'a> Mul<&'a Point3f> for Transform {
+    type Output = Point3f;
+
+    fn mul(self, p: &'a Point3f) -> Point3f {
+        let x = p.x;
+        let y = p.y;
+        let z = p.z;
+        let xp = self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z + self.m[(0, 3)];
+        let yp = self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z + self.m[(1, 3)];
+        let zp = self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z + self.m[(2, 3)];
+        let wp = self.m[(3, 0)] * x + self.m[(3, 1)] * y + self.m[(3, 2)] * z + self.m[(3, 3)];
+
+        assert!(wp != 0.0);
+
+        if wp == 1.0 {
+            Point3f::new(xp, yp, zp)
+        } else {
+            Point3f::new(xp, yp, zp) / wp
+        }
+    }
+}
+
+impl<'a, 'b> Mul<&'a Point3f> for &'b Transform {
+    type Output = Point3f;
+
+    fn mul(self, p: &'a Point3f) -> Point3f {
+        let x = p.x;
+        let y = p.y;
+        let z = p.z;
+        let xp = self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z + self.m[(0, 3)];
+        let yp = self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z + self.m[(1, 3)];
+        let zp = self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z + self.m[(2, 3)];
+        let wp = self.m[(3, 0)] * x + self.m[(3, 1)] * y + self.m[(3, 2)] * z + self.m[(3, 3)];
+
+        assert!(wp != 0.0);
+
+        if wp == 1.0 {
+            Point3f::new(xp, yp, zp)
+        } else {
+            Point3f::new(xp, yp, zp) / wp
+        }
+    }
+}
+
+impl<'a> Mul<&'a Vector3f> for Transform {
+    type Output = Vector3f;
+
+    fn mul(self, v: &'a Vector3f) -> Vector3f {
+        let x = v.x;
+        let y = v.y;
+        let z = v.z;
+
+        Vector3f::new(self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z,
+                      self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z,
+                      self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z)
+
+    }
+}
+
+impl<'a, 'b> Mul<&'a Vector3f> for &'b Transform {
+    type Output = Vector3f;
+
+    fn mul(self, v: &'a Vector3f) -> Vector3f {
+        let x = v.x;
+        let y = v.y;
+        let z = v.z;
+
+        Vector3f::new(self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z,
+                      self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z,
+                      self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z)
+
+    }
+}
+
+#[allow(non_snake_case)]
 pub fn solve_linear_system2x2(A: &Matrix2<f32>, B: &Vector2f) -> Option<(f32, f32)> {
     let det = A.determinant();
     if det.abs() < 1e-10 {
@@ -27,8 +133,8 @@ pub fn solve_linear_system2x2(A: &Matrix2<f32>, B: &Vector2f) -> Option<(f32, f3
 /// absolute error introduced for each coordinate.
 pub fn transform_point(t: &Transform, p: &Point3f) -> (Point3f, Vector3f) {
     let (x, y, z) = (p.x, p.y, p.z);
-    let tp = *t * *p;
-    let m: Matrix4<f32> = t.to_homogeneous();
+    let tp = t * p;
+    let m: Matrix4<f32> = t.m;
     let x_abs_sum = (m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() +
                     m[(0, 3)].abs();
     let y_abs_sum = (m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() +
@@ -45,8 +151,8 @@ pub fn transform_point_with_error(t: &Transform,
                                   p_error: &Vector3f)
                                   -> (Point3f, Vector3f) {
     let (x, y, z) = (p.x, p.y, p.z);
-    let tp = *t * *p;
-    let m: Matrix4<f32> = t.to_homogeneous();
+    let tp = t * p;
+    let m: Matrix4<f32> = t.m;
     let x_abs_err = (gamma(3) + 1.0) *
                     ((m[(0, 0)] * p_error.x).abs() + (m[(0, 1)] * p_error.y).abs() +
                      (m[(0, 2)] * p_error.z).abs()) +
@@ -74,8 +180,8 @@ pub fn transform_point_with_error(t: &Transform,
 /// absolute error introduced for each coordinate.
 pub fn transform_vector(t: &Transform, v: &Vector3f) -> (Vector3f, Vector3f) {
     let (x, y, z) = (v.x, v.y, v.z);
-    let tv = *t * *v;
-    let m: Matrix4<f32> = t.to_homogeneous();
+    let tv = t * v;
+    let m: Matrix4<f32> = t.m;
     let x_abs_sum = na::abs(&(m[(0, 0)] * x)) + na::abs(&(m[(0, 1)] * y)) +
                     na::abs(&(m[(0, 2)] * z)) + na::abs(&m[(0, 3)]);
     let y_abs_sum = na::abs(&(m[(1, 0)] * x)) + na::abs(&(m[(1, 1)] * y)) +
@@ -88,8 +194,7 @@ pub fn transform_vector(t: &Transform, v: &Vector3f) -> (Vector3f, Vector3f) {
 }
 
 pub fn transform_normal(normal: &Vector3f, transform: &Transform) -> Vector3f {
-    let m = transform.inverse().to_homogeneous().transpose();
-    // Vector3::from_homogeneous(n_hom).unwrap_or_else(|| Vector3::new(n_hom.x, n_hom.y, n_hom.z))
+    let m = transform.m_inv.transpose();
     m.fixed_slice::<U3, U3>(0, 0) * *normal
 }
 

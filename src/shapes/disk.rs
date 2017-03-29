@@ -32,8 +32,8 @@ impl Disk {
             radius: radius,
             inner_radius: inner_radius,
             phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
-            object_to_world: object_to_world,
             world_to_object: object_to_world.inverse(),
+            object_to_world: object_to_world,
         }
     }
 }
@@ -90,8 +90,8 @@ impl Shape for Disk {
 
     fn world_bounds(&self) -> Bounds3f {
         let ob = self.object_bounds();
-        let p1 = self.object_to_world * ob.p_min;
-        let p2 = self.object_to_world * ob.p_max;
+        let p1 = &self.object_to_world * &ob.p_min;
+        let p2 = &self.object_to_world * &ob.p_max;
         let p_min = Point3f::new(p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z));
         let p_max = Point3f::new(p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z));
         Bounds3f::from_points(&p_min, &p_max)

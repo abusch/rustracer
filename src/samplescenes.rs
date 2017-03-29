@@ -1,8 +1,6 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use na;
-
 use rt::bvh::BVH;
 use rt::camera::Camera;
 use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
@@ -100,14 +98,14 @@ pub fn build_scene(dim: Dim) -> Scene {
 
 pub fn build_scene2(dim: Dim) -> Scene {
     info!("Building scene");
-    let camera = Camera::new(na::one(),
+    let camera = Camera::new(Transform::default(),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
                              0.0,
                              0.0,
                              50.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
-    let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, na::one()));
+    let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, Transform::default()));
     let material = Arc::new(MatteMaterial::new_image("grid.png"));
     // let material = Arc::new(MatteMaterial::new_uv_texture());
 

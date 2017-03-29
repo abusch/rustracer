@@ -59,10 +59,10 @@ impl Ray {
 
         let diff = self.differential.map(|d| {
             RayDifferential {
-                rx_origin: transform * d.rx_origin,
-                ry_origin: transform * d.ry_origin,
-                rx_direction: transform * d.rx_direction,
-                ry_direction: transform * d.ry_direction,
+                rx_origin: transform * &d.rx_origin,
+                ry_origin: transform * &d.ry_origin,
+                rx_direction: transform * &d.rx_direction,
+                ry_direction: transform * &d.ry_direction,
             }
         });
 
@@ -90,8 +90,8 @@ impl Mul<Ray> for Transform {
 
     fn mul(self, rhs: Ray) -> Ray {
         let mut new_ray = rhs;
-        new_ray.o = self * rhs.o;
-        new_ray.d = self * rhs.d;
+        new_ray.o = &self * &rhs.o;
+        new_ray.d = &self * &rhs.d;
 
         new_ray
     }
