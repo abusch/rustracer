@@ -35,7 +35,7 @@ pub trait SamplerIntegrator {
                            depth: u32)
                            -> Spectrum {
         let flags = bsdf::BSDF_REFLECTION | bsdf::BSDF_SPECULAR;
-        let (f, wi, pdf, bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
+        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
             let mut r = isect.spawn_ray(&wi);
@@ -149,7 +149,7 @@ pub fn estimate_direct(it: &SurfaceInteraction,
                        light: &Arc<Light + Send + Sync>,
                        u_light: &Point2f,
                        scene: &Scene,
-                       sampler: &mut Sampler)
+                       _sampler: &mut Sampler)
                        -> Spectrum {
     let specular = false;
 

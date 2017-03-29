@@ -554,7 +554,7 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
 
     fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
         if !self.sample_visible_area {
-            let mut cos_theta;
+            let cos_theta;
             let phi = (2.0 * consts::PI) * u[1];
 
             if self.alpha_x == self.alpha_y {

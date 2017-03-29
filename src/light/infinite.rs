@@ -123,7 +123,7 @@ impl Light for InfiniteAreaLight {
         (self.l_map.lookup(&uv, 0.0), wi, pdf, vis)
     }
 
-    fn pdf_li(&self, si: &SurfaceInteraction, w: &Vector3f) -> f32 {
+    fn pdf_li(&self, _si: &SurfaceInteraction, w: &Vector3f) -> f32 {
         let wi = &self.world_to_light * w;
         let theta = spherical_theta(&wi);
         let phi = spherical_phi(&wi);

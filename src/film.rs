@@ -1,8 +1,6 @@
 use std::sync::Mutex;
 
-use na::Point2;
-
-use {Dim, Point2f, Point2i, Vector2f, min, max};
+use {Dim, Point2f, Point2i, Vector2f};
 use bounds::{Bounds2i, Bounds2f};
 use spectrum::Spectrum;
 use filter::Filter;

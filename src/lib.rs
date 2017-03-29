@@ -22,7 +22,7 @@ extern crate uuid;
 use std::f32;
 use std::ops::{Add, Mul, Sub};
 
-use na::{Vector2, Vector3, Point2, Point3, Similarity3};
+use na::{Vector2, Vector3, Point2, Point3};
 use na::core::Scalar;
 use num::One;
 
