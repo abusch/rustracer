@@ -9,7 +9,6 @@ use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
 use sampling::uniform_sample_sphere;
 use shapes::Shape;
-use transform::{transform_point_with_error, transform_normal};
 
 pub struct Sphere {
     object_to_world: Transform,
@@ -192,10 +191,10 @@ impl Shape for Sphere {
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
-        let n = transform_normal(&p_obj.coords, &self.object_to_world).normalize();
+        let n = self.object_to_world.transform_normal(&p_obj.coords).normalize();
         p_obj = p_obj * self.radius / p_obj.coords.norm();
         let p_obj_error = gamma(5) * p_obj.coords.abs();
-        let (p, p_err) = transform_point_with_error(&self.object_to_world, &p_obj, &p_obj_error);
+        let (p, p_err) = self.object_to_world.transform_point_with_error(&p_obj, &p_obj_error);
         let pdf = 1.0 / self.area();
         (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)
     }

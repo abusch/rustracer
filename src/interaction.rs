@@ -158,11 +158,11 @@ impl<'a> SurfaceInteraction<'a> {
     }
 
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {
-        let (p, p_err) = transform::transform_point_with_error(t, &self.p, &self.p_error);
+        let (p, p_err) = t.transform_point_with_error(&self.p, &self.p_error);
         SurfaceInteraction {
             p: p,
             p_error: p_err,
-            n: transform::transform_normal(&self.n, t),
+            n: t.transform_normal(&self.n),
             uv: self.uv,
             wo: t * &self.wo,
             dpdu: t * &self.dpdu,
@@ -178,7 +178,7 @@ impl<'a> SurfaceInteraction<'a> {
             shape: self.shape,
             primitive: self.primitive,
             shading: Shading {
-                n: transform::transform_normal(&self.n, t),
+                n: t.transform_normal(&self.n),
                 dpdu: t * &self.dpdu,
                 dpdv: t * &self.dpdv,
                 dndu: na::zero(),

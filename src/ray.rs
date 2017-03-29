@@ -5,7 +5,6 @@ use num::Zero;
 
 use {Vector3f, Point3f, Transform};
 use stats;
-use transform;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {
@@ -47,8 +46,8 @@ impl Ray {
     }
 
     pub fn transform(&self, transform: &Transform) -> (Ray, Vector3f, Vector3f) {
-        let (mut o, o_error) = transform::transform_point(transform, &self.o);
-        let (d, d_error) = transform::transform_vector(transform, &self.d);
+        let (mut o, o_error) = transform.transform_point(&self.o);
+        let (d, d_error) = transform.transform_vector(&self.d);
         let t_max = self.t_max;
         let length_squared = d.norm_squared();
 
