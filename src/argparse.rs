@@ -49,7 +49,7 @@ pub fn parse_args<'a>() -> ArgMatches<'a> {
                  .short("i")
                  .help("SamplerIntegrator to use")
                  .possible_values(&SamplerIntegratorType::variants())
-                 .default_value("Whitted"))
+                 .default_value("DirectLighting"))
         .arg(Arg::with_name("spp").long("spp").help("Sample per pixels").default_value("4"))
         .arg(Arg::with_name("verbose").short("v").help("log debug information"))
         .arg(Arg::with_name("display").short("p").help("Display image as it is rendered"))
