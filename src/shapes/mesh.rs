@@ -230,6 +230,26 @@ impl Shape for Triangle {
     }
 }
 
+pub fn create_square(object_to_world: &Transform, reverse_orientation: bool) -> Vec<Triangle> {
+    let vertices = vec![Point3f::new(-0.5, -0.5, 0.0),
+                        Point3f::new(-0.5, 0.5, 0.0),
+                        Point3f::new(0.5, 0.5, 0.0),
+                        Point3f::new(0.5, -0.5, 0.0)];
+    let indices = vec![0, 1, 2, 0, 2, 3];
+    let uv = vec![Point2f::new(0.0, 0.0),
+                  Point2f::new(0.0, 1.0),
+                  Point2f::new(1.0, 1.0),
+                  Point2f::new(1.0, 0.0)];
+
+    create_triangle_mesh(object_to_world,
+                         reverse_orientation,
+                         &indices[..],
+                         &vertices[..],
+                         None,
+                         None,
+                         Some(&uv[..]))
+}
+
 pub fn create_triangle_mesh(object_to_world: &Transform,
                             reverse_orientation: bool,
                             vertex_indices: &[usize],

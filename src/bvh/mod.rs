@@ -29,7 +29,13 @@ impl<T: Primitive> BVH<T> {
                           transform: &Transform)
                           -> BVH<GeometricPrimitive> {
         let mut triangles: Vec<Triangle> = mesh::load_triangle_mesh(file, model, transform);
-        let mut prims = triangles.drain(..)
+        BVH::<GeometricPrimitive>::from_triangles(triangles, material)
+    }
+
+    pub fn from_triangles(mut tris: Vec<Triangle>,
+                          material: Arc<Material + Send + Sync>)
+                          -> BVH<GeometricPrimitive> {
+        let mut prims = tris.drain(..)
             .map(|t| {
                 GeometricPrimitive {
                     shape: Arc::new(t),
@@ -39,7 +45,7 @@ impl<T: Primitive> BVH<T> {
             })
             .collect();
 
-        BVH::new(4, &mut prims)
+        BVH::new(1, &mut prims)
     }
 
     pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
