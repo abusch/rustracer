@@ -40,11 +40,11 @@ impl InfiniteAreaLight {
             let resolution = Point2i::new(rgb.width(), rgb.height());
             let pixels: Vec<Spectrum> = rgb.pixels()
                 .map(|p| {
-                    let r = p.data[0] as f32 / 255.0;
-                    let g = p.data[1] as f32 / 255.0;
-                    let b = p.data[2] as f32 / 255.0;
-                    Spectrum::rgb(r, g, b) * power
-                })
+                         let r = p.data[0] as f32 / 255.0;
+                         let g = p.data[1] as f32 / 255.0;
+                         let b = p.data[2] as f32 / 255.0;
+                         Spectrum::rgb(r, g, b) * power
+                     })
                 .collect();
             (resolution, pixels)
         } else {
@@ -73,8 +73,8 @@ impl InfiniteAreaLight {
 
         InfiniteAreaLight {
             id: Uuid::new_v4(),
-            light_to_world: l2w,
             world_to_light: l2w.inverse(),
+            light_to_world: l2w,
             n_samples: n_samples,
             l_map: l_map,
             world_center: origin(),
@@ -109,8 +109,8 @@ impl Light for InfiniteAreaLight {
         let sin_theta = theta.sin();
         let cos_phi = phi.cos();
         let sin_phi = phi.sin();
-        let wi = self.light_to_world *
-                 Vector3f::new(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
+        let wi = &self.light_to_world *
+                 &Vector3f::new(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
         // Compute PDF for sampled infinite light direction
         let pdf = if sin_theta == 0.0 {
             0.0
@@ -123,8 +123,8 @@ impl Light for InfiniteAreaLight {
         (self.l_map.lookup(&uv, 0.0), wi, pdf, vis)
     }
 
-    fn pdf_li(&self, si: &SurfaceInteraction, w: &Vector3f) -> f32 {
-        let wi = self.world_to_light * *w;
+    fn pdf_li(&self, _si: &SurfaceInteraction, w: &Vector3f) -> f32 {
+        let wi = &self.world_to_light * w;
         let theta = spherical_theta(&wi);
         let phi = spherical_phi(&wi);
         let sin_theta = theta.sin();
@@ -150,7 +150,7 @@ impl Light for InfiniteAreaLight {
     }
 
     fn le(&self, ray: &Ray) -> Spectrum {
-        let w = (self.world_to_light * ray.d).normalize();
+        let w = (&self.world_to_light * &ray.d).normalize();
         let st = Point2f::new(spherical_phi(&w) * FRAC_1_PI * 0.5,
                               spherical_theta(&w) * FRAC_1_PI);
 

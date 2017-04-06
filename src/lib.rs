@@ -1,4 +1,5 @@
-#![deny(trivial_casts, unused_qualifications)]
+#![recursion_limit = "1024"]
+#![deny(trivial_casts, unused_qualifications, unused_must_use)]
 extern crate alga;
 #[macro_use]
 extern crate approx;
@@ -7,6 +8,8 @@ extern crate bitflags;
 #[macro_use]
 extern crate combine;
 extern crate crossbeam;
+#[macro_use]
+extern crate error_chain;
 extern crate ieee754 as fp;
 extern crate image as img;
 extern crate itertools as it;
@@ -21,7 +24,7 @@ extern crate uuid;
 use std::f32;
 use std::ops::{Add, Mul, Sub};
 
-use na::{Vector2, Vector3, Point2, Point3, Similarity3};
+use na::{Vector2, Vector3, Point2, Point3};
 use na::core::Scalar;
 use num::One;
 
@@ -55,11 +58,14 @@ pub mod sampling;
 pub mod sampler;
 pub mod scene;
 pub mod shapes;
-// mod skydome;
 pub mod spectrum;
 mod stats;
 pub mod texture;
 pub mod transform;
+
+pub mod errors {
+    error_chain!{}
+}
 
 pub type Dim = (u32, u32);
 
@@ -68,7 +74,7 @@ pub type Vector3f = Vector3<f32>;
 pub type Point2f = Point2<f32>;
 pub type Point2i = Point2<u32>;
 pub type Point3f = Point3<f32>;
-pub type Transform = Similarity3<f32>;
+pub use transform::Transform;
 
 pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
 pub fn gamma(n: u32) -> f32 {

@@ -1,8 +1,6 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use na;
-
 use rt::bvh::BVH;
 use rt::camera::Camera;
 use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
@@ -15,12 +13,11 @@ use rt::scene::Scene;
 use rt::shapes::disk::Disk;
 use rt::shapes::sphere::Sphere;
 use rt::spectrum::Spectrum;
-use rt::transform;
 use rt::{Transform, Vector3f, Dim, Point2f};
 
 pub fn build_scene(dim: Dim) -> Scene {
     info!("Building scene");
-    let camera = Camera::new(transform::translate_z(-3.0),
+    let camera = Camera::new(Transform::translate_z(-3.0),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
                              0.00,
                              2.5,
@@ -47,7 +44,7 @@ pub fn build_scene(dim: Dim) -> Scene {
     let sphere = Box::new(GeometricPrimitive {
                               shape: Arc::new(Sphere::new()
                                                   .radius(0.7)
-                                                  .transform(&transform::translate_y(-0.3))),
+                                                  .transform(Transform::translate_y(-0.3))),
                               area_light: None,
                               material: Some(glass.clone()),
                           });
@@ -80,7 +77,7 @@ pub fn build_scene(dim: Dim) -> Scene {
     //                                                          ))) as Box<Primitive + Send + Sync>;
     let floor =
         Box::new(GeometricPrimitive {
-                     shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, &transform::rot_x(-90.0))),
+                     shape: Arc::new(Disk::new(-1.0, 20.0, 0.0, 360.0, Transform::rot_x(-90.0))),
                      area_light: None,
                      material: Some(matte_red.clone()),
                  });
@@ -90,7 +87,7 @@ pub fn build_scene(dim: Dim) -> Scene {
     // lights.push(area_light);
     // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, 5.0),
     //                                        Spectrum::rgb(1.0, 1.0, 1.0))));
-    lights.push(Arc::new(InfiniteAreaLight::new(transform::rot_x(-90.0),
+    lights.push(Arc::new(InfiniteAreaLight::new(Transform::rot_x(-90.0),
                                                 16,
                                                 Spectrum::grey(1.0),
                                                 Path::new("sky_sanmiguel.tga"))));
@@ -100,14 +97,14 @@ pub fn build_scene(dim: Dim) -> Scene {
 
 pub fn build_scene2(dim: Dim) -> Scene {
     info!("Building scene");
-    let camera = Camera::new(na::one(),
+    let camera = Camera::new(Transform::default(),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
                              0.0,
                              0.0,
                              50.0);
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
-    let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, &na::one()));
+    let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, Transform::default()));
     let material = Arc::new(MatteMaterial::new_image("grid.png"));
     // let material = Arc::new(MatteMaterial::new_uv_texture());
 

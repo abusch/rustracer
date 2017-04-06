@@ -30,7 +30,7 @@ impl TriangleMesh {
                n: Option<&[Vector3f]>,
                uv: Option<&[Point2f]>)
                -> Self {
-        let points: Vec<Point3f> = p.iter().map(|pt| *object_to_world * *pt).collect();
+        let points: Vec<Point3f> = p.iter().map(|pt| object_to_world * pt).collect();
         TriangleMesh {
             world_to_object: object_to_world.inverse(),
             vertex_indices: Vec::from(vertex_indices),
@@ -212,9 +212,9 @@ impl Shape for Triangle {
     }
 
     fn object_bounds(&self) -> Bounds3f {
-        let p0 = self.mesh.world_to_object * self.mesh.p[self.v(0)];
-        let p1 = self.mesh.world_to_object * self.mesh.p[self.v(1)];
-        let p2 = self.mesh.world_to_object * self.mesh.p[self.v(2)];
+        let p0 = &self.mesh.world_to_object * &self.mesh.p[self.v(0)];
+        let p1 = &self.mesh.world_to_object * &self.mesh.p[self.v(1)];
+        let p2 = &self.mesh.world_to_object * &self.mesh.p[self.v(2)];
         Bounds3f::union_point(&Bounds3f::from_points(&p0, &p1), &p2)
     }
 
@@ -228,6 +228,26 @@ impl Shape for Triangle {
     fn sample(&self, _u: &Point2f) -> (Interaction, f32) {
         unimplemented!();
     }
+}
+
+pub fn create_square(object_to_world: &Transform, reverse_orientation: bool) -> Vec<Triangle> {
+    let vertices = vec![Point3f::new(-0.5, -0.5, 0.0),
+                        Point3f::new(-0.5, 0.5, 0.0),
+                        Point3f::new(0.5, 0.5, 0.0),
+                        Point3f::new(0.5, -0.5, 0.0)];
+    let indices = vec![0, 1, 2, 0, 2, 3];
+    let uv = vec![Point2f::new(0.0, 0.0),
+                  Point2f::new(0.0, 1.0),
+                  Point2f::new(1.0, 1.0),
+                  Point2f::new(1.0, 0.0)];
+
+    create_triangle_mesh(object_to_world,
+                         reverse_orientation,
+                         &indices[..],
+                         &vertices[..],
+                         None,
+                         None,
+                         Some(&uv[..]))
 }
 
 pub fn create_triangle_mesh(object_to_world: &Transform,
@@ -254,12 +274,14 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
 pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) -> Vec<Triangle> {
     info!("Loading {} model from OBJ file:", model_name);
     let (models, _) = tobj::load_obj(file.into()).unwrap();
-    let model = models.iter()
-        .find(|m| m.name == model_name)
-        .unwrap();
+    let model = models.iter().find(|m| m.name == model_name).unwrap();
 
     info!("\tProcessing indices");
-    let indices: Vec<usize> = model.mesh.indices.iter().map(|i| *i as usize).collect();
+    let indices: Vec<usize> = model.mesh
+        .indices
+        .iter()
+        .map(|i| *i as usize)
+        .collect();
 
     info!("\tProcessing vertices");
     let positions: Vec<Point3f> = model.mesh

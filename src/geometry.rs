@@ -143,12 +143,12 @@ pub fn erf_inv(x: f32) -> f32 {
 /// See [https://en.wikipedia.org/wiki/Error_function]
 pub fn erf(x: f32) -> f32 {
     // constants
-    const a1: f32 = 0.254829592;
-    const a2: f32 = -0.284496736;
-    const a3: f32 = 1.421413741;
-    const a4: f32 = -1.453152027;
-    const a5: f32 = 1.061405429;
-    const p: f32 = 0.3275911;
+    let a1: f32 = 0.254829592;
+    let a2: f32 = -0.284496736;
+    let a3: f32 = 1.421413741;
+    let a4: f32 = -1.453152027;
+    let a5: f32 = 1.061405429;
+    let p: f32 = 0.3275911;
 
     // Save the sign of x
     let sign = if x < 0.0 { -1.0 } else { 1.0 };

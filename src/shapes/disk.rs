@@ -10,7 +10,6 @@ use paramset::ParamSet;
 use ray::Ray;
 use sampling::concentric_sample_disk;
 use shapes::Shape;
-use transform::{transform_normal, transform_point_with_error};
 
 pub struct Disk {
     height: f32,
@@ -26,7 +25,7 @@ impl Disk {
                radius: f32,
                inner_radius: f32,
                phi_max: f32,
-               object_to_world: &Transform)
+               object_to_world: Transform)
                -> Disk {
         assert!(radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
         Disk {
@@ -34,8 +33,8 @@ impl Disk {
             radius: radius,
             inner_radius: inner_radius,
             phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
-            object_to_world: *object_to_world,
             world_to_object: object_to_world.inverse(),
+            object_to_world: object_to_world,
         }
     }
 
@@ -45,7 +44,7 @@ impl Disk {
         let inner_radius = params.find_one_float("innerradius", 0.0);
         let phimax = params.find_one_float("phimax", 360.0);
 
-        Arc::new(Disk::new(height, radius, inner_radius, phimax, o2w))
+        Arc::new(Disk::new(height, radius, inner_radius, phimax, o2w.clone()))
     }
 }
 
@@ -101,8 +100,8 @@ impl Shape for Disk {
 
     fn world_bounds(&self) -> Bounds3f {
         let ob = self.object_bounds();
-        let p1 = self.object_to_world * ob.p_min;
-        let p2 = self.object_to_world * ob.p_max;
+        let p1 = &self.object_to_world * &ob.p_min;
+        let p2 = &self.object_to_world * &ob.p_max;
         let p_min = Point3f::new(p1.x.min(p2.x), p1.y.min(p2.y), p1.z.min(p2.z));
         let p_max = Point3f::new(p1.x.max(p2.x), p1.y.max(p2.y), p1.z.max(p2.z));
         Bounds3f::from_points(&p_min, &p_max)
@@ -111,10 +110,9 @@ impl Shape for Disk {
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let pd = concentric_sample_disk(u);
         let p_obj = Point3f::new(pd.x * self.radius, pd.y * self.radius, self.height);
-        let n = transform_normal(&Vector3f::z(), &self.object_to_world).normalize();
-        let (p, p_err) = transform_point_with_error(&self.object_to_world,
-                                                    &p_obj,
-                                                    &Vector3f::new(0.0, 0.0, 0.0));
+        let n = self.object_to_world.transform_normal(&Vector3f::z()).normalize();
+        let (p, p_err) =
+            self.object_to_world.transform_point_with_error(&p_obj, &Vector3f::new(0.0, 0.0, 0.0));
         let pdf = 1.0 / self.area();
 
         (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)

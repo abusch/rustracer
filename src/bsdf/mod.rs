@@ -162,9 +162,9 @@ impl BSDF {
             let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
             f = matching_comps.iter()
                 .filter(|b| {
-                    (reflect && b.get_type().contains(BSDF_REFLECTION)) ||
-                    (!reflect && b.get_type().contains(BSDF_TRANSMISSION))
-                })
+                            (reflect && b.get_type().contains(BSDF_REFLECTION)) ||
+                            (!reflect && b.get_type().contains(BSDF_TRANSMISSION))
+                        })
                 .fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
         }
 
@@ -191,7 +191,10 @@ impl BSDF {
 
     /// Return the number of BxDFs matching the given flags
     pub fn num_components(&self, flags: BxDFType) -> usize {
-        self.bxdfs.iter().filter(|b| b.matches(flags)).count()
+        self.bxdfs
+            .iter()
+            .filter(|b| b.matches(flags))
+            .count()
     }
 }
 

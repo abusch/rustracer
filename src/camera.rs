@@ -65,12 +65,12 @@ impl Camera {
                                                    Point3f::new(1.0, 0.0, 0.0).to_homogeneous()) -
                                                   (raster_to_camera *
                                                    Point3f::new(0.0, 0.0, 0.0).to_homogeneous()))
-            .unwrap();
+                .unwrap();
         let dy_camera = Vector3::from_homogeneous((raster_to_camera *
                                                    Point3f::new(0.0, 1.0, 0.0).to_homogeneous()) -
                                                   (raster_to_camera *
                                                    Point3f::new(0.0, 0.0, 0.0).to_homogeneous()))
-            .unwrap();
+                .unwrap();
 
         Camera {
             camera_to_world: camera_to_world,

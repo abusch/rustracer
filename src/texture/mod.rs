@@ -1,5 +1,3 @@
-use na;
-
 use {Point2f, Point3f, Vector3f, Transform};
 use interaction::SurfaceInteraction;
 use spectrum::Spectrum;
@@ -75,15 +73,15 @@ pub struct TransformMapping3D {
 
 impl TransformMapping3D {
     pub fn new() -> TransformMapping3D {
-        TransformMapping3D { world_to_texture: na::one() }
+        TransformMapping3D { world_to_texture: Transform::default() }
     }
 }
 
 impl TextureMapping3D for TransformMapping3D {
     fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f) {
-        let dpdx = self.world_to_texture * si.dpdx;
-        let dpdy = self.world_to_texture * si.dpdy;
-        let p = self.world_to_texture * si.p;
+        let dpdx = &self.world_to_texture * &si.dpdx;
+        let dpdy = &self.world_to_texture * &si.dpdy;
+        let p = &self.world_to_texture * &si.p;
 
         (p, dpdx, dpdy)
     }

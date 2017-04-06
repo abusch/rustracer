@@ -175,7 +175,7 @@ fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output 
 fn test_parse() {
     let tokens = vec![Tokens::ATTRIBUTEBEGIN, Tokens::ATTRIBUTEEND];
 
-    parse(&tokens[..]);
+    parse(&tokens[..]).unwrap();
 }
 
 #[test]

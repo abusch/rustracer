@@ -29,7 +29,13 @@ impl<T: Primitive> BVH<T> {
                           transform: &Transform)
                           -> BVH<GeometricPrimitive> {
         let mut triangles: Vec<Triangle> = mesh::load_triangle_mesh(file, model, transform);
-        let mut prims = triangles.drain(..)
+        BVH::<GeometricPrimitive>::from_triangles(triangles, material)
+    }
+
+    pub fn from_triangles(mut tris: Vec<Triangle>,
+                          material: Arc<Material + Send + Sync>)
+                          -> BVH<GeometricPrimitive> {
+        let mut prims = tris.drain(..)
             .map(|t| {
                 GeometricPrimitive {
                     shape: Arc::new(t),
@@ -39,7 +45,7 @@ impl<T: Primitive> BVH<T> {
             })
             .collect();
 
-        BVH::new(4, &mut prims)
+        BVH::new(1, &mut prims)
     }
 
     pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
@@ -103,9 +109,9 @@ impl<T: Primitive> BVH<T> {
         let n_primitives = end - start;
         assert!(start != end);
         // Compute bounds of all primitives in node
-        let bbox = build_data[start..end]
-            .iter()
-            .fold(Bounds3f::new(), |b, pi| Bounds3f::union(&b, &pi.bounds));
+        let bbox =
+            build_data[start..end].iter().fold(Bounds3f::new(),
+                                               |b, pi| Bounds3f::union(&b, &pi.bounds));
         if n_primitives == 1 {
             // Create leaf
             let first_prim_offset = ordered_prims.len();
@@ -115,10 +121,9 @@ impl<T: Primitive> BVH<T> {
             BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox)
         } else {
             // Compute bounds of primitive centroids
-            let centroids_bounds = build_data[start..end]
-                .iter()
-                .fold(Bounds3f::new(),
-                      |bb, pi| Bounds3f::union_point(&bb, &pi.centroid));
+            let centroids_bounds = build_data[start..end].iter().fold(Bounds3f::new(), |bb, pi| {
+                Bounds3f::union_point(&bb, &pi.centroid)
+            });
             // Choose split dimension
             let dimension = centroids_bounds.maximum_extent();
             // Partition primitives into 2 sets and build children
@@ -137,10 +142,10 @@ impl<T: Primitive> BVH<T> {
             if mid == start || mid == end {
                 // If partition failed, used Split Equal method
                 build_data[start..end].sort_by(|p1, p2| {
-                    p1.centroid[dimension]
-                        .partial_cmp(&p2.centroid[dimension])
-                        .unwrap()
-                });
+                                                   p1.centroid[dimension]
+                                                       .partial_cmp(&p2.centroid[dimension])
+                                                       .unwrap()
+                                               });
                 mid = (start + end) / 2;
             }
 

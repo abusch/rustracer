@@ -1,4 +1,6 @@
 extern crate chrono;
+#[macro_use]
+extern crate error_chain;
 extern crate nalgebra as na;
 extern crate rustracer as rt;
 #[macro_use]
@@ -16,13 +18,11 @@ mod logging;
 mod argparse;
 mod samplescenes;
 
-use std::num::ParseIntError;
-use std::process;
-
 use clap::ArgMatches;
 
 use argparse::SamplerIntegratorType;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
+use rt::errors::*;
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal, AmbientOcclusion,
                      PathIntegrator};
 use rt::renderer;
@@ -39,18 +39,20 @@ fn main() {
     logging::configure_logger(level);
 
 
-    if let Err(e) = run(matches) {
+    if let Err(ref e) = run(matches) {
         println!("Application error: {}", e);
-        process::exit(1);
+        ::std::process::exit(1);
     }
 }
 
-fn run(matches: ArgMatches) -> Result<(), String> {
-    let parsed_dims: Result<Vec<u32>, ParseIntError> =
-        matches.value_of("dim").unwrap().split('x').map(|s| s.parse::<u32>()).collect();
-    let dims = parsed_dims.expect("Invalid dimensions");
+fn run(matches: ArgMatches) -> Result<()> {
+    let dims = matches.value_of("dim")
+        .unwrap()
+        .split('x')
+        .map(|s| s.parse::<u32>().chain_err(|| "Unable to parse dimension"))
+        .collect::<Result<Vec<u32>>>()?;
     if dims.len() != 2 {
-        panic!("Error: invalid dimension specification");
+        bail!("Error: invalid dimension specification");
     }
     let dim = (dims[0], dims[1]);
 
@@ -58,7 +60,7 @@ fn run(matches: ArgMatches) -> Result<(), String> {
 
     let integrator: Box<SamplerIntegrator + Send + Sync> =
         match value_t!(matches.value_of("integrator"), SamplerIntegratorType)
-            .unwrap_or(SamplerIntegratorType::Whitted) {
+                  .unwrap_or(SamplerIntegratorType::Whitted) {
             SamplerIntegratorType::Whitted => {
                 info!("Using Whitted integrator with max ray depth of {}", 8);
                 // Box::new(Whitted::new(args.flag_whitted_max_ray_depth))
@@ -100,7 +102,7 @@ fn run(matches: ArgMatches) -> Result<(), String> {
                              .unwrap_or_else(num_cpus::get),
                          matches.value_of("spp").and_then(|s| s.parse::<usize>().ok()).unwrap(),
                          16,
-                         disp);
+                         disp)?;
     // args.flag_block_size);
     let duration = start_time.elapsed();
     println!("Render time                : {}", duration.human_display());

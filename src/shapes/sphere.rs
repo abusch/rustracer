@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::f32::consts;
 
-use na::{self, one};
+use na;
 
 use {gamma, Transform, Point2f, Point3f, Vector3f};
 use bounds::Bounds3f;
@@ -11,7 +11,6 @@ use paramset::ParamSet;
 use ray::Ray;
 use sampling::uniform_sample_sphere;
 use shapes::Shape;
-use transform::{transform_point_with_error, transform_normal};
 
 pub struct Sphere {
     object_to_world: Transform,
@@ -27,8 +26,8 @@ pub struct Sphere {
 impl Sphere {
     pub fn new() -> Self {
         Sphere {
-            object_to_world: one(),
-            world_to_object: one(),
+            object_to_world: Transform::default(),
+            world_to_object: Transform::default(),
             radius: 1.0,
             z_min: -1.0,
             z_max: 1.0,
@@ -70,9 +69,9 @@ impl Sphere {
         self
     }
 
-    pub fn transform(mut self, object_to_world: &Transform) -> Self {
-        self.object_to_world = *object_to_world;
+    pub fn transform(mut self, object_to_world: Transform) -> Self {
         self.world_to_object = object_to_world.inverse();
+        self.object_to_world = object_to_world;
 
         self
     }
@@ -89,7 +88,7 @@ impl Sphere {
                      .z_min(zmin)
                      .z_max(zmax)
                      .phi_max(phimax)
-                     .transform(o2w))
+                     .transform(o2w.clone()))
     }
 }
 
@@ -195,24 +194,24 @@ impl Shape for Sphere {
     fn world_bounds(&self) -> Bounds3f {
         let mut bounds = Bounds3f::new();
         let b = self.object_bounds();
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[0].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[0].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[1].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[0].y, b[1].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[1].y, b[0].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[0].y, b[1].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[0].x, b[1].y, b[1].z));
-        bounds.extend(self.object_to_world * Point3f::new(b[1].x, b[1].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[0].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[0].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[1].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[0].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[1].y, b[0].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[0].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[0].x, b[1].y, b[1].z));
+        bounds.extend(&self.object_to_world * &Point3f::new(b[1].x, b[1].y, b[1].z));
 
         bounds
     }
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
-        let n = transform_normal(&p_obj.coords, &self.object_to_world).normalize();
+        let n = self.object_to_world.transform_normal(&p_obj.coords).normalize();
         p_obj = p_obj * self.radius / p_obj.coords.norm();
         let p_obj_error = gamma(5) * p_obj.coords.abs();
-        let (p, p_err) = transform_point_with_error(&self.object_to_world, &p_obj, &p_obj_error);
+        let (p, p_err) = self.object_to_world.transform_point_with_error(&p_obj, &p_obj_error);
         let pdf = 1.0 / self.area();
         (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)
     }

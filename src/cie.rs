@@ -1,5 +1,6 @@
 //! CIE (Commission Internationale d'Eclairage) data used to convert sampled SPD data into XYZ
 //! linear tri-stimulus representation.
+#![allow(non_snake_case)]
 
 pub const N_CIE_SAMPLES: usize = 471;
 
