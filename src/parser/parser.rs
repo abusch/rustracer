@@ -193,7 +193,7 @@ fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output 
 #[test]
 fn test_parse() {
     let tokens = vec![Tokens::ATTRIBUTEBEGIN, Tokens::ATTRIBUTEEND];
-    let api = RealApi::default();
+    let api = ::api::RealApi::default();
     api.init().unwrap();
     parse(&tokens[..], &api).unwrap();
 }
