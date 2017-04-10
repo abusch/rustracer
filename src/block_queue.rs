@@ -1,8 +1,6 @@
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 use std::fmt;
 
-use na::Point2;
-
 use Point2i;
 use bounds::Bounds2i;
 
@@ -21,12 +19,6 @@ impl Block {
             current: Point2i::new(start.0 as i32, start.1 as i32),
             end: Point2i::new(start.0 as i32 + size as i32, start.1 as i32 + size as i32),
         }
-    }
-
-    /// Return the area of this block in pixels (i.e. number of pixels this
-    /// block covers)
-    pub fn area(&self) -> u32 {
-        (self.end.x - self.start.x) as u32 * (self.end.y - self.start.y) as u32
     }
 
     pub fn bounds(&self) -> Bounds2i {
@@ -100,12 +92,6 @@ impl Iterator for BlockQueue {
     fn next(&mut self) -> Option<Block> {
         BlockQueue::next(self)
     }
-}
-
-#[test]
-fn test_area() {
-    let block = Block::new((12, 12), 8);
-    assert_eq!(block.area(), 64);
 }
 
 #[test]

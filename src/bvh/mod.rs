@@ -28,7 +28,7 @@ impl<T: Primitive> BVH<T> {
                           material: Arc<Material + Send + Sync>,
                           transform: &Transform)
                           -> BVH<GeometricPrimitive> {
-        let mut triangles: Vec<Triangle> = mesh::load_triangle_mesh(file, model, transform);
+        let triangles: Vec<Triangle> = mesh::load_triangle_mesh(file, model, transform);
         BVH::<GeometricPrimitive>::from_triangles(triangles, material)
     }
 

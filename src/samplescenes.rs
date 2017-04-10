@@ -1,19 +1,16 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use rt::bvh::BVH;
 use rt::camera::Camera;
-use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
+use rt::light::{Light, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
-use rt::material::metal::Metal;
-use rt::material::plastic::Plastic;
 use rt::material::glass::GlassMaterial;
 use rt::primitive::{Primitive, GeometricPrimitive};
 use rt::scene::Scene;
 use rt::shapes::disk::Disk;
 use rt::shapes::sphere::Sphere;
 use rt::spectrum::Spectrum;
-use rt::{Transform, Vector3f, Dim, Point2f};
+use rt::{Transform, Dim, Point2f};
 
 pub fn build_scene(dim: Dim) -> Scene {
     info!("Building scene");
@@ -36,7 +33,7 @@ pub fn build_scene(dim: Dim) -> Scene {
     // let bronze = Arc::new(Metal::new());
     // let gold = Arc::new(Metal::gold());
     // let plastic = Arc::new(Plastic::new(Spectrum::rgb(0.3, 0.3, 1.0), Spectrum::white()));
-    let plastic_white = Arc::new(Plastic::new(Spectrum::white(), Spectrum::white()));
+    // let plastic_white = Arc::new(Plastic::new(Spectrum::white(), Spectrum::white()));
     // let plastic_lines = Arc::new(Plastic::new_tex("grid.png", Spectrum::white()));
     // let plastic_lines = Arc::new(MatteMaterial::new_uv_texture());
     let glass = Arc::new(GlassMaterial::new().roughness(0.00, 0.00));
@@ -91,32 +88,6 @@ pub fn build_scene(dim: Dim) -> Scene {
                                                 16,
                                                 Spectrum::grey(1.0),
                                                 Path::new("sky_sanmiguel.tga"))));
-
-    Scene::new(camera, primitives, lights)
-}
-
-pub fn build_scene2(dim: Dim) -> Scene {
-    info!("Building scene");
-    let camera = Camera::new(Transform::default(),
-                             Point2f::new(dim.0 as f32, dim.1 as f32),
-                             0.0,
-                             0.0,
-                             50.0);
-    let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
-
-    let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, Transform::default()));
-    let material = Arc::new(MatteMaterial::new_image("grid.png"));
-    // let material = Arc::new(MatteMaterial::new_uv_texture());
-
-    let disk = Box::new(GeometricPrimitive {
-                            shape: shape,
-                            area_light: None,
-                            material: Some(material.clone()),
-                        });
-
-    let primitives: Vec<Box<Primitive + Sync + Send>> = vec![disk];
-    // Light
-    lights.push(Arc::new(DistantLight::new(Vector3f::z(), Spectrum::white())));
 
     Scene::new(camera, primitives, lights)
 }

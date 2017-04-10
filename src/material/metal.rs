@@ -53,8 +53,8 @@ impl Metal {
 impl Material for Metal {
     fn compute_scattering_functions(&self,
                                     si: &mut SurfaceInteraction,
-                                    mode: TransportMode,
-                                    allow_multiple_lobes: bool) {
+                                    _mode: TransportMode,
+                                    _allow_multiple_lobes: bool) {
         if let Some(ref bump) = self.bump {
             material::bump(bump, si);
         }
