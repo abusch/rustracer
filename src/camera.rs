@@ -2,17 +2,19 @@ use na::{self, Matrix4, Point3, Vector3};
 
 use {Vector3f, Point3f, Point2f, Transform};
 use bounds::Bounds2f;
+use film::Film;
 use ray::{Ray, RayDifferential};
 use sampling;
 
 pub trait Camera {
+    fn get_film(&self) -> &Box<Film>;
     fn generate_ray(&self, sample: &CameraSample) -> Ray;
     fn generate_ray_differential(&self, sample: &CameraSample) -> Ray;
 }
 
 /// Projective pinhole camera.
-#[derive(Debug)]
 pub struct PerspectiveCamera {
+    film: Box<Film>,
     camera_to_world: Transform,
     camera_to_screen: Matrix4<f32>,
     raster_to_camera: Matrix4<f32>,
@@ -27,7 +29,8 @@ impl PerspectiveCamera {
                film_size: Point2f,
                lens_radius: f32,
                focal_distance: f32,
-               fov: f32)
+               fov: f32,
+               film: Box<Film>)
                -> PerspectiveCamera {
 
         #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -77,6 +80,7 @@ impl PerspectiveCamera {
                 .unwrap();
 
         PerspectiveCamera {
+            film: film,
             camera_to_world: camera_to_world,
             camera_to_screen: camera_to_screen,
             raster_to_camera: raster_to_camera,
@@ -89,6 +93,10 @@ impl PerspectiveCamera {
 }
 
 impl Camera for PerspectiveCamera {
+    fn get_film(&self) -> &Box<Film> {
+        &self.film
+    }
+
     fn generate_ray(&self, sample: &CameraSample) -> Ray {
         let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
         let p_camera: Point3f =

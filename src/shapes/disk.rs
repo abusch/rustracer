@@ -38,7 +38,7 @@ impl Disk {
         }
     }
 
-    pub fn create(o2w: &Transform, reverse_orientation: bool, params: &mut ParamSet) -> Arc<Shape> {
+    pub fn create(o2w: &Transform, _reverse_orientation: bool, params: &mut ParamSet) -> Arc<Shape> {
         let height = params.find_one_float("height", 0.0);
         let radius = params.find_one_float("radius", 1.0);
         let inner_radius = params.find_one_float("innerradius", 0.0);

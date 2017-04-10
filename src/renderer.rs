@@ -10,8 +10,6 @@ use Dim;
 use block_queue::BlockQueue;
 use display::DisplayUpdater;
 use errors::*;
-use filter::boxfilter::BoxFilter;
-use film::Film;
 use integrator::SamplerIntegrator;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
@@ -28,8 +26,6 @@ pub fn render(scene: Scene,
               block_size: u32,
               mut display: Box<DisplayUpdater + Send>)
               -> Result<stats::Stats> {
-    let film = Film::new(dim, Box::new(BoxFilter {}));
-
     let block_queue = BlockQueue::new(dim, block_size);
     let num_blocks = block_queue.num_blocks;
     // This channel will receive tiles of sampled pixels
@@ -38,7 +34,6 @@ pub fn render(scene: Scene,
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     crossbeam::scope(|scope| {
-        let film = &film;
         let scene = &scene;
         let bq = &block_queue;
         let integrator = &integrator;
@@ -50,9 +45,9 @@ pub fn render(scene: Scene,
             info!("Receiving tiles...");
             for _ in 0..num_blocks {
                 let tile = pixel_rx.recv().unwrap();
-                &film.merge_film_tile(tile);
+                scene.camera.get_film().merge_film_tile(tile);
                 pb.inc();
-                display.update(&film);
+                display.update(scene.camera.get_film());
             }
         });
 
@@ -67,7 +62,7 @@ pub fn render(scene: Scene,
                     let seed = block.start.y as u32 / bq.block_size * bq.dims.0 +
                                block.start.x as u32 / bq.block_size;
                     sampler.reseed(seed as u64);
-                    let mut tile = film.get_film_tile(&block.bounds());
+                    let mut tile = scene.camera.get_film().get_film_tile(&block.bounds());
                     for p in &tile.get_pixel_bounds() {
                         sampler.start_pixel(&p);
                         loop {
@@ -95,7 +90,7 @@ pub fn render(scene: Scene,
     // Collect all the stats from the threads
     let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
 
-    write_png(dim, &film.render(), filename).map(|_| global_stats)
+    write_png(dim, scene.camera.get_film().render().as_slice(), filename).map(|_| global_stats)
 }
 
 fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> Result<()> {

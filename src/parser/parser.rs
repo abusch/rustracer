@@ -1,10 +1,9 @@
-use combine::{value, satisfy_map, satisfy, skip_many, none_of, token, any, between, optional,
-              many, many1, choice, try, eof, Parser, Stream, ParseResult};
-use combine::char::{alpha_num, string, spaces, digit, char, newline, Str};
+use combine::{value, satisfy_map, token, between, many, many1, try, Parser, Stream, ParseResult};
+use combine::char::{string, spaces};
 use combine::primitives::Error;
 
-use api::{Api, RealApi, ParamType, ParamListEntry, Array};
-use errors::*;
+use api::{Api, ParamType, ParamListEntry, Array};
+// use errors::*;
 use paramset::ParamSet;
 use super::lexer::Tokens;
 
@@ -33,7 +32,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult
     let look_at =
         (token(Tokens::LOOKAT), num(), num(), num(), num(), num(), num(), num(), num(), num())
             .and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
-                          api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, lz)
+                          api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
                               .map_err(|e| Error::Message(e.description().to_owned().into()))
                       });
     let camera = (token(Tokens::CAMERA), string_(), param_list())

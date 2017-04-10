@@ -2,6 +2,8 @@ use std::path::Path;
 use std::sync::Arc;
 
 use rt::camera::PerspectiveCamera;
+use rt::film::Film;
+use rt::filter::boxfilter::BoxFilter;
 use rt::light::{Light, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::glass::GlassMaterial;
@@ -14,11 +16,14 @@ use rt::{Transform, Dim, Point2f};
 
 pub fn build_scene(dim: Dim) -> Scene {
     info!("Building scene");
+    let film = Box::new(Film::new(dim, Box::new(BoxFilter {})));
+
     let camera = Box::new(PerspectiveCamera::new(Transform::translate_z(-3.0),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
                              0.00,
                              2.5,
-                             60.0));
+                             60.0,
+                             film));
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     // let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));

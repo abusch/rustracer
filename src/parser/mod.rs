@@ -3,6 +3,7 @@ mod parser;
 
 use api::DummyApi;
 
+#[allow(dead_code)]
 pub fn parse_scene(scene: &str) {
     // TODO handle errors
     let tokens = lexer::tokenize(scene).unwrap().0;

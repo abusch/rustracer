@@ -1,6 +1,6 @@
-use combine::{satisfy, skip_many, none_of, token, any, between, optional, many, many1, choice, try,
-              eof, Parser, Stream, ParseResult};
-use combine::char::{alpha_num, string, spaces, digit, char, newline, Str};
+use combine::{satisfy, skip_many, none_of, token, between, optional, many, many1, choice, try,
+              Parser, Stream, ParseResult};
+use combine::char::{string, spaces, digit, char};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Tokens {
