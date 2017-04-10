@@ -1,13 +1,16 @@
 mod lexer;
 mod parser;
 
+use api::DummyApi;
+
 pub fn parse_scene(scene: &str) {
     // TODO handle errors
     let tokens = lexer::tokenize(scene).unwrap().0;
     // strip comments
-    let mut filtered_tokens =
+    let filtered_tokens =
         tokens.into_iter().filter(|x| *x != lexer::Tokens::COMMENT).collect::<Vec<_>>();
-    let res = parser::parse(&filtered_tokens[..]).unwrap();
+    let api = DummyApi::default();
+    let res = parser::parse(&filtered_tokens[..], &api).unwrap();
 
     println!("Scene parsed: {:?} -- {:?}", res.0, res.1);
 }

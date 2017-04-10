@@ -172,6 +172,17 @@ impl<'a, 'b> Mul<&'a Vector3f> for &'b Transform {
     }
 }
 
+impl<'a, 'b> Mul<&'a Transform> for &'b Transform {
+    type Output = Transform;
+
+    fn mul(self, t: &'a Transform) -> Transform {
+        Transform {
+            m: self.m * t.m,
+            m_inv: t.m_inv * self.m_inv,
+        }
+    }
+}
+
 #[allow(non_snake_case)]
 pub fn solve_linear_system2x2(A: &Matrix2<f32>, B: &Vector2f) -> Option<(f32, f32)> {
     let det = A.determinant();

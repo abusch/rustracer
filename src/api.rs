@@ -1,5 +1,9 @@
 use std::cell::RefCell;
 
+use na::Similarity3;
+
+use {Transform, Vector3f, Point3f};
+use errors::*;
 use paramset::ParamSet;
 
 #[derive(Debug, Copy, Clone)]
@@ -10,18 +14,25 @@ pub enum ApiState {
 }
 
 impl ApiState {
-    pub fn verify_initialized(&self) {
+    pub fn verify_uninitialized(&self) -> Result<()> {
         match *self {
-            ApiState::Uninitialized => panic!("Api::init() has not been called!"),
-            _ => (),
+            ApiState::Uninitialized => Ok(()),
+            _ => bail!("Api::init() has already been called!"),
         }
     }
 
-    pub fn verify_options(&self) {
-        self.verify_initialized();
+    pub fn verify_initialized(&self) -> Result<()> {
         match *self {
-            ApiState::WorldBlock => panic!("Options are not allowed in a World block"),
-            _ => (),
+            ApiState::Uninitialized => bail!("Api::init() has not been called!"),
+            _ => Ok(()),
+        }
+    }
+
+    pub fn verify_options(&self) -> Result<()> {
+        self.verify_initialized()?;
+        match *self {
+            ApiState::WorldBlock => bail!("Options are not allowed in a World block"),
+            _ => Ok(()),
         }
     }
 }
@@ -133,6 +144,7 @@ impl Default for RenderOptions {
 pub struct State {
     api_state: ApiState,
     render_options: RenderOptions,
+    cur_transform: Transform,
 }
 
 impl Default for State {
@@ -140,20 +152,21 @@ impl Default for State {
         State {
             api_state: ApiState::Uninitialized,
             render_options: RenderOptions::default(),
+            cur_transform: Transform::default(),
         }
     }
 }
 
 pub trait Api {
-    fn init(&self);
+    fn init(&self) -> Result<()>;
 
-    fn attribute_begin(&self);
+    fn attribute_begin(&self) -> Result<()>;
 
-    fn attribute_end(&self);
+    fn attribute_end(&self) -> Result<()>;
 
-    fn world_begin(&self);
+    fn world_begin(&self) -> Result<()>;
 
-    fn world_end(&self);
+    fn world_end(&self) -> Result<()>;
 
     fn look_at(&self,
                ex: f32,
@@ -164,16 +177,119 @@ pub trait Api {
                lz: f32,
                ux: f32,
                uy: f32,
-               uz: f32);
+               uz: f32) -> Result<()>;
 
-    fn camera(&self, name: String, params: &ParamSet);
-    fn film(&self, name: String, params: &ParamSet);
-    fn integrator(&self, name: String, params: &ParamSet);
-    fn arealightsource(&self, name: String, params: &ParamSet);
-    fn lightsource(&self, name: String, params: &ParamSet);
-    fn material(&self, name: String, params: &ParamSet);
-    fn shape(&self, name: String, params: &ParamSet);
-    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32);
+    fn camera(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn film(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn integrator(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn lightsource(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn material(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn shape(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()>;
+}
+
+#[derive(Default)]
+pub struct RealApi {
+    state: RefCell<State>,
+}
+
+impl Api for RealApi {
+    fn init(&self) -> Result<()> {
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_uninitialized()?;
+
+        state.api_state = ApiState::OptionsBlock;
+        Ok(())
+    }
+
+    fn attribute_begin(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_options()?;
+
+        println!("attribute_begin called");
+        Ok(())
+    }
+
+    fn attribute_end(&self) -> Result<()> {
+        println!("attribute_end called");
+        Ok(())
+    }
+
+    fn world_begin(&self) -> Result<()> {
+        println!("world_begin called");
+        Ok(())
+    }
+
+    fn world_end(&self) -> Result<()> {
+        println!("world_end called");
+        Ok(())
+    }
+
+    fn look_at(&self,
+               ex: f32,
+               ey: f32,
+               ez: f32,
+               lx: f32,
+               ly: f32,
+               lz: f32,
+               ux: f32,
+               uy: f32,
+               uz: f32) -> Result<()> {
+        println!("look_at called");
+        let mut state = self.state.borrow_mut();
+        let look_at = Transform::from_similarity(&Similarity3::look_at_lh(&Point3f::new(ex, ey, ez), &Point3f::new(lx, ly, lz), &Vector3f::new(ux, uy, uz), 1.0));
+        state.cur_transform = &state.cur_transform * &look_at;
+        Ok(())
+    }
+
+    fn camera(&self, name: String, params: &ParamSet) -> Result<()> {
+        println!("Camera called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        state.render_options.camera_name = name;
+        state.render_options.camera_params = params.clone();
+        Ok(())
+    }
+
+    fn film(&self, name: String, params: &ParamSet) -> Result<()> {
+        println!("Film called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        state.render_options.filter_name = name;
+        state.render_options.filter_params = params.clone();
+        Ok(())
+    }
+
+    fn integrator(&self, name: String, params: &ParamSet) -> Result<()> {
+        println!("Integrator called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        state.render_options.integrator_name = name;
+        state.render_options.integrator_params = params.clone();
+        Ok(())
+    }
+
+    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<()> {
+        println!("Arealightsource called with {} and {:?}", name, params);
+        Ok(())
+    }
+
+    fn lightsource(&self, name: String, params: &ParamSet) -> Result<()> {
+        println!("Lightsource called with {} and {:?}", name, params);
+        Ok(())
+    }
+
+    fn material(&self, name: String, params: &ParamSet) -> Result<()> {
+        println!("Material called with {} and {:?}", name, params);
+        Ok(())
+    }
+
+    fn shape(&self, name: String, params: &ParamSet) -> Result<()> {
+        println!("Shape called with {} and {:?}", name, params);
+        Ok(())
+    }
+
+    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()> {
+        println!("Rotate called with {} {} {} {}", angle, dx, dy, dz);
+        Ok(())
+    }
 }
 
 #[derive(Default)]
@@ -182,72 +298,86 @@ pub struct DummyApi {
 }
 
 impl Api for DummyApi {
-    fn init(&self) {
+    fn init(&self) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state = ApiState::OptionsBlock;
+        Ok(())
     }
 
-    fn attribute_begin(&self) {
-        let mut state = self.state.borrow_mut();
-        state.api_state.verify_options();
+    fn attribute_begin(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_options()?;
 
         println!("attribute_begin called");
+        Ok(())
     }
 
-    fn attribute_end(&self) {
+    fn attribute_end(&self) -> Result<()> {
         println!("attribute_end called");
+        Ok(())
     }
 
-    fn world_begin(&self) {
+    fn world_begin(&self) -> Result<()> {
         println!("world_begin called");
+        Ok(())
     }
 
-    fn world_end(&self) {
+    fn world_end(&self) -> Result<()> {
         println!("world_end called");
+        Ok(())
     }
 
     fn look_at(&self,
-               ex: f32,
-               ey: f32,
-               ez: f32,
-               lx: f32,
-               ly: f32,
-               lz: f32,
-               ux: f32,
-               uy: f32,
-               uz: f32) {
+               _ex: f32,
+               _ey: f32,
+               _ez: f32,
+               _lx: f32,
+               _ly: f32,
+               _lz: f32,
+               _ux: f32,
+               _uy: f32,
+               _uz: f32) -> Result<()> {
         println!("look_at called");
+        Ok(())
     }
 
-    fn camera(&self, name: String, params: &ParamSet) {
+    fn camera(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Camera called with {} and {:?}", name, params);
+        Ok(())
     }
 
-    fn film(&self, name: String, params: &ParamSet) {
+    fn film(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Film called with {} and {:?}", name, params);
+        Ok(())
     }
 
-    fn integrator(&self, name: String, params: &ParamSet) {
+    fn integrator(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Integrator called with {} and {:?}", name, params);
+        Ok(())
     }
 
-    fn arealightsource(&self, name: String, params: &ParamSet) {
+    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Arealightsource called with {} and {:?}", name, params);
+        Ok(())
     }
 
-    fn lightsource(&self, name: String, params: &ParamSet) {
+    fn lightsource(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Lightsource called with {} and {:?}", name, params);
+        Ok(())
     }
 
-    fn material(&self, name: String, params: &ParamSet) {
+    fn material(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Material called with {} and {:?}", name, params);
+        Ok(())
     }
 
-    fn shape(&self, name: String, params: &ParamSet) {
+    fn shape(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Shape called with {} and {:?}", name, params);
+        Ok(())
     }
 
-    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) {
+    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()> {
         println!("Rotate called with {} {} {} {}", angle, dx, dy, dz);
+
+        Ok(())
     }
 }

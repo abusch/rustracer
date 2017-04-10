@@ -3,52 +3,49 @@ use combine::{value, satisfy_map, satisfy, skip_many, none_of, token, any, betwe
 use combine::char::{alpha_num, string, spaces, digit, char, newline, Str};
 use combine::primitives::Error;
 
-use api::{Api, DummyApi, ParamType, ParamListEntry, Array};
+use api::{Api, RealApi, ParamType, ParamListEntry, Array};
+use errors::*;
 use paramset::ParamSet;
 use super::lexer::Tokens;
 
-pub fn parse<I: Stream<Item = Tokens>>(input: I) -> ParseResult<Vec<()>, I> {
-    let api = DummyApi::default();
-
-    let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).map(|_| api.attribute_begin());
-    let attribute_end = token(Tokens::ATTRIBUTEEND).map(|_| api.attribute_end());
-    let world_begin = token(Tokens::WORLDBEGIN).map(|_| api.world_begin());
-    let world_end = token(Tokens::WORLDEND).map(|_| api.world_end());
+pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult<Vec<()>, I> {
+    let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
+    let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
+    let world_begin = token(Tokens::WORLDBEGIN).and_then(|_| api.world_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
+    let world_end = token(Tokens::WORLDEND).and_then(|_| api.world_end().map_err(|e| Error::Message(e.description().to_owned().into())));
     let look_at =
         (token(Tokens::LOOKAT), num(), num(), num(), num(), num(), num(), num(), num(), num())
-            .map(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
-                     api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, lz);
+            .and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
+                     api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, lz).map_err(|e| Error::Message(e.description().to_owned().into()))
                  });
-    let camera = (token(Tokens::CAMERA), string_(), param_list()).map(|(_, name, params)| {
-                                                                          api.camera(name, &params);
+    let camera = (token(Tokens::CAMERA), string_(), param_list()).and_then(|(_, name, params)| {
+                                                                          api.camera(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                       });
-    let film = (token(Tokens::FILM), string_(), param_list()).map(|(_, name, params)| {
-                                                                      api.film(name, &params);
+    let film = (token(Tokens::FILM), string_(), param_list()).and_then(|(_, name, params)| {
+                                                                      api.film(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                   });
     let integrator =
-        (token(Tokens::INTEGRATOR), string_(), param_list()).map(|(_, name, params)| {
-                                                                     api.integrator(name, &params);
+        (token(Tokens::INTEGRATOR), string_(), param_list()).and_then(|(_, name, params)| {
+                                                                     api.integrator(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                  });
     let arealightsource = (token(Tokens::AREALIGHTSOURCE), string_(), param_list())
-        .map(|(_, name, params)| { api.arealightsource(name, &params); });
+        .and_then(|(_, name, params)| { api.arealightsource(name, &params).map_err(|e| Error::Message(e.description().to_owned().into())) });
     let lightsource =
-        (token(Tokens::LIGHTSOURCE), string_(), param_list()).map(|(_, name, params)| {
+        (token(Tokens::LIGHTSOURCE), string_(), param_list()).and_then(|(_, name, params)| {
                                                                       api.lightsource(name,
-                                                                                      &params);
+                                                                                      &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                   });
-    let material = (token(Tokens::MATERIAL), string_(), param_list()).map(|(_, name, params)| {
+    let material = (token(Tokens::MATERIAL), string_(), param_list()).and_then(|(_, name, params)| {
                                                                               api.material(name,
-                                                                                           &params);
+                                                                                           &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                           });
-    let shape = (token(Tokens::SHAPE), string_(), param_list()).map(|(_, name, params)| {
-                                                                        api.shape(name, &params);
+    let shape = (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, params)| {
+                                                                        api.shape(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                     });
     let rotate =
-        (token(Tokens::ROTATE), num(), num(), num(), num()).map(|(_, angle, dx, dy, dz)| {
-                                                                    api.rotate(angle, dx, dy, dz);
+        (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
+                                                                    api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                 });
-
-    api.init();
 
     many1::<Vec<_>, _>(choice!(try(attribute_begin),
                                try(attribute_end),
@@ -174,8 +171,9 @@ fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output 
 #[test]
 fn test_parse() {
     let tokens = vec![Tokens::ATTRIBUTEBEGIN, Tokens::ATTRIBUTEEND];
-
-    parse(&tokens[..]).unwrap();
+    let api = RealApi::default();
+    api.init().unwrap();
+    parse(&tokens[..], &api).unwrap();
 }
 
 #[test]
