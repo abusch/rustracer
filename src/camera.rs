@@ -5,10 +5,14 @@ use bounds::Bounds2f;
 use ray::{Ray, RayDifferential};
 use sampling;
 
+pub trait Camera {
+    fn generate_ray(&self, sample: &CameraSample) -> Ray;
+    fn generate_ray_differential(&self, sample: &CameraSample) -> Ray;
+}
+
 /// Projective pinhole camera.
-/// TODO: abstract the Camera interface and handle multiple camera types.
 #[derive(Debug)]
-pub struct Camera {
+pub struct PerspectiveCamera {
     camera_to_world: Transform,
     camera_to_screen: Matrix4<f32>,
     raster_to_camera: Matrix4<f32>,
@@ -18,13 +22,13 @@ pub struct Camera {
     dy_camera: Vector3f,
 }
 
-impl Camera {
+impl PerspectiveCamera {
     pub fn new(camera_to_world: Transform,
                film_size: Point2f,
                lens_radius: f32,
                focal_distance: f32,
                fov: f32)
-               -> Camera {
+               -> PerspectiveCamera {
 
         #[cfg_attr(rustfmt, rustfmt_skip)]
         fn perspective(fov: f32, n: f32, f: f32) -> Matrix4<f32> {
@@ -72,7 +76,7 @@ impl Camera {
                                                    Point3f::new(0.0, 0.0, 0.0).to_homogeneous()))
                 .unwrap();
 
-        Camera {
+        PerspectiveCamera {
             camera_to_world: camera_to_world,
             camera_to_screen: camera_to_screen,
             raster_to_camera: raster_to_camera,
@@ -82,8 +86,10 @@ impl Camera {
             dy_camera: dy_camera,
         }
     }
+}
 
-    pub fn generate_ray(&self, sample: &CameraSample) -> Ray {
+impl Camera for PerspectiveCamera {
+    fn generate_ray(&self, sample: &CameraSample) -> Ray {
         let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
         let p_camera: Point3f =
             Point3::from_homogeneous(self.raster_to_camera * p_film.to_homogeneous()).unwrap();
@@ -103,7 +109,7 @@ impl Camera {
         ray.transform(&self.camera_to_world).0
     }
 
-    pub fn generate_ray_differential(&self, sample: &CameraSample) -> Ray {
+    fn generate_ray_differential(&self, sample: &CameraSample) -> Ray {
         let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
         let p_camera: Point3f =
             Point3::from_homogeneous(self.raster_to_camera * p_film.to_homogeneous()).unwrap();

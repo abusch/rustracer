@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use rt::bvh::BVH;
-use rt::camera::Camera;
+use rt::camera::PerspectiveCamera;
 use rt::light::{Light, DistantLight, DiffuseAreaLight, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::metal::Metal;
@@ -17,11 +17,11 @@ use rt::{Transform, Vector3f, Dim, Point2f};
 
 pub fn build_scene(dim: Dim) -> Scene {
     info!("Building scene");
-    let camera = Camera::new(Transform::translate_z(-3.0),
+    let camera = Box::new(PerspectiveCamera::new(Transform::translate_z(-3.0),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
                              0.00,
                              2.5,
-                             60.0);
+                             60.0));
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     // let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
@@ -97,11 +97,11 @@ pub fn build_scene(dim: Dim) -> Scene {
 
 pub fn build_scene2(dim: Dim) -> Scene {
     info!("Building scene");
-    let camera = Camera::new(Transform::default(),
+    let camera = Box::new(PerspectiveCamera::new(Transform::default(),
                              Point2f::new(dim.0 as f32, dim.1 as f32),
                              0.0,
                              0.0,
-                             50.0);
+                             50.0));
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     let shape = Arc::new(Disk::new(5.0, 1.0, 0.0, 360.0, Transform::default()));

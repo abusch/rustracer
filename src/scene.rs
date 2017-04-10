@@ -9,13 +9,13 @@ use primitive::Primitive;
 use ray::Ray;
 
 pub struct Scene {
-    pub camera: Camera,
+    pub camera: Box<Camera + Send + Sync>,
     pub lights: Vec<Arc<Light + Sync + Send>>,
     pub primitives: Vec<Box<Primitive + Sync + Send>>,
 }
 
 impl Scene {
-    pub fn new(camera: Camera,
+    pub fn new(camera: Box<Camera + Send + Sync>,
                primitives: Vec<Box<Primitive + Sync + Send>>,
                lights: Vec<Arc<Light + Sync + Send>>)
                -> Scene {
