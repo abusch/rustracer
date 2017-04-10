@@ -21,7 +21,7 @@ impl ImageTexture {
         let (res, pixels) = match img::open(path) {
             Ok(buf) => {
                 let rgb = buf.to_rgb();
-                let res = Point2i::new(rgb.width(), rgb.height());
+                let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
                 let mut pixels: Vec<Spectrum> =
                     rgb.pixels().map(|p| Spectrum::from_srgb(&p.data)).collect();
 

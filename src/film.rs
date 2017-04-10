@@ -9,8 +9,8 @@ const FILTER_SIZE: usize = 16;
 const FILTER_TABLE_SIZE: usize = FILTER_SIZE * FILTER_SIZE;
 
 pub struct Film {
-    pub width: u32,
-    pub height: u32,
+    pub width: i32,
+    pub height: i32,
     samples: Mutex<Vec<PixelSample>>,
     filter_table: [f32; FILTER_TABLE_SIZE],
     filter_radius: Vector2f,
@@ -52,13 +52,13 @@ impl Film {
         }
 
         Film {
-            width: w,
-            height: h,
+            width: w as i32,
+            height: h as i32,
             samples: Mutex::new(samples),
             filter_table: filter_table,
             filter_radius: Vector2f::new(xwidth, ywidth),
             cropped_pixel_bounds: Bounds2i::from_points(&Point2i::new(0, 0),
-                                                        &Point2i::new(dim.0, dim.1)),
+                                                        &Point2i::new(dim.0 as i32, dim.1 as i32)),
         }
     }
 

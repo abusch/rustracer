@@ -26,7 +26,7 @@ pub fn sobol_2d(n_samples_per_pixel_sample: u32,
                 n_pixel_samples: u32,
                 samples: &mut [Point2f],
                 rng: &mut RNG) {
-    let scramble = Point2i::new(rng.uniform_u32(), rng.uniform_u32());
+    let scramble = Point2i::new(rng.uniform_u32() as i32, rng.uniform_u32() as i32);
 
     gray_code_sample_2d(&CSOBOL[0],
                         &CSOBOL[1],
@@ -56,7 +56,7 @@ fn gray_code_sample(c: &[u32], n: u32, scramble: u32, p: &mut [f32]) {
 }
 
 fn gray_code_sample_2d(c0: &[u32], c1: &[u32], n: u32, scramble: &Point2i, p: &mut [Point2f]) {
-    let mut v = [scramble.x, scramble.y];
+    let mut v = [scramble.x as u32, scramble.y as u32];
     for i in 0..n {
         p[i as usize].x = (v[0] as f32 * 2.3283064365386963e-10f32).min(ONE_MINUS_EPSILON);
         p[i as usize].y = (v[1] as f32 * 2.3283064365386963e-10f32).min(ONE_MINUS_EPSILON);
