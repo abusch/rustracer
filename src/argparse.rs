@@ -1,15 +1,4 @@
 use clap::{Arg, ArgMatches, App};
-use slog::Level;
-
-use rt::Dim;
-
-pub struct Config {
-    pub output_file: String,
-    pub log_level: Level,
-    pub dim: Dim,
-    pub integrator: SamplerIntegratorType,
-    pub threads: u32,
-}
 
 arg_enum! {
   #[derive(Debug)]
