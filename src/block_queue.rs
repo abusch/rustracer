@@ -1,31 +1,24 @@
 use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
 use std::fmt;
 
-use na::Point2;
-
+use Point2i;
 use bounds::Bounds2i;
 
 /// A block of pixels that a thread is responsible for rendering (i.e a bucket).
 #[derive(Debug)]
 pub struct Block {
-    pub start: Point2<u32>,
-    current: Point2<u32>,
-    pub end: Point2<u32>,
+    pub start: Point2i,
+    current: Point2i,
+    pub end: Point2i,
 }
 
 impl Block {
     pub fn new(start: (u32, u32), size: u32) -> Block {
         Block {
-            start: Point2::new(start.0, start.1),
-            current: Point2::new(start.0, start.1),
-            end: Point2::new(start.0 + size, start.1 + size),
+            start: Point2i::new(start.0 as i32, start.1 as i32),
+            current: Point2i::new(start.0 as i32, start.1 as i32),
+            end: Point2i::new(start.0 as i32 + size as i32, start.1 as i32 + size as i32),
         }
-    }
-
-    /// Return the area of this block in pixels (i.e. number of pixels this
-    /// block covers)
-    pub fn area(&self) -> u32 {
-        (self.end.x - self.start.x) * (self.end.y - self.start.y)
     }
 
     pub fn bounds(&self) -> Bounds2i {
@@ -34,9 +27,9 @@ impl Block {
 }
 
 impl Iterator for Block {
-    type Item = Point2<u32>;
+    type Item = Point2i;
 
-    fn next(&mut self) -> Option<Point2<u32>> {
+    fn next(&mut self) -> Option<Point2i> {
         if self.current.x >= self.end.x || self.current.y >= self.end.y {
             None
         } else {
@@ -102,15 +95,9 @@ impl Iterator for BlockQueue {
 }
 
 #[test]
-fn test_area() {
-    let block = Block::new((12, 12), 8);
-    assert_eq!(block.area(), 64);
-}
-
-#[test]
 fn test_iter() {
     let block = Block::new((12, 12), 8);
-    let pixels: Vec<Point2<u32>> = block.into_iter().collect();
+    let pixels: Vec<Point2i> = block.into_iter().collect();
 
     assert_eq!(pixels.len(), 64);
     assert_eq!(pixels[0].x, 12);

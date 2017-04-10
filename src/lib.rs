@@ -72,7 +72,7 @@ pub type Dim = (u32, u32);
 pub type Vector2f = Vector2<f32>;
 pub type Vector3f = Vector3<f32>;
 pub type Point2f = Point2<f32>;
-pub type Point2i = Point2<u32>;
+pub type Point2i = Point2<i32>;
 pub type Point3f = Point3<f32>;
 pub use transform::Transform;
 
@@ -169,6 +169,22 @@ pub fn max<T: PartialOrd + Copy>(a: T, b: T) -> T {
     if a.gt(&b) { a } else { b }
 }
 
+#[inline]
+pub fn is_power_of_2(v: i32) -> bool {
+    (v != 0) && (v & (v - 1)) == 0
+}
+
+#[inline]
+pub fn round_up_pow_2(v: i32) -> i32 {
+    let mut v = v;
+    v -= 1;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v + 1
+}
 
 #[test]
 fn test_gamma() {
@@ -176,4 +192,19 @@ fn test_gamma() {
     let p = Point3f::new(-0.4, 0.9, 0.2);
     let v = g5 * &p.coords.abs();
     println!("gamma(5) = {}, p={:?}, v={:?}", gamma(5), p, v);
+}
+
+#[test]
+fn test_is_power_of_2() {
+    assert!(is_power_of_2(4));
+    assert!(is_power_of_2(8));
+    assert!(is_power_of_2(1024));
+    assert!(!is_power_of_2(3));
+    assert!(!is_power_of_2(7));
+}
+
+#[test]
+fn test_round_up_pow_2() {
+    assert_eq!(round_up_pow_2(1023), 1024);
+    assert_eq!(round_up_pow_2(1024), 1024);
 }

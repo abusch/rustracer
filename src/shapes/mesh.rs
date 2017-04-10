@@ -251,7 +251,7 @@ pub fn create_square(object_to_world: &Transform, reverse_orientation: bool) -> 
 }
 
 pub fn create_triangle_mesh(object_to_world: &Transform,
-                            reverse_orientation: bool,
+                            _reverse_orientation: bool,
                             vertex_indices: &[usize],
                             p: &[Point3f],
                             s: Option<&[Vector3f]>,

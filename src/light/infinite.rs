@@ -37,7 +37,7 @@ impl InfiniteAreaLight {
             info!("Loading environment map {} for infinite light",
                   texmap.display());
             let rgb = buf.to_rgb();
-            let resolution = Point2i::new(rgb.width(), rgb.height());
+            let resolution = Point2i::new(rgb.width() as i32, rgb.height() as i32);
             let pixels: Vec<Spectrum> = rgb.pixels()
                 .map(|p| {
                          let r = p.data[0] as f32 / 255.0;

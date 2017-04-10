@@ -107,16 +107,6 @@ pub struct FresnelConductor {
     k: Spectrum,
 }
 
-impl FresnelConductor {
-    pub fn new(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
-        FresnelConductor {
-            eta_i: eta_i,
-            eta_t: eta_t,
-            k: k,
-        }
-    }
-}
-
 impl Fresnel for FresnelConductor {
     fn evaluate(&self, cos_theta_i: f32) -> Spectrum {
         fr_conductor(cos_theta_i.abs(), &self.eta_i, &self.eta_t, &self.k)

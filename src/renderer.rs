@@ -64,8 +64,8 @@ pub fn render(scene: Scene,
                 let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
-                    let seed = block.start.y / bq.block_size * bq.dims.0 +
-                               block.start.x / bq.block_size;
+                    let seed = block.start.y as u32 / bq.block_size * bq.dims.0 +
+                               block.start.x as u32 / bq.block_size;
                     sampler.reseed(seed as u64);
                     let mut tile = film.get_film_tile(&block.bounds());
                     for p in &tile.get_pixel_bounds() {

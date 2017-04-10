@@ -6,9 +6,8 @@ use std::fmt::Debug;
 use na;
 use num::{zero, Zero};
 
-use Point2i;
-use Point2f;
-use lerp;
+use {Point2i, Point2f};
+use {lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
 use spectrum::Spectrum;
 
@@ -45,14 +44,14 @@ impl<T> MIPMap<T>
         info!("Creating MIPMap for texture");
         let mut resolution = *res;
         let mut resampled_image = Vec::new();
-        if !res.x.is_power_of_two() || !res.y.is_power_of_two() {
+        if !is_power_of_2(res.x) || !is_power_of_2(res.y) {
             // resample image to power of two resolution
-            let res_pow2 = Point2i::new(res.x.next_power_of_two(), res.y.next_power_of_two());
+            let res_pow2 = Point2i::new(round_up_pow_2(res.x), round_up_pow_2(res.y));
             info!("Texture dimensions are not powers of 2: re-sampling MIPMap from {} to {}.",
                   res,
                   res_pow2);
             // resample image in s direction
-            resampled_image.resize(res_pow2.x as usize * res_pow2.y as usize, zero());
+            resampled_image.resize((res_pow2.x * res_pow2.y) as usize, zero());
             let s_weights = MIPMap::<T>::resample_weights(res.x as usize, res_pow2.x as usize);
             // apply s_weights to zoom in s direction
             for t in 0..res.y as usize {

@@ -172,7 +172,7 @@ impl Bounds3<f32> {
     }
 }
 
-pub type Bounds2i = Bounds2<u32>;
+pub type Bounds2i = Bounds2<i32>;
 pub type Bounds2f = Bounds2<f32>;
 
 #[derive(Debug, Copy, Clone)]
@@ -322,7 +322,7 @@ impl<'a> Iterator for Bounds2Iterator<'a> {
     }
 }
 
-impl<'a> IntoIterator for &'a Bounds2<u32> {
+impl<'a> IntoIterator for &'a Bounds2<i32> {
     type Item = Point2i;
     type IntoIter = Bounds2Iterator<'a>;
 
@@ -344,8 +344,8 @@ impl From<Bounds2i> for Bounds2f {
 
 impl From<Bounds2f> for Bounds2i {
     fn from(b: Bounds2f) -> Self {
-        Bounds2i::from_points(&Point2i::new(b.p_min.x as u32, b.p_min.y as u32),
-                              &Point2i::new(b.p_max.x as u32, b.p_max.y as u32))
+        Bounds2i::from_points(&Point2i::new(b.p_min.x as i32, b.p_min.y as i32),
+                              &Point2i::new(b.p_max.x as i32, b.p_max.y as i32))
     }
 }
 

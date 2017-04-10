@@ -40,7 +40,7 @@ impl GlassMaterial {
 impl Material for GlassMaterial {
     fn compute_scattering_functions(&self,
                                     isect: &mut SurfaceInteraction,
-                                    mode: TransportMode,
+                                    _mode: TransportMode,
                                     allow_multiple_lobes: bool) {
         let eta = self.index.evaluate(isect);
         let mut u_rough = self.u_roughness.evaluate(isect);
