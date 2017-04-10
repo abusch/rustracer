@@ -1,5 +1,5 @@
-use combine::{value, satisfy_map, satisfy, skip_many, none_of, token, any, between, optional, many,
-              many1, choice, try, eof, Parser, Stream, ParseResult};
+use combine::{value, satisfy_map, satisfy, skip_many, none_of, token, any, between, optional,
+              many, many1, choice, try, eof, Parser, Stream, ParseResult};
 use combine::char::{alpha_num, string, spaces, digit, char, newline, Str};
 use combine::primitives::Error;
 
@@ -9,18 +9,38 @@ use paramset::ParamSet;
 use super::lexer::Tokens;
 
 pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult<Vec<()>, I> {
+    // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
     let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
     let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
-    let world_begin = token(Tokens::WORLDBEGIN).and_then(|_| api.world_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
-    let world_end = token(Tokens::WORLDEND).and_then(|_| api.world_end().map_err(|e| Error::Message(e.description().to_owned().into())));
+    let world_begin =
+        token(Tokens::WORLDBEGIN).and_then(|_| {
+                                               api.world_begin()
+                                                   .map_err(|e| {
+                                                                Error::Message(e.description()
+                                                                                   .to_owned()
+                                                                                   .into())
+                                                            })
+                                           });
+    let world_end =
+        token(Tokens::WORLDEND).and_then(|_| {
+                                             api.world_end()
+                                                 .map_err(|e| {
+                                                              Error::Message(e.description()
+                                                                                 .to_owned()
+                                                                                 .into())
+                                                          })
+                                         });
     let look_at =
         (token(Tokens::LOOKAT), num(), num(), num(), num(), num(), num(), num(), num(), num())
             .and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
-                     api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, lz).map_err(|e| Error::Message(e.description().to_owned().into()))
-                 });
-    let camera = (token(Tokens::CAMERA), string_(), param_list()).and_then(|(_, name, params)| {
-                                                                          api.camera(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                      });
+                          api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, lz)
+                              .map_err(|e| Error::Message(e.description().to_owned().into()))
+                      });
+    let camera = (token(Tokens::CAMERA), string_(), param_list())
+        .and_then(|(_, name, params)| {
+                      api.camera(name, &params)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
     let film = (token(Tokens::FILM), string_(), param_list()).and_then(|(_, name, params)| {
                                                                       api.film(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                   });
@@ -29,7 +49,10 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult
                                                                      api.integrator(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                  });
     let arealightsource = (token(Tokens::AREALIGHTSOURCE), string_(), param_list())
-        .and_then(|(_, name, params)| { api.arealightsource(name, &params).map_err(|e| Error::Message(e.description().to_owned().into())) });
+        .and_then(|(_, name, params)| {
+                      api.arealightsource(name, &params)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
     let lightsource =
         (token(Tokens::LIGHTSOURCE), string_(), param_list()).and_then(|(_, name, params)| {
                                                                       api.lightsource(name,

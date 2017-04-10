@@ -177,7 +177,8 @@ pub trait Api {
                lz: f32,
                ux: f32,
                uy: f32,
-               uz: f32) -> Result<()>;
+               uz: f32)
+               -> Result<()>;
 
     fn camera(&self, name: String, params: &ParamSet) -> Result<()>;
     fn film(&self, name: String, params: &ParamSet) -> Result<()>;
@@ -234,10 +235,15 @@ impl Api for RealApi {
                lz: f32,
                ux: f32,
                uy: f32,
-               uz: f32) -> Result<()> {
+               uz: f32)
+               -> Result<()> {
         println!("look_at called");
         let mut state = self.state.borrow_mut();
-        let look_at = Transform::from_similarity(&Similarity3::look_at_lh(&Point3f::new(ex, ey, ez), &Point3f::new(lx, ly, lz), &Vector3f::new(ux, uy, uz), 1.0));
+        let look_at =
+            Transform::from_similarity(&Similarity3::look_at_lh(&Point3f::new(ex, ey, ez),
+                                                                &Point3f::new(lx, ly, lz),
+                                                                &Vector3f::new(ux, uy, uz),
+                                                                1.0));
         state.cur_transform = &state.cur_transform * &look_at;
         Ok(())
     }
@@ -335,7 +341,8 @@ impl Api for DummyApi {
                _lz: f32,
                _ux: f32,
                _uy: f32,
-               _uz: f32) -> Result<()> {
+               _uz: f32)
+               -> Result<()> {
         println!("look_at called");
         Ok(())
     }

@@ -235,6 +235,7 @@ impl<'a> SurfaceInteraction<'a> {
         self.shading.dndv = *dndvs;
     }
 
+    #[allow(non_snake_case)]
     pub fn compute_differential(&mut self, ray: &Ray) {
         if let Some(ref diff) = ray.differential {
             // Estimate screen space change in p and (u,v)

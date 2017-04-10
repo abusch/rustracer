@@ -26,6 +26,7 @@ pub use self::normal::Normal;
 pub trait SamplerIntegrator {
     fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum;
 
+    #[allow(non_snake_case)]
     fn specular_reflection(&self,
                            ray: &mut Ray,
                            isect: &SurfaceInteraction,
@@ -62,6 +63,7 @@ pub trait SamplerIntegrator {
         }
     }
 
+    #[allow(non_snake_case)]
     fn specular_transmission(&self,
                              ray: &mut Ray,
                              isect: &SurfaceInteraction,
@@ -71,7 +73,7 @@ pub trait SamplerIntegrator {
                              depth: u32)
                              -> Spectrum {
         let flags = bsdf::BSDF_TRANSMISSION | bsdf::BSDF_SPECULAR;
-        let (f, wi, pdf, bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
+        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(ns) != 0.0 {
             let mut r = isect.spawn_ray(&wi);
