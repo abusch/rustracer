@@ -76,7 +76,10 @@ impl Sphere {
         self
     }
 
-    pub fn create(o2w: &Transform, _reverse_orientation: bool, params: &mut ParamSet) -> Arc<Shape> {
+    pub fn create(o2w: &Transform,
+                  _reverse_orientation: bool,
+                  params: &mut ParamSet)
+                  -> Arc<Shape> {
         let radius = params.find_one_float("radius", 1.0);
         let zmin = params.find_one_float("zmin", -radius);
         let zmax = params.find_one_float("zmax", radius);
@@ -208,10 +211,13 @@ impl Shape for Sphere {
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
-        let n = self.object_to_world.transform_normal(&p_obj.coords).normalize();
+        let n = self.object_to_world
+            .transform_normal(&p_obj.coords)
+            .normalize();
         p_obj = p_obj * self.radius / p_obj.coords.norm();
         let p_obj_error = gamma(5) * p_obj.coords.abs();
-        let (p, p_err) = self.object_to_world.transform_point_with_error(&p_obj, &p_obj_error);
+        let (p, p_err) = self.object_to_world
+            .transform_point_with_error(&p_obj, &p_obj_error);
         let pdf = 1.0 / self.area();
         (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)
     }

@@ -96,9 +96,9 @@ pub fn tokenize<I: Stream<Item = char>>(input: I) -> ParseResult<Vec<Tokens>, I>
                            token_parser("WorldEnd", Tokens::WORLDEND),
                            token_parser("[", Tokens::LBRACK),
                            token_parser("]", Tokens::RBRACK)]
-        .into_iter()
-        .map(|parser| try(parser))
-        .collect::<Vec<_>>();
+            .into_iter()
+            .map(|parser| try(parser))
+            .collect::<Vec<_>>();
 
     // Add parsers from num, strings, etc...
     parsers.push(try(float_parser()));
@@ -114,10 +114,7 @@ fn token_parser<'a, I: Stream<Item = char> + 'a>
     (s: &'static str,
      t: Tokens)
      -> Box<Parser<Input = I, Output = Tokens> + 'a> {
-    string(s)
-        .skip(spaces())
-        .map(move |_| t.clone())
-        .boxed()
+    string(s).skip(spaces()).map(move |_| t.clone()).boxed()
 }
 
 fn float_parser<'a, I: Stream<Item = char> + 'a>
@@ -129,32 +126,31 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>
      many1::<Vec<_>, _>(digit()),
      optional(char('.').with(many::<Vec<_>, _>(digit()))),
      optional(char('e').or(char('E')).with(many1::<Vec<_>, _>(digit()))))
-        .skip(spaces())
-        .and_then(|(sign, int_part, frac_part, mantissa)| {
-            let mut buf = String::new();
-            if let Some(s) = sign {
-                buf.push(s);
-            }
-            for c in int_part {
-                buf.push(c);
-            }
-            if let Some(frac) = frac_part {
-                buf.push('.');
-                for c in frac {
+            .skip(spaces())
+            .and_then(|(sign, int_part, frac_part, mantissa)| {
+                let mut buf = String::new();
+                if let Some(s) = sign {
+                    buf.push(s);
+                }
+                for c in int_part {
                     buf.push(c);
                 }
-            }
-            if let Some(mant) = mantissa {
-                buf.push('e');
-                for c in mant {
-                    buf.push(c);
+                if let Some(frac) = frac_part {
+                    buf.push('.');
+                    for c in frac {
+                        buf.push(c);
+                    }
                 }
-            }
+                if let Some(mant) = mantissa {
+                    buf.push('e');
+                    for c in mant {
+                        buf.push(c);
+                    }
+                }
 
-            buf.parse::<f32>()
-                .map(Tokens::NUMBER)
-        })
-        .boxed()
+                buf.parse::<f32>().map(Tokens::NUMBER)
+            })
+            .boxed()
 }
 
 fn string_parser<'a, I: Stream<Item = char> + 'a>
@@ -164,15 +160,15 @@ fn string_parser<'a, I: Stream<Item = char> + 'a>
     between(token('"'),
             token('"'),
             many::<Vec<_>, _>(none_of("\"".chars())))
-        .skip(spaces())
-        .map(|chars| {
-            let mut buf = String::new();
-            for c in chars {
-                buf.push(c);
-            }
-            Tokens::STR(buf)
-        })
-        .boxed()
+            .skip(spaces())
+            .map(|chars| {
+                     let mut buf = String::new();
+                     for c in chars {
+                         buf.push(c);
+                     }
+                     Tokens::STR(buf)
+                 })
+            .boxed()
 }
 
 fn comment_parser<'a, I: Stream<Item = char> + 'a>

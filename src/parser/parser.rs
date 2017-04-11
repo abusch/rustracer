@@ -11,24 +11,22 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult
     // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
     let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
     let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
-    let world_begin =
-        token(Tokens::WORLDBEGIN).and_then(|_| {
-                                               api.world_begin()
+    let world_begin = token(Tokens::WORLDBEGIN).and_then(|_| {
+                                                             api.world_begin()
                                                    .map_err(|e| {
                                                                 Error::Message(e.description()
                                                                                    .to_owned()
                                                                                    .into())
                                                             })
-                                           });
-    let world_end =
-        token(Tokens::WORLDEND).and_then(|_| {
-                                             api.world_end()
+                                                         });
+    let world_end = token(Tokens::WORLDEND).and_then(|_| {
+                                                         api.world_end()
                                                  .map_err(|e| {
                                                               Error::Message(e.description()
                                                                                  .to_owned()
                                                                                  .into())
                                                           })
-                                         });
+                                                     });
     let look_at =
         (token(Tokens::LOOKAT), num(), num(), num(), num(), num(), num(), num(), num(), num())
             .and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {

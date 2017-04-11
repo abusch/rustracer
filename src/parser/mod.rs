@@ -8,8 +8,10 @@ pub fn parse_scene(scene: &str) {
     // TODO handle errors
     let tokens = lexer::tokenize(scene).unwrap().0;
     // strip comments
-    let filtered_tokens =
-        tokens.into_iter().filter(|x| *x != lexer::Tokens::COMMENT).collect::<Vec<_>>();
+    let filtered_tokens = tokens
+        .into_iter()
+        .filter(|x| *x != lexer::Tokens::COMMENT)
+        .collect::<Vec<_>>();
     let api = DummyApi::default();
     let res = parser::parse(&filtered_tokens[..], &api).unwrap();
 
