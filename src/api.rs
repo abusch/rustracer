@@ -31,7 +31,15 @@ impl ApiState {
     pub fn verify_options(&self) -> Result<()> {
         self.verify_initialized()?;
         match *self {
-            ApiState::WorldBlock => bail!("Options are not allowed in a World block"),
+            ApiState::WorldBlock => bail!("Options cannot be set inside world block."),
+            _ => Ok(()),
+        }
+    }
+
+    pub fn verify_world(&self) -> Result<()> {
+        self.verify_initialized()?;
+        match *self {
+            ApiState::OptionsBlock => bail!("Scene description must be inside world block."),
             _ => Ok(()),
         }
     }
@@ -164,6 +172,10 @@ pub trait Api {
 
     fn attribute_end(&self) -> Result<()>;
 
+    fn transform_begin(&self) -> Result<()>;
+
+    fn transform_end(&self) -> Result<()>;
+
     fn world_begin(&self) -> Result<()>;
 
     fn world_end(&self) -> Result<()>;
@@ -205,23 +217,42 @@ impl Api for RealApi {
     }
 
     fn attribute_begin(&self) -> Result<()> {
-        self.state.borrow().api_state.verify_options()?;
+        self.state.borrow().api_state.verify_world()?;
 
         println!("attribute_begin called");
         Ok(())
     }
 
     fn attribute_end(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_world()?;
+        
         println!("attribute_end called");
         Ok(())
     }
 
+    fn transform_begin(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_world()?;
+
+        println!("transform_begin called");
+        Ok(())
+    }
+
+    fn transform_end(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_world()?;
+
+        println!("transform_end called");
+        Ok(())
+    }
+
     fn world_begin(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_options()?;
         println!("world_begin called");
         Ok(())
     }
 
     fn world_end(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_world()?;
+
         println!("world_end called");
         Ok(())
     }
@@ -239,6 +270,7 @@ impl Api for RealApi {
                -> Result<()> {
         println!("look_at called");
         let mut state = self.state.borrow_mut();
+        state.api_state.verify_initialized()?;
         let look_at =
             Transform::from_similarity(&Similarity3::look_at_lh(&Point3f::new(ex, ey, ez),
                                                                 &Point3f::new(lx, ly, lz),
@@ -251,6 +283,7 @@ impl Api for RealApi {
     fn camera(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Camera called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
+        state.api_state.verify_options()?;
         state.render_options.camera_name = name;
         state.render_options.camera_params = params.clone();
         Ok(())
@@ -259,6 +292,7 @@ impl Api for RealApi {
     fn film(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Film called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
+        state.api_state.verify_options()?;
         state.render_options.filter_name = name;
         state.render_options.filter_params = params.clone();
         Ok(())
@@ -267,6 +301,7 @@ impl Api for RealApi {
     fn integrator(&self, name: String, params: &ParamSet) -> Result<()> {
         println!("Integrator called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
+        state.api_state.verify_options()?;
         state.render_options.integrator_name = name;
         state.render_options.integrator_params = params.clone();
         Ok(())
@@ -298,6 +333,7 @@ impl Api for RealApi {
     }
 }
 
+/*
 #[derive(Default)]
 pub struct DummyApi {
     state: RefCell<State>,
@@ -319,6 +355,18 @@ impl Api for DummyApi {
 
     fn attribute_end(&self) -> Result<()> {
         println!("attribute_end called");
+        Ok(())
+    }
+
+    fn transform_begin(&self) -> Result<()> {
+        self.state.borrow().api_state.verify_options()?;
+
+        println!("transform_begin called");
+        Ok(())
+    }
+
+    fn transform_end(&self) -> Result<()> {
+        println!("transform_end called");
         Ok(())
     }
 
@@ -388,3 +436,4 @@ impl Api for DummyApi {
         Ok(())
     }
 }
+*/

@@ -1,7 +1,7 @@
 mod lexer;
 mod parser;
 
-use api::DummyApi;
+use api::RealApi;
 
 #[allow(dead_code)]
 pub fn parse_scene(scene: &str) {
@@ -12,7 +12,7 @@ pub fn parse_scene(scene: &str) {
         .into_iter()
         .filter(|x| *x != lexer::Tokens::COMMENT)
         .collect::<Vec<_>>();
-    let api = DummyApi::default();
+    let api = RealApi::default();
     let res = parser::parse(&filtered_tokens[..], &api).unwrap();
 
     println!("Scene parsed: {:?} -- {:?}", res.0, res.1);
