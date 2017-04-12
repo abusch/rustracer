@@ -18,6 +18,9 @@ mod logging;
 mod argparse;
 mod samplescenes;
 
+use std::fs;
+use std::io::Read;
+
 use clap::ArgMatches;
 
 use argparse::SamplerIntegratorType;
@@ -25,6 +28,7 @@ use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::errors::*;
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal, AmbientOcclusion,
                      PathIntegrator};
+use rt::parser;
 use rt::renderer;
 
 fn main() {
@@ -55,6 +59,12 @@ fn run(matches: ArgMatches) -> Result<()> {
         bail!("Error: invalid dimension specification");
     }
     let dim = (dims[0], dims[1]);
+
+    let filename = matches.value_of("INPUT").unwrap();
+    let mut file = fs::File::open(filename).chain_err(|| "Failed to open scene file")?;
+    let mut file_content = String::new();
+    file.read_to_string(&mut file_content).chain_err(|| "Failed to read content of scene file")?;
+    parser::parse_scene(&file_content[..])?;
 
     let scene = samplescenes::build_scene(dim);
 

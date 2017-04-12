@@ -42,5 +42,6 @@ pub fn parse_args<'a>() -> ArgMatches<'a> {
         .arg(Arg::with_name("spp").long("spp").help("Sample per pixels").default_value("4"))
         .arg(Arg::with_name("verbose").short("v").help("log debug information"))
         .arg(Arg::with_name("display").short("p").help("Display image as it is rendered"))
+        .arg(Arg::with_name("INPUT").required(true).index(1).help("PBRT scene file to render"))
         .get_matches()
 }

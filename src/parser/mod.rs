@@ -1,21 +1,26 @@
 mod lexer;
 mod parser;
 
-use api::RealApi;
+use api::{Api, RealApi};
+use errors::*;
 
 #[allow(dead_code)]
-pub fn parse_scene(scene: &str) {
+pub fn parse_scene(input: &str) -> Result<()> {
     // TODO handle errors
-    let tokens = lexer::tokenize(scene).unwrap().0;
+    let tokens =
+        lexer::tokenize(input).map_err(|e| format!("Failed to tokenize scene file: {:?}", e))?;
     // strip comments
     let filtered_tokens = tokens
+        .0
         .into_iter()
         .filter(|x| *x != lexer::Tokens::COMMENT)
         .collect::<Vec<_>>();
     let api = RealApi::default();
-    let res = parser::parse(&filtered_tokens[..], &api).unwrap();
+    api.init()?;
+    let res = parser::parse(&filtered_tokens[..], &api).map_err(|e| format!("Failed to parse scene file: {:?}", e))?;
 
     println!("Scene parsed: {:?} -- {:?}", res.0, res.1);
+    Ok(())
 }
 
 #[test]
