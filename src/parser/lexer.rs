@@ -1,5 +1,5 @@
 use combine::{satisfy, skip_many, none_of, token, between, optional, many, many1, choice, try,
-              Parser, Stream, ParseResult};
+              Parser, Stream, ParseError};
 use combine::char::{string, spaces, digit, char};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -31,7 +31,7 @@ pub enum Tokens {
     PIXELFILTER,
     REVERSEORIENTATION,
     ROTATE,
-    SAMPLE,
+    SAMPLER,
     SCALE,
     SHAPE,
     STARTTIME,
@@ -51,7 +51,7 @@ pub enum Tokens {
     COMMENT,
 }
 
-pub fn tokenize<I: Stream<Item = char>>(input: I) -> ParseResult<Vec<Tokens>, I> {
+pub fn tokenize<'a>(input: &'a str) -> Result<(Vec<Tokens>, &'a str), ParseError<&'a str>> {
 
     // parsers for keywords
     let mut parsers = vec![token_parser("Accelerator", Tokens::ACCELERATOR),
@@ -81,7 +81,7 @@ pub fn tokenize<I: Stream<Item = char>>(input: I) -> ParseResult<Vec<Tokens>, I>
                            token_parser("PixelFilter", Tokens::PIXELFILTER),
                            token_parser("ReverseOrientation", Tokens::REVERSEORIENTATION),
                            token_parser("Rotate", Tokens::ROTATE),
-                           token_parser("Sample", Tokens::SAMPLE),
+                           token_parser("Sampler", Tokens::SAMPLER),
                            token_parser("Scale", Tokens::SCALE),
                            token_parser("Shape", Tokens::SHAPE),
                            token_parser("StartTime", Tokens::STARTTIME),
@@ -107,7 +107,7 @@ pub fn tokenize<I: Stream<Item = char>>(input: I) -> ParseResult<Vec<Tokens>, I>
 
     spaces()
         .with(many::<Vec<_>, _>(choice(parsers)))
-        .parse_stream(input)
+        .parse(input)
 }
 
 fn token_parser<'a, I: Stream<Item = char> + 'a>
