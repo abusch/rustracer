@@ -1,4 +1,4 @@
-use combine::{value, satisfy_map, token, between, many, many1, try, Parser, Stream, ParseResult};
+use combine::{value, satisfy_map, token, between, many, many1, try, Parser, Stream, ParseError};
 use combine::char::{string, spaces};
 use combine::primitives::Error;
 
@@ -7,7 +7,7 @@ use api::{Api, ParamType, ParamListEntry, Array};
 use paramset::ParamSet;
 use super::lexer::Tokens;
 
-pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult<Vec<()>, I> {
+pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
     // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
     let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
     let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
@@ -66,6 +66,10 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult
         (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
                                                                     api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                 });
+    let translate =
+        (token(Tokens::TRANSLATE), num(), num(), num()).and_then(|(_, dx, dy, dz)| {
+                                                                    api.translate(dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
+                                                                });
 
     many1::<Vec<_>, _>(choice!(try(attribute_begin),
                                try(attribute_end),
@@ -79,8 +83,9 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ParseResult
                                try(lightsource),
                                try(material),
                                try(shape),
-                               try(rotate)))
-            .parse_stream(input)
+                               try(rotate),
+                               try(translate)))
+            .parse(input)
 }
 
 

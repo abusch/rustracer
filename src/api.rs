@@ -200,6 +200,7 @@ pub trait Api {
     fn material(&self, name: String, params: &ParamSet) -> Result<()>;
     fn shape(&self, name: String, params: &ParamSet) -> Result<()>;
     fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()>;
+    fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<()>;
 }
 
 #[derive(Default)]
@@ -209,6 +210,7 @@ pub struct RealApi {
 
 impl Api for RealApi {
     fn init(&self) -> Result<()> {
+        println!("API initialized!");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_uninitialized()?;
 
@@ -281,9 +283,9 @@ impl Api for RealApi {
     }
 
     fn camera(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Camera called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
+        println!("Camera called with {} and {:?}", name, params);
         state.render_options.camera_name = name;
         state.render_options.camera_params = params.clone();
         Ok(())
@@ -329,6 +331,11 @@ impl Api for RealApi {
 
     fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()> {
         println!("Rotate called with {} {} {} {}", angle, dx, dy, dz);
+        Ok(())
+    }
+
+    fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<()> {
+        println!("Translate called with {} {} {}", dx, dy, dz);
         Ok(())
     }
 }
