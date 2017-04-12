@@ -49,7 +49,7 @@ pub mod material;
 pub mod mipmap;
 mod noise;
 mod paramset;
-mod parser;
+pub mod parser;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
