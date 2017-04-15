@@ -1,4 +1,5 @@
-use combine::{value, satisfy_map, token, between, many, many1, try, Parser, Stream, ParseError};
+use combine::{eof, value, satisfy_map, token, between, many, many1, try, Parser, Stream,
+              ParseError};
 use combine::char::{string, spaces};
 use combine::primitives::Error;
 
@@ -7,7 +8,10 @@ use api::{Api, ParamType, ParamListEntry, Array};
 use paramset::ParamSet;
 use super::lexer::Tokens;
 
-pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
+pub fn parse<I: Stream<Item = Tokens>, A: Api>
+    (input: I,
+     api: &A)
+     -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
     // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
     let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
     let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
@@ -59,33 +63,42 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(input: I, api: &A) -> ::std::resu
                                                                               api.material(name,
                                                                                            &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                           });
+    let sampler = (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_, name, params)| {
+                                                                        api.sampler(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
+                                                                    });
     let shape = (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, params)| {
                                                                         api.shape(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
+                                                                    });
+    let filter = (token(Tokens::PIXELFILTER), string_(), param_list()).and_then(|(_, name, params)| {
+                                                                        api.pixel_filter(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                     });
     let rotate =
         (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
                                                                     api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                 });
-    let translate =
-        (token(Tokens::TRANSLATE), num(), num(), num()).and_then(|(_, dx, dy, dz)| {
-                                                                    api.translate(dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                });
+    let translate = (token(Tokens::TRANSLATE), num(), num(), num())
+        .and_then(|(_, dx, dy, dz)| {
+                      api.translate(dx, dy, dz)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
 
-    many1::<Vec<_>, _>(choice!(try(attribute_begin),
-                               try(attribute_end),
-                               try(world_begin),
-                               try(world_end),
-                               try(look_at),
-                               try(camera),
-                               try(film),
-                               try(integrator),
-                               try(arealightsource),
-                               try(lightsource),
-                               try(material),
-                               try(shape),
-                               try(rotate),
-                               try(translate)))
-            .parse(input)
+    let parsers = many1::<Vec<_>, _>(choice!(try(attribute_begin),
+                                             try(attribute_end),
+                                             try(world_begin),
+                                             try(world_end),
+                                             try(look_at),
+                                             try(camera),
+                                             try(film),
+                                             try(filter),
+                                             try(integrator),
+                                             try(arealightsource),
+                                             try(lightsource),
+                                             try(material),
+                                             try(sampler),
+                                             try(shape),
+                                             try(rotate),
+                                             try(translate)));
+    (parsers, eof()).map(|(res, _)| res).parse(input)
 }
 
 
