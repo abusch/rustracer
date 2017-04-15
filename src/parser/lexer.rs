@@ -184,7 +184,6 @@ fn comment_parser<'a, I: Stream<Item = char> + 'a>
 
 #[test]
 fn test_tokenize() {
-    use combine::primitives::Consumed;
     let scene = r##"
 LookAt 0 0 5 0 0 0 0 1 0
 Camera "perspective" "float fov" [50]
@@ -223,7 +222,7 @@ WorldEnd
     let result = tokenize(scene);
     assert!(result.is_ok());
     let (tokens, rest) = result.unwrap();
-    assert_eq!(rest, Consumed::Consumed(""));
+    assert_eq!(rest, "");
 }
 
 #[test]

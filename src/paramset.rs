@@ -3,6 +3,7 @@
 use std::fmt::Debug;
 
 use api::{ParamListEntry, ParamType};
+use spectrum::Spectrum;
 
 macro_rules! find_one(
     ($x:ident, $y:ident, $t:ty) => (
@@ -13,7 +14,7 @@ macro_rules! find_one(
                 e.looked_up = true;
             }
 
-            res.map(|e| e.values[0]).unwrap_or(d)
+            res.map(|e| e.values[0].clone()).unwrap_or(d)
         }
     );
 );
@@ -33,10 +34,12 @@ macro_rules! find(
 );
 
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ParamSet {
     ints: Vec<ParamSetItem<i32>>,
     floats: Vec<ParamSetItem<f32>>,
+    strings: Vec<ParamSetItem<String>>,
+    spectra: Vec<ParamSetItem<Spectrum>>,
 }
 
 impl ParamSet {
@@ -44,7 +47,8 @@ impl ParamSet {
         for entry in entries {
             match entry.param_type {
                 ParamType::Int => {
-                    let ints = entry.values
+                    let ints = entry
+                        .values
                         .as_num_array()
                         .iter()
                         .map(|x| *x as i32)
@@ -53,6 +57,19 @@ impl ParamSet {
                 }
                 ParamType::Float => {
                     self.add_float(entry.param_name.clone(), entry.values.as_num_array())
+                }
+                ParamType::String => {
+                    self.add_string(entry.param_name.clone(), entry.values.as_str_array())
+                }
+                ParamType::Rgb => {
+                    let spectra = entry
+                        .values
+                        .as_num_array()
+                        .chunks(3)
+                        .filter(|s| s.len() == 3)
+                        .map(|s| Spectrum::rgb(s[0], s[1], s[2]))
+                        .collect();
+                    self.add_rgb_spectrum(entry.param_name.clone(), spectra);
                 }
                 _ => {
                     error!(format!("Parameter type {:?} is not implemented yet!",
@@ -63,34 +80,49 @@ impl ParamSet {
     }
 
     fn add_int(&mut self, name: String, values: Vec<i32>) {
-        self.ints.push(ParamSetItem {
-                           name: name,
-                           values: values,
-                           looked_up: false,
-                       });
+        self.ints
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_float(&mut self, name: String, values: Vec<f32>) {
-        self.floats.push(ParamSetItem {
-                             name: name,
-                             values: values,
-                             looked_up: false,
-                         });
+        self.floats
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
+    }
+
+    fn add_string(&mut self, name: String, values: Vec<String>) {
+        self.strings
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
+    }
+
+    fn add_rgb_spectrum(&mut self, name: String, values: Vec<Spectrum>) {
+        self.spectra
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     find!(find_int, ints, i32);
     find!(find_float, floats, f32);
+    find!(find_string, strings, String);
+    find!(find_spectrum, spectra, Spectrum);
     find_one!(find_one_int, ints, i32);
     find_one!(find_one_float, floats, f32);
-}
-
-impl Default for ParamSet {
-    fn default() -> Self {
-        ParamSet {
-            ints: Vec::new(),
-            floats: Vec::new(),
-        }
-    }
+    find_one!(find_one_string, strings, String);
+    find_one!(find_one_spectrum, spectra, Spectrum);
 }
 
 #[derive(Debug, Clone)]
