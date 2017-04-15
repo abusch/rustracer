@@ -86,12 +86,14 @@ impl Sampler for ZeroTwoSequence {
 
     fn request_1d_array(&mut self, n: usize) {
         self.sample_1d_array_sizes.push(n);
-        self.sample_array_1d.push(Vec::with_capacity(n * self.spp));
+        self.sample_array_1d
+            .push(Vec::with_capacity(n * self.spp));
     }
 
     fn request_2d_array(&mut self, n: usize) {
         self.sample_2d_array_sizes.push(n);
-        self.sample_array_2d.push(Vec::with_capacity(n * self.spp));
+        self.sample_array_2d
+            .push(Vec::with_capacity(n * self.spp));
     }
 
     fn get_1d_array(&mut self, n: usize) -> &[f32] {

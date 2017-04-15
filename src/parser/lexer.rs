@@ -1,5 +1,5 @@
-use combine::{eof, satisfy, skip_many, none_of, token, between, optional, many, many1, choice, try,
-              Parser, Stream, ParseError};
+use combine::{eof, satisfy, skip_many, none_of, token, between, optional, many, many1, choice,
+              try, Parser, Stream, ParseError};
 use combine::char::{string, spaces, digit, char};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -105,8 +105,8 @@ pub fn tokenize<'a>(input: &'a str) -> Result<(Vec<Tokens>, &'a str), ParseError
     parsers.push(try(string_parser()));
     parsers.push(try(comment_parser()));
 
-    (spaces()
-        .with(many::<Vec<_>, _>(choice(parsers))), eof()).map(|(res, _)| res)
+    (spaces().with(many::<Vec<_>, _>(choice(parsers))), eof())
+        .map(|(res, _)| res)
         .parse(input)
 }
 

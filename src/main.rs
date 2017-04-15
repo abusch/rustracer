@@ -26,8 +26,8 @@ use clap::ArgMatches;
 use argparse::SamplerIntegratorType;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::errors::*;
-use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal, AmbientOcclusion,
-                     PathIntegrator};
+use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
+                     AmbientOcclusion, PathIntegrator};
 use rt::parser;
 use rt::renderer;
 
@@ -50,10 +50,14 @@ fn main() {
 }
 
 fn run(matches: ArgMatches) -> Result<()> {
-    let dims = matches.value_of("dim")
+    let dims = matches
+        .value_of("dim")
         .unwrap()
         .split('x')
-        .map(|s| s.parse::<u32>().chain_err(|| "Unable to parse dimension"))
+        .map(|s| {
+                 s.parse::<u32>()
+                     .chain_err(|| "Unable to parse dimension")
+             })
         .collect::<Result<Vec<u32>>>()?;
     if dims.len() != 2 {
         bail!("Error: invalid dimension specification");
@@ -61,9 +65,11 @@ fn run(matches: ArgMatches) -> Result<()> {
     let dim = (dims[0], dims[1]);
 
     let filename = matches.value_of("INPUT").unwrap();
-    let mut file = fs::File::open(filename).chain_err(|| "Failed to open scene file")?;
+    let mut file = fs::File::open(filename)
+        .chain_err(|| "Failed to open scene file")?;
     let mut file_content = String::new();
-    file.read_to_string(&mut file_content).chain_err(|| "Failed to read content of scene file")?;
+    file.read_to_string(&mut file_content)
+        .chain_err(|| "Failed to read content of scene file")?;
     parser::parse_scene(&file_content[..])?;
 
     let scene = samplescenes::build_scene(dim);
@@ -102,17 +108,20 @@ fn run(matches: ArgMatches) -> Result<()> {
     };
 
     let start_time = std::time::Instant::now();
-    let stats =
-        renderer::render(scene,
-                         integrator,
-                         dim,
-                         matches.value_of("output").unwrap(),
-                         matches.value_of("threads")
-                             .and_then(|s| s.parse::<usize>().ok())
-                             .unwrap_or_else(num_cpus::get),
-                         matches.value_of("spp").and_then(|s| s.parse::<usize>().ok()).unwrap(),
-                         16,
-                         disp)?;
+    let stats = renderer::render(scene,
+                                 integrator,
+                                 dim,
+                                 matches.value_of("output").unwrap(),
+                                 matches
+                                     .value_of("threads")
+                                     .and_then(|s| s.parse::<usize>().ok())
+                                     .unwrap_or_else(num_cpus::get),
+                                 matches
+                                     .value_of("spp")
+                                     .and_then(|s| s.parse::<usize>().ok())
+                                     .unwrap(),
+                                 16,
+                                 disp)?;
     // args.flag_block_size);
     let duration = start_time.elapsed();
     println!("Render time                : {}", duration.human_display());

@@ -40,8 +40,10 @@ impl SamplerIntegrator for PathIntegrator {
             match scene.intersect(&mut ray) {
                 None => {
                     if bounces == 0 || specular_bounce {
-                        l = scene.lights.iter().fold(Spectrum::black(),
-                                                     |c, l| c + beta * l.le(&ray));
+                        l = scene
+                            .lights
+                            .iter()
+                            .fold(Spectrum::black(), |c, l| c + beta * l.le(&ray));
                         // info!("Added infinite area lights -> L={:?}", l);
                     }
                     break;

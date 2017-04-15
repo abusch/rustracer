@@ -114,7 +114,9 @@ impl BSDF {
         // Chose which BxDF to sample
         let comp = cmp::min((u[0] * matching_comps.len() as f32).floor() as usize,
                             matching_comps.len() - 1);
-        let bxdf = matching_comps.get(comp).expect("Was expecting a BxDF with this index!");
+        let bxdf = matching_comps
+            .get(comp)
+            .expect("Was expecting a BxDF with this index!");
 
         debug!("BDDF::sample_f chose comp = {} / matching {}",
                comp,
@@ -160,7 +162,8 @@ impl BSDF {
         // Compute value of BSDF for sampled direction
         if !bxdf.get_type().contains(BSDF_SPECULAR) && matching_comps.len() > 1 {
             let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
-            f = matching_comps.iter()
+            f = matching_comps
+                .iter()
                 .filter(|b| {
                             (reflect && b.get_type().contains(BSDF_REFLECTION)) ||
                             (!reflect && b.get_type().contains(BSDF_TRANSMISSION))
@@ -191,10 +194,7 @@ impl BSDF {
 
     /// Return the number of BxDFs matching the given flags
     pub fn num_components(&self, flags: BxDFType) -> usize {
-        self.bxdfs
-            .iter()
-            .filter(|b| b.matches(flags))
-            .count()
+        self.bxdfs.iter().filter(|b| b.matches(flags)).count()
     }
 }
 

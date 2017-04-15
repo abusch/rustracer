@@ -123,9 +123,9 @@ impl<T> MIPMap<T>
             &resampled_image[..]
         };
         // level 0
-        mipmap.pyramid.push(BlockedArray::new_from(resolution.x as usize,
-                                                   resolution.y as usize,
-                                                   img_data));
+        mipmap
+            .pyramid
+            .push(BlockedArray::new_from(resolution.x as usize, resolution.y as usize, img_data));
         for i in 1..n_levels {
             // initialize ith level of the pyramid
             let s_res = cmp::max(1, mipmap.pyramid[i - 1].u_size() / 2);

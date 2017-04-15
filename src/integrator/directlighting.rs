@@ -67,7 +67,10 @@ impl SamplerIntegrator for DirectLightingIntegrator {
             }
             None => {
                 // If we didn't intersect anything, add the backgound radiance from every light
-                colour = scene.lights.iter().fold(Spectrum::black(), |c, l| c + l.le(ray));
+                colour = scene
+                    .lights
+                    .iter()
+                    .fold(Spectrum::black(), |c, l| c + l.le(ray));
             }
         }
 

@@ -56,14 +56,15 @@ impl Ray {
             o += d * dt;
         }
 
-        let diff = self.differential.map(|d| {
-            RayDifferential {
-                rx_origin: transform * &d.rx_origin,
-                ry_origin: transform * &d.ry_origin,
-                rx_direction: transform * &d.rx_direction,
-                ry_direction: transform * &d.ry_direction,
-            }
-        });
+        let diff = self.differential
+            .map(|d| {
+                     RayDifferential {
+                         rx_origin: transform * &d.rx_origin,
+                         ry_origin: transform * &d.ry_origin,
+                         rx_direction: transform * &d.rx_direction,
+                         ry_direction: transform * &d.ry_direction,
+                     }
+                 });
 
         let r = Ray {
             o: o,

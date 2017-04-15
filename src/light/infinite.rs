@@ -132,7 +132,8 @@ impl Light for InfiniteAreaLight {
         if sin_theta == 0.0 {
             0.0
         } else {
-            self.distribution.pdf(&Point2f::new(phi * FRAC_1_PI * 0.5, theta * FRAC_1_PI)) /
+            self.distribution
+                .pdf(&Point2f::new(phi * FRAC_1_PI * 0.5, theta * FRAC_1_PI)) /
             (2.0 * PI * PI * sin_theta)
         }
     }

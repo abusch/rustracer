@@ -216,7 +216,10 @@ fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output 
 
 #[test]
 fn test_array() {
-    let p = vec![Tokens::LBRACK, Tokens::NUMBER(50.0), Tokens::NUMBER(12.0), Tokens::RBRACK];
+    let p = vec![Tokens::LBRACK,
+                 Tokens::NUMBER(50.0),
+                 Tokens::NUMBER(12.0),
+                 Tokens::RBRACK];
     let foo = vec![];
 
     assert_eq!(array().parse(&p[..]),

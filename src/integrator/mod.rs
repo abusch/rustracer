@@ -162,7 +162,9 @@ pub fn estimate_direct(it: &SurfaceInteraction,
     };
     let mut ld = Spectrum::black();
     // Sample light with multiple importance sampling
-    let bsdf = it.bsdf.as_ref().expect("There should be a BSDF set at this point!");
+    let bsdf = it.bsdf
+        .as_ref()
+        .expect("There should be a BSDF set at this point!");
     let (mut li, wi, light_pdf, vis) = light.sample_li(it, &u_light);
     if light_pdf > 0.0 && !li.is_black() {
         // Compute BSDF for light sample
