@@ -21,6 +21,10 @@ impl Transform {
         }
     }
 
+    pub fn rotate(angle: f32, v: Vector3f) -> Transform {
+        Transform::new(na::zero(), v * angle, 1.0)
+    }
+
     pub fn rot_x(angle: f32) -> Transform {
         Transform::new(na::zero(), Vector3f::x() * angle.to_radians(), 1.0)
     }
@@ -37,6 +41,10 @@ impl Transform {
         Transform::new(na::zero(), Vector3f::new(ax, ay, az), 1.0)
     }
 
+    pub fn translate(t: Vector3f) -> Transform {
+        Transform::new(t, na::zero(), 1.0)
+    }
+
     pub fn translate_x(t: f32) -> Transform {
         Transform::new(Vector3f::x() * t, na::zero(), 1.0)
     }
@@ -47,6 +55,10 @@ impl Transform {
 
     pub fn translate_z(t: f32) -> Transform {
         Transform::new(Vector3f::z() * t, na::zero(), 1.0)
+    }
+
+    pub fn scale(s: f32) -> Transform {
+        Transform::new(na::zero(), na::zero(), s)
     }
 
     pub fn inverse(&self) -> Self {
