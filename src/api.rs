@@ -445,11 +445,15 @@ impl Api for RealApi {
         }
         state.restore_transform();
 
-        Ok(())  
+        Ok(())
     }
 
     fn material(&self, name: String, params: &ParamSet) -> Result<()> {
         info!("Material called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        state.graphics_state.material = name;
+        state.graphics_state.material_param = params.clone();
+        state.graphics_state.current_named_material = String::new();
         Ok(())
     }
 
