@@ -1,10 +1,12 @@
 use std::f32::consts::PI;
+use std::sync::Arc;
 
 use uuid::Uuid;
 
-use {Point3f, Vector3f, Point2f};
+use {Point3f, Vector3f, Point2f, Transform};
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, DELTA_DIRECTION};
+use paramset::ParamSet;
 use scene::Scene;
 use spectrum::Spectrum;
 
@@ -26,6 +28,15 @@ impl DistantLight {
             w_center: Point3f::new(0.0, 0.0, 0.0),
             w_radius: 100.0, // TODO
         }
+    }
+
+    pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light> {
+        let L = params.find_one_spectrum("L", Spectrum::white());
+        let scale = params.find_one_spectrum("scale", Spectrum::white());
+        let from = params.find_one_point3f("from", Point3f::origin());
+        let to = params.find_one_point3f("to", Point3f::new(0.0, 0.0, 1.0));
+        let dir = from - to;
+        Arc::new(DistantLight::new(l2w * &dir, L * scale))
     }
 }
 

@@ -1,11 +1,14 @@
+use std::sync::Arc;
 use std::f32::consts::PI;
 
 use uuid::Uuid;
+use na;
 
-use {Point3f, Vector3f, Point2f};
-use light::{Light, LightFlags, VisibilityTester, DELTA_POSITION};
-use spectrum::Spectrum;
+use {Point3f, Vector3f, Point2f, Transform};
 use interaction::{Interaction, SurfaceInteraction};
+use light::{Light, LightFlags, VisibilityTester, DELTA_POSITION};
+use paramset::ParamSet;
+use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct PointLight {
@@ -21,6 +24,15 @@ impl PointLight {
             pos: p,
             emission_colour: ec,
         }
+    }
+
+    pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light> {
+        let I = params.find_one_spectrum("I", Spectrum::white());
+        let scale = params.find_one_spectrum("scale", Spectrum::white());
+        let p = params.find_one_point3f("from", Point3f::origin());
+
+        let t = &Transform::translate(Vector3f::new(p.x, p.y, p.z)) * l2w;
+        Arc::new(PointLight::new(&t * &Point3f::origin(), I * scale))
     }
 }
 

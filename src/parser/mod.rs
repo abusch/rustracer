@@ -62,5 +62,5 @@ WorldBegin
 WorldEnd
         "##;
 
-    assert!(parse_scene(scene).is_ok());
+    parse_scene(scene).unwrap();
 }

@@ -1,12 +1,12 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::fmt::Debug;
 
 use na::Similarity3;
 
 use {Transform, Vector3f, Point3f};
 use errors::*;
+use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
 use material::Material;
 use paramset::ParamSet;
 use spectrum::Spectrum;
@@ -115,7 +115,6 @@ impl ParamListEntry {
     }
 }
 
-#[derive(Debug)]
 pub struct RenderOptions {
     transform_start_time: f32,
     transform_end_time: f32,
@@ -130,6 +129,7 @@ pub struct RenderOptions {
     camera_name: String,
     camera_params: ParamSet,
     camera_to_world: Transform,
+    lights: Vec<Arc<Light>>,
 }
 
 impl Default for RenderOptions {
@@ -148,6 +148,7 @@ impl Default for RenderOptions {
             camera_name: "perspective".to_owned(),
             camera_params: ParamSet::default(),
             camera_to_world: Transform::default(),
+            lights: Vec::new(),
         }
     }
 }
@@ -237,12 +238,12 @@ pub trait Api {
     // TODO active_transform_end_time
     // TODO active_transform_start_time
     // TODO transform_times
-    fn pixel_filter(&self, name: String, params: &ParamSet) -> Result<()>;
-    fn film(&self, name: String, params: &ParamSet) -> Result<()>;
-    fn sampler(&self, name: String, params: &ParamSet) -> Result<()>;
-    fn accelerator(&self, name: String, params: &ParamSet) -> Result<()>;
-    fn integrator(&self, name: String, params: &ParamSet) -> Result<()>;
-    fn camera(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn film(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn camera(&self, name: String, params: &mut ParamSet) -> Result<()>;
     // TODO make_named_medium
     // TODO medium_interface
     fn world_begin(&self) -> Result<()>;
@@ -251,12 +252,12 @@ pub trait Api {
     fn transform_begin(&self) -> Result<()>;
     fn transform_end(&self) -> Result<()>;
     // TODO texture
-    fn material(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn material(&self, name: String, params: &mut ParamSet) -> Result<()>;
     // TODO make_named_material
     // TODO named_material
-    fn lightsource(&self, name: String, params: &ParamSet) -> Result<()>;
-    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<()>;
-    fn shape(&self, name: String, params: &ParamSet) -> Result<()>;
+    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn shape(&self, name: String, params: &mut ParamSet) -> Result<()>;
     // TODO reverse_orientation
     // TODO object_begin
     // TODO object_end
@@ -267,6 +268,28 @@ pub trait Api {
 #[derive(Default)]
 pub struct RealApi {
     state: RefCell<State>,
+}
+
+impl RealApi {
+    fn make_light(&self,
+                  name: &str,
+                  param_set: &mut ParamSet,
+                  light_2_world: &Transform)
+                  -> Result<Arc<Light>> {
+        if name == "point" {
+            let light = PointLight::create(light_2_world, param_set);
+            Ok(light)
+        } else if name == "distant" {
+            let light = DistantLight::create(light_2_world, param_set);
+            Ok(light)
+        } else if name == "infinite" {
+            let light = InfiniteAreaLight::create(light_2_world, param_set);
+            Ok(light)
+        } else {
+            warn!("Light {} unknown", name);
+            bail!("Unsupported light type");
+        }
+    }
 }
 
 impl Api for RealApi {
@@ -337,7 +360,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn pixel_filter(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         info!("pixel_filter called");
@@ -346,7 +369,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn film(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn film(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Film called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -355,7 +378,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn sampler(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         info!("sampler called");
@@ -364,7 +387,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn accelerator(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         info!("accelerator called");
@@ -373,7 +396,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn integrator(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Integrator called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -382,7 +405,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn camera(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn camera(&self, name: String, params: &mut ParamSet) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         info!("Camera called with {} and {:?}", name, params);
@@ -448,7 +471,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn material(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn material(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Material called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
         state.graphics_state.material = name;
@@ -457,17 +480,21 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn lightsource(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Lightsource called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+        let lt = self.make_light(&name, params, &state.cur_transform)?;
+        state.render_options.lights.push(lt);
         Ok(())
     }
 
-    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Arealightsource called with {} and {:?}", name, params);
         Ok(())
     }
 
-    fn shape(&self, name: String, params: &ParamSet) -> Result<()> {
+    fn shape(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Shape called with {} and {:?}", name, params);
         Ok(())
     }

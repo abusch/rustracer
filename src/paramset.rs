@@ -2,6 +2,7 @@
 
 use std::fmt::Debug;
 
+use Point3f;
 use api::{ParamListEntry, ParamType};
 use spectrum::Spectrum;
 
@@ -40,6 +41,7 @@ pub struct ParamSet {
     floats: Vec<ParamSetItem<f32>>,
     strings: Vec<ParamSetItem<String>>,
     spectra: Vec<ParamSetItem<Spectrum>>,
+    point3fs: Vec<ParamSetItem<Point3f>>,
 }
 
 impl ParamSet {
@@ -70,6 +72,16 @@ impl ParamSet {
                         .map(|s| Spectrum::rgb(s[0], s[1], s[2]))
                         .collect();
                     self.add_rgb_spectrum(entry.param_name.clone(), spectra);
+                }
+                ParamType::Point3 => {
+                    let points = entry
+                        .values
+                        .as_num_array()
+                        .chunks(3)
+                        .filter(|s| s.len() == 3)
+                        .map(|s| Point3f::new(s[0], s[1], s[2]))
+                        .collect();
+                    self.add_point3f(entry.param_name.clone(), points);
                 }
                 _ => {
                     error!(format!("Parameter type {:?} is not implemented yet!",
@@ -115,14 +127,25 @@ impl ParamSet {
                   });
     }
 
+    fn add_point3f(&mut self, name: String, values: Vec<Point3f>) {
+        self.point3fs
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
+    }
+
     find!(find_int, ints, i32);
     find!(find_float, floats, f32);
     find!(find_string, strings, String);
     find!(find_spectrum, spectra, Spectrum);
+    find!(find_point3fs, point3fs, Point3f);
     find_one!(find_one_int, ints, i32);
     find_one!(find_one_float, floats, f32);
     find_one!(find_one_string, strings, String);
     find_one!(find_one_spectrum, spectra, Spectrum);
+    find_one!(find_one_point3f, point3fs, Point3f);
 }
 
 #[derive(Debug, Clone)]

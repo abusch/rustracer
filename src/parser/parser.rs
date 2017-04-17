@@ -37,41 +37,47 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                           api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
                               .map_err(|e| Error::Message(e.description().to_owned().into()))
                       });
-    let camera = (token(Tokens::CAMERA), string_(), param_list())
-        .and_then(|(_, name, params)| {
-                      api.camera(name, &params)
+    let camera =
+        (token(Tokens::CAMERA), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                      api.camera(name, &mut params)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                                                                  });
+    let film = (token(Tokens::FILM), string_(), param_list())
+        .and_then(|(_, name, mut params)| {
+                      api.film(name, &mut params)
                           .map_err(|e| Error::Message(e.description().to_owned().into()))
                   });
-    let film = (token(Tokens::FILM), string_(), param_list()).and_then(|(_, name, params)| {
-                                                                      api.film(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                  });
-    let integrator =
-        (token(Tokens::INTEGRATOR), string_(), param_list()).and_then(|(_, name, params)| {
-                                                                     api.integrator(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                 });
+    let integrator = (token(Tokens::INTEGRATOR), string_(), param_list())
+        .and_then(|(_, name, mut params)| {
+                      api.integrator(name, &mut params)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
     let arealightsource = (token(Tokens::AREALIGHTSOURCE), string_(), param_list())
-        .and_then(|(_, name, params)| {
-                      api.arealightsource(name, &params)
+        .and_then(|(_, name, mut params)| {
+                      api.arealightsource(name, &mut params)
                           .map_err(|e| Error::Message(e.description().to_owned().into()))
                   });
-    let lightsource =
-        (token(Tokens::LIGHTSOURCE), string_(), param_list()).and_then(|(_, name, params)| {
-                                                                      api.lightsource(name,
-                                                                                      &params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                  });
-    let material = (token(Tokens::MATERIAL), string_(), param_list()).and_then(|(_, name, params)| {
+    let lightsource = (token(Tokens::LIGHTSOURCE), string_(), param_list())
+        .and_then(|(_, name, mut params)| {
+                      api.lightsource(name, &mut params)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
+    let material = (token(Tokens::MATERIAL), string_(), param_list()).and_then(|(_, name, mut params)| {
                                                                               api.material(name,
-                                                                                           &params).map_err(|e| Error::Message(e.description().to_owned().into()))
+                                                                                           &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                           });
-    let sampler = (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_, name, params)| {
-                                                                        api.sampler(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
+    let sampler = (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                        api.sampler(name, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                     });
-    let shape = (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, params)| {
-                                                                        api.shape(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
+    let shape = (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                        api.shape(name, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                     });
-    let filter = (token(Tokens::PIXELFILTER), string_(), param_list()).and_then(|(_, name, params)| {
-                                                                        api.pixel_filter(name, &params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                    });
+    let filter =
+        (token(Tokens::PIXELFILTER), string_(), param_list())
+            .and_then(|(_, name, mut params)| {
+                          api.pixel_filter(name, &mut params)
+                              .map_err(|e| Error::Message(e.description().to_owned().into()))
+                      });
     let rotate =
         (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
                                                                     api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
