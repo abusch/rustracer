@@ -83,17 +83,24 @@ pub fn render(scene: Scene,
                     }
                     // Once we've rendered all the samples for the tile, send the tile through the
                     // channel to the main thread which will add it to the film.
-                    pixel_tx.send(tile).unwrap_or_else(|e| error!("Failed to send tile: {}", e));
+                    pixel_tx
+                        .send(tile)
+                        .unwrap_or_else(|e| error!("Failed to send tile: {}", e));
                 }
                 // Once there are no more tiles to render, send the thread's accumulated stats back
                 // to the main thread
-                stats_tx.send(stats::get_stats()).unwrap_or_else(|e| error!("Failed to send thread stats: {}", e));
+                stats_tx
+                    .send(stats::get_stats())
+                    .unwrap_or_else(|e| error!("Failed to send thread stats: {}", e));
             });
         }
     });
 
     // Collect all the stats from the threads
-    let global_stats = stats_rx.iter().take(num_threads).fold(stats::get_stats(), |a, b| a + b);
+    let global_stats = stats_rx
+        .iter()
+        .take(num_threads)
+        .fold(stats::get_stats(), |a, b| a + b);
 
     write_png(dim, &film.render(), filename).map(|_| global_stats)
 }

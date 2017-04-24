@@ -99,9 +99,11 @@ impl Shape for Disk {
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let pd = concentric_sample_disk(u);
         let p_obj = Point3f::new(pd.x * self.radius, pd.y * self.radius, self.height);
-        let n = self.object_to_world.transform_normal(&Vector3f::z()).normalize();
-        let (p, p_err) =
-            self.object_to_world.transform_point_with_error(&p_obj, &Vector3f::new(0.0, 0.0, 0.0));
+        let n = self.object_to_world
+            .transform_normal(&Vector3f::z())
+            .normalize();
+        let (p, p_err) = self.object_to_world
+            .transform_point_with_error(&p_obj, &Vector3f::new(0.0, 0.0, 0.0));
         let pdf = 1.0 / self.area();
 
         (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)

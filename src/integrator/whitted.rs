@@ -60,7 +60,10 @@ impl SamplerIntegrator for Whitted {
                 }
             }
             None => {
-                colour = scene.lights.iter().fold(Spectrum::black(), |c, l| c + l.le(ray));
+                colour = scene
+                    .lights
+                    .iter()
+                    .fold(Spectrum::black(), |c, l| c + l.le(ray));
             }
         }
 

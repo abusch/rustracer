@@ -37,12 +37,12 @@ impl<T: Primitive> BVH<T> {
                           -> BVH<GeometricPrimitive> {
         let mut prims = tris.drain(..)
             .map(|t| {
-                GeometricPrimitive {
-                    shape: Arc::new(t),
-                    area_light: None,
-                    material: Some(material.clone()),
-                }
-            })
+                     GeometricPrimitive {
+                         shape: Arc::new(t),
+                         area_light: None,
+                         material: Some(material.clone()),
+                     }
+                 })
             .collect();
 
         BVH::new(1, &mut prims)
@@ -53,7 +53,8 @@ impl<T: Primitive> BVH<T> {
 
         // 1. Get bounds info
         info!("\tGenerating primitive info");
-        let mut primitive_info: Vec<BVHPrimitiveInfo> = prims.iter()
+        let mut primitive_info: Vec<BVHPrimitiveInfo> = prims
+            .iter()
             .enumerate()
             .map(|(i, p)| BVHPrimitiveInfo::new(i, p.world_bounds()))
             .collect();
@@ -77,8 +78,10 @@ impl<T: Primitive> BVH<T> {
         let mut sorted_idx: Vec<(usize, &usize)> = ordered_prims_idx.iter().enumerate().collect();
         sorted_idx.sort_by_key(|i| i.1);
 
-        let mut prims_with_idx: Vec<(T, usize)> =
-            prims.drain(..).zip(sorted_idx.iter().map(|i| i.0)).collect();
+        let mut prims_with_idx: Vec<(T, usize)> = prims
+            .drain(..)
+            .zip(sorted_idx.iter().map(|i| i.0))
+            .collect();
         prims_with_idx.sort_by_key(|i| i.1);
         let ordered_prims: Vec<T> = prims_with_idx.drain(..).map(|i| i.0).collect();
 
@@ -109,9 +112,9 @@ impl<T: Primitive> BVH<T> {
         let n_primitives = end - start;
         assert!(start != end);
         // Compute bounds of all primitives in node
-        let bbox =
-            build_data[start..end].iter().fold(Bounds3f::new(),
-                                               |b, pi| Bounds3f::union(&b, &pi.bounds));
+        let bbox = build_data[start..end]
+            .iter()
+            .fold(Bounds3f::new(), |b, pi| Bounds3f::union(&b, &pi.bounds));
         if n_primitives == 1 {
             // Create leaf
             let first_prim_offset = ordered_prims.len();
@@ -121,9 +124,10 @@ impl<T: Primitive> BVH<T> {
             BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox)
         } else {
             // Compute bounds of primitive centroids
-            let centroids_bounds = build_data[start..end].iter().fold(Bounds3f::new(), |bb, pi| {
-                Bounds3f::union_point(&bb, &pi.centroid)
-            });
+            let centroids_bounds = build_data[start..end]
+                .iter()
+                .fold(Bounds3f::new(),
+                      |bb, pi| Bounds3f::union_point(&bb, &pi.centroid));
             // Choose split dimension
             let dimension = centroids_bounds.maximum_extent();
             // Partition primitives into 2 sets and build children
@@ -171,7 +175,11 @@ impl<T: Primitive> BVH<T> {
         let offset = nodes.len();
 
         match *node {
-            BVHBuildNode::Leaf { first_prim_offset, num_prims, .. } => {
+            BVHBuildNode::Leaf {
+                first_prim_offset,
+                num_prims,
+                ..
+            } => {
                 let linear_node = LinearBVHNode {
                     bounds: *node.bounds(),
                     data: LinearBVHNodeData::Leaf {
@@ -181,7 +189,11 @@ impl<T: Primitive> BVH<T> {
                 };
                 nodes.push(linear_node);
             }
-            BVHBuildNode::Interior { split_axis, ref children, .. } => {
+            BVHBuildNode::Interior {
+                split_axis,
+                ref children,
+                ..
+            } => {
                 let linear_node = LinearBVHNode {
                     bounds: *node.bounds(),
                     data: LinearBVHNodeData::Interior {
@@ -219,16 +231,23 @@ impl<T: Primitive> Primitive for BVH<T> {
         let mut current_node_idx = 0;
         let mut nodes_to_visit = [0; 64];
         let inv_dir = Vector3f::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
-        let dir_is_neg =
-            [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
+        let dir_is_neg = [(inv_dir.x < 0.0) as usize,
+                          (inv_dir.y < 0.0) as usize,
+                          (inv_dir.z < 0.0) as usize];
         loop {
             let linear_node = &self.nodes[current_node_idx];
-            if linear_node.bounds.intersect_p_fast(ray, &inv_dir, &dir_is_neg) {
+            if linear_node
+                   .bounds
+                   .intersect_p_fast(ray, &inv_dir, &dir_is_neg) {
                 match linear_node.data {
-                    LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
+                    LinearBVHNodeData::Leaf {
+                        num_prims,
+                        primitives_offset,
+                    } => {
                         for i in 0..num_prims {
-                            result =
-                                self.primitives[primitives_offset + i].intersect(ray).or(result);
+                            result = self.primitives[primitives_offset + i]
+                                .intersect(ray)
+                                .or(result);
                         }
                         if to_visit_offset == 0 {
                             break;
@@ -236,7 +255,11 @@ impl<T: Primitive> Primitive for BVH<T> {
                         to_visit_offset -= 1;
                         current_node_idx = nodes_to_visit[to_visit_offset];
                     }
-                    LinearBVHNodeData::Interior { axis, second_child_offset, .. } => {
+                    LinearBVHNodeData::Interior {
+                        axis,
+                        second_child_offset,
+                        ..
+                    } => {
                         let axis_num = match axis {
                             Axis::X => 0,
                             Axis::Y => 1,
@@ -274,13 +297,19 @@ impl<T: Primitive> Primitive for BVH<T> {
         let mut current_node_idx = 0;
         let mut nodes_to_visit = [0; 64];
         let inv_dir = Vector3f::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
-        let dir_is_neg =
-            [(inv_dir.x < 0.0) as usize, (inv_dir.y < 0.0) as usize, (inv_dir.z < 0.0) as usize];
+        let dir_is_neg = [(inv_dir.x < 0.0) as usize,
+                          (inv_dir.y < 0.0) as usize,
+                          (inv_dir.z < 0.0) as usize];
         loop {
             let linear_node = &self.nodes[current_node_idx];
-            if linear_node.bounds.intersect_p_fast(ray, &inv_dir, &dir_is_neg) {
+            if linear_node
+                   .bounds
+                   .intersect_p_fast(ray, &inv_dir, &dir_is_neg) {
                 match linear_node.data {
-                    LinearBVHNodeData::Leaf { num_prims, primitives_offset } => {
+                    LinearBVHNodeData::Leaf {
+                        num_prims,
+                        primitives_offset,
+                    } => {
                         for i in 0..num_prims {
 
                             if self.primitives[primitives_offset + i].intersect_p(ray) {
@@ -293,7 +322,11 @@ impl<T: Primitive> Primitive for BVH<T> {
                         to_visit_offset -= 1;
                         current_node_idx = nodes_to_visit[to_visit_offset];
                     }
-                    LinearBVHNodeData::Interior { axis, second_child_offset, .. } => {
+                    LinearBVHNodeData::Interior {
+                        axis,
+                        second_child_offset,
+                        ..
+                    } => {
                         let axis_num = match axis {
                             Axis::X => 0,
                             Axis::Y => 1,

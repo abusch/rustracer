@@ -35,11 +35,13 @@ impl Primitive for GeometricPrimitive {
     }
 
     fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
-        self.shape.intersect(ray).map(|(mut isect, t_hit)| {
-                                          isect.primitive = Some(self);
-                                          ray.t_max = t_hit;
-                                          isect
-                                      })
+        self.shape
+            .intersect(ray)
+            .map(|(mut isect, t_hit)| {
+                     isect.primitive = Some(self);
+                     ray.t_max = t_hit;
+                     isect
+                 })
     }
 
     fn intersect_p(&self, ray: &Ray) -> bool {

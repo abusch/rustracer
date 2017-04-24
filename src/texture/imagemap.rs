@@ -22,8 +22,9 @@ impl ImageTexture {
             Ok(buf) => {
                 let rgb = buf.to_rgb();
                 let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
-                let mut pixels: Vec<Spectrum> =
-                    rgb.pixels().map(|p| Spectrum::from_srgb(&p.data)).collect();
+                let mut pixels: Vec<Spectrum> = rgb.pixels()
+                    .map(|p| Spectrum::from_srgb(&p.data))
+                    .collect();
 
                 // Flip image in y; texture coordinate space has (0,0) at the lower
                 // left corner.

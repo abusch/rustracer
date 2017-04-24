@@ -35,15 +35,21 @@ impl Scene {
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
-        self.primitives.iter().fold(None, |r, p| p.intersect(ray).or(r))
+        self.primitives
+            .iter()
+            .fold(None, |r, p| p.intersect(ray).or(r))
     }
 
     pub fn intersect_p(&self, ray: &Ray) -> bool {
-        self.primitives.iter().fold(false, |r, p| p.intersect_p(ray) || r)
+        self.primitives
+            .iter()
+            .fold(false, |r, p| p.intersect_p(ray) || r)
     }
 
     pub fn world_bounds(&self) -> Bounds3f {
-        self.primitives.iter().fold(Bounds3f::new(),
-                                    |r, p| Bounds3f::union(&r, &p.world_bounds()))
+        self.primitives
+            .iter()
+            .fold(Bounds3f::new(),
+                  |r, p| Bounds3f::union(&r, &p.world_bounds()))
     }
 }

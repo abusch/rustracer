@@ -5,7 +5,6 @@ extern crate nalgebra as na;
 extern crate rustracer as rt;
 #[macro_use]
 extern crate clap;
-extern crate rustc_serialize;
 extern crate num_cpus;
 #[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
 extern crate slog;
@@ -23,8 +22,8 @@ use clap::ArgMatches;
 use argparse::SamplerIntegratorType;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::errors::*;
-use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal, AmbientOcclusion,
-                     PathIntegrator};
+use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
+                     AmbientOcclusion, PathIntegrator};
 use rt::renderer;
 
 fn main() {
@@ -46,10 +45,14 @@ fn main() {
 }
 
 fn run(matches: ArgMatches) -> Result<()> {
-    let dims = matches.value_of("dim")
+    let dims = matches
+        .value_of("dim")
         .unwrap()
         .split('x')
-        .map(|s| s.parse::<u32>().chain_err(|| "Unable to parse dimension"))
+        .map(|s| {
+                 s.parse::<u32>()
+                     .chain_err(|| "Unable to parse dimension")
+             })
         .collect::<Result<Vec<u32>>>()?;
     if dims.len() != 2 {
         bail!("Error: invalid dimension specification");
@@ -92,17 +95,20 @@ fn run(matches: ArgMatches) -> Result<()> {
     };
 
     let start_time = std::time::Instant::now();
-    let stats =
-        renderer::render(scene,
-                         integrator,
-                         dim,
-                         matches.value_of("output").unwrap(),
-                         matches.value_of("threads")
-                             .and_then(|s| s.parse::<usize>().ok())
-                             .unwrap_or_else(num_cpus::get),
-                         matches.value_of("spp").and_then(|s| s.parse::<usize>().ok()).unwrap(),
-                         16,
-                         disp)?;
+    let stats = renderer::render(scene,
+                                 integrator,
+                                 dim,
+                                 matches.value_of("output").unwrap(),
+                                 matches
+                                     .value_of("threads")
+                                     .and_then(|s| s.parse::<usize>().ok())
+                                     .unwrap_or_else(num_cpus::get),
+                                 matches
+                                     .value_of("spp")
+                                     .and_then(|s| s.parse::<usize>().ok())
+                                     .unwrap(),
+                                 16,
+                                 disp)?;
     // args.flag_block_size);
     let duration = start_time.elapsed();
     println!("Render time                : {}", duration.human_display());

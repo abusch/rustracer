@@ -64,7 +64,9 @@ impl Triangle {
         if let Some(ref uv) = self.mesh.uv {
             [uv[self.v(0)], uv[self.v(1)], uv[self.v(2)]]
         } else {
-            [Point2f::new(0.0, 0.0), Point2f::new(1.0, 0.0), Point2f::new(1.0, 1.0)]
+            [Point2f::new(0.0, 0.0),
+             Point2f::new(1.0, 0.0),
+             Point2f::new(1.0, 1.0)]
         }
     }
 }
@@ -277,28 +279,32 @@ pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) 
     let model = models.iter().find(|m| m.name == model_name).unwrap();
 
     info!("\tProcessing indices");
-    let indices: Vec<usize> = model.mesh
+    let indices: Vec<usize> = model
+        .mesh
         .indices
         .iter()
         .map(|i| *i as usize)
         .collect();
 
     info!("\tProcessing vertices");
-    let positions: Vec<Point3f> = model.mesh
+    let positions: Vec<Point3f> = model
+        .mesh
         .positions
         .chunks(3)
         .map(|p| Point3f::new(p[0], p[1], p[2]))
         .collect();
 
     info!("\tProcessing normals");
-    let normals: Vec<Vector3f> = model.mesh
+    let normals: Vec<Vector3f> = model
+        .mesh
         .normals
         .chunks(3)
         .map(|n| Vector3f::new(n[0], n[1], n[2]))
         .collect();
 
     info!("\tProcessing UV coordinates");
-    let uv: Vec<Point2f> = model.mesh
+    let uv: Vec<Point2f> = model
+        .mesh
         .texcoords
         .chunks(2)
         .map(|t| Point2f::new(t[0], t[1]))

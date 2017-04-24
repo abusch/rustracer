@@ -488,7 +488,9 @@ impl TrowbridgeReitzDistribution {
             tmp = 1e10;
         }
         let B = tan_theta;
-        let D = (B * B * tmp * tmp - (A * A - B * B) * tmp).max(0.0).sqrt();
+        let D = (B * B * tmp * tmp - (A * A - B * B) * tmp)
+            .max(0.0)
+            .sqrt();
         let slope_x_1 = B * tmp - D;
         let slope_x_2 = B * tmp + D;
         let slope_x = if A < 0.0 || slope_x_2 > 1.0 / tan_theta {
