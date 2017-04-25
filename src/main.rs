@@ -5,7 +5,6 @@ extern crate nalgebra as na;
 extern crate rustracer as rt;
 #[macro_use]
 extern crate clap;
-extern crate rustc_serialize;
 extern crate num_cpus;
 #[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
 extern crate slog;
