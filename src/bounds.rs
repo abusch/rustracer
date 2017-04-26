@@ -209,12 +209,6 @@ impl<T> Bounds2<T>
         }
     }
 
-// pub fn corner(&self, corner: usize) -> Point2<T> {
-//     Point3::new(self[corner & 1].x,
-//                 self[if corner & 2 != 0 { 1 } else { 0 }].y,
-//                 self[if corner & 4 != 0 { 1 } else { 0 }].y)
-// }
-
     pub fn extend(&mut self, p: Point2<T>) {
         if p.x < self.p_min.x {
             self.p_min.x = p.x

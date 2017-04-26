@@ -5,10 +5,18 @@ use std::sync::Arc;
 use na::Similarity3;
 
 use {Transform, Vector3f, Point3f};
+use camera::{Camera, PerspectiveCamera};
 use errors::*;
+use filter::Filter;
+use filter::boxfilter::BoxFilter;
+use film::Film;
 use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
+use integrator::SamplerIntegrator;
 use material::Material;
 use paramset::ParamSet;
+use sampler::Sampler;
+use sampler::zerotwosequence::ZeroTwoSequence;
+use scene::Scene;
 use spectrum::Spectrum;
 use texture::Texture;
 
@@ -118,6 +126,8 @@ impl ParamListEntry {
 pub struct RenderOptions {
     transform_start_time: f32,
     transform_end_time: f32,
+    film_name: String,
+    film_params: ParamSet,
     filter_name: String,
     filter_params: ParamSet,
     sampler_name: String,
@@ -132,11 +142,58 @@ pub struct RenderOptions {
     lights: Vec<Arc<Light>>,
 }
 
+impl RenderOptions {
+    pub fn make_filter(&mut self) -> Result<Box<Filter>> {
+        let filter = if self.filter_name == "box" {
+            Box::new(BoxFilter::create(&mut self.filter_params))
+        } else {
+            bail!(format!("Filter \"{}\" unknown.", self.filter_name));
+        };
+
+        Ok(filter)
+    }
+
+    pub fn make_film(&mut self, filter: Box<Filter + Send + Sync>) -> Result<Box<Film>> {
+        let film = if self.film_name == "image" {
+            Film::create(&mut self.film_params, filter)
+        } else {
+            bail!(format!("Film \"{}\" unknown.", self.film_name));
+        };
+
+        Ok(film)
+    }
+
+    pub fn make_sampler(&mut self) -> Result<Box<Sampler>> {
+        let sampler = if self.sampler_name == "lowdiscrepancy" ||
+                         self.sampler_name == "02sequence" {
+            ZeroTwoSequence::create(&mut self.sampler_params)
+        } else {
+            bail!(format!("Sampler \"{}\" unknown.", self.sampler_name));
+        };
+
+        Ok(sampler)
+    }
+
+    pub fn make_camera(&mut self) -> Result<Box<Camera>> {
+        unimplemented!();
+    }
+
+    pub fn make_integrator(&mut self) -> Box<SamplerIntegrator> {
+        unimplemented!();
+    }
+
+    pub fn make_scene(&mut self) -> Box<Scene> {
+        unimplemented!();
+    }
+}
+
 impl Default for RenderOptions {
     fn default() -> Self {
         RenderOptions {
             transform_start_time: 0.0,
             transform_end_time: 1.0,
+            film_name: "image".to_owned(),
+            film_params: ParamSet::default(),
             filter_name: "box".to_owned(),
             filter_params: ParamSet::default(),
             sampler_name: "halton".to_owned(),
@@ -500,9 +557,23 @@ impl Api for RealApi {
     }
 
     fn world_end(&self) -> Result<()> {
-        self.state.borrow().api_state.verify_world()?;
-
         info!("world_end called");
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+
+        while !state.pushed_graphics_states.is_empty() {
+            warn!("Missing AttributeEnd");
+            let _ = state.pushed_graphics_states.pop();
+            let _ = state.pushed_transforms.pop();
+        }
+        while !state.pushed_transforms.is_empty() {
+            warn!("Missing TransformEnd!");
+            let _ = state.pushed_transforms.pop();
+        }
+
+        let integrator = state.render_options.make_integrator();
+        let scene = state.render_options.make_scene();
+
         Ok(())
     }
 }
