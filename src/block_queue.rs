@@ -96,7 +96,7 @@ impl Iterator for BlockQueue {
 
 #[test]
 fn test_iter() {
-    let block = Block::new((12, 12), 8);
+    let block = Block::new(Point2i::new(12, 12), 8);
     let pixels: Vec<Point2i> = block.into_iter().collect();
 
     assert_eq!(pixels.len(), 64);
@@ -108,7 +108,7 @@ fn test_iter() {
 
 #[test]
 fn test_queue_iter() {
-    let queue = BlockQueue::new((100, 100), 8);
+    let queue = BlockQueue::new(Point2i::new(100, 100), 8);
     let blocks: Vec<Block> = queue.into_iter().collect();
 
     // 100 is not a multiple of 8, so make sure we generate enough blocks to cover the whole image.
@@ -118,7 +118,7 @@ fn test_queue_iter() {
 
 #[test]
 fn test_power_of_two() {
-    let queue = BlockQueue::new((96, 96), 8);
+    let queue = BlockQueue::new(Point2i::new(96, 96), 8);
     let blocks: Vec<Block> = queue.into_iter().collect();
 
     assert_eq!(blocks.len(), 144);

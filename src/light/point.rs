@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::f32::consts::PI;
 
 use uuid::Uuid;
-use na;
 
 use {Point3f, Vector3f, Point2f, Transform};
 use interaction::{Interaction, SurfaceInteraction};
