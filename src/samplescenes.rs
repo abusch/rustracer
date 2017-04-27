@@ -25,7 +25,7 @@ pub fn build_scene(dim: Dim) -> Scene {
                                   "image.png",
                                   1.0));
 
-    let aspectratio = dim.0 as f32 / dim.1 as f32;
+    let aspectratio = dim.1 as f32 / dim.0 as f32;
     let camera =
         Box::new(PerspectiveCamera::new(Transform::translate_z(-3.0),
                                         Bounds2f::from_points(&Point2f::new(-1.0, -aspectratio),

@@ -84,7 +84,7 @@ fn run(matches: ArgMatches) -> Result<()> {
             SamplerIntegratorType::DirectLighting => {
                 info!("Using direct lighting integrator with max ray depth of {}",
                       8);
-                Box::new(DirectLightingIntegrator::new(8, LightStrategy::UniformSampleAll))
+                Box::new(DirectLightingIntegrator::new(8, LightStrategy::UniformSampleOne))
             }
             SamplerIntegratorType::PathTracing => {
                 info!("Using path tracing integrator");

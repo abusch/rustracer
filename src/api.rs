@@ -143,7 +143,7 @@ pub struct RenderOptions {
 }
 
 impl RenderOptions {
-    pub fn make_filter(&mut self) -> Result<Box<Filter>> {
+    pub fn make_filter(&mut self) -> Result<Box<Filter + Send + Sync>> {
         let filter = if self.filter_name == "box" {
             Box::new(BoxFilter::create(&mut self.filter_params))
         } else {
@@ -175,7 +175,16 @@ impl RenderOptions {
     }
 
     pub fn make_camera(&mut self) -> Result<Box<Camera>> {
-        unimplemented!();
+        let filter = self.make_filter()?;
+        let film = self.make_film(filter)?;
+
+        let camera = if self.camera_name == "perspective" {
+            PerspectiveCamera::create(&mut self.camera_params, &self.camera_to_world, film)
+        } else {
+            bail!("Camera \"{}\" unknown.", self.camera_name);
+        };
+
+        Ok(camera)
     }
 
     pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator>> {
