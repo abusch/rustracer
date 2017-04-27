@@ -23,6 +23,7 @@ use std::io::Read;
 use clap::ArgMatches;
 
 use argparse::SamplerIntegratorType;
+use rt::Point2i;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::errors::*;
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
@@ -61,7 +62,7 @@ fn run(matches: ArgMatches) -> Result<()> {
     if dims.len() != 2 {
         bail!("Error: invalid dimension specification");
     }
-    let dim = (dims[0], dims[1]);
+    let dim = Point2i::new(dims[0] as i32, dims[1] as i32);
 
     let filename = matches.value_of("INPUT").unwrap();
     let mut file = fs::File::open(filename)
@@ -109,8 +110,6 @@ fn run(matches: ArgMatches) -> Result<()> {
     let start_time = std::time::Instant::now();
     let stats = renderer::render(scene,
                                  integrator,
-                                 dim,
-                                 matches.value_of("output").unwrap(),
                                  matches
                                      .value_of("threads")
                                      .and_then(|s| s.parse::<usize>().ok())

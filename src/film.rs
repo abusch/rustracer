@@ -1,10 +1,13 @@
 use std::sync::Mutex;
+use std::path::Path;
 use std::f32;
 
+use img;
 use na::clamp;
 
-use {Dim, Point2f, Point2i, Vector2f};
+use {Point2f, Point2i, Vector2f};
 use bounds::{Bounds2i, Bounds2f};
+use errors::*;
 use filter::Filter;
 use paramset::ParamSet;
 use spectrum::Spectrum;
@@ -36,26 +39,25 @@ pub struct Film {
     cropped_pixel_bounds: Bounds2i,
     scale: f32,
     diagonal: f32,
+    filename: String,
 }
 
 impl Film {
-    pub fn new(dim: Dim,
+    pub fn new(resolution: Point2i,
                cropwindow: Bounds2f,
                filter: Box<Filter + Sync + Send>,
                diagonal: f32,
                filename: &str,
                scale: f32)
                -> Film {
-        let (w, h) = dim;
-        let size = w * h;
         let cropped_pixel_bounds =
-            Bounds2i::from_points(&Point2i::new((dim.0 as f32 * cropwindow.p_min.x).ceil() as i32,
-                                                (dim.1 as f32 * cropwindow.p_min.y).ceil() as i32),
-                                  &Point2i::new((dim.0 as f32 * cropwindow.p_max.x).ceil() as i32,
-                                                (dim.1 as f32 * cropwindow.p_max.y).ceil() as i32));
+            Bounds2i::from_points(&Point2i::new((resolution.x as f32 * cropwindow.p_min.x).ceil() as i32,
+                                                (resolution.y as f32 * cropwindow.p_min.y).ceil() as i32),
+                                  &Point2i::new((resolution.x as f32 * cropwindow.p_max.x).ceil() as i32,
+                                                (resolution.y as f32 * cropwindow.p_max.y).ceil() as i32));
 
-        let mut samples = Vec::with_capacity(size as usize);
-        samples.resize(size as usize, PixelSample::default());
+        let mut samples = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
+        samples.resize(cropped_pixel_bounds.area() as usize, PixelSample::default());
         let mut filter_table = [0f32; FILTER_TABLE_SIZE];
 
         let (xwidth, ywidth) = filter.width();
@@ -69,13 +71,14 @@ impl Film {
         }
 
         Film {
-            full_resolution: Point2i::new(w as i32, h as i32),
+            full_resolution: resolution,
             samples: Mutex::new(samples),
             filter_table: filter_table,
             filter_radius: Vector2f::new(xwidth, ywidth),
             cropped_pixel_bounds: cropped_pixel_bounds,
             scale: scale,
             diagonal: diagonal * 0.001,
+            filename: filename.to_owned(),
         }
     }
 
@@ -98,7 +101,7 @@ impl Film {
         let scale = ps.find_one_float("scale", 1.0);
         let diagonal = ps.find_one_float("diagonal", 35.0);
         // TODO max_sample_luminance
-        Box::new(Film::new((xres as u32, yres as u32),
+        Box::new(Film::new(Point2i::new(xres, yres),
                            crop,
                            filter,
                            diagonal,
@@ -139,6 +142,29 @@ impl Film {
         let samples = self.samples.lock().unwrap();
         samples.iter().map(|s| s.render()).collect()
     }
+
+pub fn write_png(&self) -> Result<()> {
+    let mut buffer = Vec::new();
+    let image = self.render();
+    let res = self.cropped_pixel_bounds.diagonal();
+
+    info!("Converting image to sRGB");
+    for i in 0..self.cropped_pixel_bounds.area() {
+        let bytes = image[i as usize].to_srgb();
+        buffer.push(bytes[0]);
+        buffer.push(bytes[1]);
+        buffer.push(bytes[2]);
+    }
+
+    // Save the buffer
+    info!("Writing image to file {}", self.filename);
+    img::save_buffer(&Path::new(self.filename.as_str()),
+                     &buffer,
+                     res.x as u32,
+                     res.y as u32,
+                     img::RGB(8))
+            .chain_err(|| format!("Failed to save image file {}", self.filename))
+}
 }
 
 pub struct FilmTile {
@@ -160,7 +186,7 @@ impl FilmTile {
             // Duplicating the filter table in every table is wasteful, but keeping a reference to
             // the data from Film leads to all kind of lifetime issues...
             filter_table: filter_table.into_boxed_slice(),
-            pixels: vec![FilmTilePixel::default(); pixel_bounds.get_area() as usize],
+            pixels: vec![FilmTilePixel::default(); pixel_bounds.area() as usize],
         }
     }
 

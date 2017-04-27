@@ -202,6 +202,7 @@ impl RenderOptions {
     }
 
     pub fn make_scene(&mut self) -> Box<Scene> {
+
         unimplemented!();
     }
 }
@@ -591,7 +592,7 @@ impl Api for RealApi {
         }
 
         let integrator = state.render_options.make_integrator();
-        let scene = state.render_options.make_scene();
+        // let scene = state.render_options.make_scene();
 
         Ok(())
     }

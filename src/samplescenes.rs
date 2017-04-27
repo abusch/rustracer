@@ -13,11 +13,11 @@ use rt::scene::Scene;
 use rt::shapes::disk::Disk;
 use rt::shapes::sphere::Sphere;
 use rt::spectrum::Spectrum;
-use rt::{Transform, Dim, Point2f};
+use rt::{Transform, Point2f, Point2i};
 
-pub fn build_scene(dim: Dim) -> Scene {
+pub fn build_scene(res: Point2i) -> Scene {
     info!("Building scene");
-    let film = Box::new(Film::new(dim,
+    let film = Box::new(Film::new(res,
                                   Bounds2f::from_points(&Point2f::new(0.0, 0.0),
                                                         &Point2f::new(1.0, 1.0)),
                                   Box::new(BoxFilter::new(0.5, 0.5)),
@@ -25,7 +25,7 @@ pub fn build_scene(dim: Dim) -> Scene {
                                   "image.png",
                                   1.0));
 
-    let aspectratio = dim.1 as f32 / dim.0 as f32;
+    let aspectratio = res.y as f32 / res.x as f32;
     let camera =
         Box::new(PerspectiveCamera::new(Transform::translate_z(-3.0),
                                         Bounds2f::from_points(&Point2f::new(-1.0, -aspectratio),

@@ -67,8 +67,6 @@ pub mod errors {
     error_chain!{}
 }
 
-pub type Dim = (u32, u32);
-
 pub type Vector2f = Vector2<f32>;
 pub type Vector3f = Vector3<f32>;
 pub type Point2f = Point2<f32>;

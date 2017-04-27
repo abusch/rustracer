@@ -1,12 +1,9 @@
 extern crate pbr;
 
-use std::path::Path;
 use std::sync::mpsc::channel;
 
 use crossbeam;
-use img;
 
-use Dim;
 use block_queue::BlockQueue;
 use display::DisplayUpdater;
 use errors::*;
@@ -14,19 +11,17 @@ use integrator::SamplerIntegrator;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
-use spectrum::Spectrum;
 use stats;
 
 pub fn render(scene: Scene,
               integrator: Box<SamplerIntegrator + Send + Sync>,
-              dim: Dim,
-              filename: &str,
               num_threads: usize,
               spp: usize,
-              block_size: u32,
+              block_size: i32,
               mut display: Box<DisplayUpdater + Send>)
               -> Result<stats::Stats> {
-    let block_queue = BlockQueue::new(dim, block_size);
+    let res = scene.camera.get_film().full_resolution;
+    let block_queue = BlockQueue::new(res, block_size);
     let num_blocks = block_queue.num_blocks;
     // This channel will receive tiles of sampled pixels
     let (pixel_tx, pixel_rx) = channel();
@@ -59,8 +54,8 @@ pub fn render(scene: Scene,
                 let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
-                    let seed = block.start.y as u32 / bq.block_size * bq.dims.0 +
-                               block.start.x as u32 / bq.block_size;
+                    let seed = block.start.y / bq.block_size * bq.dims.x +
+                               block.start.x / bq.block_size;
                     sampler.reseed(seed as u64);
                     let mut tile = scene.camera.get_film().get_film_tile(&block.bounds());
                     for p in &tile.get_pixel_bounds() {
@@ -97,27 +92,6 @@ pub fn render(scene: Scene,
         .take(num_threads)
         .fold(stats::get_stats(), |a, b| a + b);
 
-    write_png(dim, scene.camera.get_film().render().as_slice(), filename).map(|_| global_stats)
+    scene.camera.get_film().write_png().map(|_| global_stats)
 }
 
-fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> Result<()> {
-    let (w, h) = dim;
-    let mut buffer = Vec::new();
-
-    info!("Converting image to sRGB");
-    for i in 0..w * h {
-        let bytes = image[i as usize].to_srgb();
-        buffer.push(bytes[0]);
-        buffer.push(bytes[1]);
-        buffer.push(bytes[2]);
-    }
-
-    // Save the buffer
-    info!("Writing image to file {}", filename);
-    img::save_buffer(&Path::new(filename),
-                     &buffer,
-                     w as u32,
-                     h as u32,
-                     img::RGB(8))
-            .chain_err(|| format!("Failed to save image file {}", filename))
-}
