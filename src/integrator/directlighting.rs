@@ -1,5 +1,6 @@
 use integrator::{SamplerIntegrator, uniform_sample_one_light};
 use material::TransportMode;
+use paramset::ParamSet;
 use ray::Ray;
 use sampler::Sampler;
 use scene::Scene;
@@ -23,11 +24,26 @@ pub struct DirectLightingIntegrator {
 }
 
 impl DirectLightingIntegrator {
-    pub fn new(n: u8) -> DirectLightingIntegrator {
+    pub fn new(n: u8, strategy: LightStrategy) -> DirectLightingIntegrator {
         DirectLightingIntegrator {
             max_ray_depth: n,
-            light_strategy: LightStrategy::UniformSampleOne,
+            light_strategy: strategy,
         }
+    }
+
+    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator> {
+        let max_depth = ps.find_one_int("maxdepth", 5);
+        let st = ps.find_one_string("strategy", "all".into());
+        let strategy = if st == "one" {
+            LightStrategy::UniformSampleOne
+        } else if st == "all" {
+            LightStrategy::UniformSampleAll
+        } else {
+            warn!("Strategy \"{}\" for directlighting unknown. Using \"all\".");
+            LightStrategy::UniformSampleAll
+        };
+        // TODO pixel_bounds
+        Box::new(Self::new(max_depth as u8, strategy))
     }
 }
 

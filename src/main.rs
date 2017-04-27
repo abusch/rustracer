@@ -26,7 +26,7 @@ use argparse::SamplerIntegratorType;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::errors::*;
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
-                     AmbientOcclusion, PathIntegrator};
+                     AmbientOcclusion, PathIntegrator, LightStrategy};
 use rt::parser;
 use rt::renderer;
 
@@ -84,7 +84,7 @@ fn run(matches: ArgMatches) -> Result<()> {
             SamplerIntegratorType::DirectLighting => {
                 info!("Using direct lighting integrator with max ray depth of {}",
                       8);
-                Box::new(DirectLightingIntegrator::new(8))
+                Box::new(DirectLightingIntegrator::new(8, LightStrategy::UniformSampleAll))
             }
             SamplerIntegratorType::PathTracing => {
                 info!("Using path tracing integrator");

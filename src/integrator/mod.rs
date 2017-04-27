@@ -18,7 +18,7 @@ mod ao;
 mod normal;
 
 pub use self::whitted::Whitted;
-pub use self::directlighting::DirectLightingIntegrator;
+pub use self::directlighting::{DirectLightingIntegrator, LightStrategy};
 pub use self::path::PathIntegrator;
 pub use self::ao::AmbientOcclusion;
 pub use self::normal::Normal;

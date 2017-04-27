@@ -11,7 +11,7 @@ use filter::Filter;
 use filter::boxfilter::BoxFilter;
 use film::Film;
 use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
-use integrator::SamplerIntegrator;
+use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator};
 use material::Material;
 use paramset::ParamSet;
 use sampler::Sampler;
@@ -178,8 +178,18 @@ impl RenderOptions {
         unimplemented!();
     }
 
-    pub fn make_integrator(&mut self) -> Box<SamplerIntegrator> {
-        unimplemented!();
+    pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator>> {
+        let integrator = if self.integrator_name == "whitted" {
+            Whitted::create(&mut self.integrator_params)
+        } else if self.integrator_name == "directlighting" {
+            DirectLightingIntegrator::create(&mut self.integrator_params)
+        } else if self.integrator_name == "path" {
+            unimplemented!();
+        } else {
+            bail!(format!("Integrator \"{}\" unknown.", self.integrator_name));
+        };
+
+        Ok(integrator)
     }
 
     pub fn make_scene(&mut self) -> Box<Scene> {
@@ -430,8 +440,8 @@ impl Api for RealApi {
         info!("Film called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
-        state.render_options.filter_name = name;
-        state.render_options.filter_params = params.clone();
+        state.render_options.film_name = name;
+        state.render_options.film_params = params.clone();
         Ok(())
     }
 

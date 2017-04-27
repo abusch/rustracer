@@ -1,13 +1,14 @@
 use bsdf;
 use integrator::SamplerIntegrator;
 use material::TransportMode;
+use paramset::ParamSet;
 use ray::Ray;
 use sampler::Sampler;
 use scene::Scene;
 use spectrum::Spectrum;
 
 /// Simple integrator using the original Whitted recursive algorithm. Only handles direct illumination. See
-/// ```DirectLightingIntegrator``` for a lighly better integrator that uses better light sampling.
+/// ```DirectLightingIntegrator``` for a slighly better integrator that uses better light sampling.
 pub struct Whitted {
     /// Maximum number of times a ray can bounce before being terminated.
     pub max_ray_depth: u8,
@@ -16,6 +17,12 @@ pub struct Whitted {
 impl Whitted {
     pub fn new(n: u8) -> Whitted {
         Whitted { max_ray_depth: n }
+    }
+
+    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator> {
+        let max_depth = ps.find_one_int("maxdepth", 5);
+        // TODO pixel_bounds
+        Box::new(Self::new(max_depth as u8))
     }
 }
 
@@ -31,6 +38,7 @@ impl SamplerIntegrator for Whitted {
                 // Compute scattering functions for surface interaction
                 isect.compute_scattering_functions(ray, TransportMode::RADIANCE, false);
 
+                // Yuck, there's got to be a better way to do this FIXME
                 if isect.bsdf.is_none() {
                     let mut r = isect.spawn_ray(&ray.d);
                     return self.li(scene, &mut r, sampler, depth);
