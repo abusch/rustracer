@@ -240,7 +240,7 @@ dependencies = [
 [[package]]
 name = "ieee754"
 version = "0.2.1"
-source = "git+https://github.com/abusch/ieee754.git#a38509b60fa3308ca2b58f293b03aed447a944d0"
+source = "git+https://github.com/abusch/ieee754.git#f323e10a1ac29d99d424fcbe6eae9066b52857f2"
 
 [[package]]
 name = "image"

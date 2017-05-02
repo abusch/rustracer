@@ -24,7 +24,12 @@ pub use self::ao::AmbientOcclusion;
 pub use self::normal::Normal;
 
 pub trait SamplerIntegrator {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum;
+    fn li(&self,
+          scene: &Scene,
+          ray: &mut Ray,
+          sampler: &mut Box<Sampler + Send + Sync>,
+          depth: u32)
+          -> Spectrum;
 
     #[allow(non_snake_case)]
     fn specular_reflection(&self,
@@ -32,7 +37,7 @@ pub trait SamplerIntegrator {
                            isect: &SurfaceInteraction,
                            scene: &Scene,
                            bsdf: &bsdf::BSDF,
-                           sampler: &mut Sampler,
+                           sampler: &mut Box<Sampler + Send + Sync>,
                            depth: u32)
                            -> Spectrum {
         let flags = bsdf::BSDF_REFLECTION | bsdf::BSDF_SPECULAR;
@@ -69,7 +74,7 @@ pub trait SamplerIntegrator {
                              isect: &SurfaceInteraction,
                              scene: &Scene,
                              bsdf: &bsdf::BSDF,
-                             sampler: &mut Sampler,
+                             sampler: &mut Box<Sampler + Send + Sync>,
                              depth: u32)
                              -> Spectrum {
         let flags = bsdf::BSDF_TRANSMISSION | bsdf::BSDF_SPECULAR;
@@ -115,9 +120,9 @@ pub trait SamplerIntegrator {
 
 pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(it: &SurfaceInteraction,
                                                                          scene: &Scene,
-                                                                         sampler: &mut Sampler,
+                                                                         sampler: &mut Box<Sampler + Send + Sync>,
                                                                          distrib: D)
-                                                                         -> Spectrum {
+-> Spectrum{
     let distrib = distrib.into();
     let n_lights = scene.lights.len();
     if n_lights == 0 {
@@ -151,7 +156,7 @@ pub fn estimate_direct(it: &SurfaceInteraction,
                        light: &Arc<Light + Send + Sync>,
                        u_light: &Point2f,
                        scene: &Scene,
-                       _sampler: &mut Sampler)
+                       _sampler: &mut Box<Sampler + Send + Sync>)
                        -> Spectrum {
     let specular = false;
 

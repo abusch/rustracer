@@ -280,8 +280,8 @@ impl<T> Bounds2<T>
     }
 
     pub fn diagonal(&self) -> Vector2<T> {
-        // Not sure why this doesn't work??
-        // &self.p_max - &self.p_min
+// Not sure why this doesn't work??
+// &self.p_max - &self.p_min
         Vector2::new(self.p_max.x - self.p_min.x, self.p_max.y - self.p_min.y)
     }
 }

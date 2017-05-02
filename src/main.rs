@@ -30,6 +30,7 @@ use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Norma
                      AmbientOcclusion, PathIntegrator, LightStrategy};
 use rt::parser;
 use rt::renderer;
+use rt::sampler::zerotwosequence::ZeroTwoSequence;
 
 fn main() {
     let matches = argparse::parse_args();
@@ -106,18 +107,19 @@ fn run(matches: ArgMatches) -> Result<()> {
     } else {
         Box::new(NoopDisplayUpdater)
     };
+    let spp = matches
+        .value_of("spp")
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap();
 
     let start_time = std::time::Instant::now();
-    let stats = renderer::render(scene,
+    let stats = renderer::render(Box::new(scene),
                                  integrator,
                                  matches
                                      .value_of("threads")
                                      .and_then(|s| s.parse::<usize>().ok())
                                      .unwrap_or_else(num_cpus::get),
-                                 matches
-                                     .value_of("spp")
-                                     .and_then(|s| s.parse::<usize>().ok())
-                                     .unwrap(),
+                                 Box::new(ZeroTwoSequence::new(spp, 4)),
                                  16,
                                  disp)?;
     // args.flag_block_size);

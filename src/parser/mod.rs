@@ -29,7 +29,7 @@ fn test_parse_scene() {
     let scene = r##"
 LookAt 0 0 5 0 0 0 0 1 0
 Camera "perspective" "float fov" [50]
-
+Sampler "02sequence"
 
 Film "image" "integer xresolution" [800] "integer yresolution" [600]
     "string filename" "test-whitted.tga"

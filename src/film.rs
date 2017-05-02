@@ -51,10 +51,14 @@ impl Film {
                scale: f32)
                -> Film {
         let cropped_pixel_bounds =
-            Bounds2i::from_points(&Point2i::new((resolution.x as f32 * cropwindow.p_min.x).ceil() as i32,
-                                                (resolution.y as f32 * cropwindow.p_min.y).ceil() as i32),
-                                  &Point2i::new((resolution.x as f32 * cropwindow.p_max.x).ceil() as i32,
-                                                (resolution.y as f32 * cropwindow.p_max.y).ceil() as i32));
+            Bounds2i::from_points(&Point2i::new((resolution.x as f32 * cropwindow.p_min.x).ceil() as
+                                                i32,
+                                                (resolution.y as f32 * cropwindow.p_min.y).ceil() as
+                                                i32),
+                                  &Point2i::new((resolution.x as f32 * cropwindow.p_max.x).ceil() as
+                                                i32,
+                                                (resolution.y as f32 * cropwindow.p_max.y).ceil() as
+                                                i32));
 
         let mut samples = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
         samples.resize(cropped_pixel_bounds.area() as usize, PixelSample::default());
@@ -143,28 +147,28 @@ impl Film {
         samples.iter().map(|s| s.render()).collect()
     }
 
-pub fn write_png(&self) -> Result<()> {
-    let mut buffer = Vec::new();
-    let image = self.render();
-    let res = self.cropped_pixel_bounds.diagonal();
+    pub fn write_png(&self) -> Result<()> {
+        let mut buffer = Vec::new();
+        let image = self.render();
+        let res = self.cropped_pixel_bounds.diagonal();
 
-    info!("Converting image to sRGB");
-    for i in 0..self.cropped_pixel_bounds.area() {
-        let bytes = image[i as usize].to_srgb();
-        buffer.push(bytes[0]);
-        buffer.push(bytes[1]);
-        buffer.push(bytes[2]);
+        info!("Converting image to sRGB");
+        for i in 0..self.cropped_pixel_bounds.area() {
+            let bytes = image[i as usize].to_srgb();
+            buffer.push(bytes[0]);
+            buffer.push(bytes[1]);
+            buffer.push(bytes[2]);
+        }
+
+        // Save the buffer
+        info!("Writing image to file {}", self.filename);
+        img::save_buffer(&Path::new(self.filename.as_str()),
+                         &buffer,
+                         res.x as u32,
+                         res.y as u32,
+                         img::RGB(8))
+                .chain_err(|| format!("Failed to save image file {}", self.filename))
     }
-
-    // Save the buffer
-    info!("Writing image to file {}", self.filename);
-    img::save_buffer(&Path::new(self.filename.as_str()),
-                     &buffer,
-                     res.x as u32,
-                     res.y as u32,
-                     img::RGB(8))
-            .chain_err(|| format!("Failed to save image file {}", self.filename))
-}
 }
 
 pub struct FilmTile {

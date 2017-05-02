@@ -9,14 +9,13 @@ use display::DisplayUpdater;
 use errors::*;
 use integrator::SamplerIntegrator;
 use sampler::Sampler;
-use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
 use stats;
 
-pub fn render(scene: Scene,
+pub fn render(scene: Box<Scene>,
               integrator: Box<SamplerIntegrator + Send + Sync>,
               num_threads: usize,
-              spp: usize,
+              sampler: Box<Sampler + Send + Sync>,
               block_size: i32,
               mut display: Box<DisplayUpdater + Send>)
               -> Result<stats::Stats> {
@@ -50,8 +49,9 @@ pub fn render(scene: Scene,
         for _ in 0..num_threads {
             let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
+            let mut sampler = sampler.clone();
             scope.spawn(move || {
-                let mut sampler = ZeroTwoSequence::new(spp, 4);
+                // let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
                     let seed = block.start.y / bq.block_size * bq.dims.x +
@@ -92,6 +92,9 @@ pub fn render(scene: Scene,
         .take(num_threads)
         .fold(stats::get_stats(), |a, b| a + b);
 
-    scene.camera.get_film().write_png().map(|_| global_stats)
+    scene
+        .camera
+        .get_film()
+        .write_png()
+        .map(|_| global_stats)
 }
-

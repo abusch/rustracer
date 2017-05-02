@@ -19,7 +19,7 @@ impl Whitted {
         Whitted { max_ray_depth: n }
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator> {
+    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator + Send + Sync> {
         let max_depth = ps.find_one_int("maxdepth", 5);
         // TODO pixel_bounds
         Box::new(Self::new(max_depth as u8))
@@ -27,7 +27,12 @@ impl Whitted {
 }
 
 impl SamplerIntegrator for Whitted {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum {
+    fn li(&self,
+          scene: &Scene,
+          ray: &mut Ray,
+          sampler: &mut Box<Sampler + Send + Sync>,
+          depth: u32)
+          -> Spectrum {
         let mut colour = Spectrum::black();
 
         match scene.intersect(ray) {

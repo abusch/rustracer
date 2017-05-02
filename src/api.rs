@@ -6,6 +6,7 @@ use na::Similarity3;
 
 use {Transform, Vector3f, Point3f};
 use camera::{Camera, PerspectiveCamera};
+use display::NoopDisplayUpdater;
 use errors::*;
 use filter::Filter;
 use filter::boxfilter::BoxFilter;
@@ -14,6 +15,7 @@ use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
 use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator};
 use material::Material;
 use paramset::ParamSet;
+use renderer;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
@@ -163,7 +165,7 @@ impl RenderOptions {
         Ok(film)
     }
 
-    pub fn make_sampler(&mut self) -> Result<Box<Sampler>> {
+    pub fn make_sampler(&mut self) -> Result<Box<Sampler + Send + Sync>> {
         let sampler = if self.sampler_name == "lowdiscrepancy" ||
                          self.sampler_name == "02sequence" {
             ZeroTwoSequence::create(&mut self.sampler_params)
@@ -187,7 +189,7 @@ impl RenderOptions {
         Ok(camera)
     }
 
-    pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator>> {
+    pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator + Send + Sync>> {
         let integrator = if self.integrator_name == "whitted" {
             Whitted::create(&mut self.integrator_params)
         } else if self.integrator_name == "directlighting" {
@@ -201,7 +203,7 @@ impl RenderOptions {
         Ok(integrator)
     }
 
-    pub fn make_scene(&mut self) -> Box<Scene> {
+    pub fn make_scene(&mut self) -> Result<Box<Scene>> {
 
         unimplemented!();
     }
@@ -591,8 +593,17 @@ impl Api for RealApi {
             let _ = state.pushed_transforms.pop();
         }
 
-        let integrator = state.render_options.make_integrator();
-        // let scene = state.render_options.make_scene();
+        let integrator = state.render_options.make_integrator()?;
+        let sampler = state.render_options.make_sampler()?;
+        let scene = state.render_options.make_scene()?;
+
+        // TODO finish
+        let _stats = renderer::render(scene,
+                                      integrator,
+                                      7,
+                                      sampler,
+                                      16,
+                                      Box::new(NoopDisplayUpdater {}))?;
 
         Ok(())
     }

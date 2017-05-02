@@ -80,7 +80,7 @@ impl BlockQueue {
         } else {
             let num_blocks_width = self.dims.x / self.block_size;
             Some(Block::new(Point2i::new(c % num_blocks_width * self.block_size,
-                             c / num_blocks_width * self.block_size),
+                                         c / num_blocks_width * self.block_size),
                             self.block_size))
         }
     }

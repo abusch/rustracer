@@ -31,7 +31,7 @@ impl DirectLightingIntegrator {
         }
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator> {
+    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator + Send + Sync> {
         let max_depth = ps.find_one_int("maxdepth", 5);
         let st = ps.find_one_string("strategy", "all".into());
         let strategy = if st == "one" {
@@ -48,7 +48,12 @@ impl DirectLightingIntegrator {
 }
 
 impl SamplerIntegrator for DirectLightingIntegrator {
-    fn li(&self, scene: &Scene, ray: &mut Ray, sampler: &mut Sampler, depth: u32) -> Spectrum {
+    fn li(&self,
+          scene: &Scene,
+          ray: &mut Ray,
+          sampler: &mut Box<Sampler + Send + Sync>,
+          depth: u32)
+          -> Spectrum {
         let mut colour = Spectrum::black();
 
         match scene.intersect(ray) {
