@@ -2,25 +2,21 @@ use std::sync::Arc;
 use std::mem;
 
 use bounds::Bounds3f;
-use camera::Camera;
 use interaction::SurfaceInteraction;
 use light::Light;
 use primitive::Primitive;
 use ray::Ray;
 
 pub struct Scene {
-    pub camera: Box<Camera + Send + Sync>,
     pub lights: Vec<Arc<Light + Sync + Send>>,
     pub primitives: Vec<Box<Primitive + Sync + Send>>,
 }
 
 impl Scene {
-    pub fn new(camera: Box<Camera + Send + Sync>,
-               primitives: Vec<Box<Primitive + Sync + Send>>,
+    pub fn new(primitives: Vec<Box<Primitive + Sync + Send>>,
                lights: Vec<Arc<Light + Sync + Send>>)
                -> Scene {
         let mut scene = Scene {
-            camera: camera,
             lights: Vec::new(),
             primitives: primitives,
         };

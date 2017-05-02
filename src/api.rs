@@ -176,7 +176,7 @@ impl RenderOptions {
         Ok(sampler)
     }
 
-    pub fn make_camera(&mut self) -> Result<Box<Camera>> {
+    pub fn make_camera(&mut self) -> Result<Box<Camera + Send + Sync>> {
         let filter = self.make_filter()?;
         let film = self.make_film(filter)?;
 
@@ -596,10 +596,12 @@ impl Api for RealApi {
         let integrator = state.render_options.make_integrator()?;
         let sampler = state.render_options.make_sampler()?;
         let scene = state.render_options.make_scene()?;
+        let camera = state.render_options.make_camera()?;
 
         // TODO finish
         let _stats = renderer::render(scene,
                                       integrator,
+                                      camera,
                                       7,
                                       sampler,
                                       16,

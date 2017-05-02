@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use rt::bounds::Bounds2f;
-use rt::camera::PerspectiveCamera;
+use rt::camera::{Camera, PerspectiveCamera};
 use rt::film::Film;
 use rt::filter::boxfilter::BoxFilter;
 use rt::light::{Light, InfiniteAreaLight};
@@ -15,7 +15,7 @@ use rt::shapes::sphere::Sphere;
 use rt::spectrum::Spectrum;
 use rt::{Transform, Point2f, Point2i};
 
-pub fn build_scene(res: Point2i) -> Scene {
+pub fn build_scene(res: Point2i) -> (Scene, Box<Camera + Send + Sync>) {
     info!("Building scene");
     let film = Box::new(Film::new(res,
                                   Bounds2f::from_points(&Point2f::new(0.0, 0.0),
@@ -104,5 +104,5 @@ pub fn build_scene(res: Point2i) -> Scene {
                                                 Spectrum::grey(1.0),
                                                 Path::new("sky_sanmiguel.tga"))));
 
-    Scene::new(camera, primitives, lights)
+    (Scene::new(primitives, lights), camera)
 }

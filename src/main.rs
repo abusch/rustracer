@@ -73,7 +73,7 @@ fn run(matches: ArgMatches) -> Result<()> {
         .chain_err(|| "Failed to read content of scene file")?;
     parser::parse_scene(&file_content[..])?;
 
-    let scene = samplescenes::build_scene(dim);
+    let (scene, camera) = samplescenes::build_scene(dim);
 
     let integrator: Box<SamplerIntegrator + Send + Sync> =
         match value_t!(matches.value_of("integrator"), SamplerIntegratorType)
@@ -115,6 +115,7 @@ fn run(matches: ArgMatches) -> Result<()> {
     let start_time = std::time::Instant::now();
     let stats = renderer::render(Box::new(scene),
                                  integrator,
+                                 camera,
                                  matches
                                      .value_of("threads")
                                      .and_then(|s| s.parse::<usize>().ok())

@@ -5,6 +5,7 @@ use std::sync::mpsc::channel;
 use crossbeam;
 
 use block_queue::BlockQueue;
+use camera::Camera;
 use display::DisplayUpdater;
 use errors::*;
 use integrator::SamplerIntegrator;
@@ -14,12 +15,13 @@ use stats;
 
 pub fn render(scene: Box<Scene>,
               integrator: Box<SamplerIntegrator + Send + Sync>,
+              camera: Box<Camera + Send + Sync>,
               num_threads: usize,
               sampler: Box<Sampler + Send + Sync>,
               block_size: i32,
               mut display: Box<DisplayUpdater + Send>)
               -> Result<stats::Stats> {
-    let res = scene.camera.get_film().full_resolution;
+    let res = camera.get_film().full_resolution;
     let block_queue = BlockQueue::new(res, block_size);
     let num_blocks = block_queue.num_blocks;
     // This channel will receive tiles of sampled pixels
@@ -28,9 +30,11 @@ pub fn render(scene: Box<Scene>,
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     crossbeam::scope(|scope| {
+        // We only want to use references to these in the thread, not move the structs themselves...
         let scene = &scene;
         let bq = &block_queue;
         let integrator = &integrator;
+        let camera = &camera;
 
         // Spawn thread to collect pixels and render image to file
         scope.spawn(move || {
@@ -39,9 +43,9 @@ pub fn render(scene: Box<Scene>,
             info!("Receiving tiles...");
             for _ in 0..num_blocks {
                 let tile = pixel_rx.recv().unwrap();
-                scene.camera.get_film().merge_film_tile(tile);
+                camera.get_film().merge_film_tile(tile);
                 pb.inc();
-                display.update(scene.camera.get_film());
+                display.update(camera.get_film());
             }
         });
 
@@ -57,12 +61,12 @@ pub fn render(scene: Box<Scene>,
                     let seed = block.start.y / bq.block_size * bq.dims.x +
                                block.start.x / bq.block_size;
                     sampler.reseed(seed as u64);
-                    let mut tile = scene.camera.get_film().get_film_tile(&block.bounds());
+                    let mut tile = camera.get_film().get_film_tile(&block.bounds());
                     for p in &tile.get_pixel_bounds() {
                         sampler.start_pixel(&p);
                         loop {
                             let s = sampler.get_camera_sample(&p);
-                            let mut ray = scene.camera.generate_ray_differential(&s);
+                            let mut ray = camera.generate_ray_differential(&s);
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
                             let sample_colour = integrator.li(scene, &mut ray, &mut sampler, 0);
                             tile.add_sample(&s.p_film, sample_colour);
@@ -92,8 +96,7 @@ pub fn render(scene: Box<Scene>,
         .take(num_threads)
         .fold(stats::get_stats(), |a, b| a + b);
 
-    scene
-        .camera
+    camera
         .get_film()
         .write_png()
         .map(|_| global_stats)
