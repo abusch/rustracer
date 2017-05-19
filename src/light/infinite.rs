@@ -2,12 +2,12 @@ use std::f32::consts::{PI, FRAC_1_PI};
 use std::path::Path;
 use std::cmp::min;
 
-use img;
 use na::origin;
 use uuid::Uuid;
 
 use {Vector3f, Point2i, Point2f, Point3f, Transform};
 use geometry::{spherical_phi, spherical_theta};
+use imageio::read_image;
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, INFINITE};
 use mipmap::{MIPMap, WrapMode};
@@ -33,20 +33,10 @@ impl InfiniteAreaLight {
                texmap: &Path)
                -> InfiniteAreaLight {
         // Read texel data from texmap and initialise Lmap
-        let (resolution, texels) = if let Ok(buf) = img::open(texmap) {
+        let (resolution, texels) = if let Ok((pixels, res)) = read_image(texmap) {
             info!("Loading environment map {} for infinite light",
                   texmap.display());
-            let rgb = buf.to_rgb();
-            let resolution = Point2i::new(rgb.width() as i32, rgb.height() as i32);
-            let pixels: Vec<Spectrum> = rgb.pixels()
-                .map(|p| {
-                         let r = p.data[0] as f32 / 255.0;
-                         let g = p.data[1] as f32 / 255.0;
-                         let b = p.data[2] as f32 / 255.0;
-                         Spectrum::rgb(r, g, b) * power
-                     })
-                .collect();
-            (resolution, pixels)
+            (res, pixels)
         } else {
             warn!("Environment map {} for infinite light not found! Using constant texture \
                    instead.",

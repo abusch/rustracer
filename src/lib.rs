@@ -13,6 +13,7 @@ extern crate image as img;
 extern crate itertools as it;
 extern crate nalgebra as na;
 extern crate num;
+extern crate openexr;
 #[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
 extern crate slog;
 #[macro_use]
@@ -40,6 +41,7 @@ mod film;
 mod geometry;
 pub mod integrator;
 mod interaction;
+pub mod imageio;
 pub mod light;
 pub mod lightdistrib;
 pub mod material;
@@ -59,7 +61,15 @@ pub mod texture;
 pub mod transform;
 
 pub mod errors {
-    error_chain!{}
+    use img;
+    use openexr;
+
+    error_chain!{
+        foreign_links {
+            ImgTga(img::ImageError);
+            ImgExr(openexr::Error);
+        }
+    }
 }
 
 pub type Dim = (u32, u32);
