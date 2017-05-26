@@ -36,8 +36,8 @@ fn read_image_tga<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
 
 fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     info!("Loading EXR texture {}", path.as_ref().display());
-    let re = InputFile::from_file(path.as_ref())?;
-    let window = re.data_window();
+    let re = InputFile::new(path.as_ref())?;
+    let window = re.header().data_window();
     let width = window.max.x - window.min.x + 1;
     let height = window.max.y - window.min.y + 1;
 
