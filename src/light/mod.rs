@@ -19,11 +19,11 @@ pub use self::diffuse::DiffuseAreaLight;
 pub use self::infinite::InfiniteAreaLight;
 
 bitflags! {
-    pub flags LightFlags: u32 {
-        const DELTA_POSITION  = 0b_00000001,
-        const DELTA_DIRECTION = 0b_00000010,
-        const AREA            = 0b_00000100,
-        const INFINITE        = 0b_00001000,
+    pub struct LightFlags: u32 {
+        const DELTA_POSITION  = 0b_00000001;
+        const DELTA_DIRECTION = 0b_00000010;
+        const AREA            = 0b_00000100;
+        const INFINITE        = 0b_00001000;
     }
 }
 

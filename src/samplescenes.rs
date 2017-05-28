@@ -102,7 +102,8 @@ pub fn build_scene(res: Point2i) -> (Scene, Box<Camera + Send + Sync>) {
     lights.push(Arc::new(InfiniteAreaLight::new(Transform::rot_x(-90.0),
                                                 16,
                                                 Spectrum::grey(1.0),
-                                                Path::new("sky_sanmiguel.tga"))));
+                                                Path::new("RenoSuburb01_sm.exr"))));
+    // Path::new("sky_sanmiguel.tga"))));
 
     (Scene::new(primitives, lights), camera)
 }

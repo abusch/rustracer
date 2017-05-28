@@ -4,5 +4,6 @@ pipelines:
   default:
     - step:
         script:
+          - echo "Installing dependencies"; apt-get -qy install libopenexr-dev
           - echo "Build project"; cargo build --release --no-default-features
           - echo "Running tests"; cargo test --release --no-default-features

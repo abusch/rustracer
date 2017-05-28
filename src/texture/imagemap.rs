@@ -1,10 +1,9 @@
 use std::sync::Arc;
 use std::path::Path;
 
-use img;
-
 use Point2i;
 use interaction::SurfaceInteraction;
+use imageio::read_image;
 use mipmap::{MIPMap, WrapMode};
 use spectrum::Spectrum;
 use texture::{Texture, TextureMapping2D, UVMapping2D};
@@ -17,14 +16,8 @@ pub struct ImageTexture {
 impl ImageTexture {
     pub fn new(path: &Path) -> ImageTexture {
         info!("Loading texture {}", path.display());
-        // TODO log warning and use constant texture if cannot open texture file
-        let (res, pixels) = match img::open(path) {
-            Ok(buf) => {
-                let rgb = buf.to_rgb();
-                let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
-                let mut pixels: Vec<Spectrum> = rgb.pixels()
-                    .map(|p| Spectrum::from_srgb(&p.data))
-                    .collect();
+        let (res, pixels) = match read_image(path) {
+            Ok((mut pixels, res)) => {
 
                 // Flip image in y; texture coordinate space has (0,0) at the lower
                 // left corner.
