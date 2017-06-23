@@ -1,7 +1,8 @@
 use std::path::Path;
+use std::fs::File;
 
 use img;
-use openexr::{InputFile, FrameBuffer};
+use openexr::{InputFile, FrameBufferMut};
 
 use Point2i;
 use errors::*;
@@ -36,22 +37,26 @@ fn read_image_tga<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
 
 fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     info!("Loading EXR texture {}", path.as_ref().display());
-    let re = InputFile::new(path.as_ref())?;
-    let window = re.header().data_window();
-    let width = window.max.x - window.min.x + 1;
-    let height = window.max.y - window.min.y + 1;
+    let mut file = File::open(path.as_ref())?;
+    let mut exr_file = InputFile::new(&mut file).unwrap();
+    let (width, height) = {
+        let window = exr_file.header().data_window();
+        let width = window.max.x - window.min.x + 1;
+        let height = window.max.y - window.min.y + 1;
+        (width, height)
+    };
 
     let mut pixel_data: Vec<(f32, f32, f32)> = vec![(0.0, 0.0, 0.0); (width*height) as usize];
 
     {
         let mut fb = {
             // Create the frame buffer
-            let mut fb = FrameBuffer::new(width as usize, height as usize);
-            fb.insert_pixels(&[("R", 0.0), ("G", 0.0), ("B", 0.0)], &mut pixel_data);
+            let mut fb = FrameBufferMut::new(width as usize, height as usize);
+            fb.insert_channels(&[("R", 0.0), ("G", 0.0), ("B", 0.0)], &mut pixel_data);
             fb
         };
 
-        re.read_pixels(&mut fb).unwrap();
+        exr_file.read_pixels(&mut fb).unwrap();
     }
 
     let pixels = pixel_data
