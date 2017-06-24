@@ -5,6 +5,7 @@ use std::sync::Arc;
 use na::Similarity3;
 
 use {Transform, Vector3f, Point3f};
+use bvh::BVH;
 use camera::{Camera, PerspectiveCamera};
 use display::NoopDisplayUpdater;
 use errors::*;
@@ -15,6 +16,7 @@ use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
 use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator};
 use material::Material;
 use paramset::ParamSet;
+use primitive::Primitive;
 use renderer;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
@@ -141,7 +143,8 @@ pub struct RenderOptions {
     camera_name: String,
     camera_params: ParamSet,
     camera_to_world: Transform,
-    lights: Vec<Arc<Light>>,
+    lights: Vec<Arc<Light + Send + Sync>>,
+    primitives: Vec<Box<Primitive + Send + Sync>>,
 }
 
 impl RenderOptions {
@@ -204,8 +207,8 @@ impl RenderOptions {
     }
 
     pub fn make_scene(&mut self) -> Result<Box<Scene>> {
-
-        unimplemented!();
+        let accelerator = Arc::new(BVH::new(1, &mut self.primitives));
+        Ok(Box::new(Scene::new(accelerator, self.lights.clone())))
     }
 }
 
@@ -228,6 +231,7 @@ impl Default for RenderOptions {
             camera_params: ParamSet::default(),
             camera_to_world: Transform::default(),
             lights: Vec::new(),
+            primitives: Vec::new(),
         }
     }
 }
@@ -354,7 +358,7 @@ impl RealApi {
                   name: &str,
                   param_set: &mut ParamSet,
                   light_2_world: &Transform)
-                  -> Result<Arc<Light>> {
+                  -> Result<Arc<Light + Send + Sync>> {
         if name == "point" {
             let light = PointLight::create(light_2_world, param_set);
             Ok(light)

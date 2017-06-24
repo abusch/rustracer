@@ -2,6 +2,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use rt::bounds::Bounds2f;
+use rt::bvh::BVH;
 use rt::camera::{Camera, PerspectiveCamera};
 use rt::film::Film;
 use rt::filter::boxfilter::BoxFilter;
@@ -94,7 +95,7 @@ pub fn build_scene(res: Point2i) -> (Scene, Box<Camera + Send + Sync>) {
                      material: Some(matte_red.clone()),
                  });
 
-    let primitives: Vec<Box<Primitive + Sync + Send>> = vec![sphere, floor];
+    let mut primitives: Vec<Box<Primitive + Sync + Send>> = vec![sphere, floor];
     // Light
     // lights.push(area_light);
     // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, 5.0),
@@ -105,5 +106,6 @@ pub fn build_scene(res: Point2i) -> (Scene, Box<Camera + Send + Sync>) {
                                                 Path::new("RenoSuburb01_sm.exr"))));
     // Path::new("sky_sanmiguel.tga"))));
 
-    (Scene::new(primitives, lights), camera)
+    let bvh = BVH::new(1, &mut primitives);
+    (Scene::new(Arc::new(bvh), lights), camera)
 }

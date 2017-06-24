@@ -30,7 +30,7 @@ impl DistantLight {
         }
     }
 
-    pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light> {
+    pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light + Send + Sync> {
         let L = params.find_one_spectrum("L", Spectrum::white());
         let scale = params.find_one_spectrum("scale", Spectrum::white());
         let from = params.find_one_point3f("from", Point3f::origin());
