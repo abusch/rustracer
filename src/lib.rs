@@ -71,6 +71,7 @@ pub mod errors {
 
     error_chain!{
         foreign_links {
+            Io(::std::io::Error);
             ImgTga(img::ImageError);
             ImgExr(openexr::Error);
         }
