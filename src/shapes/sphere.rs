@@ -79,7 +79,7 @@ impl Sphere {
     pub fn create(o2w: &Transform,
                   _reverse_orientation: bool,
                   params: &mut ParamSet)
-                  -> Arc<Shape> {
+                  -> Arc<Shape + Send + Sync> {
         let radius = params.find_one_float("radius", 1.0);
         let zmin = params.find_one_float("zmin", -radius);
         let zmax = params.find_one_float("zmax", radius);

@@ -15,12 +15,15 @@ use film::Film;
 use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
 use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator};
 use material::Material;
+use material::matte::MatteMaterial;
 use paramset::ParamSet;
-use primitive::Primitive;
+use primitive::{Primitive, GeometricPrimitive};
 use renderer;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
+use shapes::Shape;
+use shapes::sphere::Sphere;
 use spectrum::Spectrum;
 use texture::Texture;
 
@@ -247,6 +250,23 @@ pub struct GraphicsState {
     area_light_params: ParamSet,
     area_light: String,
     reverse_orientation: bool,
+}
+
+impl GraphicsState {
+    pub fn create_material(&self, params: &mut ParamSet) -> Arc<Material> {
+        // let mp = TextureParams::new(params, &self.material_param, &self.float_textures, &self.spectrum_textures);
+        if !self.current_named_material.is_empty() {
+            self.named_material
+                .get(&self.current_named_material)
+                .map(|v| { v.clone() }) // deref the &Arc<Material> to clone it
+                .unwrap_or_else(|| {
+                    make_material("matte")
+                })
+        } else {
+                make_material("matte")
+        }
+    }
+
 }
 
 impl Default for GraphicsState {
@@ -579,6 +599,30 @@ impl Api for RealApi {
 
     fn shape(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Shape called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+        let shapes = make_shapes(&name, &state.cur_transform, &state.cur_transform.inverse(), state.graphics_state.reverse_orientation, params);
+        let mat = if !shapes.is_empty() {
+            Some(state.graphics_state.create_material(params))
+        } else {
+            None
+        };
+        let mut prims: Vec<Box<Primitive + Send + Sync>> = Vec::new();
+        for s in shapes {
+            // let area = if state.graphics_state.area_light != "" {
+            //     None // TODO
+            // } else {
+            //     None
+            // };
+            let prim: Box<Primitive + Send + Sync> = Box::new(GeometricPrimitive {
+                shape: s,
+                area_light: None, // TODO
+                material: None,
+            });
+            prims.push(prim);
+
+        }
+        state.render_options.primitives.append(&mut prims);
         Ok(())
     }
 
@@ -615,107 +659,18 @@ impl Api for RealApi {
     }
 }
 
-/*
-#[derive(Default)]
-pub struct DummyApi {
-    state: RefCell<State>,
+fn make_shapes(name: &str, object2world: &Transform, world2object: &Transform, reverse_orientation: bool, ps: &mut ParamSet) -> Vec<Arc<Shape + Send + Sync>> {
+    let mut shapes: Vec<Arc<Shape + Send + Sync>> = Vec::new();
+   if name == "sphere" {
+       let s = Sphere::create(object2world, reverse_orientation, ps);
+        shapes.push(s);
+   } else {
+       warn!("Unknown shape {}", name);
+   }
+
+   shapes
 }
 
-impl Api for DummyApi {
-    fn init(&self) -> Result<()> {
-        let mut state = self.state.borrow_mut();
-        state.api_state = ApiState::OptionsBlock;
-        Ok(())
-    }
-
-    fn attribute_begin(&self) -> Result<()> {
-        self.state.borrow().api_state.verify_options()?;
-
-        println!("attribute_begin called");
-        Ok(())
-    }
-
-    fn attribute_end(&self) -> Result<()> {
-        println!("attribute_end called");
-        Ok(())
-    }
-
-    fn transform_begin(&self) -> Result<()> {
-        self.state.borrow().api_state.verify_options()?;
-
-        println!("transform_begin called");
-        Ok(())
-    }
-
-    fn transform_end(&self) -> Result<()> {
-        println!("transform_end called");
-        Ok(())
-    }
-
-    fn world_begin(&self) -> Result<()> {
-        println!("world_begin called");
-        Ok(())
-    }
-
-    fn world_end(&self) -> Result<()> {
-        println!("world_end called");
-        Ok(())
-    }
-
-    fn look_at(&self,
-               _ex: f32,
-               _ey: f32,
-               _ez: f32,
-               _lx: f32,
-               _ly: f32,
-               _lz: f32,
-               _ux: f32,
-               _uy: f32,
-               _uz: f32)
-               -> Result<()> {
-        println!("look_at called");
-        Ok(())
-    }
-
-    fn camera(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Camera called with {} and {:?}", name, params);
-        Ok(())
-    }
-
-    fn film(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Film called with {} and {:?}", name, params);
-        Ok(())
-    }
-
-    fn integrator(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Integrator called with {} and {:?}", name, params);
-        Ok(())
-    }
-
-    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Arealightsource called with {} and {:?}", name, params);
-        Ok(())
-    }
-
-    fn lightsource(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Lightsource called with {} and {:?}", name, params);
-        Ok(())
-    }
-
-    fn material(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Material called with {} and {:?}", name, params);
-        Ok(())
-    }
-
-    fn shape(&self, name: String, params: &ParamSet) -> Result<()> {
-        println!("Shape called with {} and {:?}", name, params);
-        Ok(())
-    }
-
-    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()> {
-        println!("Rotate called with {} {} {} {}", angle, dx, dy, dz);
-
-        Ok(())
-    }
+fn make_material(name: &str /*, params: &mut ParamSet*/) -> Arc<Material> {
+    Arc::new(MatteMaterial::new(Spectrum::blue(), 0.0))
 }
-*/

@@ -5,6 +5,7 @@ authors = ["Antoine Büsch <antoine.busch@gmail.com>"]
 
 [[bin]]
 name = "main"
+path = "src/main.rs"
 doc = false
 
 [features]
