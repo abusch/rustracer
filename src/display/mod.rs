@@ -1,7 +1,7 @@
 #[cfg(feature = "minifb")]
 extern crate minifb;
 
-use Dim;
+use Point2i;
 use film::Film;
 
 pub trait DisplayUpdater {
@@ -15,18 +15,18 @@ pub struct MinifbDisplayUpdater {
 
 impl MinifbDisplayUpdater {
     #[cfg(feature = "minifb")]
-    pub fn new(dim: Dim) -> MinifbDisplayUpdater {
+    pub fn new(res: Point2i) -> MinifbDisplayUpdater {
         MinifbDisplayUpdater {
             window: minifb::Window::new("Rustracer",
-                                        dim.0 as usize,
-                                        dim.1 as usize,
+                                        res.x as usize,
+                                        res.y as usize,
                                         minifb::WindowOptions::default())
                     .expect("Unable to open a window"),
         }
     }
 
     #[cfg(not(feature = "minifb"))]
-    pub fn new(dim: Dim) -> MinifbDisplayUpdater {
+    pub fn new(_res: Point2i) -> MinifbDisplayUpdater {
         panic!("minifb support not compiled in!");
     }
 }

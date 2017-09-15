@@ -49,5 +49,9 @@ pub fn parse_args<'a>() -> ArgMatches<'a> {
         .arg(Arg::with_name("display")
                  .short("p")
                  .help("Display image as it is rendered"))
+        .arg(Arg::with_name("INPUT")
+                 .required(true)
+                 .index(1)
+                 .help("PBRT scene file to render"))
         .get_matches()
 }

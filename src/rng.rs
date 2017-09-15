@@ -4,6 +4,7 @@ const PCG32_DEFAULT_STATE: u64 = 0x853c49e6748fea9b;
 const PCG32_DEFAULT_STREAM: u64 = 0xda3e39cb94b95bdb;
 const PCG32_MULT: u64 = 0x5851f42d4c957f2d;
 
+#[derive(Copy, Clone)]
 pub struct RNG {
     state: u64,
     inc: u64,

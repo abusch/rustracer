@@ -3,7 +3,7 @@ use na::{self, Matrix4, Matrix2, Similarity3, U3};
 
 use {Vector2f, Vector3f, Point3f, gamma};
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Transform {
     pub m: Matrix4<f32>,
     pub m_inv: Matrix4<f32>,
@@ -19,6 +19,10 @@ impl Transform {
             m: s.to_homogeneous(),
             m_inv: s.inverse().to_homogeneous(),
         }
+    }
+
+    pub fn rotate(angle: f32, v: Vector3f) -> Transform {
+        Transform::new(na::zero(), v * angle, 1.0)
     }
 
     pub fn rot_x(angle: f32) -> Transform {
@@ -37,6 +41,10 @@ impl Transform {
         Transform::new(na::zero(), Vector3f::new(ax, ay, az), 1.0)
     }
 
+    pub fn translate(t: Vector3f) -> Transform {
+        Transform::new(t, na::zero(), 1.0)
+    }
+
     pub fn translate_x(t: f32) -> Transform {
         Transform::new(Vector3f::x() * t, na::zero(), 1.0)
     }
@@ -47,6 +55,10 @@ impl Transform {
 
     pub fn translate_z(t: f32) -> Transform {
         Transform::new(Vector3f::z() * t, na::zero(), 1.0)
+    }
+
+    pub fn scale(s: f32) -> Transform {
+        Transform::new(na::zero(), na::zero(), s)
     }
 
     pub fn inverse(&self) -> Self {
@@ -169,6 +181,17 @@ impl<'a, 'b> Mul<&'a Vector3f> for &'b Transform {
                       self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z,
                       self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z)
 
+    }
+}
+
+impl<'a, 'b> Mul<&'a Transform> for &'b Transform {
+    type Output = Transform;
+
+    fn mul(self, t: &'a Transform) -> Transform {
+        Transform {
+            m: self.m * t.m,
+            m_inv: t.m_inv * self.m_inv,
+        }
     }
 }
 

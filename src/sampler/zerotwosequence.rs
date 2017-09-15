@@ -1,9 +1,11 @@
 use {Point2i, Point2f};
 use camera::CameraSample;
+use paramset::ParamSet;
 use rng::RNG;
 use sampler::Sampler;
 use sampler::lowdiscrepancy::{sobol_2d, van_der_corput};
 
+#[derive(Clone)]
 pub struct ZeroTwoSequence {
     spp: usize,
     current_pixel: Point2i,
@@ -48,6 +50,13 @@ impl ZeroTwoSequence {
             current_2d_dimension: 0,
             rng: RNG::new(),
         }
+    }
+
+    pub fn create(ps: &mut ParamSet) -> Box<Sampler + Send + Sync> {
+        let nsamples = ps.find_one_int("pixelsamples", 16);
+        let sd = ps.find_one_int("dimensions", 4);
+        // TODO quickrender
+        Box::new(Self::new(nsamples as usize, sd as usize))
     }
 }
 
@@ -163,5 +172,9 @@ impl Sampler for ZeroTwoSequence {
 
     fn spp(&self) -> usize {
         self.spp
+    }
+
+    fn box_clone(&self) -> Box<Sampler + Send + Sync> {
+        Box::new(self.clone())
     }
 }

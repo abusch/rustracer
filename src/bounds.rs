@@ -3,7 +3,7 @@ use std::ops::{Index, Sub, Mul, Add, SubAssign};
 use std::cmp::PartialOrd;
 use std::fmt;
 
-use na::{Point3, Point2};
+use na::{Point3, Point2, Vector2};
 use na::core::Scalar;
 use num::{One, Bounded};
 
@@ -209,12 +209,6 @@ impl<T> Bounds2<T>
         }
     }
 
-// pub fn corner(&self, corner: usize) -> Point2<T> {
-//     Point3::new(self[corner & 1].x,
-//                 self[if corner & 2 != 0 { 1 } else { 0 }].y,
-//                 self[if corner & 4 != 0 { 1 } else { 0 }].y)
-// }
-
     pub fn extend(&mut self, p: Point2<T>) {
         if p.x < self.p_min.x {
             self.p_min.x = p.x
@@ -269,7 +263,7 @@ impl<T> Bounds2<T>
         p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y && p.y <= self.p_max.y
     }
 
-    pub fn get_area(&self) -> T {
+    pub fn area(&self) -> T {
         (self.p_max.x - self.p_min.x) * (self.p_max.y - self.p_min.y)
     }
 
@@ -283,6 +277,12 @@ impl<T> Bounds2<T>
             p_min: p_min,
             p_max: p_max,
         }
+    }
+
+    pub fn diagonal(&self) -> Vector2<T> {
+// Not sure why this doesn't work??
+// &self.p_max - &self.p_min
+        Vector2::new(self.p_max.x - self.p_min.x, self.p_max.y - self.p_min.y)
     }
 }
 

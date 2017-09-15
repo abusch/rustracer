@@ -2,27 +2,23 @@ use std::sync::Arc;
 use std::mem;
 
 use bounds::Bounds3f;
-use camera::Camera;
 use interaction::SurfaceInteraction;
 use light::Light;
 use primitive::Primitive;
 use ray::Ray;
 
 pub struct Scene {
-    pub camera: Camera,
     pub lights: Vec<Arc<Light + Sync + Send>>,
-    pub primitives: Vec<Box<Primitive + Sync + Send>>,
+    aggregate: Arc<Primitive + Sync + Send>,
 }
 
 impl Scene {
-    pub fn new(camera: Camera,
-               primitives: Vec<Box<Primitive + Sync + Send>>,
+    pub fn new(aggregate: Arc<Primitive + Sync + Send>,
                lights: Vec<Arc<Light + Sync + Send>>)
                -> Scene {
         let mut scene = Scene {
-            camera: camera,
             lights: Vec::new(),
-            primitives: primitives,
+            aggregate: aggregate,
         };
         // TODO There's a bit of a circular reference with AreaLight <-> Shape <-> GeometricPrimitive which
         // doesn't play well with mutation needed by preprocessing...
@@ -35,21 +31,14 @@ impl Scene {
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
-        self.primitives
-            .iter()
-            .fold(None, |r, p| p.intersect(ray).or(r))
+        self.aggregate.intersect(ray)
     }
 
     pub fn intersect_p(&self, ray: &Ray) -> bool {
-        self.primitives
-            .iter()
-            .fold(false, |r, p| p.intersect_p(ray) || r)
+        self.aggregate.intersect_p(ray)
     }
 
     pub fn world_bounds(&self) -> Bounds3f {
-        self.primitives
-            .iter()
-            .fold(Bounds3f::new(),
-                  |r, p| Bounds3f::union(&r, &p.world_bounds()))
+        self.aggregate.world_bounds()
     }
 }

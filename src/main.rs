@@ -17,14 +17,20 @@ mod logging;
 mod argparse;
 mod samplescenes;
 
+use std::fs;
+use std::io::Read;
+
 use clap::ArgMatches;
 
 use argparse::SamplerIntegratorType;
+use rt::Point2i;
 use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::errors::*;
 use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
-                     AmbientOcclusion, PathIntegrator};
+                     AmbientOcclusion, PathIntegrator, LightStrategy};
+use rt::parser;
 use rt::renderer;
+use rt::sampler::zerotwosequence::ZeroTwoSequence;
 
 fn main() {
     let matches = argparse::parse_args();
@@ -57,9 +63,17 @@ fn run(matches: ArgMatches) -> Result<()> {
     if dims.len() != 2 {
         bail!("Error: invalid dimension specification");
     }
-    let dim = (dims[0], dims[1]);
+    let dim = Point2i::new(dims[0] as i32, dims[1] as i32);
 
-    let scene = samplescenes::build_scene(dim);
+    let filename = matches.value_of("INPUT").unwrap();
+    let mut file = fs::File::open(filename)
+        .chain_err(|| "Failed to open scene file")?;
+    let mut file_content = String::new();
+    file.read_to_string(&mut file_content)
+        .chain_err(|| "Failed to read content of scene file")?;
+    parser::parse_scene(&file_content[..])?;
+
+    let (scene, camera) = samplescenes::build_scene(dim);
 
     let integrator: Box<SamplerIntegrator + Send + Sync> =
         match value_t!(matches.value_of("integrator"), SamplerIntegratorType)
@@ -72,7 +86,7 @@ fn run(matches: ArgMatches) -> Result<()> {
             SamplerIntegratorType::DirectLighting => {
                 info!("Using direct lighting integrator with max ray depth of {}",
                       8);
-                Box::new(DirectLightingIntegrator::new(8))
+                Box::new(DirectLightingIntegrator::new(8, LightStrategy::UniformSampleOne))
             }
             SamplerIntegratorType::PathTracing => {
                 info!("Using path tracing integrator");
@@ -93,20 +107,20 @@ fn run(matches: ArgMatches) -> Result<()> {
     } else {
         Box::new(NoopDisplayUpdater)
     };
+    let spp = matches
+        .value_of("spp")
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap();
 
     let start_time = std::time::Instant::now();
-    let stats = renderer::render(scene,
+    let stats = renderer::render(Box::new(scene),
                                  integrator,
-                                 dim,
-                                 matches.value_of("output").unwrap(),
+                                 camera,
                                  matches
                                      .value_of("threads")
                                      .and_then(|s| s.parse::<usize>().ok())
                                      .unwrap_or_else(num_cpus::get),
-                                 matches
-                                     .value_of("spp")
-                                     .and_then(|s| s.parse::<usize>().ok())
-                                     .unwrap(),
+                                 Box::new(ZeroTwoSequence::new(spp, 4)),
                                  16,
                                  disp)?;
     // args.flag_block_size);

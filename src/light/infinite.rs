@@ -1,6 +1,7 @@
 use std::f32::consts::{PI, FRAC_1_PI};
 use std::path::Path;
 use std::cmp::min;
+use std::sync::Arc;
 
 use na::origin;
 use uuid::Uuid;
@@ -11,6 +12,7 @@ use imageio::read_image;
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester, INFINITE};
 use mipmap::{MIPMap, WrapMode};
+use paramset::ParamSet;
 use ray::Ray;
 use sampling::Distribution2D;
 use spectrum::Spectrum;
@@ -27,11 +29,12 @@ pub struct InfiniteAreaLight {
 }
 
 impl InfiniteAreaLight {
-    pub fn new(l2w: Transform,
-               n_samples: u32,
-               power: Spectrum,
-               texmap: &Path)
-               -> InfiniteAreaLight {
+    pub fn new<P: AsRef<Path>>(l2w: Transform,
+                               n_samples: u32,
+                               power: Spectrum,
+                               texmap: P)
+                               -> InfiniteAreaLight {
+        let texmap = texmap.as_ref();
         // Read texel data from texmap and initialise Lmap
         let (resolution, texels) = if let Ok((pixels, res)) = read_image(texmap) {
             info!("Loading environment map {} for infinite light",
@@ -71,6 +74,16 @@ impl InfiniteAreaLight {
             world_radius: 28.0, // TODO
             distribution: distribution,
         }
+    }
+
+    pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light + Send + Sync> {
+        let L = params.find_one_spectrum("L", Spectrum::white());
+        let scale = params.find_one_spectrum("scale", Spectrum::white());
+        // TODO filename
+        let mapname = params.find_one_string("mapname", "".to_owned());
+        let n_samples = params.find_one_int("samples", 1);
+        // TODO quickrender
+        Arc::new(InfiniteAreaLight::new(l2w.clone(), n_samples as u32, L * scale, mapname))
     }
 }
 

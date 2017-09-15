@@ -13,11 +13,11 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(start: (u32, u32), size: u32) -> Block {
+    pub fn new(start: Point2i, size: i32) -> Block {
         Block {
-            start: Point2i::new(start.0 as i32, start.1 as i32),
-            current: Point2i::new(start.0 as i32, start.1 as i32),
-            end: Point2i::new(start.0 as i32 + size as i32, start.1 as i32 + size as i32),
+            start: start,
+            current: start.clone(),
+            end: Point2i::new(start.x + size as i32, start.y + size as i32),
         }
     }
 
@@ -55,16 +55,16 @@ impl fmt::Display for Block {
 }
 
 pub struct BlockQueue {
-    pub dims: (u32, u32),
-    pub block_size: u32,
+    pub dims: Point2i,
+    pub block_size: i32,
     counter: AtomicUsize,
-    pub num_blocks: u32,
+    pub num_blocks: i32,
 }
 
 impl BlockQueue {
-    pub fn new(dims: (u32, u32), block_size: u32) -> BlockQueue {
-        let xblocks = (dims.0 as f32 / block_size as f32).ceil() as u32;
-        let yblocks = (dims.1 as f32 / block_size as f32).ceil() as u32;
+    pub fn new(dims: Point2i, block_size: i32) -> BlockQueue {
+        let xblocks = (dims.x as f32 / block_size as f32).ceil() as i32;
+        let yblocks = (dims.y as f32 / block_size as f32).ceil() as i32;
         BlockQueue {
             dims: dims,
             block_size: block_size,
@@ -74,13 +74,13 @@ impl BlockQueue {
     }
 
     pub fn next(&self) -> Option<Block> {
-        let c = self.counter.fetch_add(1, Ordering::AcqRel) as u32;
+        let c = self.counter.fetch_add(1, Ordering::AcqRel) as i32;
         if c >= self.num_blocks {
             None
         } else {
-            let num_blocks_width = self.dims.0 / self.block_size;
-            Some(Block::new((c % num_blocks_width * self.block_size,
-                             c / num_blocks_width * self.block_size),
+            let num_blocks_width = self.dims.x / self.block_size;
+            Some(Block::new(Point2i::new(c % num_blocks_width * self.block_size,
+                                         c / num_blocks_width * self.block_size),
                             self.block_size))
         }
     }
@@ -96,7 +96,7 @@ impl Iterator for BlockQueue {
 
 #[test]
 fn test_iter() {
-    let block = Block::new((12, 12), 8);
+    let block = Block::new(Point2i::new(12, 12), 8);
     let pixels: Vec<Point2i> = block.into_iter().collect();
 
     assert_eq!(pixels.len(), 64);
@@ -108,7 +108,7 @@ fn test_iter() {
 
 #[test]
 fn test_queue_iter() {
-    let queue = BlockQueue::new((100, 100), 8);
+    let queue = BlockQueue::new(Point2i::new(100, 100), 8);
     let blocks: Vec<Block> = queue.into_iter().collect();
 
     // 100 is not a multiple of 8, so make sure we generate enough blocks to cover the whole image.
@@ -118,7 +118,7 @@ fn test_queue_iter() {
 
 #[test]
 fn test_power_of_two() {
-    let queue = BlockQueue::new((96, 96), 8);
+    let queue = BlockQueue::new(Point2i::new(96, 96), 8);
     let blocks: Vec<Block> = queue.into_iter().collect();
 
     assert_eq!(blocks.len(), 144);

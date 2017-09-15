@@ -5,6 +5,8 @@ extern crate alga;
 extern crate approx;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate combine;
 extern crate crossbeam;
 #[macro_use]
 extern crate error_chain;
@@ -26,6 +28,7 @@ use na::{Vector2, Vector3, Point2, Point3};
 use na::core::Scalar;
 use num::One;
 
+mod api;
 mod blockedarray;
 mod block_queue;
 pub mod bounds;
@@ -35,8 +38,8 @@ pub mod camera;
 mod cie;
 pub mod display;
 pub mod efloat;
-mod filter;
-mod film;
+pub mod filter;
+pub mod film;
 mod geometry;
 pub mod integrator;
 mod interaction;
@@ -46,6 +49,8 @@ pub mod lightdistrib;
 pub mod material;
 pub mod mipmap;
 mod noise;
+mod paramset;
+pub mod parser;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
@@ -72,8 +77,6 @@ pub mod errors {
         }
     }
 }
-
-pub type Dim = (u32, u32);
 
 pub type Vector2f = Vector2<f32>;
 pub type Vector3f = Vector3<f32>;

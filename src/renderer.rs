@@ -1,36 +1,28 @@
 extern crate pbr;
 
-use std::path::Path;
 use std::sync::mpsc::channel;
 
 use crossbeam;
-use img;
 
-use Dim;
 use block_queue::BlockQueue;
+use camera::Camera;
 use display::DisplayUpdater;
 use errors::*;
-use filter::boxfilter::BoxFilter;
-use film::Film;
 use integrator::SamplerIntegrator;
 use sampler::Sampler;
-use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
-use spectrum::Spectrum;
 use stats;
 
-pub fn render(scene: Scene,
+pub fn render(scene: Box<Scene>,
               integrator: Box<SamplerIntegrator + Send + Sync>,
-              dim: Dim,
-              filename: &str,
+              camera: Box<Camera + Send + Sync>,
               num_threads: usize,
-              spp: usize,
-              block_size: u32,
+              sampler: Box<Sampler + Send + Sync>,
+              block_size: i32,
               mut display: Box<DisplayUpdater + Send>)
               -> Result<stats::Stats> {
-    let film = Film::new(dim, Box::new(BoxFilter {}));
-
-    let block_queue = BlockQueue::new(dim, block_size);
+    let res = camera.get_film().full_resolution;
+    let block_queue = BlockQueue::new(res, block_size);
     let num_blocks = block_queue.num_blocks;
     // This channel will receive tiles of sampled pixels
     let (pixel_tx, pixel_rx) = channel();
@@ -38,10 +30,11 @@ pub fn render(scene: Scene,
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     crossbeam::scope(|scope| {
-        let film = &film;
+        // We only want to use references to these in the thread, not move the structs themselves...
         let scene = &scene;
         let bq = &block_queue;
         let integrator = &integrator;
+        let camera = &camera;
 
         // Spawn thread to collect pixels and render image to file
         scope.spawn(move || {
@@ -50,9 +43,9 @@ pub fn render(scene: Scene,
             info!("Receiving tiles...");
             for _ in 0..num_blocks {
                 let tile = pixel_rx.recv().unwrap();
-                &film.merge_film_tile(tile);
+                camera.get_film().merge_film_tile(tile);
                 pb.inc();
-                display.update(&film);
+                display.update(camera.get_film());
             }
         });
 
@@ -60,19 +53,20 @@ pub fn render(scene: Scene,
         for _ in 0..num_threads {
             let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
+            let mut sampler = sampler.clone();
             scope.spawn(move || {
-                let mut sampler = ZeroTwoSequence::new(spp, 4);
+                // let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
-                    let seed = block.start.y as u32 / bq.block_size * bq.dims.0 +
-                               block.start.x as u32 / bq.block_size;
+                    let seed = block.start.y / bq.block_size * bq.dims.x +
+                               block.start.x / bq.block_size;
                     sampler.reseed(seed as u64);
-                    let mut tile = film.get_film_tile(&block.bounds());
+                    let mut tile = camera.get_film().get_film_tile(&block.bounds());
                     for p in &tile.get_pixel_bounds() {
                         sampler.start_pixel(&p);
                         loop {
                             let s = sampler.get_camera_sample(&p);
-                            let mut ray = scene.camera.generate_ray_differential(&s);
+                            let mut ray = camera.generate_ray_differential(&s);
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
                             let sample_colour = integrator.li(scene, &mut ray, &mut sampler, 0);
                             tile.add_sample(&s.p_film, sample_colour);
@@ -102,27 +96,8 @@ pub fn render(scene: Scene,
         .take(num_threads)
         .fold(stats::get_stats(), |a, b| a + b);
 
-    write_png(dim, &film.render(), filename).map(|_| global_stats)
-}
-
-fn write_png(dim: Dim, image: &[Spectrum], filename: &str) -> Result<()> {
-    let (w, h) = dim;
-    let mut buffer = Vec::new();
-
-    info!("Converting image to sRGB");
-    for i in 0..w * h {
-        let bytes = image[i as usize].to_srgb();
-        buffer.push(bytes[0]);
-        buffer.push(bytes[1]);
-        buffer.push(bytes[2]);
-    }
-
-    // Save the buffer
-    info!("Writing image to file {}", filename);
-    img::save_buffer(&Path::new(filename),
-                     &buffer,
-                     w as u32,
-                     h as u32,
-                     img::RGB(8))
-            .chain_err(|| format!("Failed to save image file {}", filename))
+    camera
+        .get_film()
+        .write_png()
+        .map(|_| global_stats)
 }

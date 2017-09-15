@@ -5,6 +5,7 @@ authors = ["Antoine Büsch <antoine.busch@gmail.com>"]
 
 [[bin]]
 name = "main"
+path = "src/main.rs"
 doc = false
 
 [features]
@@ -16,6 +17,7 @@ approx = "0.1"
 bitflags = "0.9"
 chrono = "0.4"
 clap = "2"
+combine = "2"
 crossbeam = "0.2"
 error-chain = "0.10"
 # ieee754 = "0.2"

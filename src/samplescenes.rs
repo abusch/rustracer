@@ -1,7 +1,11 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use rt::camera::Camera;
+use rt::bounds::Bounds2f;
+use rt::bvh::BVH;
+use rt::camera::{Camera, PerspectiveCamera};
+use rt::film::Film;
+use rt::filter::boxfilter::BoxFilter;
 use rt::light::{Light, InfiniteAreaLight};
 use rt::material::matte::MatteMaterial;
 use rt::material::glass::GlassMaterial;
@@ -10,15 +14,27 @@ use rt::scene::Scene;
 use rt::shapes::disk::Disk;
 use rt::shapes::sphere::Sphere;
 use rt::spectrum::Spectrum;
-use rt::{Transform, Dim, Point2f};
+use rt::{Transform, Point2f, Point2i};
 
-pub fn build_scene(dim: Dim) -> Scene {
+pub fn build_scene(res: Point2i) -> (Scene, Box<Camera + Send + Sync>) {
     info!("Building scene");
-    let camera = Camera::new(Transform::translate_z(-3.0),
-                             Point2f::new(dim.0 as f32, dim.1 as f32),
-                             0.00,
-                             2.5,
-                             60.0);
+    let film = Box::new(Film::new(res,
+                                  Bounds2f::from_points(&Point2f::new(0.0, 0.0),
+                                                        &Point2f::new(1.0, 1.0)),
+                                  Box::new(BoxFilter::new(0.5, 0.5)),
+                                  35.0,
+                                  "image.png",
+                                  1.0));
+
+    let aspectratio = res.y as f32 / res.x as f32;
+    let camera =
+        Box::new(PerspectiveCamera::new(Transform::translate_z(-3.0),
+                                        Bounds2f::from_points(&Point2f::new(-1.0, -aspectratio),
+                                                              &Point2f::new(1.0, aspectratio)),
+                                        0.00,
+                                        2.5,
+                                        60.0,
+                                        film));
     let mut lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
 
     // let disk = Arc::new(Disk::new(-2.0, 0.8, 0.0, 360.0, transform::rot_x(90.0)));
@@ -79,7 +95,7 @@ pub fn build_scene(dim: Dim) -> Scene {
                      material: Some(matte_red.clone()),
                  });
 
-    let primitives: Vec<Box<Primitive + Sync + Send>> = vec![sphere, floor];
+    let mut primitives: Vec<Box<Primitive + Sync + Send>> = vec![sphere, floor];
     // Light
     // lights.push(area_light);
     // lights.push(Arc::new(DistantLight::new(Vector3f::new(0.0, -1.0, 5.0),
@@ -90,5 +106,6 @@ pub fn build_scene(dim: Dim) -> Scene {
                                                 Path::new("RenoSuburb01_sm.exr"))));
     // Path::new("sky_sanmiguel.tga"))));
 
-    Scene::new(camera, primitives, lights)
+    let bvh = BVH::new(1, &mut primitives);
+    (Scene::new(Arc::new(bvh), lights), camera)
 }

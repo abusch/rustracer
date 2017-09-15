@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::f32::consts;
 
 use na;
@@ -5,6 +6,7 @@ use na;
 use {Point3f, Vector3f, Transform, Point2f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
+use paramset::ParamSet;
 use ray::Ray;
 use sampling::concentric_sample_disk;
 use shapes::Shape;
@@ -34,6 +36,18 @@ impl Disk {
             world_to_object: object_to_world.inverse(),
             object_to_world: object_to_world,
         }
+    }
+
+    pub fn create(o2w: &Transform,
+                  _reverse_orientation: bool,
+                  params: &mut ParamSet)
+                  -> Arc<Shape> {
+        let height = params.find_one_float("height", 0.0);
+        let radius = params.find_one_float("radius", 1.0);
+        let inner_radius = params.find_one_float("innerradius", 0.0);
+        let phimax = params.find_one_float("phimax", 360.0);
+
+        Arc::new(Disk::new(height, radius, inner_radius, phimax, o2w.clone()))
     }
 }
 

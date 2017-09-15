@@ -17,4 +17,11 @@ pub trait Sampler {
     fn start_next_sample(&mut self) -> bool;
     fn reseed(&mut self, seed: u64);
     fn spp(&self) -> usize;
+    fn box_clone(&self) -> Box<Sampler + Send + Sync>;
+}
+
+impl Clone for Box<Sampler + Send + Sync> {
+    fn clone(&self) -> Box<Sampler + Send + Sync> {
+        self.box_clone()
+    }
 }

@@ -1,6 +1,26 @@
 use filter::Filter;
+use paramset::ParamSet;
 
-pub struct BoxFilter {}
+pub struct BoxFilter {
+    radius: (f32, f32),
+    inv_radius: (f32, f32),
+}
+
+impl BoxFilter {
+    pub fn new(xwidth: f32, ywidth: f32) -> BoxFilter {
+        BoxFilter {
+            radius: (xwidth, ywidth),
+            inv_radius: (1.0 / xwidth, 1.0 / ywidth),
+        }
+    }
+
+    pub fn create(ps: &mut ParamSet) -> BoxFilter {
+        let xw = ps.find_one_float("xwidth", 0.5);
+        let yw = ps.find_one_float("ywidth", 0.5);
+
+        Self::new(xw, yw)
+    }
+}
 
 impl Filter for BoxFilter {
     fn evaluate(&self, _x: f32, _y: f32) -> f32 {

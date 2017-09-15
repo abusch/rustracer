@@ -24,7 +24,12 @@ impl PathIntegrator {
 }
 
 impl SamplerIntegrator for PathIntegrator {
-    fn li(&self, scene: &Scene, r: &mut Ray, sampler: &mut Sampler, _depth: u32) -> Spectrum {
+    fn li(&self,
+          scene: &Scene,
+          r: &mut Ray,
+          sampler: &mut Box<Sampler + Send + Sync>,
+          _depth: u32)
+          -> Spectrum {
         let mut l = Spectrum::black();
         let mut beta = Spectrum::white();
         let mut specular_bounce = false;

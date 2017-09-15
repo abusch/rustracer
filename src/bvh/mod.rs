@@ -16,39 +16,41 @@ use ray::Ray;
 use shapes::mesh;
 use shapes::mesh::Triangle;
 
-pub struct BVH<T> {
+pub struct BVH {
     max_prims_per_node: usize,
-    primitives: Vec<T>,
+    primitives: Vec<Box<Primitive + Send + Sync>>,
     nodes: Vec<LinearBVHNode>,
 }
 
-impl<T: Primitive> BVH<T> {
+impl BVH {
     pub fn from_mesh_file(file: &Path,
                           model: &str,
                           material: Arc<Material + Send + Sync>,
                           transform: &Transform)
-                          -> BVH<GeometricPrimitive> {
+                          -> BVH {
         let triangles: Vec<Triangle> = mesh::load_triangle_mesh(file, model, transform);
-        BVH::<GeometricPrimitive>::from_triangles(triangles, material)
+        BVH::from_triangles(triangles, material)
     }
 
     pub fn from_triangles(mut tris: Vec<Triangle>,
                           material: Arc<Material + Send + Sync>)
-                          -> BVH<GeometricPrimitive> {
-        let mut prims = tris.drain(..)
+                          -> BVH {
+        let mut prims: Vec<Box<Primitive + Send + Sync>> = tris.drain(..)
             .map(|t| {
-                     GeometricPrimitive {
+                     let prim = GeometricPrimitive {
                          shape: Arc::new(t),
                          area_light: None,
                          material: Some(material.clone()),
-                     }
+                     };
+                     let b: Box<Primitive + Send + Sync> = Box::new(prim);// as Box<Primitive + Send + Sync>
+                     b
                  })
             .collect();
 
         BVH::new(1, &mut prims)
     }
 
-    pub fn new(max_prims_per_node: usize, prims: &mut Vec<T>) -> BVH<T> {
+    pub fn new(max_prims_per_node: usize, prims: &mut Vec<Box<Primitive + Send + Sync>>) -> BVH {
         info!("Generating BVH:");
 
         // 1. Get bounds info
@@ -63,7 +65,7 @@ impl<T: Primitive> BVH<T> {
         info!("\tBuilding tree for {} primitives", prims.len());
         let mut total_nodes = 0;
         let mut ordered_prims_idx = Vec::with_capacity(prims.len());
-        let root: BVHBuildNode = BVH::<T>::recursive_build(&mut primitive_info,
+        let root: BVHBuildNode = BVH::recursive_build(&mut primitive_info,
                                                            0usize,
                                                            prims.len(),
                                                            max_prims_per_node,
@@ -78,12 +80,12 @@ impl<T: Primitive> BVH<T> {
         let mut sorted_idx: Vec<(usize, &usize)> = ordered_prims_idx.iter().enumerate().collect();
         sorted_idx.sort_by_key(|i| i.1);
 
-        let mut prims_with_idx: Vec<(T, usize)> = prims
+        let mut prims_with_idx: Vec<(Box<Primitive + Send + Sync>, usize)> = prims
             .drain(..)
             .zip(sorted_idx.iter().map(|i| i.0))
             .collect();
         prims_with_idx.sort_by_key(|i| i.1);
-        let ordered_prims: Vec<T> = prims_with_idx.drain(..).map(|i| i.0).collect();
+        let ordered_prims: Vec<_> = prims_with_idx.drain(..).map(|i| i.0).collect();
 
         info!("\tCreated {} nodes", total_nodes);
         info!("\tOrdered {} primitives", ordered_prims.len());
@@ -91,7 +93,7 @@ impl<T: Primitive> BVH<T> {
         // 3. Build flatten representation
         info!("\tFlattening tree");
         let mut nodes = Vec::with_capacity(total_nodes);
-        BVH::<T>::flatten_bvh(&root, &mut nodes);
+        BVH::flatten_bvh(&root, &mut nodes);
         assert!(nodes.len() == total_nodes);
 
         BVH {
@@ -154,13 +156,13 @@ impl<T: Primitive> BVH<T> {
             }
 
             BVHBuildNode::interior(dimension,
-                                   Box::new(BVH::<T>::recursive_build(build_data,
+                                   Box::new(BVH::recursive_build(build_data,
                                                                       start,
                                                                       mid,
                                                                       max_prims_per_node,
                                                                       total_nodes,
                                                                       ordered_prims)),
-                                   Box::new(BVH::<T>::recursive_build(build_data,
+                                   Box::new(BVH::recursive_build(build_data,
                                                                       mid,
                                                                       end,
                                                                       max_prims_per_node,
@@ -202,8 +204,8 @@ impl<T: Primitive> BVH<T> {
                     },
                 };
                 nodes.push(linear_node);
-                BVH::<T>::flatten_bvh(&*children[0], nodes);
-                let second_offset = BVH::<T>::flatten_bvh(&*children[1], nodes);
+                BVH::flatten_bvh(&*children[0], nodes);
+                let second_offset = BVH::flatten_bvh(&*children[1], nodes);
                 replace(&mut nodes[offset].data,
                         LinearBVHNodeData::Interior {
                             axis: split_axis,
@@ -216,7 +218,7 @@ impl<T: Primitive> BVH<T> {
     }
 }
 
-impl<T: Primitive> Primitive for BVH<T> {
+impl Primitive for BVH {
     fn world_bounds(&self) -> Bounds3f {
         self.primitives[0].world_bounds()
     }
