@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use {Point3f, Vector3f, Point2f, Transform};
 use interaction::{Interaction, SurfaceInteraction};
-use light::{Light, LightFlags, VisibilityTester, DELTA_POSITION};
+use light::{Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use spectrum::Spectrum;
 
@@ -61,7 +61,7 @@ impl Light for PointLight {
     }
 
     fn flags(&self) -> LightFlags {
-        DELTA_POSITION
+        LightFlags::DELTA_POSITION
     }
 
     fn power(&self) -> Spectrum {

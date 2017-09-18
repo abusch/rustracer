@@ -67,8 +67,8 @@ impl BSDF {
                 // Make sure we only evaluate reflection or transmission based on whether wi and wo
                 // lie in the same hemisphere.
                 b.matches(flags) &&
-                ((reflect && (b.get_type().contains(BSDF_REFLECTION))) ||
-                 (!reflect && (b.get_type().contains(BSDF_TRANSMISSION))))
+                ((reflect && (b.get_type().contains(BxDFType::BSDF_REFLECTION))) ||
+                 (!reflect && (b.get_type().contains(BxDFType::BSDF_TRANSMISSION))))
             })
             .fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
     }
@@ -148,7 +148,7 @@ impl BSDF {
         let wi_w = self.local_to_world(&wi);
 
         // Compute overall PDF with all matching BxDF
-        if !bxdf.get_type().contains(BSDF_SPECULAR) && matching_comps.len() > 1 {
+        if !bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps.len() > 1 {
             for i in 0..matching_comps.len() {
                 if i != comp {
                     pdf += matching_comps[i].pdf(&wo, &wi);
@@ -160,13 +160,13 @@ impl BSDF {
         }
 
         // Compute value of BSDF for sampled direction
-        if !bxdf.get_type().contains(BSDF_SPECULAR) && matching_comps.len() > 1 {
+        if !bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps.len() > 1 {
             let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
             f = matching_comps
                 .iter()
                 .filter(|b| {
-                            (reflect && b.get_type().contains(BSDF_REFLECTION)) ||
-                            (!reflect && b.get_type().contains(BSDF_TRANSMISSION))
+                            (reflect && b.get_type().contains(BxDFType::BSDF_REFLECTION)) ||
+                            (!reflect && b.get_type().contains(BxDFType::BSDF_TRANSMISSION))
                         })
                 .fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
         }
@@ -200,8 +200,8 @@ impl BSDF {
 
 #[test]
 fn test_flags() {
-    let flags = BSDF_SPECULAR | BSDF_REFLECTION;
-    let bxdf_type = BSDF_SPECULAR | BSDF_REFLECTION | BSDF_TRANSMISSION;
+    let flags = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION;
+    let bxdf_type = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION;
 
     assert!((bxdf_type & flags) == flags);
 }

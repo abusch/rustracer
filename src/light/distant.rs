@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use {Point3f, Vector3f, Point2f, Transform};
 use interaction::{Interaction, SurfaceInteraction};
-use light::{Light, LightFlags, VisibilityTester, DELTA_DIRECTION};
+use light::{Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use scene::Scene;
 use spectrum::Spectrum;
@@ -71,7 +71,7 @@ impl Light for DistantLight {
     }
 
     fn flags(&self) -> LightFlags {
-        DELTA_DIRECTION
+        LightFlags::DELTA_DIRECTION
     }
 
     fn power(&self) -> Spectrum {

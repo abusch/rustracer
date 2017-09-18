@@ -10,7 +10,7 @@ use {Vector3f, Point2i, Point2f, Point3f, Transform};
 use geometry::{spherical_phi, spherical_theta};
 use imageio::read_image;
 use interaction::{Interaction, SurfaceInteraction};
-use light::{Light, LightFlags, VisibilityTester, INFINITE};
+use light::{Light, LightFlags, VisibilityTester};
 use mipmap::{MIPMap, WrapMode};
 use paramset::ParamSet;
 use ray::Ray;
@@ -146,7 +146,7 @@ impl Light for InfiniteAreaLight {
     }
 
     fn flags(&self) -> LightFlags {
-        INFINITE
+        LightFlags::INFINITE
     }
 
     fn power(&self) -> Spectrum {

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::cmp;
 
 use Point2f;
-use bsdf;
+use bsdf::{self, BxDFType};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use light::{Light, is_delta_light};
@@ -40,7 +40,7 @@ pub trait SamplerIntegrator {
                            sampler: &mut Box<Sampler + Send + Sync>,
                            depth: u32)
                            -> Spectrum {
-        let flags = bsdf::BSDF_REFLECTION | bsdf::BSDF_SPECULAR;
+        let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
@@ -77,7 +77,7 @@ pub trait SamplerIntegrator {
                              sampler: &mut Box<Sampler + Send + Sync>,
                              depth: u32)
                              -> Spectrum {
-        let flags = bsdf::BSDF_TRANSMISSION | bsdf::BSDF_SPECULAR;
+        let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if !f.is_black() && pdf != 0.0 && wi.dot(ns) != 0.0 {
@@ -161,9 +161,9 @@ pub fn estimate_direct(it: &SurfaceInteraction,
     let specular = false;
 
     let bsdf_flags = if specular {
-        bsdf::BxDFType::all()
+        BxDFType::all()
     } else {
-        bsdf::BxDFType::all() & !bsdf::BSDF_SPECULAR
+        BxDFType::all() & !BxDFType::BSDF_SPECULAR
     };
     let mut ld = Spectrum::black();
     // Sample light with multiple importance sampling
@@ -196,7 +196,7 @@ pub fn estimate_direct(it: &SurfaceInteraction,
         let (mut f, wi, scattering_pdf, sampled_type) =
             bsdf.sample_f(&it.wo, u_scattering, bsdf_flags);
         f = f * wi.dot(&it.shading.n).abs();
-        let sampled_specular = sampled_type.contains(bsdf::BSDF_SPECULAR);
+        let sampled_specular = sampled_type.contains(BxDFType::BSDF_SPECULAR);
         // TODO compute medium interaction when supported
         if !f.is_black() && scattering_pdf > 0.0 {
             // Account for light contribution along sampled direction wi

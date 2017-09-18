@@ -73,7 +73,7 @@ impl SamplerIntegrator for PathIntegrator {
                     let bsdf = isect.bsdf.clone().unwrap();
                     let distrib = self.light_sampling_strategy.lookup(&isect.p);
 
-                    if bsdf.num_components(BxDFType::all() & !bsdf::BSDF_SPECULAR) > 0 {
+                    if bsdf.num_components(BxDFType::all() & !BxDFType::BSDF_SPECULAR) > 0 {
                         let ld = beta * uniform_sample_one_light(&isect, scene, sampler, distrib);
                         assert!(ld.y() >= 0.0);
                         l += ld;
@@ -88,9 +88,9 @@ impl SamplerIntegrator for PathIntegrator {
                     beta = beta * f * wi.dot(&isect.shading.n).abs() / pdf;
                     assert!(beta.y() >= 0.0);
                     assert!(!beta.y().is_infinite());
-                    specular_bounce = flags.contains(bsdf::BSDF_SPECULAR);
-                    if flags.contains(bsdf::BSDF_SPECULAR) &&
-                       flags.contains(bsdf::BSDF_TRANSMISSION) {
+                    specular_bounce = flags.contains(BxDFType::BSDF_SPECULAR);
+                    if flags.contains(BxDFType::BSDF_SPECULAR) &&
+                       flags.contains(BxDFType::BSDF_TRANSMISSION) {
                         let eta = bsdf.eta;
                         eta_scale *= if wo.dot(&isect.n) > 0.0 {
                             eta * eta

@@ -1,6 +1,6 @@
 use std::f32::consts;
 
-use bsdf::{BxDF, BxDFType, BSDF_DIFFUSE, BSDF_REFLECTION};
+use bsdf::{BxDF, BxDFType};
 use Vector3f;
 use spectrum::Spectrum;
 
@@ -20,6 +20,6 @@ impl BxDF for LambertianReflection {
     }
 
     fn get_type(&self) -> BxDFType {
-        BSDF_DIFFUSE | BSDF_REFLECTION
+        BxDFType::BSDF_DIFFUSE | BxDFType::BSDF_REFLECTION
     }
 }

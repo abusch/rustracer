@@ -2,7 +2,7 @@ use std::f32::consts;
 
 use Vector3f;
 use spectrum::Spectrum;
-use bsdf::{BxDFType, BSDF_REFLECTION, BSDF_DIFFUSE};
+use bsdf::{BxDFType};
 use geometry::{sin_theta, sin_phi, cos_phi, abs_cos_theta};
 use bsdf::bxdf::BxDF;
 
@@ -52,6 +52,6 @@ impl BxDF for OrenNayar {
     }
 
     fn get_type(&self) -> BxDFType {
-        BSDF_REFLECTION | BSDF_DIFFUSE
+        BxDFType::BSDF_REFLECTION | BxDFType::BSDF_DIFFUSE
     }
 }

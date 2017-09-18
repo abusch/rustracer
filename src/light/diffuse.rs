@@ -4,7 +4,7 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use {Vector3f, Point2f};
-use light::{AreaLight, Light, LightFlags, VisibilityTester, AREA};
+use light::{AreaLight, Light, LightFlags, VisibilityTester};
 use shapes::Shape;
 use spectrum::Spectrum;
 use interaction::{SurfaceInteraction, Interaction};
@@ -60,7 +60,7 @@ impl Light for DiffuseAreaLight {
     }
 
     fn flags(&self) -> LightFlags {
-        AREA
+        LightFlags::AREA
     }
 
     fn power(&self) -> Spectrum {

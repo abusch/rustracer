@@ -1,7 +1,7 @@
 use std::mem;
 
 use {Vector3f, Point2f};
-use bsdf::{BxDF, BxDFType, BSDF_SPECULAR, BSDF_REFLECTION, BSDF_TRANSMISSION};
+use bsdf::{BxDF, BxDFType};
 use geometry::*;
 use spectrum::Spectrum;
 use na::clamp;
@@ -159,7 +159,7 @@ impl BxDF for SpecularReflection {
     }
 
     fn get_type(&self) -> BxDFType {
-        BSDF_SPECULAR | BSDF_REFLECTION
+        BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION
     }
 }
 
@@ -210,7 +210,7 @@ impl BxDF for SpecularTransmission {
                    abs_cos_theta(&wi),
                    ft);
 
-            return (ft / abs_cos_theta(&wi), wi, 1.0, BSDF_SPECULAR | BSDF_TRANSMISSION);
+            return (ft / abs_cos_theta(&wi), wi, 1.0, BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION);
         } else {
             return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
         }
@@ -221,7 +221,7 @@ impl BxDF for SpecularTransmission {
     }
 
     fn get_type(&self) -> BxDFType {
-        BSDF_SPECULAR | BSDF_TRANSMISSION
+        BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION
     }
 }
 
@@ -258,7 +258,7 @@ impl BxDF for FresnelSpecular {
             // Compute perfect specular reflection direction
             let wi = Vector3f::new(-wo.x, -wo.y, wo.z);
 
-            return (fr * self.r * abs_cos_theta(&wi), wi, fr, BSDF_SPECULAR | BSDF_REFLECTION);
+            return (fr * self.r * abs_cos_theta(&wi), wi, fr, BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION);
         } else {
             // Compute specular transmission for FresnelSpecular
 
@@ -276,7 +276,7 @@ impl BxDF for FresnelSpecular {
                 // Account for non-symmetry with transmission to different medium
                 // TODO
                 //
-                return (ft / abs_cos_theta(&wi), wi, 1.0 - fr, BSDF_SPECULAR | BSDF_TRANSMISSION);
+                return (ft / abs_cos_theta(&wi), wi, 1.0 - fr, BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION);
             } else {
                 return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
             }
@@ -288,6 +288,6 @@ impl BxDF for FresnelSpecular {
     }
 
     fn get_type(&self) -> BxDFType {
-        BSDF_SPECULAR | BSDF_REFLECTION | BSDF_TRANSMISSION
+        BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION
     }
 }

@@ -2,7 +2,7 @@ use std::f32::consts;
 
 use {Vector3f, Point2f};
 use spectrum::Spectrum;
-use bsdf::{BxDF, BxDFType, BSDF_REFLECTION, BSDF_TRANSMISSION, BSDF_GLOSSY, reflect, refract};
+use bsdf::{BxDF, BxDFType, reflect, refract};
 use geometry::{tan_theta, tan2_theta, cos_theta, abs_cos_theta, cos2_theta, cos_phi, cos2_phi,
                sin_phi, sin2_phi, same_hemisphere, spherical_direction, erf, erf_inv};
 use material::TransportMode;
@@ -48,7 +48,7 @@ impl BxDF for MicrofacetReflection {
     }
 
     fn get_type(&self) -> BxDFType {
-        BSDF_REFLECTION | BSDF_GLOSSY
+        BxDFType::BSDF_REFLECTION | BxDFType::BSDF_GLOSSY
     }
 
     /// Override sample_f() to use a better importance sampling method than weighted cosine based
@@ -146,7 +146,7 @@ impl BxDF for MicrofacetTransmission {
     }
 
     fn get_type(&self) -> BxDFType {
-        BSDF_TRANSMISSION | BSDF_GLOSSY
+        BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_GLOSSY
     }
 
     /// Override sample_f() to use a better importance sampling method than weighted cosine based

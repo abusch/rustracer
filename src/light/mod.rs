@@ -29,7 +29,7 @@ bitflags! {
 
 #[inline]
 pub fn is_delta_light(flags: LightFlags) -> bool {
-    flags.contains(DELTA_POSITION) || flags.contains(DELTA_DIRECTION)
+    flags.contains(LightFlags::DELTA_POSITION) || flags.contains(LightFlags::DELTA_DIRECTION)
 }
 
 pub struct VisibilityTester {

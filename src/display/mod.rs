@@ -43,7 +43,7 @@ impl DisplayUpdater for MinifbDisplayUpdater {
                  })
             .collect();
 
-        self.window.update_with_buffer(&buffer[..]);
+        self.window.update_with_buffer(&buffer[..]).expect("Could not update window");
     }
     #[cfg(not(feature = "minifb"))]
     fn update(&mut self, film: &Film) {}
