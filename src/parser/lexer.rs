@@ -125,7 +125,7 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>
     (optional(char('-').or(char('+'))),
      many1::<Vec<_>, _>(digit()),
      optional(char('.').with(many::<Vec<_>, _>(digit()))),
-     optional(char('e').or(char('E')).with(many1::<Vec<_>, _>(digit()))))
+     optional(char('e').or(char('E')).with((optional(char('-').or(char('+'))), many1::<Vec<_>, _>(digit())))))
             .skip(spaces())
             .and_then(|(sign, int_part, frac_part, mantissa)| {
                 let mut buf = String::new();
@@ -141,8 +141,9 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>
                         buf.push(c);
                     }
                 }
-                if let Some(mant) = mantissa {
+                if let Some((mant_sign, mant)) = mantissa {
                     buf.push('e');
+                    buf.push(mant_sign.unwrap_or('+'));
                     for c in mant {
                         buf.push(c);
                     }
