@@ -1,5 +1,5 @@
 use std::ops::Mul;
-use na::{self, Matrix4, Matrix2, Similarity3, U3};
+use na::{self, Matrix4, Matrix2, Similarity3, U3, Affine3};
 
 use {Vector2f, Vector3f, Point3f, gamma};
 
@@ -57,8 +57,16 @@ impl Transform {
         Transform::new(Vector3f::z() * t, na::zero(), 1.0)
     }
 
-    pub fn scale(s: f32) -> Transform {
+    pub fn scale_uniform(s: f32) -> Transform {
         Transform::new(na::zero(), na::zero(), s)
+    }
+
+    pub fn scale(sx: f32, sy: f32, sz: f32) -> Transform {
+        let mat = Matrix4::new_nonuniform_scaling(&Vector3f::new(sx, sy, sz));
+        Transform {
+            m: mat,
+            m_inv: mat.try_inverse().unwrap(),
+        }
     }
 
     pub fn inverse(&self) -> Self {

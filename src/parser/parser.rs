@@ -78,6 +78,11 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                           api.pixel_filter(name, &mut params)
                               .map_err(|e| Error::Message(e.description().to_owned().into()))
                       });
+    let scale = (token(Tokens::SCALE), num(), num(), num())
+        .and_then(|(_, sx, sy, sz)| {
+                      api.scale(sx, sy, sz)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
     let rotate =
         (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
                                                                     api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
@@ -102,6 +107,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(material),
                                              try(sampler),
                                              try(shape),
+                                             try(scale),
                                              try(rotate),
                                              try(translate)));
     (parsers, eof()).map(|(res, _)| res).parse(input)

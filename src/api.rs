@@ -321,7 +321,7 @@ pub trait Api {
     fn identity(&self) -> Result<()>;
     fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<()>;
     fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()>;
-    fn scale(&self, s: f32) -> Result<()>;
+    fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<()>;
     fn look_at(&self,
                ex: f32,
                ey: f32,
@@ -431,11 +431,11 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn scale(&self, s: f32) -> Result<()> {
-        info!("Scale called with {}", s);
+    fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<()> {
+        info!("Scale called with {} {} {}", sx, sy, sz);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
-        let t = Transform::scale(s);
+        let t = Transform::scale(sx, sy, sz);
         state.cur_transform = &state.cur_transform * &t;
         Ok(())
     }
