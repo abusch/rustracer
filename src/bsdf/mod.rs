@@ -201,7 +201,8 @@ impl BSDF {
 #[test]
 fn test_flags() {
     let flags = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION;
-    let bxdf_type = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION;
+    let bxdf_type = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION |
+                    BxDFType::BSDF_TRANSMISSION;
 
     assert!((bxdf_type & flags) == flags);
 }

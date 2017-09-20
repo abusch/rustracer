@@ -32,9 +32,7 @@ impl BVH {
         BVH::from_triangles(triangles, material)
     }
 
-    pub fn from_triangles(mut tris: Vec<Triangle>,
-                          material: Arc<Material + Send + Sync>)
-                          -> BVH {
+    pub fn from_triangles(mut tris: Vec<Triangle>, material: Arc<Material + Send + Sync>) -> BVH {
         let mut prims: Vec<Box<Primitive + Send + Sync>> = tris.drain(..)
             .map(|t| {
                      let prim = GeometricPrimitive {
@@ -66,11 +64,11 @@ impl BVH {
         let mut total_nodes = 0;
         let mut ordered_prims_idx = Vec::with_capacity(prims.len());
         let root: BVHBuildNode = BVH::recursive_build(&mut primitive_info,
-                                                           0usize,
-                                                           prims.len(),
-                                                           max_prims_per_node,
-                                                           &mut total_nodes,
-                                                           &mut ordered_prims_idx);
+                                                      0usize,
+                                                      prims.len(),
+                                                      max_prims_per_node,
+                                                      &mut total_nodes,
+                                                      &mut ordered_prims_idx);
 
         // Sort the primitives according to the indices in ordered_prims_idx. This is made tricky
         // due to the fact that a vector owns its elements, which means we can't easily move
@@ -157,17 +155,17 @@ impl BVH {
 
             BVHBuildNode::interior(dimension,
                                    Box::new(BVH::recursive_build(build_data,
-                                                                      start,
-                                                                      mid,
-                                                                      max_prims_per_node,
-                                                                      total_nodes,
-                                                                      ordered_prims)),
+                                                                 start,
+                                                                 mid,
+                                                                 max_prims_per_node,
+                                                                 total_nodes,
+                                                                 ordered_prims)),
                                    Box::new(BVH::recursive_build(build_data,
-                                                                      mid,
-                                                                      end,
-                                                                      max_prims_per_node,
-                                                                      total_nodes,
-                                                                      ordered_prims)))
+                                                                 mid,
+                                                                 end,
+                                                                 max_prims_per_node,
+                                                                 total_nodes,
+                                                                 ordered_prims)))
 
 
         }

@@ -86,7 +86,10 @@ impl PerspectiveCamera {
         }
     }
 
-    pub fn create(ps: &mut ParamSet, cam2world: &Transform, film: Box<Film>) -> Box<Camera + Send + Sync> {
+    pub fn create(ps: &mut ParamSet,
+                  cam2world: &Transform,
+                  film: Box<Film>)
+                  -> Box<Camera + Send + Sync> {
         let mut shutteropen = ps.find_one_float("shutteropen", 0.0);
         let mut shutterclose = ps.find_one_float("shutterclose", 1.0);
         if shutterclose < shutteropen {

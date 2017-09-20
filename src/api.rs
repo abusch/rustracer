@@ -263,10 +263,9 @@ impl GraphicsState {
                     make_material("matte")
                 })
         } else {
-                make_material("matte")
+            make_material("matte")
         }
     }
-
 }
 
 impl Default for GraphicsState {
@@ -575,20 +574,24 @@ impl Api for RealApi {
     }
 
     fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("MakeNamedMaterial called with {} and {:?}", name, params);                    
-        let mut state = self.state.borrow_mut();                                          
-        let mut empty_params = ParamSet::default();                                       
-        let mut mp = TextureParams::new(params, &mut empty_params);                       
-                                                                                             
-        let mat_name = mp.find_string("type");                                            
-        if mat_name == "" {                                                               
-            bail!("No parameter string \"type\" found in named_material");                
-        }                                                                                 
-                                                                                             
-        let mtl = make_material(&mat_name /*, mp */);                                     
-        if state.graphics_state.named_material.insert(name.clone(), mtl).is_some() {      
-            warn!("Named material {} redefined", name);                                   
-        }     
+        info!("MakeNamedMaterial called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        let mut empty_params = ParamSet::default();
+        let mut mp = TextureParams::new(params, &mut empty_params);
+
+        let mat_name = mp.find_string("type");
+        if mat_name == "" {
+            bail!("No parameter string \"type\" found in named_material");
+        }
+
+        let mtl = make_material(&mat_name /*, mp */);
+        if state
+               .graphics_state
+               .named_material
+               .insert(name.clone(), mtl)
+               .is_some() {
+            warn!("Named material {} redefined", name);
+        }
         Ok(())
     }
 
@@ -619,7 +622,11 @@ impl Api for RealApi {
         info!("Shape called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
-        let shapes = make_shapes(&name, &state.cur_transform, &state.cur_transform.inverse(), state.graphics_state.reverse_orientation, params);
+        let shapes = make_shapes(&name,
+                                 &state.cur_transform,
+                                 &state.cur_transform.inverse(),
+                                 state.graphics_state.reverse_orientation,
+                                 params);
         let mat = if !shapes.is_empty() {
             Some(state.graphics_state.create_material(params))
         } else {
@@ -633,10 +640,10 @@ impl Api for RealApi {
             //     None
             // };
             let prim: Box<Primitive + Send + Sync> = Box::new(GeometricPrimitive {
-                shape: s,
-                area_light: None, // TODO
-                material: None,
-            });
+                                                                  shape: s,
+                                                                  area_light: None, // TODO
+                                                                  material: None,
+                                                              });
             prims.push(prim);
 
         }
@@ -677,16 +684,21 @@ impl Api for RealApi {
     }
 }
 
-fn make_shapes(name: &str, object2world: &Transform, world2object: &Transform, reverse_orientation: bool, ps: &mut ParamSet) -> Vec<Arc<Shape + Send + Sync>> {
+fn make_shapes(name: &str,
+               object2world: &Transform,
+               world2object: &Transform,
+               reverse_orientation: bool,
+               ps: &mut ParamSet)
+               -> Vec<Arc<Shape + Send + Sync>> {
     let mut shapes: Vec<Arc<Shape + Send + Sync>> = Vec::new();
-   if name == "sphere" {
-       let s = Sphere::create(object2world, reverse_orientation, ps);
+    if name == "sphere" {
+        let s = Sphere::create(object2world, reverse_orientation, ps);
         shapes.push(s);
-   } else {
-       warn!("Unknown shape {}", name);
-   }
+    } else {
+        warn!("Unknown shape {}", name);
+    }
 
-   shapes
+    shapes
 }
 
 fn make_material(name: &str /*, params: &mut ParamSet*/) -> Arc<Material> {

@@ -96,8 +96,5 @@ pub fn render(scene: Box<Scene>,
         .take(num_threads)
         .fold(stats::get_stats(), |a, b| a + b);
 
-    camera
-        .get_film()
-        .write_png()
-        .map(|_| global_stats)
+    camera.get_film().write_png().map(|_| global_stats)
 }

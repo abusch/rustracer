@@ -210,7 +210,10 @@ impl BxDF for SpecularTransmission {
                    abs_cos_theta(&wi),
                    ft);
 
-            return (ft / abs_cos_theta(&wi), wi, 1.0, BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION);
+            return (ft / abs_cos_theta(&wi),
+                    wi,
+                    1.0,
+                    BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION);
         } else {
             return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
         }
@@ -258,7 +261,10 @@ impl BxDF for FresnelSpecular {
             // Compute perfect specular reflection direction
             let wi = Vector3f::new(-wo.x, -wo.y, wo.z);
 
-            return (fr * self.r * abs_cos_theta(&wi), wi, fr, BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION);
+            return (fr * self.r * abs_cos_theta(&wi),
+                    wi,
+                    fr,
+                    BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION);
         } else {
             // Compute specular transmission for FresnelSpecular
 
@@ -276,7 +282,10 @@ impl BxDF for FresnelSpecular {
                 // Account for non-symmetry with transmission to different medium
                 // TODO
                 //
-                return (ft / abs_cos_theta(&wi), wi, 1.0 - fr, BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION);
+                return (ft / abs_cos_theta(&wi),
+                        wi,
+                        1.0 - fr,
+                        BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION);
             } else {
                 return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
             }

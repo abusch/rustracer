@@ -165,21 +165,21 @@ impl<T: Debug> Default for ParamSetItem<T> {
     }
 }
 
-pub struct TextureParams<'a> {                                                               
-    geom_params: &'a mut ParamSet,                                                           
-    material_params: &'a mut ParamSet,                                                       
-}                                                                                            
-                                                                                             
-impl<'a> TextureParams<'a> {                                                                 
-    pub fn new(gp: &'a mut ParamSet, mp: &'a mut ParamSet) -> TextureParams<'a> {            
-        TextureParams {                                                                      
-            geom_params: gp,                                                                 
-            material_params: mp,                                                             
-        }                                                                                    
-    }                                                                                        
-                                                                                             
-    pub fn find_string(&mut self, n: &str) -> String {                                       
-        let mat_string = self.material_params.find_one_string(n, "".to_owned());             
-        self.geom_params.find_one_string(n, mat_string)                                      
-    }                                                                                        
-}     
+pub struct TextureParams<'a> {
+    geom_params: &'a mut ParamSet,
+    material_params: &'a mut ParamSet,
+}
+
+impl<'a> TextureParams<'a> {
+    pub fn new(gp: &'a mut ParamSet, mp: &'a mut ParamSet) -> TextureParams<'a> {
+        TextureParams {
+            geom_params: gp,
+            material_params: mp,
+        }
+    }
+
+    pub fn find_string(&mut self, n: &str) -> String {
+        let mat_string = self.material_params.find_one_string(n, "".to_owned());
+        self.geom_params.find_one_string(n, mat_string)
+    }
+}
