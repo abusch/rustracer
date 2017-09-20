@@ -16,7 +16,7 @@ use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
 use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator};
 use material::Material;
 use material::matte::MatteMaterial;
-use paramset::ParamSet;
+use paramset::{ParamSet, TextureParams};
 use primitive::{Primitive, GeometricPrimitive};
 use renderer;
 use sampler::Sampler;
@@ -356,7 +356,7 @@ pub trait Api {
     fn transform_end(&self) -> Result<()>;
     // TODO texture
     fn material(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    // TODO make_named_material
+    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()>;
     // TODO named_material
     fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
@@ -571,6 +571,24 @@ impl Api for RealApi {
         }
         state.restore_transform();
 
+        Ok(())
+    }
+
+    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()> {
+        info!("MakeNamedMaterial called with {} and {:?}", name, params);                    
+        let mut state = self.state.borrow_mut();                                          
+        let mut empty_params = ParamSet::default();                                       
+        let mut mp = TextureParams::new(params, &mut empty_params);                       
+                                                                                             
+        let mat_name = mp.find_string("type");                                            
+        if mat_name == "" {                                                               
+            bail!("No parameter string \"type\" found in named_material");                
+        }                                                                                 
+                                                                                             
+        let mtl = make_material(&mat_name /*, mp */);                                     
+        if state.graphics_state.named_material.insert(name.clone(), mtl).is_some() {      
+            warn!("Named material {} redefined", name);                                   
+        }     
         Ok(())
     }
 

@@ -66,6 +66,10 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                                                               api.material(name,
                                                                                            &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                           });
+    let make_named_material = (token(Tokens::MAKENAMEDMATERIAL), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                              api.make_named_material(name,
+                                                                                           &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
+                                                                          });
     let sampler = (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_, name, mut params)| {
                                                                         api.sampler(name, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                     });
@@ -105,6 +109,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(arealightsource),
                                              try(lightsource),
                                              try(material),
+                                             try(make_named_material),
                                              try(sampler),
                                              try(shape),
                                              try(scale),
