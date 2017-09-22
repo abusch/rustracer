@@ -1,4 +1,4 @@
-image: jimmycuadra/rust
+image: rust:latest
 
 pipelines:
   default:
