@@ -147,6 +147,7 @@ fn param_type<'a, I: Stream<Item = char> + 'a>
             try(string("point").with(value(ParamType::Point3))),
             try(string("vector").with(value(ParamType::Vector3))),
             try(string("normal").with(value(ParamType::Normal))),
+            try(string("color").with(value(ParamType::Rgb))),
             try(string("rgb").with(value(ParamType::Rgb))),
             try(string("xyz").with(value(ParamType::Xyz))),
             try(string("blackbody").with(value(ParamType::Blackbody))),
