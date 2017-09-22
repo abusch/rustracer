@@ -1,5 +1,5 @@
-use combine::{eof, value, satisfy_map, token, between, many, many1, try, Parser, Stream,
-              ParseError};
+use combine::{eof, value, satisfy_map, token, between, many, many1, try, Parser,
+             Stream, ParseError};
 use combine::char::{string, spaces};
 use combine::primitives::Error;
 
@@ -91,6 +91,16 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
         (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
                                                                     api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                 });
+    let transform = (token::<I>(Tokens::TRANSFORM), num_array())
+        .and_then(|(_, nums)| {
+                        api.transform(nums[0], nums[1], nums[2], nums[3],
+                                      nums[4], nums[5], nums[6], nums[7],
+                                      nums[8], nums[9], nums[10], nums[11],
+                                      nums[12], nums[13], nums[14], nums[15],
+                                    )
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
+
     let translate = (token(Tokens::TRANSLATE), num(), num(), num())
         .and_then(|(_, dx, dy, dz)| {
                       api.translate(dx, dy, dz)
@@ -114,7 +124,8 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(shape),
                                              try(scale),
                                              try(rotate),
-                                             try(translate)));
+                                             try(translate),
+                                             try(transform)));
     (parsers, eof()).map(|(res, _)| res).parse(input)
 }
 

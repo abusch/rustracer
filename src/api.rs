@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use na::Similarity3;
+use na::{Similarity3, Matrix4};
 
 use {Transform, Vector3f, Point3f};
 use bvh::BVH;
@@ -334,6 +334,7 @@ pub trait Api {
                -> Result<()>;
     // TODO concat_Transform
     // TODO transform
+    fn transform(&self, tr00: f32, tr01: f32, tr02: f32, tr03: f32, tr04: f32, tr05: f32, tr06: f32, tr07: f32, tr08: f32, tr09: f32, tr10: f32, tr11: f32, tr12: f32, tr13: f32, tr14: f32, tr15: f32) -> Result<()>;
     // TODO coordinate_system
     // TODO coordinate_sys_transform
     // TODO active_transform_all
@@ -437,6 +438,17 @@ impl Api for RealApi {
         let t = Transform::scale(sx, sy, sz);
         state.cur_transform = &state.cur_transform * &t;
         Ok(())
+    }
+
+    fn transform(&self, tr11: f32, tr12: f32, tr13: f32, tr14: f32, tr21: f32, tr22: f32, tr23: f32, tr24: f32, tr31: f32, tr32: f32, tr33: f32, tr34: f32, tr41: f32, tr42: f32, tr43: f32, tr44: f32) -> Result<()> {
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_initialized()?;
+        let mat = Matrix4::new(tr11, tr12, tr13, tr14, tr21, tr22, tr23, tr24, tr31, tr32, tr33, tr34, tr41, tr42, tr43, tr44);
+        state.cur_transform = Transform {
+            m: mat,
+            m_inv: mat.try_inverse().expect("Non invertible matrix"),
+        };
+        Ok(()) 
     }
 
     fn look_at(&self,
