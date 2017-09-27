@@ -11,6 +11,7 @@ use display::NoopDisplayUpdater;
 use errors::*;
 use filter::Filter;
 use filter::boxfilter::BoxFilter;
+use filter::gaussian::GaussianFilter;
 use film::Film;
 use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
 use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator};
@@ -152,16 +153,18 @@ pub struct RenderOptions {
 
 impl RenderOptions {
     pub fn make_filter(&mut self) -> Result<Box<Filter + Send + Sync>> {
-        let filter = if self.filter_name == "box" {
-            Box::new(BoxFilter::create(&mut self.filter_params))
-        } else {
-            bail!(format!("Filter \"{}\" unknown.", self.filter_name));
+        info!("Making filter");
+        let filter = match self.filter_name.as_ref() {
+            "box" => BoxFilter::create(&mut self.filter_params),
+            "gaussian" => GaussianFilter::create(&mut self.film_params),
+            _ => bail!(format!("Filter \"{}\" unknown.", self.filter_name)),
         };
 
         Ok(filter)
     }
 
     pub fn make_film(&mut self, filter: Box<Filter + Send + Sync>) -> Result<Box<Film>> {
+        info!("Making film");
         let film = if self.film_name == "image" {
             Film::create(&mut self.film_params, filter)
         } else {
@@ -183,6 +186,7 @@ impl RenderOptions {
     }
 
     pub fn make_camera(&mut self) -> Result<Box<Camera + Send + Sync>> {
+        info!("Making camera");
         let filter = self.make_filter()?;
         let film = self.make_film(filter)?;
 
@@ -196,6 +200,7 @@ impl RenderOptions {
     }
 
     pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator + Send + Sync>> {
+        info!("Making integrator");
         let integrator = if self.integrator_name == "whitted" {
             Whitted::create(&mut self.integrator_params)
         } else if self.integrator_name == "directlighting" {
@@ -210,6 +215,7 @@ impl RenderOptions {
     }
 
     pub fn make_scene(&mut self) -> Result<Box<Scene>> {
+        info!("Making scene");
         let accelerator = Arc::new(BVH::new(1, &mut self.primitives));
         Ok(Box::new(Scene::new(accelerator, self.lights.clone())))
     }

@@ -14,11 +14,11 @@ impl BoxFilter {
         }
     }
 
-    pub fn create(ps: &mut ParamSet) -> BoxFilter {
+    pub fn create(ps: &mut ParamSet) -> Box<Filter + Send + Sync> {
         let xw = ps.find_one_float("xwidth", 0.5);
         let yw = ps.find_one_float("ywidth", 0.5);
 
-        Self::new(xw, yw)
+        Box::new(Self::new(xw, yw))
     }
 }
 
