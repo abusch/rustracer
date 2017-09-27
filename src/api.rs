@@ -357,7 +357,7 @@ pub trait Api {
     // TODO texture
     fn material(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    // TODO named_material
+    fn named_material(&self, name: String) -> Result<()>;
     fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn shape(&self, name: String, params: &mut ParamSet) -> Result<()>;
@@ -613,6 +613,14 @@ impl Api for RealApi {
         state.graphics_state.material = name;
         state.graphics_state.material_param = params.clone();
         state.graphics_state.current_named_material = String::new();
+        Ok(())
+    }
+
+    fn named_material(&self, name: String) -> Result<()> {
+        info!("NamedMaterial called with {}", name);
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+        state.graphics_state.current_named_material = name;
         Ok(())
     }
 
