@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicUsize, ATOMIC_USIZE_INIT, Ordering};
+use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::fmt;
 
 use Point2i;
@@ -33,7 +33,6 @@ impl Iterator for Block {
         if self.current.x >= self.end.x || self.current.y >= self.end.y {
             None
         } else {
-
             let cur = self.current;
 
             if self.current.x == self.end.x - 1 {
@@ -78,10 +77,15 @@ impl BlockQueue {
         if c >= self.num_blocks {
             None
         } else {
-            let num_blocks_width = self.dims.x / self.block_size;
-            Some(Block::new(Point2i::new(c % num_blocks_width * self.block_size,
-                                         c / num_blocks_width * self.block_size),
-                            self.block_size))
+            // let num_blocks_width = self.dims.x / self.block_size;
+            let num_blocks_width = (self.dims.x as f32 / self.block_size as f32).ceil() as i32;
+            Some(Block::new(
+                Point2i::new(
+                    c % num_blocks_width * self.block_size,
+                    c / num_blocks_width * self.block_size,
+                ),
+                self.block_size,
+            ))
         }
     }
 }

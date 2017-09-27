@@ -13,15 +13,17 @@ use sampler::Sampler;
 use scene::Scene;
 use stats;
 
-pub fn render(scene: Box<Scene>,
-              integrator: Box<SamplerIntegrator + Send + Sync>,
-              camera: Box<Camera + Send + Sync>,
-              num_threads: usize,
-              sampler: Box<Sampler + Send + Sync>,
-              block_size: i32,
-              mut display: Box<DisplayUpdater + Send>)
-              -> Result<stats::Stats> {
+pub fn render(
+    scene: Box<Scene>,
+    integrator: Box<SamplerIntegrator + Send + Sync>,
+    camera: Box<Camera + Send + Sync>,
+    num_threads: usize,
+    sampler: Box<Sampler + Send + Sync>,
+    block_size: i32,
+    mut display: Box<DisplayUpdater + Send>,
+) -> Result<stats::Stats> {
     let res = camera.get_film().full_resolution;
+    info!("Rendering with resolution {}", res);
     let block_queue = BlockQueue::new(res, block_size);
     let num_blocks = block_queue.num_blocks;
     // This channel will receive tiles of sampled pixels
@@ -58,8 +60,8 @@ pub fn render(scene: Box<Scene>,
                 // let mut sampler = ZeroTwoSequence::new(spp, 4);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
-                    let seed = block.start.y / bq.block_size * bq.dims.x +
-                               block.start.x / bq.block_size;
+                    let seed =
+                        block.start.y / bq.block_size * bq.dims.x + block.start.x / bq.block_size;
                     sampler.reseed(seed as u64);
                     let mut tile = camera.get_film().get_film_tile(&block.bounds());
                     for p in &tile.get_pixel_bounds() {
