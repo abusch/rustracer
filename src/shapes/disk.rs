@@ -3,7 +3,7 @@ use std::f32::consts;
 
 use na;
 
-use {Point3f, Vector3f, Transform, Point2f};
+use {Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
@@ -21,12 +21,13 @@ pub struct Disk {
 }
 
 impl Disk {
-    pub fn new(height: f32,
-               radius: f32,
-               inner_radius: f32,
-               phi_max: f32,
-               object_to_world: Transform)
-               -> Disk {
+    pub fn new(
+        height: f32,
+        radius: f32,
+        inner_radius: f32,
+        phi_max: f32,
+        object_to_world: Transform,
+    ) -> Disk {
         assert!(radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
         Disk {
             height: height,
@@ -38,10 +39,11 @@ impl Disk {
         }
     }
 
-    pub fn create(o2w: &Transform,
-                  _reverse_orientation: bool,
-                  params: &mut ParamSet)
-                  -> Arc<Shape> {
+    pub fn create(
+        o2w: &Transform,
+        _reverse_orientation: bool,
+        params: &mut ParamSet,
+    ) -> Arc<Shape + Send + Sync> {
         let height = params.find_one_float("height", 0.0);
         let radius = params.find_one_float("radius", 1.0);
         let inner_radius = params.find_one_float("innerradius", 0.0);
@@ -97,8 +99,10 @@ impl Shape for Disk {
     }
 
     fn object_bounds(&self) -> Bounds3f {
-        Bounds3f::from_points(&Point3f::new(-self.radius, -self.radius, self.height),
-                              &Point3f::new(self.radius, self.radius, self.height))
+        Bounds3f::from_points(
+            &Point3f::new(-self.radius, -self.radius, self.height),
+            &Point3f::new(self.radius, self.radius, self.height),
+        )
     }
 
     fn world_bounds(&self) -> Bounds3f {
@@ -120,7 +124,10 @@ impl Shape for Disk {
             .transform_point_with_error(&p_obj, &Vector3f::new(0.0, 0.0, 0.0));
         let pdf = 1.0 / self.area();
 
-        (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)
+        (
+            Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n),
+            pdf,
+        )
     }
 
     fn area(&self) -> f32 {

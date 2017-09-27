@@ -25,6 +25,7 @@ use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
 use shapes::Shape;
 use shapes::sphere::Sphere;
+use shapes::disk::Disk;
 use spectrum::Spectrum;
 use texture::Texture;
 
@@ -251,7 +252,7 @@ pub struct GraphicsState {
     spectrum_textures: HashMap<String, Arc<Texture<Spectrum>>>,
     material_param: ParamSet,
     material: String,
-    named_material: HashMap<String, Arc<Material>>,
+    named_material: HashMap<String, Arc<Material + Send + Sync>>,
     current_named_material: String,
     area_light_params: ParamSet,
     area_light: String,
@@ -259,7 +260,7 @@ pub struct GraphicsState {
 }
 
 impl GraphicsState {
-    pub fn create_material(&self, params: &mut ParamSet) -> Arc<Material> {
+    pub fn create_material(&self, params: &mut ParamSet) -> Arc<Material + Send + Sync> {
         // let mp = TextureParams::new(params, &self.material_param, &self.float_textures, &self.spectrum_textures);
         if !self.current_named_material.is_empty() {
             self.named_material
@@ -668,7 +669,7 @@ impl Api for RealApi {
             let prim: Box<Primitive + Send + Sync> = Box::new(GeometricPrimitive {
                                                                   shape: s,
                                                                   area_light: None, // TODO
-                                                                  material: None,
+                                                                  material: mat.clone(),
                                                               });
             prims.push(prim);
 
@@ -720,6 +721,9 @@ fn make_shapes(name: &str,
     if name == "sphere" {
         let s = Sphere::create(object2world, reverse_orientation, ps);
         shapes.push(s);
+    } else if name == "disk" {
+        shapes.push(Disk::create(object2world, reverse_orientation, ps));
+
     } else {
         warn!("Unknown shape {}", name);
     }
@@ -727,6 +731,6 @@ fn make_shapes(name: &str,
     shapes
 }
 
-fn make_material(name: &str /*, params: &mut ParamSet*/) -> Arc<Material> {
+fn make_material(name: &str /*, params: &mut ParamSet*/) -> Arc<Material + Send + Sync> {
     Arc::new(MatteMaterial::new(Spectrum::blue(), 0.0))
 }
