@@ -1,10 +1,14 @@
 #![macro_use]
 
 use std::fmt::Debug;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 use Point3f;
 use api::{ParamListEntry, ParamType};
 use spectrum::Spectrum;
+use texture::Texture;
+use texture::ConstantTexture;
 
 macro_rules! find_one(
     ($x:ident, $y:ident, $t:ty) => (
@@ -43,6 +47,7 @@ pub struct ParamSet {
     strings: Vec<ParamSetItem<String>>,
     spectra: Vec<ParamSetItem<Spectrum>>,
     point3fs: Vec<ParamSetItem<Point3f>>,
+    textures: Vec<ParamSetItem<String>>,
 }
 
 impl ParamSet {
@@ -155,12 +160,14 @@ impl ParamSet {
     find!(find_string, strings, String);
     find!(find_spectrum, spectra, Spectrum);
     find!(find_point3fs, point3fs, Point3f);
+    find!(find_texture, textures, String);
     find_one!(find_one_bool, bools, bool);
     find_one!(find_one_int, ints, i32);
     find_one!(find_one_float, floats, f32);
     find_one!(find_one_string, strings, String);
     find_one!(find_one_spectrum, spectra, Spectrum);
     find_one!(find_one_point3f, point3fs, Point3f);
+    find_one!(find_one_texture, textures, String);
 }
 
 #[derive(Debug, Clone)]
@@ -183,18 +190,75 @@ impl<T: Debug> Default for ParamSetItem<T> {
 pub struct TextureParams<'a> {
     geom_params: &'a mut ParamSet,
     material_params: &'a mut ParamSet,
+    float_textures: &'a HashMap<String, Arc<Texture<f32> + Send + Sync>>,
+    spectrum_textures: &'a HashMap<String, Arc<Texture<Spectrum> + Send + Sync>>,
 }
 
 impl<'a> TextureParams<'a> {
-    pub fn new(gp: &'a mut ParamSet, mp: &'a mut ParamSet) -> TextureParams<'a> {
+    pub fn new(
+        gp: &'a mut ParamSet,
+        mp: &'a mut ParamSet,
+        ft: &'a HashMap<String, Arc<Texture<f32> + Send + Sync>>,
+        st: &'a HashMap<String, Arc<Texture<Spectrum> + Send + Sync>>,
+    ) -> TextureParams<'a> {
         TextureParams {
             geom_params: gp,
             material_params: mp,
+            float_textures: ft,
+            spectrum_textures: st,
         }
     }
 
     pub fn find_string(&mut self, n: &str) -> String {
         let mat_string = self.material_params.find_one_string(n, "".to_owned());
         self.geom_params.find_one_string(n, mat_string)
+    }
+
+    pub fn get_spectrum_texture(
+        &mut self,
+        n: &str,
+        default: &Spectrum,
+    ) -> Arc<Texture<Spectrum> + Send + Sync> {
+        let mut name = self.geom_params.find_one_texture(n, "".to_owned());
+        if &name == "" {
+            name = self.material_params.find_one_texture(n, "".to_owned());
+        }
+        if &name != "" {
+            if let Some(tex) = self.spectrum_textures.get(&name) {
+                return tex.clone();
+            } else {
+                error!(
+                    "Couldn't find spectrum texture {} for parameter {}",
+                    name,
+                    n
+                );
+            }
+        }
+        // If texture wasn't found
+        let val = self.material_params.find_one_spectrum(n, *default);
+        let val = self.geom_params.find_one_spectrum(n, val);
+        Arc::new(ConstantTexture::new(val))
+    }
+
+    pub fn get_float_texture(&mut self, n: &str, default: f32) -> Arc<Texture<f32> + Send + Sync> {
+        let mut name = self.geom_params.find_one_texture(n, "".to_owned());
+        if &name == "" {
+            name = self.material_params.find_one_texture(n, "".to_owned());
+        }
+        if &name != "" {
+            if let Some(tex) = self.float_textures.get(&name) {
+                return tex.clone();
+            } else {
+                error!(
+                    "Couldn't find spectrum texture {} for parameter {}",
+                    name,
+                    n
+                );
+            }
+        }
+        // If texture wasn't found
+        let val = self.material_params.find_one_float(n, default);
+        let val = self.geom_params.find_one_float(n, val);
+        Arc::new(ConstantTexture::new(val))
     }
 }
