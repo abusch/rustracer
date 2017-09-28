@@ -13,8 +13,8 @@ use filter::Filter;
 use filter::boxfilter::BoxFilter;
 use filter::gaussian::GaussianFilter;
 use film::Film;
-use light::{Light, PointLight, DistantLight, InfiniteAreaLight};
-use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator};
+use light::{Light, PointLight, DistantLight, InfiniteAreaLight, AreaLight, DiffuseAreaLight};
+use integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, PathIntegrator, Normal};
 use material::Material;
 use material::matte::MatteMaterial;
 use paramset::{ParamSet, TextureParams};
@@ -204,6 +204,7 @@ impl RenderOptions {
         info!("Making integrator");
         let integrator = if self.integrator_name == "whitted" {
             Whitted::create(&mut self.integrator_params)
+            // Box::new(Normal {})
         } else if self.integrator_name == "directlighting" {
             DirectLightingIntegrator::create(&mut self.integrator_params)
         } else if self.integrator_name == "path" {
@@ -642,6 +643,9 @@ impl Api for RealApi {
 
     fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("Arealightsource called with {} and {:?}", name, params);
+        let mut state = self.state.borrow_mut();
+        state.graphics_state.area_light = name;
+        state.graphics_state.area_light_params = params.clone();
         Ok(())
     }
 
@@ -649,6 +653,9 @@ impl Api for RealApi {
         info!("Shape called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
+
+        let mut prims: Vec<Box<Primitive + Send + Sync>> = Vec::new();
+        let mut area_lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
         let shapes = make_shapes(&name,
                                  &state.cur_transform,
                                  &state.cur_transform.inverse(),
@@ -659,22 +666,25 @@ impl Api for RealApi {
         } else {
             None
         };
-        let mut prims: Vec<Box<Primitive + Send + Sync>> = Vec::new();
         for s in shapes {
-            // let area = if state.graphics_state.area_light != "" {
-            //     None // TODO
-            // } else {
-            //     None
-            // };
+            let area = if state.graphics_state.area_light != "" {
+                let mut ps = state.graphics_state.area_light_params.clone();
+                let (area_light, light) = make_area_light(&state.graphics_state.area_light, &state.cur_transform, &mut ps, s.clone())?;
+                area_lights.push(light);
+                Some(area_light)
+            } else {
+                None
+            };
             let prim: Box<Primitive + Send + Sync> = Box::new(GeometricPrimitive {
                                                                   shape: s,
-                                                                  area_light: None, // TODO
+                                                                  area_light: area,
                                                                   material: mat.clone(),
                                                               });
             prims.push(prim);
 
         }
         state.render_options.primitives.append(&mut prims);
+        state.render_options.lights.append(&mut area_lights);
         Ok(())
     }
 
@@ -699,13 +709,14 @@ impl Api for RealApi {
         let camera = state.render_options.make_camera()?;
 
         // TODO finish
-        let _stats = renderer::render(scene,
+        let stats = renderer::render(scene,
                                       integrator,
                                       camera,
                                       7,
                                       sampler,
                                       16,
                                       Box::new(NoopDisplayUpdater {}))?;
+        println!("{:?}", stats);
 
         Ok(())
     }
@@ -733,4 +744,15 @@ fn make_shapes(name: &str,
 
 fn make_material(name: &str /*, params: &mut ParamSet*/) -> Arc<Material + Send + Sync> {
     Arc::new(MatteMaterial::new(Spectrum::blue(), 0.0))
+}
+
+fn make_area_light(name: &str, light2world: &Transform, params: &mut ParamSet, shape: Arc<Shape + Send + Sync>) -> Result<(Arc<AreaLight + Send + Sync>, Arc<Light + Send + Sync>)> {
+    if name == "area" || name == "diffuse" {
+        let l = DiffuseAreaLight::create(light2world, params, shape);
+        let light: Arc<Light + Send + Sync> = l.clone();
+        let area_light: Arc<AreaLight + Send + Sync> = l.clone();
+        Ok((area_light, light))
+    } else {
+        bail!("Area light {} unknown", name);
+    }
 }

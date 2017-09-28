@@ -56,10 +56,11 @@ pub trait Light {
     ///  * the sampled direction wi
     ///  * the pdf for that direction
     ///  * A VisibilityTester
-    fn sample_li(&self,
-                 isect: &SurfaceInteraction,
-                 u: &Point2f)
-                 -> (Spectrum, Vector3f, f32, VisibilityTester);
+    fn sample_li(
+        &self,
+        isect: &SurfaceInteraction,
+        u: &Point2f,
+    ) -> (Spectrum, Vector3f, f32, VisibilityTester);
 
     fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32;
 

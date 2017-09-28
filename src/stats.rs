@@ -10,7 +10,7 @@ thread_local! {
     static NUM_FAST_BBOX_ISECT: RefCell<u64> = RefCell::new(0);
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Stats {
     pub primary_rays: u64,
     pub secondary_rays: u64,

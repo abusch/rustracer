@@ -7,8 +7,8 @@ use errors::*;
 #[allow(dead_code)]
 pub fn parse_scene(input: &str) -> Result<()> {
     // TODO handle errors
-    let tokens = lexer::tokenize(input)
-        .map_err(|e| format!("Failed to tokenize scene file: {:?}", e))?;
+    let tokens =
+        lexer::tokenize(input).map_err(|e| format!("Failed to tokenize scene file: {:?}", e))?;
     // strip comments
     let filtered_tokens = tokens
         .0
@@ -20,7 +20,7 @@ pub fn parse_scene(input: &str) -> Result<()> {
     let res = parser::parse(&filtered_tokens[..], &api)
         .map_err(|e| format!("Failed to parse scene file: {:?}", e))?;
 
-    println!("Scene parsed: {:?} -- {:?}", res.0, res.1);
+    // println!("Scene parsed: {:?} -- {:?}", res.0, res.1);
     Ok(())
 }
 

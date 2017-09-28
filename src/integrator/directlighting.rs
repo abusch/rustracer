@@ -1,4 +1,4 @@
-use integrator::{SamplerIntegrator, uniform_sample_one_light};
+use integrator::{uniform_sample_one_light, SamplerIntegrator};
 use material::TransportMode;
 use paramset::ParamSet;
 use ray::Ray;
@@ -48,12 +48,13 @@ impl DirectLightingIntegrator {
 }
 
 impl SamplerIntegrator for DirectLightingIntegrator {
-    fn li(&self,
-          scene: &Scene,
-          ray: &mut Ray,
-          sampler: &mut Box<Sampler + Send + Sync>,
-          depth: u32)
-          -> Spectrum {
+    fn li(
+        &self,
+        scene: &Scene,
+        ray: &mut Ray,
+        sampler: &mut Box<Sampler + Send + Sync>,
+        depth: u32,
+    ) -> Spectrum {
         let mut colour = Spectrum::black();
 
         match scene.intersect(ray) {

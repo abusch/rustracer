@@ -37,6 +37,7 @@ macro_rules! find(
 
 #[derive(Default, Debug, Clone)]
 pub struct ParamSet {
+    bools: Vec<ParamSetItem<bool>>,
     ints: Vec<ParamSetItem<i32>>,
     floats: Vec<ParamSetItem<f32>>,
     strings: Vec<ParamSetItem<String>>,
@@ -48,6 +49,15 @@ impl ParamSet {
     pub fn init(&mut self, entries: Vec<ParamListEntry>) {
         for entry in entries {
             match entry.param_type {
+                ParamType::Bool => {
+                    let bools = entry
+                        .values
+                        .as_str_array()
+                        .iter()
+                        .map(|x| if x == "true" { true } else { false })
+                        .collect();
+                    self.add_bool(entry.param_name.clone(), bools);
+                }
                 ParamType::Int => {
                     let ints = entry
                         .values
@@ -83,64 +93,69 @@ impl ParamSet {
                         .collect();
                     self.add_point3f(entry.param_name.clone(), points);
                 }
-                _ => {
-                    error!(format!("Parameter type {:?} is not implemented yet!",
-                                   entry.param_type))
-                }
+                _ => error!(format!(
+                    "Parameter type {:?} is not implemented yet!",
+                    entry.param_type
+                )),
             }
         }
     }
 
+    fn add_bool(&mut self, name: String, values: Vec<bool>) {
+        self.bools.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
+    }
+
     fn add_int(&mut self, name: String, values: Vec<i32>) {
-        self.ints
-            .push(ParamSetItem {
-                      name: name,
-                      values: values,
-                      looked_up: false,
-                  });
+        self.ints.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
     }
 
     fn add_float(&mut self, name: String, values: Vec<f32>) {
-        self.floats
-            .push(ParamSetItem {
-                      name: name,
-                      values: values,
-                      looked_up: false,
-                  });
+        self.floats.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
     }
 
     fn add_string(&mut self, name: String, values: Vec<String>) {
-        self.strings
-            .push(ParamSetItem {
-                      name: name,
-                      values: values,
-                      looked_up: false,
-                  });
+        self.strings.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
     }
 
     fn add_rgb_spectrum(&mut self, name: String, values: Vec<Spectrum>) {
-        self.spectra
-            .push(ParamSetItem {
-                      name: name,
-                      values: values,
-                      looked_up: false,
-                  });
+        self.spectra.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
     }
 
     fn add_point3f(&mut self, name: String, values: Vec<Point3f>) {
-        self.point3fs
-            .push(ParamSetItem {
-                      name: name,
-                      values: values,
-                      looked_up: false,
-                  });
+        self.point3fs.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
     }
 
+    find!(find_bool, bools, bool);
     find!(find_int, ints, i32);
     find!(find_float, floats, f32);
     find!(find_string, strings, String);
     find!(find_spectrum, spectra, Spectrum);
     find!(find_point3fs, point3fs, Point3f);
+    find_one!(find_one_bool, bools, bool);
     find_one!(find_one_int, ints, i32);
     find_one!(find_one_float, floats, f32);
     find_one!(find_one_string, strings, String);

@@ -3,11 +3,12 @@ use std::sync::Arc;
 
 use uuid::Uuid;
 
-use {Vector3f, Point2f};
+use {Point2f, Transform, Vector3f};
 use light::{AreaLight, Light, LightFlags, VisibilityTester};
+use paramset::ParamSet;
 use shapes::Shape;
 use spectrum::Spectrum;
-use interaction::{SurfaceInteraction, Interaction};
+use interaction::{Interaction, SurfaceInteraction};
 
 
 pub struct DiffuseAreaLight {
@@ -15,22 +16,40 @@ pub struct DiffuseAreaLight {
     l_emit: Spectrum,
     shape: Arc<Shape + Send + Sync>,
     n_samples: u32,
+    two_sided: bool,
     area: f32,
 }
 
 impl DiffuseAreaLight {
-    pub fn new(l_emit: Spectrum,
-               shape: Arc<Shape + Send + Sync>,
-               n_samples: u32)
-               -> DiffuseAreaLight {
+    pub fn new(
+        l_emit: Spectrum,
+        shape: Arc<Shape + Send + Sync>,
+        n_samples: u32,
+        two_sided: bool,
+    ) -> DiffuseAreaLight {
         let area = shape.area();
         DiffuseAreaLight {
             id: Uuid::new_v4(),
             l_emit: l_emit,
             shape: shape,
             n_samples: n_samples,
+            two_sided: two_sided,
             area: area,
         }
+    }
+
+    pub fn create(
+        _light2world: &Transform,
+        ps: &mut ParamSet,
+        shape: Arc<Shape + Send + Sync>,
+    ) -> Arc<DiffuseAreaLight> {
+        let L = ps.find_one_spectrum("L", Spectrum::white());
+        let sc = ps.find_one_spectrum("scale", Spectrum::white());
+        let nsamples = ps.find_one_int("nsamples", 1);
+        let nsamples = ps.find_one_int("samples", nsamples);
+        let two_sided = ps.find_one_bool("towsided", false);
+
+        Arc::new(Self::new(L, shape, nsamples as u32, two_sided))
     }
 }
 
@@ -39,10 +58,11 @@ impl Light for DiffuseAreaLight {
         self.id
     }
 
-    fn sample_li(&self,
-                 si: &SurfaceInteraction,
-                 u: &Point2f)
-                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
+    fn sample_li(
+        &self,
+        si: &SurfaceInteraction,
+        u: &Point2f,
+    ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let (p_shape, pdf) = self.shape.sample_si(&si.into(), u);
         assert!(!p_shape.p.x.is_nan() && !p_shape.p.y.is_nan() && !p_shape.p.z.is_nan());
         let wi = (p_shape.p - si.p).normalize();
@@ -64,7 +84,8 @@ impl Light for DiffuseAreaLight {
     }
 
     fn power(&self) -> Spectrum {
-        self.l_emit * PI * self.area
+        let factor = if self.two_sided { 2.0 } else { 1.0 };
+        factor * self.l_emit * PI * self.area
     }
 }
 
