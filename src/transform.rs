@@ -1,9 +1,9 @@
 use std::ops::Mul;
-use na::{self, Matrix4, Matrix2, Similarity3, U3, Affine3};
+use na::{self, Affine3, Matrix2, Matrix4, Similarity3, U3};
 
-use {Vector2f, Vector3f, Point3f, gamma};
+use {gamma, Point3f, Vector2f, Vector3f};
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Transform {
     pub m: Matrix4<f32>,
     pub m_inv: Matrix4<f32>,
@@ -22,7 +22,7 @@ impl Transform {
     }
 
     pub fn rotate(angle: f32, v: Vector3f) -> Transform {
-        Transform::new(na::zero(), v * angle, 1.0)
+        Transform::new(na::zero(), v * angle.to_radians(), 1.0)
     }
 
     pub fn rot_x(angle: f32) -> Transform {
@@ -82,42 +82,43 @@ impl Transform {
         let (x, y, z) = (p.x, p.y, p.z);
         let tp = self * p;
         let m = self.m;
-        let x_abs_sum = (m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() +
-                        m[(0, 3)].abs();
-        let y_abs_sum = (m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() +
-                        m[(1, 3)].abs();
-        let z_abs_sum = (m[(2, 0)] * x).abs() + (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs() +
-                        m[(2, 3)].abs();
+        let x_abs_sum =
+            (m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() + m[(0, 3)].abs();
+        let y_abs_sum =
+            (m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() + m[(1, 3)].abs();
+        let z_abs_sum =
+            (m[(2, 0)] * x).abs() + (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs() + m[(2, 3)].abs();
         let p_err = gamma(3) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
 
         (tp, p_err)
     }
 
-    pub fn transform_point_with_error(&self,
-                                      p: &Point3f,
-                                      p_error: &Vector3f)
-                                      -> (Point3f, Vector3f) {
+    pub fn transform_point_with_error(
+        &self,
+        p: &Point3f,
+        p_error: &Vector3f,
+    ) -> (Point3f, Vector3f) {
         let (x, y, z) = (p.x, p.y, p.z);
         let tp = self * p;
         let m = self.m;
         let x_abs_err = (gamma(3) + 1.0) *
-                        ((m[(0, 0)] * p_error.x).abs() + (m[(0, 1)] * p_error.y).abs() +
-                         (m[(0, 2)] * p_error.z).abs()) +
-                        gamma(3) *
-                        ((m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() +
-                         m[(0, 3)].abs());
+            ((m[(0, 0)] * p_error.x).abs() + (m[(0, 1)] * p_error.y).abs() +
+                (m[(0, 2)] * p_error.z).abs()) +
+            gamma(3) *
+                ((m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() +
+                    m[(0, 3)].abs());
         let y_abs_err = (gamma(3) + 1.0) *
-                        ((m[(1, 0)] * p_error.x).abs() + (m[(1, 1)] * p_error.y).abs() +
-                         (m[(1, 2)] * p_error.z).abs()) +
-                        gamma(3) *
-                        ((m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() +
-                         m[(1, 3)].abs());
+            ((m[(1, 0)] * p_error.x).abs() + (m[(1, 1)] * p_error.y).abs() +
+                (m[(1, 2)] * p_error.z).abs()) +
+            gamma(3) *
+                ((m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() +
+                    m[(1, 3)].abs());
         let z_abs_err = (gamma(3) + 1.0) *
-                        ((m[(2, 0)] * p_error.x).abs() + (m[(2, 1)] * p_error.y).abs() +
-                         (m[(2, 2)] * p_error.z).abs()) +
-                        gamma(3) *
-                        ((m[(2, 0)] * x).abs() + (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs() +
-                         m[(2, 3)].abs());
+            ((m[(2, 0)] * p_error.x).abs() + (m[(2, 1)] * p_error.y).abs() +
+                (m[(2, 2)] * p_error.z).abs()) +
+            gamma(3) *
+                ((m[(2, 0)] * x).abs() + (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs() +
+                    m[(2, 3)].abs());
         let p_err = Vector3f::new(x_abs_err, y_abs_err, z_abs_err);
 
         (tp, p_err)
@@ -130,11 +131,11 @@ impl Transform {
         let tv = self * v;
         let m = self.m;
         let x_abs_sum = na::abs(&(m[(0, 0)] * x)) + na::abs(&(m[(0, 1)] * y)) +
-                        na::abs(&(m[(0, 2)] * z)) + na::abs(&m[(0, 3)]);
+            na::abs(&(m[(0, 2)] * z)) + na::abs(&m[(0, 3)]);
         let y_abs_sum = na::abs(&(m[(1, 0)] * x)) + na::abs(&(m[(1, 1)] * y)) +
-                        na::abs(&(m[(1, 2)] * z)) + na::abs(&m[(1, 3)]);
+            na::abs(&(m[(1, 2)] * z)) + na::abs(&m[(1, 3)]);
         let z_abs_sum = na::abs(&(m[(2, 0)] * x)) + na::abs(&(m[(2, 1)] * y)) +
-                        na::abs(&(m[(2, 2)] * z)) + na::abs(&m[(2, 3)]);
+            na::abs(&(m[(2, 2)] * z)) + na::abs(&m[(2, 3)]);
         let v_err = gamma(3) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
 
         (tv, v_err)
@@ -185,10 +186,11 @@ impl<'a, 'b> Mul<&'a Vector3f> for &'b Transform {
         let y = v.y;
         let z = v.z;
 
-        Vector3f::new(self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z,
-                      self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z,
-                      self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z)
-
+        Vector3f::new(
+            self.m[(0, 0)] * x + self.m[(0, 1)] * y + self.m[(0, 2)] * z,
+            self.m[(1, 0)] * x + self.m[(1, 1)] * y + self.m[(1, 2)] * z,
+            self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z,
+        )
     }
 }
 
@@ -221,9 +223,11 @@ pub fn solve_linear_system2x2(A: &Matrix2<f32>, B: &Vector2f) -> Option<(f32, f3
 
 #[test]
 fn test_normal_transform() {
-    let t = Transform::new(Vector3f::new(0.0, 0.0, 0.0),
-                           Vector3f::new(4.0, 5.0, 6.0),
-                           4.0);
+    let t = Transform::new(
+        Vector3f::new(0.0, 0.0, 0.0),
+        Vector3f::new(4.0, 5.0, 6.0),
+        4.0,
+    );
     let t_inv = t.inverse();
 
     let v = Vector3f::x();
