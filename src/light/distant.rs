@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use uuid::Uuid;
 
-use {Point3f, Vector3f, Point2f, Transform};
+use {Point2f, Point3f, Transform, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
 use light::{Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
@@ -51,15 +51,18 @@ impl Light for DistantLight {
         self.w_radius = w_radius;
     }
 
-    fn sample_li(&self,
-                 isect: &SurfaceInteraction,
-                 _u: &Point2f)
-                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
+    fn sample_li(
+        &self,
+        isect: &SurfaceInteraction,
+        _u: &Point2f,
+    ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let p_outside = isect.p - self.dir * (2.0 * self.w_radius);
-        (self.emission_colour,
-         -self.dir,
-         1.0,
-         VisibilityTester::new(isect.into(), Interaction::from_point(&p_outside)))
+        (
+            self.emission_colour,
+            self.dir,
+            1.0,
+            VisibilityTester::new(isect.into(), Interaction::from_point(&p_outside)),
+        )
     }
 
     fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector3f) -> f32 {
