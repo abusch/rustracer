@@ -1,36 +1,25 @@
 extern crate chrono;
 #[macro_use]
-extern crate error_chain;
-extern crate nalgebra as na;
-extern crate rustracer as rt;
-#[macro_use]
 extern crate clap;
-extern crate num_cpus;
+#[macro_use]
+extern crate error_chain;
+extern crate rustracer as rt;
 #[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
 extern crate slog;
-#[macro_use]
 extern crate slog_scope;
 extern crate slog_stream;
 extern crate thread_id;
 
 mod logging;
 mod argparse;
-mod samplescenes;
 
 use std::fs;
 use std::io::Read;
 
 use clap::ArgMatches;
 
-use argparse::SamplerIntegratorType;
-use rt::Point2i;
-use rt::display::{DisplayUpdater, MinifbDisplayUpdater, NoopDisplayUpdater};
 use rt::errors::*;
-use rt::integrator::{SamplerIntegrator, Whitted, DirectLightingIntegrator, Normal,
-                     AmbientOcclusion, PathIntegrator, LightStrategy};
 use rt::parser;
-use rt::renderer;
-use rt::sampler::zerotwosequence::ZeroTwoSequence;
 
 fn main() {
     let matches = argparse::parse_args();
@@ -51,28 +40,14 @@ fn main() {
 }
 
 fn run(matches: ArgMatches) -> Result<()> {
-    let dims = matches
-        .value_of("dim")
-        .unwrap()
-        .split('x')
-        .map(|s| {
-                 s.parse::<u32>()
-                     .chain_err(|| "Unable to parse dimension")
-             })
-        .collect::<Result<Vec<u32>>>()?;
-    if dims.len() != 2 {
-        bail!("Error: invalid dimension specification");
-    }
-    let dim = Point2i::new(dims[0] as i32, dims[1] as i32);
-
     let filename = matches.value_of("INPUT").unwrap();
-    let mut file = fs::File::open(filename)
-        .chain_err(|| "Failed to open scene file")?;
+    let mut file = fs::File::open(filename).chain_err(|| "Failed to open scene file")?;
     let mut file_content = String::new();
     file.read_to_string(&mut file_content)
         .chain_err(|| "Failed to read content of scene file")?;
     parser::parse_scene(&file_content[..])?;
 
+    /*
     let (scene, camera) = samplescenes::build_scene(dim);
 
     let integrator: Box<SamplerIntegrator + Send + Sync> =
@@ -134,7 +109,7 @@ fn run(matches: ArgMatches) -> Result<()> {
              stats.ray_triangle_isect,
              stats.ray_triangle_isect as f32 / stats.ray_triangle_tests as f32 * 100.0);
     println!("Fast bounding-box test     : {}", stats.fast_bbox_isect);
-
+*/
     Ok(())
 }
 

@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::path::Path;
 
 use bsdf::{BxDF, Fresnel, LambertianReflection, MicrofacetReflection, TrowbridgeReitzDistribution,
            BSDF};
@@ -7,7 +6,7 @@ use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
-use texture::{ConstantTexture, ImageTexture, Texture};
+use texture::{ImageTexture, Texture};
 
 
 pub struct Plastic {
@@ -18,24 +17,6 @@ pub struct Plastic {
 }
 
 impl Plastic {
-    pub fn new(kd: Spectrum, ks: Spectrum) -> Plastic {
-        Plastic {
-            kd: Arc::new(ConstantTexture::new(kd)),
-            ks: Arc::new(ConstantTexture::new(ks)),
-            roughness: Arc::new(ConstantTexture::new(0.1)),
-            remap_roughness: true,
-        }
-    }
-
-    pub fn new_tex(kd_tex: &str, ks: Spectrum) -> Plastic {
-        Plastic {
-            kd: Arc::new(ImageTexture::new(Path::new(kd_tex))),
-            ks: Arc::new(ConstantTexture::new(ks)),
-            roughness: Arc::new(ConstantTexture::new(0.1)),
-            remap_roughness: true,
-        }
-    }
-
     pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
         let Kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.25));
         let Ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.25));

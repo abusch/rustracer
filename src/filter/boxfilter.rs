@@ -28,10 +28,10 @@ impl Filter for BoxFilter {
     }
 
     fn width(&self) -> (f32, f32) {
-        (0.5, 0.5)
+        self.radius
     }
 
     fn inv_width(&self) -> (f32, f32) {
-        (2.0, 2.0)
+        self.inv_radius
     }
 }

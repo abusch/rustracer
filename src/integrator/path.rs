@@ -1,5 +1,5 @@
-use bsdf::{self, BxDFType};
-use integrator::{SamplerIntegrator, uniform_sample_one_light};
+use bsdf::BxDFType;
+use integrator::{uniform_sample_one_light, SamplerIntegrator};
 use lightdistrib::{LightDistribution, UniformLightDistribution};
 use material::TransportMode;
 use ray::Ray;
@@ -24,12 +24,13 @@ impl PathIntegrator {
 }
 
 impl SamplerIntegrator for PathIntegrator {
-    fn li(&self,
-          scene: &Scene,
-          r: &mut Ray,
-          sampler: &mut Box<Sampler + Send + Sync>,
-          _depth: u32)
-          -> Spectrum {
+    fn li(
+        &self,
+        scene: &Scene,
+        r: &mut Ray,
+        sampler: &mut Box<Sampler + Send + Sync>,
+        _depth: u32,
+    ) -> Spectrum {
         let mut l = Spectrum::black();
         let mut beta = Spectrum::white();
         let mut specular_bounce = false;
@@ -38,10 +39,12 @@ impl SamplerIntegrator for PathIntegrator {
 
         let mut bounces = 0;
         loop {
-            debug!("Path tracer bounce {}, current L={:?}, beta={:?}",
-                   bounces,
-                   l,
-                   beta);
+            debug!(
+                "Path tracer bounce {}, current L={:?}, beta={:?}",
+                bounces,
+                l,
+                beta
+            );
             match scene.intersect(&mut ray) {
                 None => {
                     if bounces == 0 || specular_bounce {
@@ -89,8 +92,9 @@ impl SamplerIntegrator for PathIntegrator {
                     assert!(beta.y() >= 0.0);
                     assert!(!beta.y().is_infinite());
                     specular_bounce = flags.contains(BxDFType::BSDF_SPECULAR);
-                    if flags.contains(BxDFType::BSDF_SPECULAR) &&
-                       flags.contains(BxDFType::BSDF_TRANSMISSION) {
+                    if flags.contains(BxDFType::BSDF_SPECULAR)
+                        && flags.contains(BxDFType::BSDF_TRANSMISSION)
+                    {
                         let eta = bsdf.eta;
                         eta_scale *= if wo.dot(&isect.n) > 0.0 {
                             eta * eta

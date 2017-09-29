@@ -17,10 +17,9 @@ pub fn parse_scene(input: &str) -> Result<()> {
         .collect::<Vec<_>>();
     let api = RealApi::default();
     api.init()?;
-    let res = parser::parse(&filtered_tokens[..], &api)
+    parser::parse(&filtered_tokens[..], &api)
         .map_err(|e| format!("Failed to parse scene file: {:?}", e))?;
 
-    // println!("Scene parsed: {:?} -- {:?}", res.0, res.1);
     Ok(())
 }
 

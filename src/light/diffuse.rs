@@ -49,7 +49,7 @@ impl DiffuseAreaLight {
         let nsamples = ps.find_one_int("samples", nsamples);
         let two_sided = ps.find_one_bool("towsided", false);
 
-        Arc::new(Self::new(L, shape, nsamples as u32, two_sided))
+        Arc::new(Self::new(L * sc, shape, nsamples as u32, two_sided))
     }
 }
 

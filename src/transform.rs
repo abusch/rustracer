@@ -1,5 +1,5 @@
 use std::ops::Mul;
-use na::{self, Affine3, Matrix2, Matrix4, Similarity3, U3};
+use na::{self, Matrix2, Matrix4, Similarity3, U3};
 
 use {gamma, Point3f, Vector2f, Vector3f};
 
@@ -101,24 +101,24 @@ impl Transform {
         let (x, y, z) = (p.x, p.y, p.z);
         let tp = self * p;
         let m = self.m;
-        let x_abs_err = (gamma(3) + 1.0) *
-            ((m[(0, 0)] * p_error.x).abs() + (m[(0, 1)] * p_error.y).abs() +
-                (m[(0, 2)] * p_error.z).abs()) +
-            gamma(3) *
-                ((m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs() +
-                    m[(0, 3)].abs());
-        let y_abs_err = (gamma(3) + 1.0) *
-            ((m[(1, 0)] * p_error.x).abs() + (m[(1, 1)] * p_error.y).abs() +
-                (m[(1, 2)] * p_error.z).abs()) +
-            gamma(3) *
-                ((m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs() +
-                    m[(1, 3)].abs());
-        let z_abs_err = (gamma(3) + 1.0) *
-            ((m[(2, 0)] * p_error.x).abs() + (m[(2, 1)] * p_error.y).abs() +
-                (m[(2, 2)] * p_error.z).abs()) +
-            gamma(3) *
-                ((m[(2, 0)] * x).abs() + (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs() +
-                    m[(2, 3)].abs());
+        let x_abs_err = (gamma(3) + 1.0)
+            * ((m[(0, 0)] * p_error.x).abs() + (m[(0, 1)] * p_error.y).abs()
+                + (m[(0, 2)] * p_error.z).abs())
+            + gamma(3)
+                * ((m[(0, 0)] * x).abs() + (m[(0, 1)] * y).abs() + (m[(0, 2)] * z).abs()
+                    + m[(0, 3)].abs());
+        let y_abs_err = (gamma(3) + 1.0)
+            * ((m[(1, 0)] * p_error.x).abs() + (m[(1, 1)] * p_error.y).abs()
+                + (m[(1, 2)] * p_error.z).abs())
+            + gamma(3)
+                * ((m[(1, 0)] * x).abs() + (m[(1, 1)] * y).abs() + (m[(1, 2)] * z).abs()
+                    + m[(1, 3)].abs());
+        let z_abs_err = (gamma(3) + 1.0)
+            * ((m[(2, 0)] * p_error.x).abs() + (m[(2, 1)] * p_error.y).abs()
+                + (m[(2, 2)] * p_error.z).abs())
+            + gamma(3)
+                * ((m[(2, 0)] * x).abs() + (m[(2, 1)] * y).abs() + (m[(2, 2)] * z).abs()
+                    + m[(2, 3)].abs());
         let p_err = Vector3f::new(x_abs_err, y_abs_err, z_abs_err);
 
         (tp, p_err)
@@ -130,12 +130,12 @@ impl Transform {
         let (x, y, z) = (v.x, v.y, v.z);
         let tv = self * v;
         let m = self.m;
-        let x_abs_sum = na::abs(&(m[(0, 0)] * x)) + na::abs(&(m[(0, 1)] * y)) +
-            na::abs(&(m[(0, 2)] * z)) + na::abs(&m[(0, 3)]);
-        let y_abs_sum = na::abs(&(m[(1, 0)] * x)) + na::abs(&(m[(1, 1)] * y)) +
-            na::abs(&(m[(1, 2)] * z)) + na::abs(&m[(1, 3)]);
-        let z_abs_sum = na::abs(&(m[(2, 0)] * x)) + na::abs(&(m[(2, 1)] * y)) +
-            na::abs(&(m[(2, 2)] * z)) + na::abs(&m[(2, 3)]);
+        let x_abs_sum = na::abs(&(m[(0, 0)] * x)) + na::abs(&(m[(0, 1)] * y))
+            + na::abs(&(m[(0, 2)] * z)) + na::abs(&m[(0, 3)]);
+        let y_abs_sum = na::abs(&(m[(1, 0)] * x)) + na::abs(&(m[(1, 1)] * y))
+            + na::abs(&(m[(1, 2)] * z)) + na::abs(&m[(1, 3)]);
+        let z_abs_sum = na::abs(&(m[(2, 0)] * x)) + na::abs(&(m[(2, 1)] * y))
+            + na::abs(&(m[(2, 2)] * z)) + na::abs(&m[(2, 3)]);
         let v_err = gamma(3) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
 
         (tv, v_err)
