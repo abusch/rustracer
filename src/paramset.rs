@@ -214,6 +214,11 @@ impl<'a> TextureParams<'a> {
         self.geom_params.find_one_string(n, mat_string)
     }
 
+    pub fn find_bool(&mut self, n: &str, d: bool) -> bool {
+        let d = self.material_params.find_one_bool(n, d);
+        self.geom_params.find_one_bool(n, d)
+    }
+
     pub fn get_spectrum_texture(
         &mut self,
         n: &str,

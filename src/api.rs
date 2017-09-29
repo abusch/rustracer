@@ -14,9 +14,10 @@ use filter::boxfilter::BoxFilter;
 use filter::gaussian::GaussianFilter;
 use film::Film;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
-use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
+use integrator::{DirectLightingIntegrator, PathIntegrator, SamplerIntegrator, Whitted};
 use material::Material;
 use material::matte::MatteMaterial;
+use material::plastic::Plastic;
 use paramset::{ParamSet, TextureParams};
 use primitive::{GeometricPrimitive, Primitive};
 use renderer;
@@ -823,6 +824,8 @@ fn make_shapes(
 fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
     if name == "matte" {
         MatteMaterial::create(mp)
+    } else if name == "plastic" {
+        Plastic::create(mp)
     } else {
         warn!("Unknown material {}. Using matte.", name);
         MatteMaterial::create(mp)
