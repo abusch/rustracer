@@ -5,7 +5,7 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::{ConstantTexture, ImageTexture, Texture, UVTexture};
+use texture::Texture;
 
 pub struct MatteMaterial {
     kd: Arc<Texture<Spectrum> + Sync + Send>,
@@ -27,6 +27,7 @@ impl MatteMaterial {
     }
 
     pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+        info!("Creating Matte material");
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.5));
         let sigma = mp.get_float_texture("sigma", 0.0);
 

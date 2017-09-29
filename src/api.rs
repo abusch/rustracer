@@ -277,7 +277,7 @@ impl GraphicsState {
                     make_material("matte", &mut mp)
                 })
         } else {
-            make_material("matte", &mut mp)
+            make_material(&self.material, &mut mp)
         }
     }
 }

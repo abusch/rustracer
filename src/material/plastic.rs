@@ -6,7 +6,7 @@ use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
-use texture::{ImageTexture, Texture};
+use texture::Texture;
 
 
 pub struct Plastic {
@@ -18,6 +18,7 @@ pub struct Plastic {
 
 impl Plastic {
     pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+        info!("Creating Plastic material");
         let Kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.25));
         let Ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.25));
         let roughness = mp.get_float_texture("roughness", 0.1);
