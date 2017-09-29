@@ -2,7 +2,6 @@
 name = "rustracer"
 version = "0.1.0"
 dependencies = [
- "alga 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "approx 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -20,9 +19,9 @@ dependencies = [
  "openexr 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pbr 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "slog 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "slog-scope 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "slog-stream 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog 2.0.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog-scope 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog-term 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "thread-id 3.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tobj 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -298,6 +297,16 @@ version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "adler32 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "isatty"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.31 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -631,35 +640,28 @@ dependencies = [
 
 [[package]]
 name = "slog"
-version = "1.5.2"
+version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "slog-extra"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "slog 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "thread_local 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "slog-scope"
-version = "0.2.2"
+version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "crossbeam 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "slog 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog 2.0.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "slog-stream"
-version = "1.2.1"
+name = "slog-term"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "slog 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "slog-extra 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "chrono 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "isatty 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog 2.0.12 (registry+https://github.com/rust-lang/crates.io-index)",
+ "term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "thread_local 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -667,6 +669,15 @@ dependencies = [
 name = "strsim"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "term"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "term_size"
@@ -825,6 +836,7 @@ dependencies = [
 "checksum ieee754 0.2.1 (git+https://github.com/abusch/ieee754.git)" = "<none>"
 "checksum image 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e70634e5518ee89975b43c4bbd1667c4012c0313392aa2dfa2db5563c28e34c2"
 "checksum inflate 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d2f17a51ba2ee15e437a5364523d20331712392e1765ef6c899882b9a0b1e868"
+"checksum isatty 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "fa500db770a99afe2a0f2229be2a3d09c7ed9d7e4e8440bf71253141994e240f"
 "checksum itertools 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)" = "26cfe79e01eb976c9a5348928902cedb9c81dfb65bac877bf793837b9c4cbb62"
 "checksum jpeg-decoder 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)" = "2805ccb10ffe4d10e06ef68a158ff94c255211ecbae848fbde2146b098f93ce7"
 "checksum kernel32-sys 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "e014dab1082fd9d80ea1fa6fcb261b47ed3eb511612a14198bb507701add083e"
@@ -864,11 +876,11 @@ dependencies = [
 "checksum scopeguard 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "c79eb2c3ac4bc2507cda80e7f3ac5b88bd8eae4c0914d5663e6a8933994be918"
 "checksum sdl2 0.30.0 (registry+https://github.com/rust-lang/crates.io-index)" = "63066036ad426250ac56d23e38fd05063b38b661556acd596f4046cc92d98415"
 "checksum sdl2-sys 0.30.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b48638b7882759f3421038fcd38ad5f1ea19b119d80c99f1601933004629e34d"
-"checksum slog 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "bab9d589681f7d6b9ca4ed5cc861779a392bca7beaae2f69f2341617415a78dc"
-"checksum slog-extra 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "511581f4dd1dc90e4eca99b60be8a692d9c975e8757558aa774f16007d27492a"
-"checksum slog-scope 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "4a756e3fc1b357b4597838bf275ee5603287576f056216d781258a887c869f64"
-"checksum slog-stream 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "3fac4af71007ddb7338f771e059a46051f18d1454d8ac556f234a0573e719daa"
+"checksum slog 2.0.12 (registry+https://github.com/rust-lang/crates.io-index)" = "717c886b5e7855cf2e434a2d73ff494d33aaa584fb48e3074affc7b66dcd290d"
+"checksum slog-scope 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "dd3236e1818c147ed3003930289dc6457425aaca3a7dbb6b7f3032f075d865c5"
+"checksum slog-term 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9b4dc32ad4eb5c7406c9aa333731803977fc962906af7e6f30ee9ccccc02076f"
 "checksum strsim 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b4d15c810519a91cf877e7e36e63fe068815c678181439f2f29e2562147c3694"
+"checksum term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "fa63644f74ce96fbeb9b794f66aff2a52d601cbd5e80f4b97123e3899f4570f1"
 "checksum term_size 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2b6b55df3198cc93372e85dd2ed817f0e38ce8cc0f22eb32391bfad9c4bf209"
 "checksum textwrap 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "df8e08afc40ae3459e4838f303e465aa50d823df8d7f83ca88108f6d3afe7edd"
 "checksum thread-id 3.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2af4d6289a69a35c4d3aea737add39685f2784122c28119a7713165a63d68c9d"

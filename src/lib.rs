@@ -1,6 +1,5 @@
 #![recursion_limit = "1024"]
 #![deny(trivial_casts, unused_qualifications, unused_must_use)]
-extern crate alga;
 #[macro_use]
 extern crate approx;
 #[macro_use]
@@ -15,7 +14,8 @@ extern crate image as img;
 extern crate itertools as it;
 extern crate nalgebra as na;
 extern crate num;
-#[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
+#[macro_use(slog_error, slog_warn, slog_info, slog_debug, slog_trace, slog_log, slog_record,
+            slog_record_static, slog_b, slog_kv)]
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
@@ -24,7 +24,7 @@ extern crate uuid;
 use std::f32;
 use std::ops::{Add, Mul, Sub};
 
-use na::{Vector2, Vector3, Point2, Point3};
+use na::{Point2, Point3, Vector2, Vector3};
 use na::core::Scalar;
 use num::One;
 
@@ -98,11 +98,12 @@ pub const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
 /// This version should be generic enough to linearly interpolate between 2 Spectrums using an f32
 /// parameter.
 pub fn lerp<S, T>(t: S, a: T, b: T) -> T
-    where S: One,
-          S: Sub<S, Output = S>,
-          S: Copy,
-          T: Add<T, Output = T>,
-          T: Mul<S, Output = T>
+where
+    S: One,
+    S: Sub<S, Output = S>,
+    S: Copy,
+    T: Add<T, Output = T>,
+    T: Mul<S, Output = T>,
 {
     let one: S = num::one();
     a * (one - t) + b * t
@@ -110,10 +111,15 @@ pub fn lerp<S, T>(t: S, a: T, b: T) -> T
 
 /// Return the dimension index (0, 1 or 2) that contains the largest component.
 pub fn max_dimension<T>(v: Vector3<T>) -> usize
-    where T: Scalar + PartialOrd
+where
+    T: Scalar + PartialOrd,
 {
     if v.x > v.y {
-        if v.x > v.z { 0 } else { 2 }
+        if v.x > v.z {
+            0
+        } else {
+            2
+        }
     } else if v.y > v.z {
         1
     } else {
@@ -123,14 +129,16 @@ pub fn max_dimension<T>(v: Vector3<T>) -> usize
 
 /// Permute the components of this vector based on the given indices for x, y and z.
 pub fn permute_v<T>(v: &Vector3<T>, x: usize, y: usize, z: usize) -> Vector3<T>
-    where T: Scalar
+where
+    T: Scalar,
 {
     Vector3::new(v[x], v[y], v[z])
 }
 
 /// Permute the components of this point based on the given indices for x, y and z.
 pub fn permute_p<T>(v: &Point3<T>, x: usize, y: usize, z: usize) -> Point3<T>
-    where T: Scalar
+where
+    T: Scalar,
 {
     Point3::new(v[x], v[y], v[z])
 }
@@ -150,7 +158,8 @@ pub fn coordinate_system(v1: &Vector3f) -> (Vector3f, Vector3f) {
 
 // TODO does this exist in std?
 pub fn find_interval<P>(size: usize, pred: P) -> usize
-    where P: Fn(usize) -> bool
+where
+    P: Fn(usize) -> bool,
 {
     let mut first = 0;
     let mut len = size;
@@ -170,12 +179,20 @@ pub fn find_interval<P>(size: usize, pred: P) -> usize
 
 /// Version of min() that works on PartialOrd, so it works for both u32 and f32.
 pub fn min<T: PartialOrd + Copy>(a: T, b: T) -> T {
-    if a.lt(&b) { a } else { b }
+    if a.lt(&b) {
+        a
+    } else {
+        b
+    }
 }
 
 /// Version of max() that works on PartialOrd, so it works for both u32 and f32.
 pub fn max<T: PartialOrd + Copy>(a: T, b: T) -> T {
-    if a.gt(&b) { a } else { b }
+    if a.gt(&b) {
+        a
+    } else {
+        b
+    }
 }
 
 #[inline]

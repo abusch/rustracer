@@ -98,10 +98,10 @@ impl ParamSet {
                         .collect();
                     self.add_point3f(entry.param_name.clone(), points);
                 }
-                _ => error!(format!(
+                _ => error!(
                     "Parameter type {:?} is not implemented yet!",
                     entry.param_type
-                )),
+                ),
             }
         }
     }

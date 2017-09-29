@@ -1,13 +1,11 @@
 extern crate chrono;
-#[macro_use]
 extern crate clap;
-#[macro_use]
 extern crate error_chain;
 extern crate rustracer as rt;
-#[macro_use(o, slog_info, slog_debug, slog_warn, slog_error, slog_trace, slog_log)]
+#[macro_use]
 extern crate slog;
 extern crate slog_scope;
-extern crate slog_stream;
+extern crate slog_term;
 extern crate thread_id;
 
 mod logging;
@@ -30,7 +28,7 @@ fn main() {
     } else {
         slog::Level::Info
     };
-    logging::configure_logger(level);
+    let _guard = logging::configure_logger(level);
 
 
     if let Err(ref e) = run(matches) {

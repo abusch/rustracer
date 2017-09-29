@@ -39,7 +39,10 @@ impl DirectLightingIntegrator {
         } else if st == "all" {
             LightStrategy::UniformSampleAll
         } else {
-            warn!("Strategy \"{}\" for directlighting unknown. Using \"all\".");
+            warn!(
+                "Strategy \"{}\" for directlighting unknown. Using \"all\".",
+                st
+            );
             LightStrategy::UniformSampleAll
         };
         // TODO pixel_bounds
