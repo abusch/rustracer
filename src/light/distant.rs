@@ -56,7 +56,7 @@ impl Light for DistantLight {
         isect: &SurfaceInteraction,
         _u: &Point2f,
     ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
-        let p_outside = isect.p - self.dir * (2.0 * self.w_radius);
+        let p_outside = isect.p + self.dir * (2.0 * self.w_radius);
         (
             self.emission_colour,
             self.dir,
