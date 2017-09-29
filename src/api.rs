@@ -272,10 +272,8 @@ impl GraphicsState {
         if !self.current_named_material.is_empty() {
             self.named_material
                 .get(&self.current_named_material)
-                .map(|v| { v.clone() }) // deref the &Arc<Material> to clone it
-                .unwrap_or_else(|| {
-                    make_material("matte", &mut mp)
-                })
+                .map(|v| v.clone())
+                .unwrap_or_else(|| make_material("matte", &mut mp))
         } else {
             make_material(&self.material, &mut mp)
         }
