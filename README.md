@@ -24,13 +24,15 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * Basic shapes (disc, sphere) + triangle meshes
  * Perspective camera with thin-lens depth-of-field
  * Point lights, distant lights
- * diffuse area lights (only with UniformSampleOne strategy), 
+ * diffuse area lights
  * infinite light
  * BxDF for lambertian, perfect specular reflection / transmission, microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
  * Matte, Plastic, Metal materials
  * Textures (imagemaps with MIPMapping, UV, CheckerBoard)
  * BVH (only with MIDDLE splitting strategy)
  * multi-threaded rendering
+ * Support for PBRT scene file format (still incomplete)
+ * Read textures in TGA or EXR (thanks to [openexr-rs](https://github.com/cessen/openexr-rs)
 
 ## TODO
  * More camera types (orthographic, realistic, environment)
@@ -42,8 +44,7 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * Volumetric rendering
  * More integrators: path-tracing and bidirectional path tracing
  * Animations
- * Support for PBRT scene file format
- * Support for reading/writing EXR files (hopefully [openexr-rs](https://github.com/cessen/openexr-rs) becomes usable soon :)
+ * Support for writing EXR files
  * Support for PLY meshes
  * more light types
  * Finish ray-differential support
