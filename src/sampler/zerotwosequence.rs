@@ -1,9 +1,9 @@
-use {Point2i, Point2f};
+use {Point2f, Point2i};
 use camera::CameraSample;
 use paramset::ParamSet;
 use rng::RNG;
 use sampler::Sampler;
-use sampler::lowdiscrepancy::{sobol_2d, van_der_corput};
+use sampler::lowdiscrepancy::{van_der_corput, sobol_2d};
 
 #[derive(Clone)]
 pub struct ZeroTwoSequence {
@@ -64,19 +64,39 @@ impl Sampler for ZeroTwoSequence {
     fn start_pixel(&mut self, p: &Point2i) {
         // Generate 1D and 2D pixel sample components using (0, 2)-sequence
         for i in 0..self.samples_1d.len() {
-            van_der_corput(1,
-                           self.spp as u32,
-                           &mut self.samples_1d[i][..],
-                           &mut self.rng);
+            van_der_corput(
+                1,
+                self.spp as u32,
+                &mut self.samples_1d[i][..],
+                &mut self.rng,
+            );
         }
         for i in 0..self.samples_2d.len() {
-            sobol_2d(1,
-                     self.spp as u32,
-                     &mut self.samples_2d[i][..],
-                     &mut self.rng);
+            sobol_2d(
+                1,
+                self.spp as u32,
+                &mut self.samples_2d[i][..],
+                &mut self.rng,
+            );
         }
 
-        // TODO generate 1d and 2d array samples
+        // generate 1d and 2d array samples
+        for i in 0..self.sample_1d_array_sizes.len() {
+            van_der_corput(
+                self.sample_1d_array_sizes[i] as u32,
+                self.spp as u32,
+                &mut self.sample_array_1d[i][..],
+                &mut self.rng,
+            );
+        }
+        for i in 0..self.sample_2d_array_sizes.len() {
+            sobol_2d(
+                self.sample_2d_array_sizes[i] as u32,
+                self.spp as u32,
+                &mut self.sample_array_2d[i][..],
+                &mut self.rng,
+            );
+        }
 
         self.current_pixel = *p;
         self.current_pixel_sample_index = 0;
@@ -95,40 +115,34 @@ impl Sampler for ZeroTwoSequence {
 
     fn request_1d_array(&mut self, n: usize) {
         self.sample_1d_array_sizes.push(n);
-        self.sample_array_1d
-            .push(Vec::with_capacity(n * self.spp));
+        self.sample_array_1d.push(Vec::with_capacity(n * self.spp));
     }
 
     fn request_2d_array(&mut self, n: usize) {
+        info!("Requesting 2d array of {} samples", n);
         self.sample_2d_array_sizes.push(n);
-        self.sample_array_2d
-            .push(Vec::with_capacity(n * self.spp));
+        let mut vec = Vec::with_capacity(n * self.spp);
+        for _ in 0..(n * self.spp) {
+            vec.push(Point2f::origin());
+        }
+        self.sample_array_2d.push(vec);
     }
 
     fn get_1d_array(&mut self, n: usize) -> &[f32] {
         assert!(self.array_1d_offset < self.sample_array_1d.len());
-        let res = &self.sample_array_1d[self.array_1d_offset][(self.current_pixel_sample_index *
-                    n)..];
+        let res =
+            &self.sample_array_1d[self.array_1d_offset][(self.current_pixel_sample_index * n)..];
         self.array_1d_offset += 1;
         res
     }
 
     fn get_2d_array(&mut self, n: usize) -> &[Point2f] {
         assert!(self.array_2d_offset < self.sample_array_2d.len());
-        let res = &self.sample_array_2d[self.array_2d_offset][(self.current_pixel_sample_index *
-                    n)..];
+        let res =
+            &self.sample_array_2d[self.array_2d_offset][(self.current_pixel_sample_index * n)..];
         self.array_2d_offset += 1;
         res
     }
-
-    // fn get_samples(&self, x: f32, y: f32, samples: &mut Vec<(f32, f32)>) {
-    //     let scramble: (u32, u32) = (thread_rng().gen(), thread_rng().gen());
-    //     for i in 0..self.spp {
-    //         let s = zero_two_sequence(i as u32, scramble);
-    //         samples[i].0 = s.0 + x;
-    //         samples[i].1 = s.1 + y;
-    //     }
-    // }
 
     fn get_1d(&mut self) -> f32 {
         if self.current_1d_dimension < self.samples_1d.len() {
@@ -162,7 +176,7 @@ impl Sampler for ZeroTwoSequence {
         }
     }
 
-    fn round_count(&self, count: u32) -> u32 {
+    fn round_count(&self, count: usize) -> usize {
         count.next_power_of_two()
     }
 

@@ -778,18 +778,18 @@ impl Api for RealApi {
             let _ = state.pushed_transforms.pop();
         }
 
-        let integrator = state.render_options.make_integrator()?;
-        let sampler = state.render_options.make_sampler()?;
+        let mut integrator = state.render_options.make_integrator()?;
+        let mut sampler = state.render_options.make_sampler()?;
         let scene = state.render_options.make_scene()?;
         let camera = state.render_options.make_camera()?;
 
         // TODO finish
         let stats = renderer::render(
             scene,
-            integrator,
+            &mut integrator,
             camera,
             7,
-            sampler,
+            &mut sampler,
             16,
             Box::new(NoopDisplayUpdater {}),
         )?;

@@ -1,4 +1,4 @@
-use integrator::{uniform_sample_one_light, SamplerIntegrator};
+use integrator::{uniform_sample_all_light, uniform_sample_one_light, SamplerIntegrator};
 use material::TransportMode;
 use paramset::ParamSet;
 use ray::Ray;
@@ -7,6 +7,7 @@ use scene::Scene;
 use spectrum::Spectrum;
 
 /// Strategy to use for sampling lights
+#[derive(PartialEq, Eq)]
 pub enum LightStrategy {
     /// For each pixel sample, sample every light in the scene
     UniformSampleAll,
@@ -20,14 +21,17 @@ pub struct DirectLightingIntegrator {
     /// The strategy to use to sample lights
     pub light_strategy: LightStrategy,
     /// Maximum number of times a ray can bounce before terminating
-    pub max_ray_depth: u8,
+    pub max_depth: u8,
+    //
+    n_light_samples: Vec<usize>,
 }
 
 impl DirectLightingIntegrator {
     pub fn new(n: u8, strategy: LightStrategy) -> DirectLightingIntegrator {
         DirectLightingIntegrator {
-            max_ray_depth: n,
+            max_depth: n,
             light_strategy: strategy,
+            n_light_samples: Vec::new(),
         }
     }
 
@@ -51,6 +55,25 @@ impl DirectLightingIntegrator {
 }
 
 impl SamplerIntegrator for DirectLightingIntegrator {
+    fn preprocess(&mut self, scene: &Scene, sampler: &mut Box<Sampler + Send + Sync>) {
+        info!("Preprocessing DirectLighting integrator");
+        if self.light_strategy == LightStrategy::UniformSampleAll {
+            // Compute number of samples to use for each light
+            for light in &scene.lights {
+                self.n_light_samples
+                    .push(sampler.round_count(light.n_samples() as usize));
+            }
+            info!("n sample sizes: {:?}", self.n_light_samples);
+
+            for _i in 0..self.max_depth {
+                for j in 0..scene.lights.len() {
+                    sampler.request_2d_array(self.n_light_samples[j]);
+                    sampler.request_2d_array(self.n_light_samples[j]);
+                }
+            }
+        }
+    }
+
     fn li(
         &self,
         scene: &Scene,
@@ -78,14 +101,16 @@ impl SamplerIntegrator for DirectLightingIntegrator {
                 if !scene.lights.is_empty() {
                     // Compute direct lighting for DirectLightingIntegrator
                     colour += match self.light_strategy {
-                        LightStrategy::UniformSampleAll => unimplemented!(),
+                        LightStrategy::UniformSampleAll => {
+                            uniform_sample_all_light(&isect, scene, sampler, &self.n_light_samples)
+                        }
                         LightStrategy::UniformSampleOne => {
                             uniform_sample_one_light(&isect, scene, sampler, None)
                         }
                     }
                 }
 
-                if depth + 1 < self.max_ray_depth as u32 {
+                if depth + 1 < self.max_depth as u32 {
                     colour += self.specular_reflection(ray, &isect, scene, &bsdf, sampler, depth);
                     colour += self.specular_transmission(ray, &isect, scene, &bsdf, sampler, depth);
                 }

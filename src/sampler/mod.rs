@@ -11,7 +11,7 @@ pub trait Sampler {
     fn get_camera_sample(&mut self, p_raster: &Point2i) -> CameraSample;
     fn request_1d_array(&mut self, n: usize);
     fn request_2d_array(&mut self, n: usize);
-    fn round_count(&self, count: u32) -> u32;
+    fn round_count(&self, count: usize) -> usize;
     fn get_1d_array(&mut self, n: usize) -> &[f32];
     fn get_2d_array(&mut self, n: usize) -> &[Point2f];
     fn start_next_sample(&mut self) -> bool;

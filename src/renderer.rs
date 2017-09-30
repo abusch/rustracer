@@ -15,13 +15,14 @@ use stats;
 
 pub fn render(
     scene: Box<Scene>,
-    integrator: Box<SamplerIntegrator + Send + Sync>,
+    integrator: &mut Box<SamplerIntegrator + Send + Sync>,
     camera: Box<Camera + Send + Sync>,
     num_threads: usize,
-    sampler: Box<Sampler + Send + Sync>,
+    sampler: &mut Box<Sampler + Send + Sync>,
     block_size: i32,
     mut display: Box<DisplayUpdater + Send>,
 ) -> Result<stats::Stats> {
+    integrator.preprocess(&scene, sampler);
     let res = camera.get_film().full_resolution;
     info!("Rendering with resolution {}", res);
     let block_queue = BlockQueue::new(res, block_size);

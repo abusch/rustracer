@@ -47,7 +47,7 @@ impl DiffuseAreaLight {
         let sc = ps.find_one_spectrum("scale", Spectrum::white());
         let nsamples = ps.find_one_int("nsamples", 1);
         let nsamples = ps.find_one_int("samples", nsamples);
-        let two_sided = ps.find_one_bool("towsided", false);
+        let two_sided = ps.find_one_bool("twosided", false);
 
         Arc::new(Self::new(L * sc, shape, nsamples as u32, two_sided))
     }
