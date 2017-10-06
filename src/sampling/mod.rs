@@ -36,9 +36,17 @@ pub fn concentric_sample_disk(u: &Point2f) -> Point2f {
     let (r, theta) = if u_offset.x.abs() > u_offset.y.abs() {
         (u_offset.x, FRAC_PI_4 * (u_offset.y / u_offset.x))
     } else {
-        (u_offset.y, consts::FRAC_PI_2 - FRAC_PI_4 * (u_offset.x / u_offset.y))
+        (
+            u_offset.y,
+            consts::FRAC_PI_2 - FRAC_PI_4 * (u_offset.x / u_offset.y),
+        )
     };
     r * Point2f::new(theta.cos(), theta.sin())
+}
+
+pub fn uniform_sample_triangle(u: &Point2f) -> Point2f {
+    let su0 = u[0].sqrt();
+    Point2f::new(1.0 - su0, u[1] * su0)
 }
 
 #[inline]
