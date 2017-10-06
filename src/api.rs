@@ -14,7 +14,7 @@ use filter::boxfilter::BoxFilter;
 use filter::gaussian::GaussianFilter;
 use film::Film;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
-use integrator::{DirectLightingIntegrator, PathIntegrator, SamplerIntegrator, Whitted};
+use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
 use material::Material;
 use material::matte::MatteMaterial;
 use material::plastic::Plastic;
@@ -211,6 +211,8 @@ impl RenderOptions {
             DirectLightingIntegrator::create(&mut self.integrator_params)
         } else if self.integrator_name == "path" {
             unimplemented!();
+        } else if self.integrator_name == "normal" {
+            Box::new(Normal {})
         } else {
             bail!(format!("Integrator \"{}\" unknown.", self.integrator_name));
         };
