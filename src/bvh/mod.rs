@@ -13,8 +13,8 @@ use light::AreaLight;
 use material::{Material, TransportMode};
 use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
+use shapes::Shape;
 use shapes::mesh;
-use shapes::mesh::Triangle;
 
 pub struct BVH {
     max_prims_per_node: usize,
@@ -28,15 +28,15 @@ impl BVH {
                           material: Arc<Material + Send + Sync>,
                           transform: &Transform)
                           -> BVH {
-        let triangles: Vec<Triangle> = mesh::load_triangle_mesh(file, model, transform);
-        BVH::from_triangles(triangles, material)
+        let shapes = mesh::load_triangle_mesh(file, model, transform);
+        BVH::from_triangles(shapes, material)
     }
 
-    pub fn from_triangles(mut tris: Vec<Triangle>, material: Arc<Material + Send + Sync>) -> BVH {
+    pub fn from_triangles(mut tris: Vec<Arc<Shape + Send + Sync>>, material: Arc<Material + Send + Sync>) -> BVH {
         let mut prims: Vec<Box<Primitive + Send + Sync>> = tris.drain(..)
             .map(|t| {
                      let prim = GeometricPrimitive {
-                         shape: Arc::new(t),
+                         shape: t.clone(),
                          area_light: None,
                          material: Some(material.clone()),
                      };

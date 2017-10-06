@@ -2,6 +2,7 @@ extern crate tobj;
 
 use std::sync::Arc;
 use std::path::Path;
+use std::collections::HashMap;
 
 use na::{Point2, Point3};
 
@@ -9,9 +10,11 @@ use {Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
      coordinate_system, gamma};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
+use paramset::ParamSet;
 use ray::Ray;
 use shapes::Shape;
 use stats;
+use texture::Texture;
 
 pub struct TriangleMesh {
     world_to_object: Transform,
@@ -39,6 +42,67 @@ impl TriangleMesh {
             s: s.map(Vec::from),
             uv: uv.map(Vec::from),
         }
+    }
+
+    pub fn create(o2w: &Transform, w2o: &Transform, reverse_orientation: bool, params: &mut ParamSet, float_textures: &HashMap<String, Arc<Texture<f32> + Send + Sync>>) -> Vec<Arc<Shape + Send + Sync>> {
+        let vi: Vec<usize> = params.find_int("indices").unwrap_or(Vec::new()).iter().map(|i| *i as usize).collect();
+        let P = params.find_point3f("P").unwrap_or(Vec::new());
+        let uvs = params
+            .find_point2f("uv")
+            .or(params.find_point2f("st"))
+            .or(params
+                .find_float("uv")
+                .or(params.find_float("st")).map(|fuv| {
+               fuv
+               .chunks(2)
+               .map(|s| Point2f::new(s[0], s[1]))
+               .collect()}));
+        // if !uvs.is_empty() {
+        //     if uvs.len() < P.len() {
+        //         error!("Not enough of \"uv\"s for triangle mesh. Expected {}, found {}. Discarding", P.len(), uvs.len());
+        //         uvs.clear();
+        //     } else if uvs.len() > P.len() {
+        //         warn!("More \"uv\"s provided than will be used for triangle mesh. ({} expected, {} found)", P.len(), uvs.len());
+        //     }
+        // }
+        if vi.is_empty() {
+            error!("Vertex indices \"indices\" not provided with triangle mesh shape");
+            return Vec::new();
+        }
+        if P.is_empty() {
+            error!("Vertex positions \"P\" not provided with triangle mesh shape");
+            return Vec::new();
+        }
+        let S = params.find_vector3f("S").and_then(|s| {
+            if s.len() != P.len() {
+                error!("Number of \"S\"s for mesh triangle must match \"P\"s");
+                None
+            } else {
+                Some(s)
+            }
+        });
+        // TODO should be Normal3f
+        let N = params.find_vector3f("N").and_then(|n| {
+            if n.len() != P.len() {
+                error!("Number of \"N\"s for mesh triangle must match \"P\"s");
+                None
+            } else {
+                Some(n)
+            }
+        });
+
+        // TODO implement rest of the validation / sanity checking
+
+        let res: Vec<Arc<Shape + Send + Sync>> = create_triangle_mesh(
+            o2w,
+             reverse_orientation,
+              &vi[..],
+               &P[..],
+                S.as_ref().map(|s| &s[..]),
+                 N.as_ref().map(|n| &n[..]),
+                  uvs.as_ref().map(|uv| &uv[..]));
+
+                    res
     }
 }
 
@@ -232,7 +296,7 @@ impl Shape for Triangle {
     }
 }
 
-pub fn create_square(object_to_world: &Transform, reverse_orientation: bool) -> Vec<Triangle> {
+pub fn create_square(object_to_world: &Transform, reverse_orientation: bool) -> Vec<Arc<Shape + Send + Sync>> {
     let vertices = vec![Point3f::new(-0.5, -0.5, 0.0),
                         Point3f::new(-0.5, 0.5, 0.0),
                         Point3f::new(0.5, 0.5, 0.0),
@@ -259,21 +323,21 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
                             s: Option<&[Vector3f]>,
                             n: Option<&[Vector3f]>,
                             uv: Option<&[Point2f]>)
-                            -> Vec<Triangle> {
+                            -> Vec<Arc<Shape + Send + Sync>> {
     let mesh = Arc::new(TriangleMesh::new(object_to_world, vertex_indices, p, s, n, uv));
 
     let n_triangles = vertex_indices.len() / 3;
-    let mut tris: Vec<Triangle> = Vec::with_capacity(n_triangles);
+    let mut tris: Vec<Arc<Shape + Send + Sync>> = Vec::with_capacity(n_triangles);
 
     for i in 0..n_triangles {
         stats::inc_num_triangles();
-        tris.push(Triangle::new(mesh.clone(), i));
+        tris.push(Arc::new(Triangle::new(mesh.clone(), i)));
     }
 
     tris
 }
 
-pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) -> Vec<Triangle> {
+pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) -> Vec<Arc<Shape + Send + Sync>> {
     info!("Loading {} model from OBJ file:", model_name);
     let (models, _) = tobj::load_obj(file.into()).unwrap();
     let model = models.iter().find(|m| m.name == model_name).unwrap();

@@ -27,6 +27,7 @@ use scene::Scene;
 use shapes::Shape;
 use shapes::sphere::Sphere;
 use shapes::disk::Disk;
+use shapes::mesh::TriangleMesh;
 use spectrum::Spectrum;
 use texture::Texture;
 
@@ -731,6 +732,7 @@ impl Api for RealApi {
             &state.cur_transform.inverse(),
             state.graphics_state.reverse_orientation,
             params,
+            &state.graphics_state,
         );
         let mat = if !shapes.is_empty() {
             Some(state.graphics_state.create_material(params))
@@ -805,13 +807,32 @@ fn make_shapes(
     world2object: &Transform,
     reverse_orientation: bool,
     ps: &mut ParamSet,
+    graphics_state: &GraphicsState,
 ) -> Vec<Arc<Shape + Send + Sync>> {
     let mut shapes: Vec<Arc<Shape + Send + Sync>> = Vec::new();
     if name == "sphere" {
-        let s = Sphere::create(object2world, reverse_orientation, ps);
-        shapes.push(s);
+        shapes.push(Sphere::create(object2world, reverse_orientation, ps));
+    } else if name == "cylinder" {
+        unimplemented!();
     } else if name == "disk" {
         shapes.push(Disk::create(object2world, reverse_orientation, ps));
+    } else if name == "cone" {
+        unimplemented!();
+    } else if name == "paraboloid" {
+        unimplemented!();
+    } else if name == "hyperboloid" {
+        unimplemented!();
+    } else if name == "curve" {
+        unimplemented!();
+    } else if name == "trianglemesh" {
+        let mut tris = TriangleMesh::create(
+            object2world,
+            world2object,
+            reverse_orientation,
+            ps,
+            &graphics_state.float_textures,
+        );
+        shapes.append(&mut tris);
     } else {
         warn!("Unknown shape {}", name);
     }

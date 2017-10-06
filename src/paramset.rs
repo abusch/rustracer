@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use Point3f;
+use {Point2f, Point3f, Vector3f};
 use api::{ParamListEntry, ParamType};
 use spectrum::Spectrum;
 use texture::Texture;
@@ -46,7 +46,9 @@ pub struct ParamSet {
     floats: Vec<ParamSetItem<f32>>,
     strings: Vec<ParamSetItem<String>>,
     spectra: Vec<ParamSetItem<Spectrum>>,
+    point2fs: Vec<ParamSetItem<Point2f>>,
     point3fs: Vec<ParamSetItem<Point3f>>,
+    vector3fs: Vec<ParamSetItem<Vector3f>>,
     textures: Vec<ParamSetItem<String>>,
 }
 
@@ -88,6 +90,16 @@ impl ParamSet {
                         .collect();
                     self.add_rgb_spectrum(entry.param_name.clone(), spectra);
                 }
+                ParamType::Point2 => {
+                    let points = entry
+                        .values
+                        .as_num_array()
+                        .chunks(2)
+                        .filter(|s| s.len() == 2)
+                        .map(|s| Point2f::new(s[0], s[1]))
+                        .collect();
+                    self.add_point2f(entry.param_name.clone(), points);
+                }
                 ParamType::Point3 => {
                     let points = entry
                         .values
@@ -97,6 +109,16 @@ impl ParamSet {
                         .map(|s| Point3f::new(s[0], s[1], s[2]))
                         .collect();
                     self.add_point3f(entry.param_name.clone(), points);
+                }
+                ParamType::Vector3 => {
+                    let vectors = entry
+                        .values
+                        .as_num_array()
+                        .chunks(3)
+                        .filter(|s| s.len() == 3)
+                        .map(|s| Vector3f::new(s[0], s[1], s[2]))
+                        .collect();
+                    self.add_vector3f(entry.param_name.clone(), vectors);
                 }
                 _ => error!(
                     "Parameter type {:?} is not implemented yet!",
@@ -146,8 +168,24 @@ impl ParamSet {
         });
     }
 
+    fn add_point2f(&mut self, name: String, values: Vec<Point2f>) {
+        self.point2fs.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
+    }
+
     fn add_point3f(&mut self, name: String, values: Vec<Point3f>) {
         self.point3fs.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
+    }
+
+    fn add_vector3f(&mut self, name: String, values: Vec<Vector3f>) {
+        self.vector3fs.push(ParamSetItem {
             name: name,
             values: values,
             looked_up: false,
@@ -159,14 +197,18 @@ impl ParamSet {
     find!(find_float, floats, f32);
     find!(find_string, strings, String);
     find!(find_spectrum, spectra, Spectrum);
-    find!(find_point3fs, point3fs, Point3f);
+    find!(find_point2f, point2fs, Point2f);
+    find!(find_point3f, point3fs, Point3f);
+    find!(find_vector3f, vector3fs, Vector3f);
     find!(find_texture, textures, String);
     find_one!(find_one_bool, bools, bool);
     find_one!(find_one_int, ints, i32);
     find_one!(find_one_float, floats, f32);
     find_one!(find_one_string, strings, String);
     find_one!(find_one_spectrum, spectra, Spectrum);
+    find_one!(find_one_point2f, point2fs, Point2f);
     find_one!(find_one_point3f, point3fs, Point3f);
+    find_one!(find_one_vector3f, vector3fs, Vector3f);
     find_one!(find_one_texture, textures, String);
 }
 
