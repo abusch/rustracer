@@ -22,7 +22,8 @@ extern crate slog_scope;
 extern crate uuid;
 
 use std::f32;
-use std::ops::{Add, Mul, Sub};
+use std::fmt::Debug;
+use std::ops::{Add, Deref, Mul, Sub};
 
 use na::{Point2, Point3, Vector2, Vector3};
 use na::core::Scalar;
@@ -83,6 +84,17 @@ pub type Vector3f = Vector3<f32>;
 pub type Point2f = Point2<f32>;
 pub type Point2i = Point2<i32>;
 pub type Point3f = Point3<f32>;
+// `Normal` is just a newtype of a `Vector`
+pub struct Normal3<T: Copy + Debug + PartialEq + 'static>(Vector3<T>);
+impl<T: Copy + Debug + PartialEq + 'static> Deref for Normal3<T> {
+    type Target = Vector3<T>;
+
+    fn deref(&self) -> &Vector3<T> {
+        &self.0
+    }
+}
+pub type Normal3f = Normal3<f32>;
+
 pub use transform::Transform;
 
 pub const MACHINE_EPSILON: f32 = f32::EPSILON * 0.5;
