@@ -204,13 +204,14 @@ impl RenderOptions {
 
     pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator + Send + Sync>> {
         info!("Making integrator");
-        let integrator = if self.integrator_name == "whitted" {
+        let integrator: Box<SamplerIntegrator + Send + Sync> = if self.integrator_name == "whitted"
+        {
             Whitted::create(&mut self.integrator_params)
         // Box::new(Normal {})
         } else if self.integrator_name == "directlighting" {
             DirectLightingIntegrator::create(&mut self.integrator_params)
         } else if self.integrator_name == "path" {
-            unimplemented!();
+            Box::new(PathIntegrator::new())
         } else if self.integrator_name == "normal" {
             Box::new(Normal {})
         } else {
