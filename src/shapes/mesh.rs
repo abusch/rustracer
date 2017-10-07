@@ -4,19 +4,22 @@ use std::sync::Arc;
 use std::path::Path;
 use std::collections::HashMap;
 
-use na::{Point2, Point3};
+use na::{self, Point2, Point3};
 
 use {Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
      coordinate_system, gamma};
 use bounds::Bounds3f;
+use geometry;
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
 use ray::Ray;
+use sampling;
 use shapes::Shape;
 use stats;
 use texture::Texture;
 
 pub struct TriangleMesh {
+    object_to_world: Transform,
     world_to_object: Transform,
     vertex_indices: Vec<usize>,
     p: Vec<Point3f>,
@@ -35,6 +38,7 @@ impl TriangleMesh {
                -> Self {
         let points: Vec<Point3f> = p.iter().map(|pt| object_to_world * pt).collect();
         TriangleMesh {
+            object_to_world: object_to_world.clone(),
             world_to_object: object_to_world.inverse(),
             vertex_indices: Vec::from(vertex_indices),
             p: points,
@@ -109,13 +113,18 @@ impl TriangleMesh {
 pub struct Triangle {
     mesh: Arc<TriangleMesh>,
     v_start_index: usize,
+    reverse_orientation: bool,
+    swaps_handedness: bool,
 }
 
 impl Triangle {
-    pub fn new(mesh: Arc<TriangleMesh>, tri_number: usize) -> Triangle {
+    pub fn new(mesh: Arc<TriangleMesh>, tri_number: usize, reverse_orientation: bool) -> Triangle {
+        let swaps_handedness = mesh.object_to_world.swaps_handedness();
         Triangle {
             mesh: mesh,
             v_start_index: tri_number * 3,
+            reverse_orientation: reverse_orientation,
+            swaps_handedness: swaps_handedness,
         }
     }
 
@@ -148,6 +157,7 @@ impl Shape for Triangle {
         let mut p0t = p0 - ray.o.coords;
         let mut p1t = p1 - ray.o.coords;
         let mut p2t = p2 - ray.o.coords;
+
         // -- permute components of triangle vertices and ray direction
         let kz = max_dimension(ray.d.abs());
         let mut kx = kz + 1;
@@ -162,6 +172,7 @@ impl Shape for Triangle {
         p0t = permute_p(&p0t, kx, ky, kz);
         p1t = permute_p(&p1t, kx, ky, kz);
         p2t = permute_p(&p2t, kx, ky, kz);
+
         // -- apply shear transformation to translated vertex positions
         let sx = -d.x / d.z;
         let sy = -d.y / d.z;
@@ -172,12 +183,14 @@ impl Shape for Triangle {
         p1t.y += sy * p1t.z;
         p2t.x += sx * p2t.z;
         p2t.y += sy * p2t.z;
+
         // - compute edge function coefficients
         let e0 = p1t.x * p2t.y - p1t.y * p2t.x;
         let e1 = p2t.x * p0t.y - p2t.y * p0t.x;
         let e2 = p0t.x * p1t.y - p0t.y * p1t.x;
         // - fall back to double precision at edges
         // TODO
+
         // - perform triangle edge and determinant test
         if (e0 < 0.0 || e1 < 0.0 || e2 < 0.0) && (e0 > 0.0 || e1 > 0.0 || e2 > 0.0) {
             return None;
@@ -186,13 +199,15 @@ impl Shape for Triangle {
         if det == 0.0 {
             return None;
         }
+
         // - compute scaled hit distance to triangle and test against ray t range
         p0t.z *= sz;
         p1t.z *= sz;
         p2t.z *= sz;
         let t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
-        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det)) ||
-           (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det)) {
+        if det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det) {
+            return None;
+        } else if det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det) {
             return None;
         }
         // - compute barycentric coordinates and t value for triangle intersection
@@ -201,6 +216,7 @@ impl Shape for Triangle {
         let b1 = e1 * inv_det;
         let b2 = e2 * inv_det;
         let t = t_scaled * inv_det;
+
         // - ensure that computed triangle t is conservatively greater than zero
         // Compute triangle partial derivatives
         let uv = self.get_uvs();
@@ -210,7 +226,9 @@ impl Shape for Triangle {
         let dp02 = p0 - p2;
         let dp12 = p1 - p2;
         let determinant = duv02[0] * duv12[1] - duv02[1] * duv12[0];
-        let (dpdu, dpdv) = if determinant == 0.0 {
+        let degenerate_uv = determinant.abs() < 1e-8;
+
+        let (dpdu, dpdv) = if degenerate_uv {
             // handle zero determinant
             coordinate_system(&(p2 - p0).cross(&(p1 - p0)).normalize())
         } else {
@@ -264,6 +282,12 @@ impl Shape for Triangle {
         isect.shading.dpdu = ss;
         isect.shading.dpdv = ts;
         // Ensure correct orientation of the geometric normal TODO
+        if let Some(n) = self.mesh.n.as_ref() {
+            isect.n = geometry::face_forward(&isect.n, &isect.shading.n);
+        } else if self.reverse_orientation ^ self.swaps_handedness {
+            isect.n = -isect.n;
+            isect.shading.n = isect.n;
+        }
 
         stats::inc_triangle_isect();
         Some((isect, t))
@@ -291,8 +315,30 @@ impl Shape for Triangle {
         Bounds3f::union_point(&Bounds3f::from_points(&p0, &p1), &p2)
     }
 
-    fn sample(&self, _u: &Point2f) -> (Interaction, f32) {
-        unimplemented!();
+    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
+        let b = sampling::uniform_sample_triangle(u);
+        let p0 = &self.mesh.p[self.v(0)];
+        let p1 = &self.mesh.p[self.v(1)];
+        let p2 = &self.mesh.p[self.v(2)];
+
+        let p = Point3f::from_coordinates((b[0] * p0.coords) + (b[1] * p1.coords) + ((1.0 - b[0] - b[1]) * p2.coords));
+        // Compute surface normal for sampled point on triangle
+        let mut normal = (p1 - p0).cross(&(p2 - p0)).normalize();
+        // Ensure correct orientation of the geometric normal; follow the same
+        // approach as was used in Triangle::intersect().
+        if let Some(n) = self.mesh.n.as_ref() {
+            let ns = b[0] * n[self.v(0)] + b[1] * n[self.v(1)] + (1.0 - b[0] - b[1]) * n[self.v(2)];
+            normal = geometry::face_forward(&normal, &ns);
+        } else if self.reverse_orientation ^ self.swaps_handedness {
+            normal = -1.0 * normal;
+        }
+
+        // Compute error bounds for sampled point on triangle
+        let p_abs_sum = (b[0] * p0).coords.abs() + (b[1] * p1).coords.abs() + ((1.0 - b[0] - b[1]) * p2).coords.abs();
+        let p_error = gamma(6) * p_abs_sum;
+        let it = Interaction::new(p, p_error, na::zero(), normal);
+
+        (it, 1.0 / self.area())
     }
 }
 
@@ -317,7 +363,7 @@ pub fn create_square(object_to_world: &Transform, reverse_orientation: bool) -> 
 }
 
 pub fn create_triangle_mesh(object_to_world: &Transform,
-                            _reverse_orientation: bool,
+                            reverse_orientation: bool,
                             vertex_indices: &[usize],
                             p: &[Point3f],
                             s: Option<&[Vector3f]>,
@@ -331,7 +377,7 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
 
     for i in 0..n_triangles {
         stats::inc_num_triangles();
-        tris.push(Arc::new(Triangle::new(mesh.clone(), i)));
+        tris.push(Arc::new(Triangle::new(mesh.clone(), i, reverse_orientation)));
     }
 
     tris
