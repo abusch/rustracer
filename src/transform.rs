@@ -145,6 +145,14 @@ impl Transform {
         let m = self.m_inv.transpose();
         m.fixed_slice::<U3, U3>(0, 0) * *normal
     }
+
+    pub fn swaps_handedness(&self) -> bool {
+        let m = self.m;
+        let det = m[(0, 0)] * (m[(1, 1)] * m[(2, 2)] - m[(1, 2)] * m[(2, 1)])
+            - m[(0, 1)] * (m[(1, 0)] * m[(2, 2)] - m[(1, 2)] * m[(2, 0)])
+            + m[(0, 2)] * (m[(1, 0)] * m[(2, 1)] - m[(1, 1)] * m[(2, 0)]);
+        det < 0.0
+    }
 }
 
 impl Default for Transform {
