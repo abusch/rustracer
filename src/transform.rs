@@ -2,6 +2,7 @@ use std::ops::Mul;
 use na::{self, Matrix2, Matrix4, Similarity3, U3};
 
 use {gamma, Point3f, Vector2f, Vector3f};
+use bounds::Bounds3f;
 
 #[derive(Debug, Clone)]
 pub struct Transform {
@@ -210,6 +211,45 @@ impl<'a, 'b> Mul<&'a Transform> for &'b Transform {
             m: self.m * t.m,
             m_inv: t.m_inv * self.m_inv,
         }
+    }
+}
+
+impl<'a, 'b> Mul<&'a Bounds3f> for &'b Transform {
+    type Output = Bounds3f;
+
+    fn mul(self, b: &'a Bounds3f) -> Bounds3f {
+        let mut ret =
+            Bounds3f::from_point(&(self * &Point3f::new(b.p_min.x, b.p_min.y, b.p_min.z)));
+        ret = Bounds3f::union_point(
+            &ret,
+            &(self * &Point3f::new(b.p_max.x, b.p_min.y, b.p_min.z)),
+        );
+        ret = Bounds3f::union_point(
+            &ret,
+            &(self * &Point3f::new(b.p_min.x, b.p_max.y, b.p_min.z)),
+        );
+        ret = Bounds3f::union_point(
+            &ret,
+            &(self * &Point3f::new(b.p_min.x, b.p_min.y, b.p_max.z)),
+        );
+        ret = Bounds3f::union_point(
+            &ret,
+            &(self * &Point3f::new(b.p_min.x, b.p_max.y, b.p_max.z)),
+        );
+        ret = Bounds3f::union_point(
+            &ret,
+            &(self * &Point3f::new(b.p_max.x, b.p_max.y, b.p_min.z)),
+        );
+        ret = Bounds3f::union_point(
+            &ret,
+            &(self * &Point3f::new(b.p_max.x, b.p_min.y, b.p_max.z)),
+        );
+        ret = Bounds3f::union_point(
+            &ret,
+            &(self * &Point3f::new(b.p_max.x, b.p_max.y, b.p_max.z)),
+        );
+
+        ret
     }
 }
 

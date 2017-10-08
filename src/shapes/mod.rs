@@ -6,6 +6,7 @@ use interaction::{Interaction, SurfaceInteraction};
 pub mod sphere;
 pub mod disk;
 pub mod mesh;
+pub mod cylinder;
 
 pub trait Shape {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
@@ -47,8 +48,8 @@ pub trait Shape {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            (si.p - isect_light.p).norm_squared() /
-            (isect_light.n.dot(&(-(*wi))).abs() * self.area())
+            (si.p - isect_light.p).norm_squared()
+                / (isect_light.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0
         }

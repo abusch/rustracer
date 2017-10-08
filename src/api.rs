@@ -26,6 +26,7 @@ use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
 use shapes::Shape;
 use shapes::sphere::Sphere;
+use shapes::cylinder::Cylinder;
 use shapes::disk::Disk;
 use shapes::mesh::TriangleMesh;
 use spectrum::Spectrum;
@@ -815,7 +816,7 @@ fn make_shapes(
     if name == "sphere" {
         shapes.push(Sphere::create(object2world, reverse_orientation, ps));
     } else if name == "cylinder" {
-        unimplemented!();
+        shapes.push(Cylinder::create(object2world, reverse_orientation, ps));
     } else if name == "disk" {
         shapes.push(Disk::create(object2world, reverse_orientation, ps));
     } else if name == "cone" {
