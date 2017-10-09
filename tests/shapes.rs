@@ -53,7 +53,7 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
             if w.dot(&isect.n) < 0.0 {
                 w = -w;
             }
-            let mut ray_out = isect.spawn_ray(&w);
+            let ray_out = isect.spawn_ray(&w);
             assert!(!shape.intersect_p(&ray_out));
             assert!(shape.intersect(&ray_out).is_none());
 

@@ -51,7 +51,7 @@ pub enum Tokens {
     COMMENT,
 }
 
-pub fn tokenize<'a>(input: &'a str) -> Result<(Vec<Tokens>, &'a str), ParseError<&'a str>> {
+pub fn tokenize(input: &str) -> Result<(Vec<Tokens>, &str), ParseError<&str>> {
 
     // parsers for keywords
     let mut parsers = vec![token_parser("Accelerator", Tokens::ACCELERATOR),
@@ -97,7 +97,7 @@ pub fn tokenize<'a>(input: &'a str) -> Result<(Vec<Tokens>, &'a str), ParseError
                            token_parser("[", Tokens::LBRACK),
                            token_parser("]", Tokens::RBRACK)]
             .into_iter()
-            .map(|parser| try(parser))
+            .map(try)
             .collect::<Vec<_>>();
 
     // Add parsers from num, strings, etc...

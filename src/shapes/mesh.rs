@@ -48,15 +48,16 @@ impl TriangleMesh {
         }
     }
 
+    #[allow(non_snake_case)]
     pub fn create(o2w: &Transform, w2o: &Transform, reverse_orientation: bool, params: &mut ParamSet, float_textures: &HashMap<String, Arc<Texture<f32> + Send + Sync>>) -> Vec<Arc<Shape + Send + Sync>> {
-        let vi: Vec<usize> = params.find_int("indices").unwrap_or(Vec::new()).iter().map(|i| *i as usize).collect();
-        let P = params.find_point3f("P").unwrap_or(Vec::new());
+        let vi: Vec<usize> = params.find_int("indices").unwrap_or_default().iter().map(|i| *i as usize).collect();
+        let P = params.find_point3f("P").unwrap_or_default();
         let uvs = params
             .find_point2f("uv")
-            .or(params.find_point2f("st"))
-            .or(params
+            .or_else(|| params.find_point2f("st"))
+            .or_else(|| params
                 .find_float("uv")
-                .or(params.find_float("st")).map(|fuv| {
+                .or_else(|| params.find_float("st")).map(|fuv| {
                fuv
                .chunks(2)
                .map(|s| Point2f::new(s[0], s[1]))
@@ -205,9 +206,8 @@ impl Shape for Triangle {
         p1t.z *= sz;
         p2t.z *= sz;
         let t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
-        if det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det) {
-            return None;
-        } else if det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det) {
+        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det))
+         || (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det)) {
             return None;
         }
         // - compute barycentric coordinates and t value for triangle intersection
@@ -281,8 +281,9 @@ impl Shape for Triangle {
         isect.shading.n = ns;
         isect.shading.dpdu = ss;
         isect.shading.dpdv = ts;
-        // Ensure correct orientation of the geometric normal TODO
-        if let Some(n) = self.mesh.n.as_ref() {
+
+        // Ensure correct orientation of the geometric normal
+        if self.mesh.n.is_some() {
             isect.n = geometry::face_forward(&isect.n, &isect.shading.n);
         } else if self.reverse_orientation ^ self.swaps_handedness {
             isect.n = -isect.n;
@@ -330,7 +331,7 @@ impl Shape for Triangle {
             let ns = b[0] * n[self.v(0)] + b[1] * n[self.v(1)] + (1.0 - b[0] - b[1]) * n[self.v(2)];
             normal = geometry::face_forward(&normal, &ns);
         } else if self.reverse_orientation ^ self.swaps_handedness {
-            normal = -1.0 * normal;
+            normal *= -1.0;
         }
 
         // Compute error bounds for sampled point on triangle
@@ -377,7 +378,7 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
 
     for i in 0..n_triangles {
         stats::inc_num_triangles();
-        tris.push(Arc::new(Triangle::new(mesh.clone(), i, reverse_orientation)));
+        tris.push(Arc::new(Triangle::new(Arc::clone(&mesh), i, reverse_orientation)));
     }
 
     tris

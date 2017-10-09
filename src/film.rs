@@ -6,7 +6,7 @@ use img;
 use na::clamp;
 
 use {Point2f, Point2i, Vector2f};
-use bounds::{Bounds2i, Bounds2f};
+use bounds::{Bounds2f, Bounds2i};
 use errors::*;
 use filter::Filter;
 use paramset::ParamSet;
@@ -43,22 +43,24 @@ pub struct Film {
 }
 
 impl Film {
-    pub fn new(resolution: Point2i,
-               cropwindow: Bounds2f,
-               filter: Box<Filter + Sync + Send>,
-               diagonal: f32,
-               filename: &str,
-               scale: f32)
-               -> Film {
-        let cropped_pixel_bounds =
-            Bounds2i::from_points(&Point2i::new((resolution.x as f32 * cropwindow.p_min.x).ceil() as
-                                                i32,
-                                                (resolution.y as f32 * cropwindow.p_min.y).ceil() as
-                                                i32),
-                                  &Point2i::new((resolution.x as f32 * cropwindow.p_max.x).ceil() as
-                                                i32,
-                                                (resolution.y as f32 * cropwindow.p_max.y).ceil() as
-                                                i32));
+    pub fn new(
+        resolution: Point2i,
+        cropwindow: Bounds2f,
+        filter: Box<Filter + Sync + Send>,
+        diagonal: f32,
+        filename: &str,
+        scale: f32,
+    ) -> Film {
+        let cropped_pixel_bounds = Bounds2i::from_points(
+            &Point2i::new(
+                (resolution.x as f32 * cropwindow.p_min.x).ceil() as i32,
+                (resolution.y as f32 * cropwindow.p_min.y).ceil() as i32,
+            ),
+            &Point2i::new(
+                (resolution.x as f32 * cropwindow.p_max.x).ceil() as i32,
+                (resolution.y as f32 * cropwindow.p_max.y).ceil() as i32,
+            ),
+        );
 
         let mut samples = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
         samples.resize(cropped_pixel_bounds.area() as usize, PixelSample::default());
@@ -105,13 +107,14 @@ impl Film {
         let scale = ps.find_one_float("scale", 1.0);
         let diagonal = ps.find_one_float("diagonal", 35.0);
         // TODO max_sample_luminance
-        Box::new(Film::new(Point2i::new(xres, yres),
-                           crop,
-                           filter,
-                           diagonal,
-                           filename,
-                           scale))
-
+        Box::new(Film::new(
+            Point2i::new(xres, yres),
+            crop,
+            filter,
+            diagonal,
+            filename,
+            scale,
+        ))
     }
 
     pub fn get_film_tile(&self, sample_bounds: &Bounds2i) -> FilmTile {
@@ -122,12 +125,14 @@ impl Film {
         // This is a bit clunky but we need to do all the computations as floats as the numbers can
         // temporarily be negative which would cause u32 to wrap around.
         let p0 = ceil(float_bounds.p_min - half_pixel - self.filter_radius);
-        let p1 = floor(float_bounds.p_max - half_pixel - self.filter_radius +
-                       Vector2f::new(1.0, 1.0));
+        let p1 =
+            floor(float_bounds.p_max - half_pixel - self.filter_radius + Vector2f::new(1.0, 1.0));
         let sample_extent_bounds = Bounds2f::from_points(&p0, &p1);
 
-        let tile_pixel_bounds: Bounds2i =
-            Bounds2i::from(Bounds2f::intersect(&sample_extent_bounds, &float_cropped_pixel_bounds));
+        let tile_pixel_bounds: Bounds2i = Bounds2i::from(Bounds2f::intersect(
+            &sample_extent_bounds,
+            &float_cropped_pixel_bounds,
+        ));
 
         FilmTile::new(&tile_pixel_bounds, &self.filter_radius, &self.filter_table)
     }
@@ -162,12 +167,13 @@ impl Film {
 
         // Save the buffer
         info!("Writing image to file {}", self.filename);
-        img::save_buffer(&Path::new(self.filename.as_str()),
-                         &buffer,
-                         res.x as u32,
-                         res.y as u32,
-                         img::RGB(8))
-                .chain_err(|| format!("Failed to save image file {}", self.filename))
+        img::save_buffer(
+            &Path::new(self.filename.as_str()),
+            &buffer,
+            res.x as u32,
+            res.y as u32,
+            img::RGB(8),
+        ).chain_err(|| format!("Failed to save image file {}", self.filename))
     }
 }
 
@@ -208,33 +214,38 @@ impl FilmTile {
 
         let p1_f = floor(p_film_discrete + self.filter_radius + Vector2f::new(1.0, 1.0));
 
-        let bounds: Bounds2i = Bounds2i::from(Bounds2f::intersect(&Bounds2f::from_points(&p0_f,
-                                                                                         &p1_f),
-                                                                  &float_pixel_bounds));
+        let bounds: Bounds2i = Bounds2i::from(Bounds2f::intersect(
+            &Bounds2f::from_points(&p0_f, &p1_f),
+            &float_pixel_bounds,
+        ));
         let (p0, p1) = (bounds.p_min, bounds.p_max);
 
-        assert!(p1.x >= p0.x && p1.y >= p0.y,
-                format!("p_film={}, p0={}, p1={}, pixel_bounds={:?}",
-                        p_film,
-                        p0,
-                        p1,
-                        self.pixel_bounds));
+        assert!(
+            p1.x >= p0.x && p1.y >= p0.y,
+            format!(
+                "p_film={}, p0={}, p1={}, pixel_bounds={:?}",
+                p_film,
+                p0,
+                p1,
+                self.pixel_bounds
+            )
+        );
 
         let filter_table_size = FILTER_SIZE as f32;
 
         // Precompute x and y filter table offset
         let mut ifx = Vec::with_capacity(p1.x as usize - p0.x as usize);
         for x in p0.x..p1.x {
-            let fx = ((x as f32 - p_film_discrete.x) * self.inv_filter_radius.x *
-                      filter_table_size)
-                    .abs();
+            let fx = ((x as f32 - p_film_discrete.x) * self.inv_filter_radius.x
+                * filter_table_size)
+                .abs();
             ifx.push(fx.floor().min(filter_table_size - 1.0) as usize);
         }
         let mut ify = Vec::with_capacity(p1.y as usize - p0.y as usize);
         for y in p0.y..p1.y {
-            let fy = ((y as f32 - p_film_discrete.y) * self.inv_filter_radius.y *
-                      filter_table_size)
-                    .abs();
+            let fy = ((y as f32 - p_film_discrete.y) * self.inv_filter_radius.y
+                * filter_table_size)
+                .abs();
             ify.push(fy.floor().min(filter_table_size - 1.0) as usize);
         }
 
@@ -244,7 +255,7 @@ impl FilmTile {
                 let offset = ify[(y - p0.y) as usize] * FILTER_SIZE + ifx[(x - p0.x) as usize];
                 let filter_weight = &self.filter_table[offset];
                 let idx = self.get_pixel_index(&Point2i::new(x, y));
-                let ref mut pixel = self.pixels[idx];
+                let pixel = &mut self.pixels[idx];
                 pixel.contrib_sum += colour * *filter_weight;
                 pixel.filter_weight_sum += *filter_weight;
             }

@@ -16,7 +16,7 @@ impl Block {
     pub fn new(start: Point2i, size: i32) -> Block {
         Block {
             start: start,
-            current: start.clone(),
+            current: start,
             end: Point2i::new(start.x + size as i32, start.y + size as i32),
         }
     }

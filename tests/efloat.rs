@@ -1,13 +1,13 @@
-extern crate rustracer as rt;
-extern crate rand;
 extern crate ieee754;
+extern crate rand;
+extern crate rustracer as rt;
 
-use rand::{Rng, StdRng, SeedableRng};
+use rand::{Rng, SeedableRng, StdRng};
 use ieee754::Ieee754;
 
 use rt::efloat::EFloat;
 
-const NUM_ITER: usize = 10000;
+const NUM_ITER: usize = 10_000;
 
 /// Return an exponentially distributed floating-point value
 #[cfg(test)]

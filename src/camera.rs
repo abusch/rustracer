@@ -8,7 +8,7 @@ use ray::{Ray, RayDifferential};
 use sampling;
 
 pub trait Camera {
-    fn get_film(&self) -> &Box<Film>;
+    fn get_film(&self) -> &Film;
     fn generate_ray(&self, sample: &CameraSample) -> Ray;
     fn generate_ray_differential(&self, sample: &CameraSample) -> Ray;
 }
@@ -143,7 +143,7 @@ impl PerspectiveCamera {
 }
 
 impl Camera for PerspectiveCamera {
-    fn get_film(&self) -> &Box<Film> {
+    fn get_film(&self) -> &Film {
         &self.film
     }
 

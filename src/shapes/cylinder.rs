@@ -55,6 +55,7 @@ impl Shape for Cylinder {
         &self.object_to_world * &self.object_bounds()
     }
 
+    #[allow(non_snake_case)]
     fn intersect(&self, r: &Ray) -> Option<(SurfaceInteraction, f32)> {
         // Transform ray to object space
         let (ray, o_err, d_err) = r.transform(&self.world_to_object);
@@ -180,7 +181,7 @@ impl Shape for Cylinder {
         let mut p_obj = Point3f::new(self.radius * phi.cos(), self.radius * phi.sin(), z);
         let mut n = (&self.object_to_world * &Vector3f::new(p_obj.x, p_obj.y, 0.0)).normalize();
         if self.reverse_orientation {
-            n = -1.0 * n;
+            n *= -1.0;
         }
         // Reproject p_obj to cylinder surface and compute p_obj_error
         let hit_rad = (p_obj.x * p_obj.x + p_obj.y * p_obj.y).sqrt();

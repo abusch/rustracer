@@ -17,7 +17,7 @@ use std::io::Read;
 use clap::ArgMatches;
 
 use rt::errors::*;
-use rt::parser;
+use rt::pbrt;
 
 fn main() {
     let matches = argparse::parse_args();
@@ -31,19 +31,19 @@ fn main() {
     let _guard = logging::configure_logger(level);
 
 
-    if let Err(ref e) = run(matches) {
+    if let Err(ref e) = run(&matches) {
         println!("Application error: {}", e);
         ::std::process::exit(1);
     }
 }
 
-fn run(matches: ArgMatches) -> Result<()> {
+fn run(matches: &ArgMatches) -> Result<()> {
     let filename = matches.value_of("INPUT").unwrap();
     let mut file = fs::File::open(filename).chain_err(|| "Failed to open scene file")?;
     let mut file_content = String::new();
     file.read_to_string(&mut file_content)
         .chain_err(|| "Failed to read content of scene file")?;
-    parser::parse_scene(&file_content[..])?;
+    pbrt::parse_scene(&file_content[..])?;
 
     /*
     let (scene, camera) = samplescenes::build_scene(dim);
@@ -127,7 +127,7 @@ impl HumanDisplay for std::time::Duration {
             hours = minutes / 60;
             minutes %= 60;
         }
-        let millis = self.subsec_nanos() / 1000000;
+        let millis = self.subsec_nanos() / 1_000_000;
         format!("{}:{}:{}.{}", hours, minutes, seconds, millis)
     }
 }

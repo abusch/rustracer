@@ -1,6 +1,6 @@
 use interaction::SurfaceInteraction;
 use noise;
-use texture::{TextureMapping3D, TransformMapping3D, Texture};
+use texture::{Texture, TextureMapping3D, TransformMapping3D};
 
 pub struct FbmTexture {
     mapping: Box<TextureMapping3D>,

@@ -36,9 +36,9 @@ impl BVH {
         let mut prims: Vec<Box<Primitive + Send + Sync>> = tris.drain(..)
             .map(|t| {
                      let prim = GeometricPrimitive {
-                         shape: t.clone(),
+                         shape: Arc::clone(&t),
                          area_light: None,
-                         material: Some(material.clone()),
+                         material: Some(Arc::clone(&material)),
                      };
                      let b: Box<Primitive + Send + Sync> = Box::new(prim);// as Box<Primitive + Send + Sync>
                      b
@@ -92,7 +92,7 @@ impl BVH {
         info!("\tFlattening tree");
         let mut nodes = Vec::with_capacity(total_nodes);
         BVH::flatten_bvh(&root, &mut nodes);
-        assert!(nodes.len() == total_nodes);
+        assert_eq!(nodes.len(), total_nodes);
 
         BVH {
             max_prims_per_node: min(max_prims_per_node, 255),
@@ -110,7 +110,7 @@ impl BVH {
                        -> BVHBuildNode {
         *total_nodes += 1;
         let n_primitives = end - start;
-        assert!(start != end);
+        assert_ne!(start, end);
         // Compute bounds of all primitives in node
         let bbox = build_data[start..end]
             .iter()

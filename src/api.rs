@@ -101,18 +101,18 @@ pub enum Array {
 impl Array {
     pub fn as_num_array(&self) -> Vec<f32> {
         // TODO proper error handling
-        return match *self {
+        match *self {
             Array::NumArray(ref a) => a.clone(),
             _ => panic!("Attempted to cast a num array to a String array"),
-        };
+        }
     }
 
     // TODO proper error handling
     pub fn as_str_array(&self) -> Vec<String> {
-        return match *self {
+        match *self {
             Array::StrArray(ref a) => a.clone(),
             _ => panic!("Attempted to cast a string array to a num array"),
-        };
+        }
     }
 }
 
@@ -275,7 +275,7 @@ impl GraphicsState {
         if !self.current_named_material.is_empty() {
             self.named_material
                 .get(&self.current_named_material)
-                .map(|v| v.clone())
+                .cloned()
                 .unwrap_or_else(|| make_material("matte", &mut mp))
         } else {
             make_material(&self.material, &mut mp)

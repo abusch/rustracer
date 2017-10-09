@@ -47,7 +47,7 @@ pub trait SamplerIntegrator {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
-        if !f.is_black() && pdf != 0.0 && wi.dot(&ns) != 0.0 {
+        if !f.is_black() && pdf != 0.0 && wi.dot(ns) != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
                 let mut rddiff = RayDifferential::default();
@@ -66,7 +66,7 @@ pub trait SamplerIntegrator {
                 r.differential = Some(rddiff);
             }
             let refl = self.li(scene, &mut r, sampler, depth + 1);
-            f * refl * wi.dot(&ns).abs() / pdf
+            f * refl * wi.dot(ns).abs() / pdf
         } else {
             Spectrum::black()
         }
@@ -116,7 +116,7 @@ pub trait SamplerIntegrator {
                 r.differential = Some(rddiff);
             }
             let refr = self.li(scene, &mut r, sampler, depth + 1);
-            f * refr * wi.dot(&ns).abs() / pdf
+            f * refr * wi.dot(ns).abs() / pdf
         } else {
             Spectrum::black()
         }
@@ -127,7 +127,7 @@ pub fn uniform_sample_all_light(
     it: &SurfaceInteraction,
     scene: &Scene,
     sampler: &mut Box<Sampler + Send + Sync>,
-    n_light_samples: &Vec<usize>,
+    n_light_samples: &[usize],
 ) -> Spectrum {
     let mut L = Spectrum::black();
     for j in 0..scene.lights.len() {
@@ -222,7 +222,7 @@ pub fn estimate_direct(
     let bsdf = it.bsdf
         .as_ref()
         .expect("There should be a BSDF set at this point!");
-    let (mut li, wi, light_pdf, vis) = light.sample_li(it, &u_light);
+    let (mut li, wi, light_pdf, vis) = light.sample_li(it, u_light);
     if light_pdf > 0.0 && !li.is_black() {
         // Compute BSDF for light sample
         let f = bsdf.f(&it.wo, &wi, bsdf_flags) * wi.dot(&it.shading.n).abs();
@@ -252,14 +252,15 @@ pub fn estimate_direct(
         // TODO compute medium interaction when supported
         if !f.is_black() && scattering_pdf > 0.0 {
             // Account for light contribution along sampled direction wi
-            let mut weight = 1.0;
-            if !sampled_specular {
+            let weight = if !sampled_specular {
                 let light_pdf = light.pdf_li(it, &wi);
                 if light_pdf == 0.0 {
                     return ld;
                 }
-                weight = power_heuristic(1, scattering_pdf, 1, light_pdf);
-            }
+                power_heuristic(1, scattering_pdf, 1, light_pdf)
+            } else {
+                1.0
+            };
 
             // Find intersection and compute transmittance
             let mut ray = it.spawn_ray(&wi);

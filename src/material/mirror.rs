@@ -13,6 +13,7 @@ pub struct MirrorMaterial {
 
 impl MirrorMaterial {
     pub fn create(mp: &mut TextureParams) -> Arc<Material + Sync + Send> {
+        info!("Creating Mirror material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::grey(0.9));
         // TODO bumpmap
 
@@ -24,9 +25,10 @@ impl Material for MirrorMaterial {
     fn compute_scattering_functions(
         &self,
         si: &mut SurfaceInteraction,
-        mode: TransportMode,
-        allow_multiple_lobes: bool,
+        _mode: TransportMode,
+        _allow_multiple_lobes: bool,
     ) {
+        info!("Creating Mirror material");
         // TODO bumpmap
         let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
         let R = self.kr.evaluate(si); // TODO clamp

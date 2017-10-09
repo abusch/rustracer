@@ -1,4 +1,4 @@
-use {Point2f, Point3f, Vector3f, Transform};
+use {Point2f, Point3f, Transform, Vector3f};
 use interaction::SurfaceInteraction;
 use spectrum::Spectrum;
 
@@ -22,7 +22,9 @@ pub struct UVTexture {
 
 impl UVTexture {
     pub fn new() -> UVTexture {
-        UVTexture { mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)) }
+        UVTexture {
+            mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),
+        }
     }
 }
 
@@ -67,13 +69,16 @@ pub trait TextureMapping3D {
     fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f);
 }
 
+#[derive(Default)]
 pub struct TransformMapping3D {
     world_to_texture: Transform,
 }
 
 impl TransformMapping3D {
     pub fn new() -> TransformMapping3D {
-        TransformMapping3D { world_to_texture: Transform::default() }
+        TransformMapping3D {
+            world_to_texture: Transform::default(),
+        }
     }
 }
 

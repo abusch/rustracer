@@ -177,7 +177,7 @@ impl<'a, 'b> Mul<&'a Point3f> for &'b Transform {
         let zp = self.m[(2, 0)] * x + self.m[(2, 1)] * y + self.m[(2, 2)] * z + self.m[(2, 3)];
         let wp = self.m[(3, 0)] * x + self.m[(3, 1)] * y + self.m[(3, 2)] * z + self.m[(3, 3)];
 
-        assert!(wp != 0.0);
+        assert_ne!(wp, 0.0);
 
         if wp == 1.0 {
             Point3f::new(xp, yp, zp)
@@ -265,9 +265,8 @@ pub fn solve_linear_system2x2(A: &Matrix2<f32>, B: &Vector2f) -> Option<(f32, f3
     if x0.is_nan() || x1.is_nan() {
         return None;
     }
-    return Some((x0, x1));
+    Some((x0, x1))
 }
-
 
 #[test]
 fn test_normal_transform() {

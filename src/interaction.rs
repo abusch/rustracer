@@ -4,7 +4,7 @@ use fp::Ieee754;
 use na::{self, Matrix2};
 use num::Zero;
 
-use {Point3f, Point2f, Vector2f, Vector3f, Transform};
+use {Point2f, Point3f, Transform, Vector2f, Vector3f};
 use bsdf::BSDF;
 use geometry::face_forward;
 use material::TransportMode;
@@ -110,14 +110,15 @@ pub struct SurfaceInteraction<'a> {
 }
 
 impl<'a> SurfaceInteraction<'a> {
-    pub fn new(p: Point3f,
-               p_error: Vector3f,
-               uv: Point2f,
-               wo: Vector3f,
-               dpdu: Vector3f,
-               dpdv: Vector3f,
-               shape: &Shape)
-               -> SurfaceInteraction {
+    pub fn new(
+        p: Point3f,
+        p_error: Vector3f,
+        uv: Point2f,
+        wo: Vector3f,
+        dpdu: Vector3f,
+        dpdv: Vector3f,
+        shape: &Shape,
+    ) -> SurfaceInteraction {
         let n = dpdu.cross(&dpdv).normalize();
         // TODO adjust normal for handedness
         SurfaceInteraction {
@@ -188,10 +189,12 @@ impl<'a> SurfaceInteraction<'a> {
         }
     }
 
-    pub fn compute_scattering_functions(&mut self,
-                                        ray: &Ray,
-                                        transport: TransportMode,
-                                        allow_multiple_lobes: bool) {
+    pub fn compute_scattering_functions(
+        &mut self,
+        ray: &Ray,
+        transport: TransportMode,
+        allow_multiple_lobes: bool,
+    ) {
         self.compute_differential(ray);
         if let Some(primitive) = self.primitive {
             primitive.compute_scattering_functions(self, transport, allow_multiple_lobes);
@@ -213,14 +216,16 @@ impl<'a> SurfaceInteraction<'a> {
         Ray::segment(o, d, 1.0 - 1e-4)
     }
 
-    pub fn set_shading_geometry(&mut self,
-                                dpdus: &Vector3f,
-                                dpdvs: &Vector3f,
-                                dndus: &Vector3f,
-                                dndvs: &Vector3f,
-                                is_orientation_authoritative: bool) {
+    pub fn set_shading_geometry(
+        &mut self,
+        dpdus: &Vector3f,
+        dpdvs: &Vector3f,
+        dndus: &Vector3f,
+        dndvs: &Vector3f,
+        is_orientation_authoritative: bool,
+    ) {
         // Compute shading.n for SurfaceInteraction
-        self.shading.n = dpdus.cross(&dpdvs).normalize();
+        self.shading.n = dpdus.cross(dpdvs).normalize();
         // TODO handle handedness
         if is_orientation_authoritative {
             self.n = face_forward(&self.n, &self.shading.n);
@@ -263,10 +268,12 @@ impl<'a> SurfaceInteraction<'a> {
                 dim[1] = 1;
             }
             // Initialize A, Bx, and By matrices for offset computation
-            let A = Matrix2::new(self.dpdu[dim[0]],
-                                 self.dpdv[dim[0]],
-                                 self.dpdu[dim[1]],
-                                 self.dpdv[dim[1]]);
+            let A = Matrix2::new(
+                self.dpdu[dim[0]],
+                self.dpdv[dim[0]],
+                self.dpdu[dim[1]],
+                self.dpdv[dim[1]],
+            );
             let Bx = Vector2f::new(px[dim[0]] - self.p[dim[0]], px[dim[1]] - self.p[dim[1]]);
             let By = Vector2f::new(py[dim[0]] - self.p[dim[0]], py[dim[1]] - self.p[dim[1]]);
 
@@ -277,7 +284,6 @@ impl<'a> SurfaceInteraction<'a> {
             self.dvdx = dvdx;
             self.dudy = dudy;
             self.dvdy = dvdy;
-
         } else {
             self.dudx = 0.0;
             self.dudy = 0.0;

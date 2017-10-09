@@ -3,10 +3,10 @@ use std::sync::Arc;
 use bsdf::{BxDF, Fresnel, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission,
            SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
-use paramset::{ParamSet, TextureParams};
+use paramset::TextureParams;
 use material::{Material, TransportMode};
 use spectrum::Spectrum;
-use texture::{ConstantTexture, Texture};
+use texture::Texture;
 
 pub struct GlassMaterial {
     kr: Arc<Texture<Spectrum> + Send + Sync>,
@@ -18,25 +18,8 @@ pub struct GlassMaterial {
 }
 
 impl GlassMaterial {
-    pub fn new() -> GlassMaterial {
-        GlassMaterial {
-            kr: Arc::new(ConstantTexture::new(Spectrum::white())),
-            kt: Arc::new(ConstantTexture::new(Spectrum::white())),
-            u_roughness: Arc::new(ConstantTexture::new(0.0)),
-            v_roughness: Arc::new(ConstantTexture::new(0.0)),
-            index: Arc::new(ConstantTexture::new(1.5)),
-            remap_roughness: true,
-        }
-    }
-
-    pub fn roughness(mut self, u_rough: f32, v_rough: f32) -> GlassMaterial {
-        self.u_roughness = Arc::new(ConstantTexture::new(::na::clamp(u_rough, 0.0, 1.0)));
-        self.v_roughness = Arc::new(ConstantTexture::new(::na::clamp(v_rough, 0.0, 1.0)));
-
-        self
-    }
-
     pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+        info!("Creating Glass material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::white());
         let Kt = mp.get_spectrum_texture("Kt", &Spectrum::white());
         let eta = mp.get_float_texture_or_none("eta")

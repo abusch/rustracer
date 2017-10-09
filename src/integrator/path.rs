@@ -77,7 +77,7 @@ impl SamplerIntegrator for PathIntegrator {
             }
 
             // Compute scattering functions and skip over medium boundaries
-            let mut isect = found_intersection.as_mut().unwrap();
+            let isect = found_intersection.as_mut().unwrap();
             isect.compute_scattering_functions(&ray, TransportMode::RADIANCE, true);
             if isect.bsdf.is_none() {
                 // If there's no bsdf, it means we've hit the interface between two
@@ -91,7 +91,7 @@ impl SamplerIntegrator for PathIntegrator {
 
             // Sample illumination from lights to find path contribution.
             if bsdf.num_components(BxDFType::all() & !BxDFType::BSDF_SPECULAR) > 0 {
-                let ld = beta * uniform_sample_one_light(&isect, scene, sampler, distrib);
+                let ld = beta * uniform_sample_one_light(isect, scene, sampler, distrib);
                 assert!(ld.y() >= 0.0);
                 l += ld;
             }

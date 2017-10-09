@@ -199,6 +199,23 @@ impl Bounds3<f32> {
     }
 }
 
+impl<T> Default for Bounds3<T>
+where
+    T: Bounded
+        + PartialOrd
+        + Into<f32>
+        + Scalar
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + One
+        + SubAssign,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub type Bounds2i = Bounds2<i32>;
 pub type Bounds2f = Bounds2<f32>;
 
@@ -330,6 +347,22 @@ where
         // Not sure why this doesn't work??
         // &self.p_max - &self.p_min
         Vector2::new(self.p_max.x - self.p_min.x, self.p_max.y - self.p_min.y)
+    }
+}
+
+impl<T> Default for Bounds2<T>
+where
+    T: Bounded
+        + PartialOrd
+        + fmt::Display
+        + Scalar
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + One,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
 

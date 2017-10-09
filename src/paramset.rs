@@ -61,7 +61,7 @@ impl ParamSet {
                         .values
                         .as_str_array()
                         .iter()
-                        .map(|x| if x == "true" { true } else { false })
+                        .map(|x| x == "true")
                         .collect();
                     self.add_bool(entry.param_name.clone(), bools);
                 }
@@ -272,7 +272,7 @@ impl<'a> TextureParams<'a> {
         }
         if &name != "" {
             if let Some(tex) = self.spectrum_textures.get(&name) {
-                return tex.clone();
+                return Arc::clone(tex);
             } else {
                 error!(
                     "Couldn't find spectrum texture {} for parameter {}",
@@ -294,7 +294,7 @@ impl<'a> TextureParams<'a> {
         }
         if &name != "" {
             if let Some(tex) = self.float_textures.get(&name) {
-                return tex.clone();
+                return Arc::clone(tex);
             } else {
                 error!(
                     "Couldn't find spectrum texture {} for parameter {}",
@@ -319,7 +319,7 @@ impl<'a> TextureParams<'a> {
         }
         if &name != "" {
             if let Some(tex) = self.float_textures.get(&name) {
-                return Some(tex.clone());
+                return Some(Arc::clone(tex));
             } else {
                 error!(
                     "Couldn't find spectrum texture {} for parameter {}",

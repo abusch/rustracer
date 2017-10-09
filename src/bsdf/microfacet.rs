@@ -1,10 +1,10 @@
 use std::f32::consts;
 
-use {Vector3f, Point2f};
+use {Point2f, Vector3f};
 use spectrum::Spectrum;
-use bsdf::{BxDF, BxDFType, reflect, refract};
-use geometry::{tan_theta, tan2_theta, cos_theta, abs_cos_theta, cos2_theta, cos_phi, cos2_phi,
-               sin_phi, sin2_phi, same_hemisphere, spherical_direction, erf, erf_inv};
+use bsdf::{reflect, refract, BxDF, BxDFType};
+use geometry::{abs_cos_theta, cos_phi, cos_theta, erf, erf_inv, same_hemisphere, sin_phi,
+               spherical_direction, tan_theta, cos2_phi, cos2_theta, sin2_phi, tan2_theta};
 use material::TransportMode;
 use bsdf::fresnel::{Fresnel, FresnelDielectric};
 
@@ -15,10 +15,11 @@ pub struct MicrofacetReflection {
 }
 
 impl MicrofacetReflection {
-    pub fn new(r: Spectrum,
-               distribution: Box<MicrofacetDistribution + Send + Sync>,
-               fresnel: Box<Fresnel + Send + Sync>)
-               -> MicrofacetReflection {
+    pub fn new(
+        r: Spectrum,
+        distribution: Box<MicrofacetDistribution + Send + Sync>,
+        fresnel: Box<Fresnel + Send + Sync>,
+    ) -> MicrofacetReflection {
         MicrofacetReflection {
             r: r,
             distribution: distribution,
@@ -43,8 +44,8 @@ impl BxDF for MicrofacetReflection {
 
         wh = wh.normalize();
         let f = self.fresnel.evaluate(wi.dot(&wh));
-        self.r * self.distribution.d(&wh) * self.distribution.g(wo, wi) * f /
-        (4.0 * cos_theta_i * cos_theta_o)
+        self.r * self.distribution.d(&wh) * self.distribution.g(wo, wi) * f
+            / (4.0 * cos_theta_i * cos_theta_o)
     }
 
     fn get_type(&self) -> BxDFType {
@@ -55,13 +56,23 @@ impl BxDF for MicrofacetReflection {
     /// on the microface distribution
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         if wo.z == 0.0 {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (
+                Spectrum::black(),
+                Vector3f::new(0.0, 0.0, 0.0),
+                0.0,
+                BxDFType::empty(),
+            );
         }
 
         let wh = self.distribution.sample_wh(wo, u);
         let wi = reflect(wo, &wh);
         if !same_hemisphere(wo, &wi) {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (
+                Spectrum::black(),
+                Vector3f::new(0.0, 0.0, 0.0),
+                0.0,
+                BxDFType::empty(),
+            );
         }
         let pdf = self.distribution.pdf(wo, &wh) / (4.0 * wo.dot(&wh));
 
@@ -69,7 +80,7 @@ impl BxDF for MicrofacetReflection {
     }
 
     fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
-        if !same_hemisphere(wo, &wi) {
+        if !same_hemisphere(wo, wi) {
             return 0.0;
         }
         let wh = (*wo + *wi).normalize();
@@ -89,11 +100,12 @@ pub struct MicrofacetTransmission {
 }
 
 impl MicrofacetTransmission {
-    pub fn new(t: Spectrum,
-               distribution: Box<MicrofacetDistribution + Send + Sync>,
-               eta_a: f32,
-               eta_b: f32)
-               -> MicrofacetTransmission {
+    pub fn new(
+        t: Spectrum,
+        distribution: Box<MicrofacetDistribution + Send + Sync>,
+        eta_a: f32,
+        eta_b: f32,
+    ) -> MicrofacetTransmission {
         MicrofacetTransmission {
             t: t,
             distribution: distribution,
@@ -139,10 +151,10 @@ impl BxDF for MicrofacetTransmission {
         };
 
 
-        (Spectrum::white() - f) * self.t * self.distribution.d(&wh).abs() *
-        self.distribution.g(wo, wi) * eta * eta * wi.dot(&wh).abs() *
-        wo.dot(&wh).abs() * factor * factor /
-        (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom)
+        (Spectrum::white() - f) * self.t * self.distribution.d(&wh).abs()
+            * self.distribution.g(wo, wi) * eta * eta * wi.dot(&wh).abs()
+            * wo.dot(&wh).abs() * factor * factor
+            / (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom)
     }
 
     fn get_type(&self) -> BxDFType {
@@ -153,7 +165,12 @@ impl BxDF for MicrofacetTransmission {
     /// on the microface distribution
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         if wo.z == 0.0 {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (
+                Spectrum::black(),
+                Vector3f::new(0.0, 0.0, 0.0),
+                0.0,
+                BxDFType::empty(),
+            );
         }
 
         let wh = self.distribution.sample_wh(wo, u);
@@ -167,7 +184,12 @@ impl BxDF for MicrofacetTransmission {
             let pdf = self.pdf(wo, &wi);
             (self.f(wo, &wi), wi, pdf, BxDFType::empty())
         } else {
-            (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty())
+            (
+                Spectrum::black(),
+                Vector3f::new(0.0, 0.0, 0.0),
+                0.0,
+                BxDFType::empty(),
+            )
         }
     }
 
@@ -234,8 +256,8 @@ impl BeckmannDistribution {
 
     fn sample(&self, wi: &Vector3f, u1: f32, u2: f32) -> Vector3f {
         // 1. stretch wi
-        let wi_stretched = Vector3f::new(self.alpha_x * wi.x, self.alpha_y * wi.y, wi.z)
-            .normalize();
+        let wi_stretched =
+            Vector3f::new(self.alpha_x * wi.x, self.alpha_y * wi.y, wi.z).normalize();
 
         // 2. simulate P22_{wi}(x_slope, y_slope, 1, 1)
         let (mut slope_x, mut slope_y) = self.sample11(cos_theta(&wi_stretched), u1, u2);
@@ -307,9 +329,9 @@ impl BeckmannDistribution {
             // Evaluate the CDF and its derivative
             // (i.e. the density function)
             let inv_erf = erf_inv(b);
-            let value = normalization *
-                        (1.0 + b + SQRT_PI_INV * tan_theta_i * (-inv_erf * inv_erf).exp()) -
-                        sample_x;
+            let value = normalization
+                * (1.0 + b + SQRT_PI_INV * tan_theta_i * (-inv_erf * inv_erf).exp())
+                - sample_x;
             let derivative = normalization * (1.0 - inv_erf * tan_theta_i);
 
             if value.abs() < 1e-5 {
@@ -349,10 +371,10 @@ impl MicrofacetDistribution for BeckmannDistribution {
         }
 
         let cos4_theta = cos2_theta(wh) * cos2_theta(wh);
-        (-tan2theta *
-         (cos2_phi(wh) / (self.alpha_x * self.alpha_x) +
-          sin2_phi(wh) / (self.alpha_y * self.alpha_y)))
-                .exp() / (consts::PI * self.alpha_x * self.alpha_y * cos4_theta)
+        (-tan2theta
+            * (cos2_phi(wh) / (self.alpha_x * self.alpha_x)
+                + sin2_phi(wh) / (self.alpha_y * self.alpha_y)))
+            .exp() / (consts::PI * self.alpha_x * self.alpha_y * cos4_theta)
     }
 
     fn lambda(&self, wh: &Vector3f) -> f32 {
@@ -362,9 +384,9 @@ impl MicrofacetDistribution for BeckmannDistribution {
         }
 
         // Compute alpha for direction w
-        let alpha = (cos_phi(wh) * self.alpha_x * self.alpha_x +
-                     sin_phi(wh) * self.alpha_y * self.alpha_y)
-                .sqrt();
+        let alpha = (cos_phi(wh) * self.alpha_x * self.alpha_x
+            + sin_phi(wh) * self.alpha_y * self.alpha_y)
+            .sqrt();
 
         let a = 1.0 / (alpha * abs_tan_theta);
         if a >= 1.6 {
@@ -382,16 +404,19 @@ impl MicrofacetDistribution for BeckmannDistribution {
                 if log_sample.is_infinite() {
                     log_sample = 0.0;
                 }
-                (-self.alpha_x * self.alpha_x * log_sample, u[1] * 2.0 * consts::PI)
+                (
+                    -self.alpha_x * self.alpha_x * log_sample,
+                    u[1] * 2.0 * consts::PI,
+                )
             } else {
                 // Compute tan_2_theta and phi for anisotropic Beckmann distribution
                 let mut log_sample = u[0].ln();
                 if log_sample.is_infinite() {
                     log_sample = 0.0;
                 }
-                let mut phi = (self.alpha_y / self.alpha_x *
-                               (2.0 * consts::PI * u[1] + consts::FRAC_PI_2).tan())
-                        .atan();
+                let mut phi = (self.alpha_y / self.alpha_x
+                    * (2.0 * consts::PI * u[1] + consts::FRAC_PI_2).tan())
+                    .atan();
                 if u[1] > 0.5 {
                     phi += consts::PI;
                 }
@@ -399,8 +424,8 @@ impl MicrofacetDistribution for BeckmannDistribution {
                 let cos_phi = phi.cos();
                 let alpha_x_2 = self.alpha_x * self.alpha_x;
                 let alpha_y_2 = self.alpha_y * self.alpha_y;
-                let tan2_theta = -log_sample /
-                                 (cos_phi * cos_phi / alpha_x_2 + sin_phi * sin_phi / alpha_y_2);
+                let tan2_theta =
+                    -log_sample / (cos_phi * cos_phi / alpha_x_2 + sin_phi * sin_phi / alpha_y_2);
                 (tan2_theta, phi)
             };
             let cos_theta = 1.0 / (1.0 + tan_2_theta).sqrt();
@@ -415,7 +440,11 @@ impl MicrofacetDistribution for BeckmannDistribution {
             let flip = wo.z < 0.0;
             let wo = if flip { -(*wo) } else { *wo };
             let wh = self.sample(&wo, u[0], u[1]);
-            if flip { -wh } else { wh }
+            if flip {
+                -wh
+            } else {
+                wh
+            }
         }
     }
 
@@ -442,15 +471,14 @@ impl TrowbridgeReitzDistribution {
     pub fn roughness_to_alpha(roughness: f32) -> f32 {
         let roughness = roughness.max(1e-3);
         let x = roughness.ln();
-        1.62142 + 0.819955 * x + 0.1734 * x * x + 0.0171201 * x * x * x +
-        0.000640711 * x * x * x * x
-
+        1.62142 + 0.819955 * x + 0.1734 * x * x + 0.0171201 * x * x * x
+            + 0.000640711 * x * x * x * x
     }
 
     fn sample(&self, wi: &Vector3f, u1: f32, u2: f32) -> Vector3f {
         // 1. stretch wi
-        let wi_stretched = Vector3f::new(self.alpha_x * wi.x, self.alpha_y * wi.y, wi.z)
-            .normalize();
+        let wi_stretched =
+            Vector3f::new(self.alpha_x * wi.x, self.alpha_y * wi.y, wi.z).normalize();
 
         // 2. simulate P22_{wi}(x_slope, y_slope, 1, 1)
         let (mut slope_x, mut slope_y) = self.sample11(cos_theta(&wi_stretched), u1, u2);
@@ -468,6 +496,7 @@ impl TrowbridgeReitzDistribution {
         Vector3f::new(-slope_x, -slope_y, 1.0).normalize()
     }
 
+    #[allow(non_snake_case)]
     fn sample11(&self, cos_theta: f32, u1: f32, u2: f32) -> (f32, f32) {
         // special case (normal incidence)
         if cos_theta > 0.9999 {
@@ -488,9 +517,7 @@ impl TrowbridgeReitzDistribution {
             tmp = 1e10;
         }
         let B = tan_theta;
-        let D = (B * B * tmp * tmp - (A * A - B * B) * tmp)
-            .max(0.0)
-            .sqrt();
+        let D = (B * B * tmp * tmp - (A * A - B * B) * tmp).max(0.0).sqrt();
         let slope_x_1 = B * tmp - D;
         let slope_x_2 = B * tmp + D;
         let slope_x = if A < 0.0 || slope_x_2 > 1.0 / tan_theta {
@@ -505,23 +532,25 @@ impl TrowbridgeReitzDistribution {
         } else {
             (-1.0, 2.0 * (0.5 - u2))
         };
-        let z = (u2 * (u2 * (u2 * 0.27385 - 0.73369) + 0.46341)) /
-                (u2 * (u2 * (u2 * 0.093073 + 0.309420) - 1.000000) + 0.597999);
+        let z = (u2 * (u2 * (u2 * 0.27385 - 0.73369) + 0.46341))
+            / (u2 * (u2 * (u2 * 0.093073 + 0.309420) - 1.000000) + 0.597999);
         let slope_y = S * z * (1.0 + slope_x * slope_x).sqrt();
 
         assert!(!slope_y.is_infinite());
-        assert!(!slope_y.is_nan(),
-                "slope_y has NaN! S={}, slope_x={}, z={}, cos_theta={}, u1={}, u2={}, B={}, \
-                 tmp={}, D={}",
-                S,
-                slope_x,
-                z,
-                cos_theta,
-                u1,
-                u2,
-                B,
-                tmp,
-                D);
+        assert!(
+            !slope_y.is_nan(),
+            "slope_y has NaN! S={}, slope_x={}, z={}, cos_theta={}, u1={}, u2={}, B={}, \
+             tmp={}, D={}",
+            S,
+            slope_x,
+            z,
+            cos_theta,
+            u1,
+            u2,
+            B,
+            tmp,
+            D
+        );
         (slope_x, slope_y)
     }
 }
@@ -534,8 +563,8 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
         }
 
         let cos4theta = cos2_theta(wh) * cos2_theta(wh);
-        let e = (cos2_phi(wh) / (self.alpha_x * self.alpha_x) +
-                 sin2_phi(wh) / (self.alpha_y * self.alpha_y)) * tan2theta;
+        let e = (cos2_phi(wh) / (self.alpha_x * self.alpha_x)
+            + sin2_phi(wh) / (self.alpha_y * self.alpha_y)) * tan2theta;
 
         1.0 / (consts::PI * self.alpha_x * self.alpha_y * cos4theta * (1.0 + e) * (1.0 + e))
     }
@@ -547,9 +576,9 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
         }
 
         // Compute alpha for direction w
-        let alpha = (cos2_phi(wh) * self.alpha_x * self.alpha_x +
-                     sin2_phi(wh) * self.alpha_y * self.alpha_y)
-                .sqrt();
+        let alpha = (cos2_phi(wh) * self.alpha_x * self.alpha_x
+            + sin2_phi(wh) * self.alpha_y * self.alpha_y)
+            .sqrt();
         let alpha2tan2theta = (alpha * abs_tan_theta) * (alpha * abs_tan_theta);
         (-1.0 + (1.0 + alpha2tan2theta).sqrt()) / 2.0
     }
@@ -563,9 +592,9 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
                 let tan_theta2 = self.alpha_x * self.alpha_x * u[0] / (1.0 - u[0]);
                 cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
             } else {
-                let mut phi = (self.alpha_y / self.alpha_x *
-                               (2.0 * consts::PI * u[1] + 0.5 * consts::PI).tan())
-                        .atan();
+                let mut phi = (self.alpha_y / self.alpha_x
+                    * (2.0 * consts::PI * u[1] + 0.5 * consts::PI).tan())
+                    .atan();
                 if u[1] > 0.5 {
                     phi += consts::PI;
                 }
@@ -573,19 +602,27 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
                 let cos_phi = phi.cos();
                 let alpha_x_2: f32 = self.alpha_x * self.alpha_x;
                 let alpha_y_2: f32 = self.alpha_y * self.alpha_y;
-                let alpha_2: f32 = 1.0 /
-                                   (cos_phi * cos_phi / alpha_x_2 + sin_phi * sin_phi / alpha_y_2);
+                let alpha_2: f32 =
+                    1.0 / (cos_phi * cos_phi / alpha_x_2 + sin_phi * sin_phi / alpha_y_2);
                 let tan_theta2 = alpha_2 * u[0] / (1.0 - u[0]);
                 cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
             }
             let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
             let wh = spherical_direction(sin_theta, cos_theta, phi);
-            if !same_hemisphere(wo, &wh) { -wh } else { wh }
+            if !same_hemisphere(wo, &wh) {
+                -wh
+            } else {
+                wh
+            }
         } else {
             let flip = wo.z < 0.0;
             let wo = if flip { -(*wo) } else { *wo };
             let wh = self.sample(&wo, u[0], u[1]);
-            if flip { -wh } else { wh }
+            if flip {
+                -wh
+            } else {
+                wh
+            }
         }
     }
 

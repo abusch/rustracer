@@ -4,7 +4,6 @@ mod parser;
 use api::{Api, RealApi};
 use errors::*;
 
-#[allow(dead_code)]
 pub fn parse_scene(input: &str) -> Result<()> {
     // TODO handle errors
     let tokens =

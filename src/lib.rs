@@ -1,5 +1,6 @@
 #![recursion_limit = "1024"]
 #![deny(trivial_casts, unused_qualifications, unused_must_use)]
+#[cfg(test)]
 #[macro_use]
 extern crate approx;
 #[macro_use]
@@ -51,7 +52,7 @@ pub mod material;
 pub mod mipmap;
 mod noise;
 mod paramset;
-pub mod parser;
+pub mod pbrt;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
@@ -189,7 +190,7 @@ where
     na::clamp(first - 1, 0, size - 2)
 }
 
-/// Version of min() that works on PartialOrd, so it works for both u32 and f32.
+/// Version of min() that works on `PartialOrd`, so it works for both u32 and f32.
 pub fn min<T: PartialOrd + Copy>(a: T, b: T) -> T {
     if a.lt(&b) {
         a
@@ -198,7 +199,7 @@ pub fn min<T: PartialOrd + Copy>(a: T, b: T) -> T {
     }
 }
 
-/// Version of max() that works on PartialOrd, so it works for both u32 and f32.
+/// Version of max() that works on `PartialOrd`, so it works for both u32 and f32.
 pub fn max<T: PartialOrd + Copy>(a: T, b: T) -> T {
     if a.gt(&b) {
         a
