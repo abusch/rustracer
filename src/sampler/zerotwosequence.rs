@@ -128,20 +128,28 @@ impl Sampler for ZeroTwoSequence {
         self.sample_array_2d.push(vec);
     }
 
-    fn get_1d_array(&mut self, n: usize) -> &[f32] {
-        assert!(self.array_1d_offset < self.sample_array_1d.len());
+    fn get_1d_array(&mut self, n: usize) -> Option<&[f32]> {
+        if self.array_1d_offset == self.sample_array_1d.len() {
+            return None;
+        }
+        assert_eq!(self.sample_1d_array_sizes[self.array_1d_offset], n);
+        assert!(self.current_pixel_sample_index < self.spp);
         let res =
             &self.sample_array_1d[self.array_1d_offset][(self.current_pixel_sample_index * n)..];
         self.array_1d_offset += 1;
-        res
+        Some(res)
     }
 
-    fn get_2d_array(&mut self, n: usize) -> &[Point2f] {
-        assert!(self.array_2d_offset < self.sample_array_2d.len());
+    fn get_2d_array(&mut self, n: usize) -> Option<&[Point2f]> {
+        if self.array_2d_offset == self.sample_array_2d.len() {
+            return None;
+        }
+        assert_eq!(self.sample_2d_array_sizes[self.array_2d_offset], n);
+        assert!(self.current_pixel_sample_index < self.spp);
         let res =
             &self.sample_array_2d[self.array_2d_offset][(self.current_pixel_sample_index * n)..];
         self.array_2d_offset += 1;
-        res
+        Some(res)
     }
 
     fn get_1d(&mut self) -> f32 {

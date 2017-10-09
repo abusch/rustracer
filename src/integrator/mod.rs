@@ -135,14 +135,16 @@ pub fn uniform_sample_all_light(
         let light = &scene.lights[j];
         let n_samples = n_light_samples[j];
         // FIXME find a way to not copy the arrays into a vec...
-        let u_light_array = sampler.get_2d_array(n_samples).to_vec();
-        let u_scattering_array = sampler.get_2d_array(n_samples).to_vec();
-        if u_scattering_array.is_empty() || u_light_array.is_empty() {
-            // Use a single sample for illuminatin from light
+        let u_light_array = sampler.get_2d_array(n_samples).map(|a| a.to_vec());
+        let u_scattering_array = sampler.get_2d_array(n_samples).map(|a| a.to_vec());
+        if u_scattering_array.is_none() || u_light_array.is_none() {
+            // Use a single sample for illumination from light
             let u_light = sampler.get_2d();
             let u_scattering = sampler.get_2d();
             L += estimate_direct(it, &u_scattering, light, &u_light, scene, sampler);
         } else {
+            let u_light_array = u_light_array.unwrap();
+            let u_scattering_array = u_scattering_array.unwrap();
             let mut Ld = Spectrum::black();
             for k in 0..n_samples {
                 Ld += estimate_direct(
