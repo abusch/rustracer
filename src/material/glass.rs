@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
-use bsdf::{BSDF, BxDF, FresnelSpecular, SpecularTransmission, SpecularReflection, Fresnel,
-           MicrofacetReflection, MicrofacetTransmission, TrowbridgeReitzDistribution};
+use bsdf::{BxDF, Fresnel, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission,
+           SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
+use paramset::{ParamSet, TextureParams};
 use material::{Material, TransportMode};
 use spectrum::Spectrum;
-use texture::{Texture, ConstantTexture};
+use texture::{ConstantTexture, Texture};
 
 pub struct GlassMaterial {
     kr: Arc<Texture<Spectrum> + Send + Sync>,
@@ -34,14 +35,36 @@ impl GlassMaterial {
 
         self
     }
+
+    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+        let Kr = mp.get_spectrum_texture("Kr", &Spectrum::white());
+        let Kt = mp.get_spectrum_texture("Kt", &Spectrum::white());
+        let eta = mp.get_float_texture_or_none("eta")
+            .unwrap_or_else(|| mp.get_float_texture("index", 1.5));
+        let rough_u = mp.get_float_texture("uroughness", 0.0);
+        let rough_v = mp.get_float_texture("vroughness", 0.0);
+        // TODO bumpmap
+        let remap_roughness = mp.find_bool("remaproughness", true);
+
+        Arc::new(GlassMaterial {
+            kr: Kr,
+            kt: Kt,
+            u_roughness: rough_u,
+            v_roughness: rough_v,
+            index: eta,
+            remap_roughness,
+        })
+    }
 }
 
 
 impl Material for GlassMaterial {
-    fn compute_scattering_functions(&self,
-                                    isect: &mut SurfaceInteraction,
-                                    _mode: TransportMode,
-                                    allow_multiple_lobes: bool) {
+    fn compute_scattering_functions(
+        &self,
+        isect: &mut SurfaceInteraction,
+        _mode: TransportMode,
+        allow_multiple_lobes: bool,
+    ) {
         let eta = self.index.evaluate(isect);
         let mut u_rough = self.u_roughness.evaluate(isect);
         let mut v_rough = self.v_roughness.evaluate(isect);

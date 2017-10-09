@@ -2,10 +2,17 @@ use Vector2f;
 use interaction::SurfaceInteraction;
 use texture::Texture;
 
-pub mod matte;
-pub mod metal;
-pub mod plastic;
-pub mod glass;
+mod matte;
+mod metal;
+mod plastic;
+mod glass;
+mod mirror;
+
+pub use self::matte::MatteMaterial;
+pub use self::metal::Metal;
+pub use self::plastic::Plastic;
+pub use self::glass::GlassMaterial;
+pub use self::mirror::MirrorMaterial;
 
 pub enum TransportMode {
     RADIANCE,
@@ -13,10 +20,12 @@ pub enum TransportMode {
 }
 
 pub trait Material {
-    fn compute_scattering_functions(&self,
-                                    isect: &mut SurfaceInteraction,
-                                    mode: TransportMode,
-                                    allow_multiple_lobes: bool);
+    fn compute_scattering_functions(
+        &self,
+        isect: &mut SurfaceInteraction,
+        mode: TransportMode,
+        allow_multiple_lobes: bool,
+    );
 }
 
 
@@ -45,10 +54,10 @@ pub fn bump(d: &Box<Texture<f32> + Send + Sync>, si: &mut SurfaceInteraction) {
     let displace = d.evaluate(si);
 
     // Compute bump-mapped differential geometry
-    let dpdu = si.shading.dpdu + (u_displace - displace) / du * si.shading.n +
-               displace * si.shading.dndu;
-    let dpdv = si.shading.dpdv + (v_displace - displace) / dv * si.shading.n +
-               displace * si.shading.dndv;
+    let dpdu =
+        si.shading.dpdu + (u_displace - displace) / du * si.shading.n + displace * si.shading.dndu;
+    let dpdv =
+        si.shading.dpdv + (v_displace - displace) / dv * si.shading.n + displace * si.shading.dndv;
     let dndu = si.shading.dndu;
     let dndv = si.shading.dndv;
     si.set_shading_geometry(&dpdu, &dpdv, &dndu, &dndv, false);

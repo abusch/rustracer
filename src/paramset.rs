@@ -308,4 +308,34 @@ impl<'a> TextureParams<'a> {
         let val = self.geom_params.find_one_float(n, val);
         Arc::new(ConstantTexture::new(val))
     }
+
+    pub fn get_float_texture_or_none(
+        &mut self,
+        n: &str,
+    ) -> Option<Arc<Texture<f32> + Send + Sync>> {
+        let mut name = self.geom_params.find_one_texture(n, "".to_owned());
+        if &name == "" {
+            name = self.material_params.find_one_texture(n, "".to_owned());
+        }
+        if &name != "" {
+            if let Some(tex) = self.float_textures.get(&name) {
+                return Some(tex.clone());
+            } else {
+                error!(
+                    "Couldn't find spectrum texture {} for parameter {}",
+                    name,
+                    n
+                );
+                return None;
+            }
+        }
+        // If texture wasn't found
+        self.geom_params
+            .find_float(n)
+            .or_else(|| self.material_params.find_float(n))
+            .map(|val| {
+                let tex: Arc<Texture<f32> + Send + Sync> = Arc::new(ConstantTexture::new(val[0]));
+                tex
+            })
+    }
 }
