@@ -4,6 +4,7 @@ use bsdf::{BxDF, BxDFType};
 use Vector3f;
 use spectrum::Spectrum;
 
+#[derive(Debug)]
 pub struct LambertianReflection {
     r: Spectrum,
 }

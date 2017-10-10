@@ -14,6 +14,7 @@ pub use self::plastic::Plastic;
 pub use self::glass::GlassMaterial;
 pub use self::mirror::MirrorMaterial;
 
+#[derive(Debug)]
 pub enum TransportMode {
     RADIANCE,
     IMPORTANCE,

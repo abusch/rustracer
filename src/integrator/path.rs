@@ -102,6 +102,7 @@ impl SamplerIntegrator for PathIntegrator {
             if f.is_black() || pdf == 0.0 {
                 break;
             }
+            debug!("Update beta. beta={}, f={}, pdf={}", beta, f, pdf);
             beta = beta * f * wi.dot(&isect.shading.n).abs() / pdf;
             assert!(beta.y() >= 0.0);
             assert!(!beta.y().is_infinite());

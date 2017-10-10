@@ -1,4 +1,5 @@
 use std::f32::consts;
+use std::fmt::Debug;
 
 use {Point2f, Vector3f};
 use spectrum::Spectrum;
@@ -8,6 +9,7 @@ use geometry::{abs_cos_theta, cos_phi, cos_theta, erf, erf_inv, same_hemisphere,
 use material::TransportMode;
 use bsdf::fresnel::{Fresnel, FresnelDielectric};
 
+#[derive(Debug)]
 pub struct MicrofacetReflection {
     r: Spectrum,
     distribution: Box<MicrofacetDistribution + Send + Sync>,
@@ -90,6 +92,7 @@ impl BxDF for MicrofacetReflection {
 }
 
 // MicrofacetTransmission
+#[derive(Debug)]
 pub struct MicrofacetTransmission {
     t: Spectrum,
     distribution: Box<MicrofacetDistribution + Send + Sync>,
@@ -213,7 +216,7 @@ impl BxDF for MicrofacetTransmission {
 }
 
 // Microfacet distributions
-pub trait MicrofacetDistribution {
+pub trait MicrofacetDistribution: Debug {
     fn d(&self, wh: &Vector3f) -> f32;
 
     fn lambda(&self, wh: &Vector3f) -> f32;
@@ -239,6 +242,7 @@ pub trait MicrofacetDistribution {
     fn sample_visible_area(&self) -> bool;
 }
 
+#[derive(Debug)]
 pub struct BeckmannDistribution {
     alpha_x: f32,
     alpha_y: f32,
@@ -453,6 +457,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
     }
 }
 
+#[derive(Debug)]
 pub struct TrowbridgeReitzDistribution {
     alpha_x: f32,
     alpha_y: f32,
@@ -586,13 +591,13 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
     fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
         if !self.sample_visible_area {
             let cos_theta;
-            let phi = (2.0 * consts::PI) * u[1];
+            let mut phi = (2.0 * consts::PI) * u[1];
 
             if self.alpha_x == self.alpha_y {
                 let tan_theta2 = self.alpha_x * self.alpha_x * u[0] / (1.0 - u[0]);
                 cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
             } else {
-                let mut phi = (self.alpha_y / self.alpha_x
+                phi = (self.alpha_y / self.alpha_x
                     * (2.0 * consts::PI * u[1] + 0.5 * consts::PI).tan())
                     .atan();
                 if u[1] > 0.5 {

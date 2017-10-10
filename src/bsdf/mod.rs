@@ -12,7 +12,7 @@ pub use self::microfacet::*;
 
 use std::cmp;
 
-use {Vector3f, Point2f, ONE_MINUS_EPSILON};
+use {Point2f, Vector3f, ONE_MINUS_EPSILON};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 
@@ -66,9 +66,9 @@ impl BSDF {
             .filter(|b| {
                 // Make sure we only evaluate reflection or transmission based on whether wi and wo
                 // lie in the same hemisphere.
-                b.matches(flags) &&
-                ((reflect && (b.get_type().contains(BxDFType::BSDF_REFLECTION))) ||
-                 (!reflect && (b.get_type().contains(BxDFType::BSDF_TRANSMISSION))))
+                b.matches(flags)
+                    && ((reflect && (b.get_type().contains(BxDFType::BSDF_REFLECTION)))
+                        || (!reflect && (b.get_type().contains(BxDFType::BSDF_TRANSMISSION))))
             })
             .fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
     }
@@ -98,52 +98,76 @@ impl BSDF {
         }
     }
 
-    pub fn sample_f(&self,
-                    wo_w: &Vector3f,
-                    u: &Point2f,
-                    flags: BxDFType)
-                    -> (Spectrum, Vector3f, f32, BxDFType) {
-
+    pub fn sample_f(
+        &self,
+        wo_w: &Vector3f,
+        u: &Point2f,
+        flags: BxDFType,
+    ) -> (Spectrum, Vector3f, f32, BxDFType) {
         let matching_comps = self.bxdfs
             .iter()
             .filter(|b| b.matches(flags))
             .collect::<Vec<&Box<BxDF + Sync + Send>>>();
         if matching_comps.is_empty() {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (
+                Spectrum::black(),
+                Vector3f::new(0.0, 0.0, 0.0),
+                0.0,
+                BxDFType::empty(),
+            );
         }
         // Chose which BxDF to sample
-        let comp = cmp::min((u[0] * matching_comps.len() as f32).floor() as usize,
-                            matching_comps.len() - 1);
+        let comp = cmp::min(
+            (u[0] * matching_comps.len() as f32).floor() as usize,
+            matching_comps.len() - 1,
+        );
         let bxdf = matching_comps
             .get(comp)
             .expect("Was expecting a BxDF with this index!");
 
-        debug!("BDDF::sample_f chose comp = {} / matching {}",
-               comp,
-               matching_comps.len());
+        debug!(
+            "BDDF::sample_f chose comp = {} / matching {}, bxdf = {:?}",
+            comp,
+            matching_comps.len(),
+            bxdf
+        );
 
         // Remap BxDF sample u to [0,1)^2
-        let u_remapped = Point2f::new((u[0] * matching_comps.len() as f32 - comp as f32)
-                                          .min(ONE_MINUS_EPSILON),
-                                      u[1]);
+        let u_remapped = Point2f::new(
+            (u[0] * matching_comps.len() as f32 - comp as f32).min(ONE_MINUS_EPSILON),
+            u[1],
+        );
+        debug!("u_remapped={}", u_remapped);
         // Sample chosen BxDF
         let wo = self.world_to_local(wo_w);
         if wo.z == 0.0 {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, bxdf.get_type());
+            return (
+                Spectrum::black(),
+                Vector3f::new(0.0, 0.0, 0.0),
+                0.0,
+                bxdf.get_type(),
+            );
         }
         let (mut f, wi, mut pdf, sampled_type) = bxdf.sample_f(&wo, &u_remapped);
-        debug!("For wo = {:?}, sampled f = {}, pdf = {}, ratio = {}, wi = {:?}",
-               wo,
-               f,
-               pdf,
-               if pdf > 0.0 {
-                   f / pdf
-               } else {
-                   Spectrum::black()
-               },
-               wi);
+        debug!(
+            "For wo = {:?}, sampled f = {}, pdf = {}, ratio = {}, wi = {:?}",
+            wo,
+            f,
+            pdf,
+            if pdf > 0.0 {
+                f / pdf
+            } else {
+                Spectrum::black()
+            },
+            wi
+        );
         if pdf == 0.0 {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (
+                Spectrum::black(),
+                Vector3f::new(0.0, 0.0, 0.0),
+                0.0,
+                BxDFType::empty(),
+            );
         }
         let wi_w = self.local_to_world(&wi);
 
@@ -165,20 +189,22 @@ impl BSDF {
             f = matching_comps
                 .iter()
                 .filter(|b| {
-                            (reflect && b.get_type().contains(BxDFType::BSDF_REFLECTION)) ||
-                            (!reflect && b.get_type().contains(BxDFType::BSDF_TRANSMISSION))
-                        })
+                    (reflect && b.get_type().contains(BxDFType::BSDF_REFLECTION))
+                        || (!reflect && b.get_type().contains(BxDFType::BSDF_TRANSMISSION))
+                })
                 .fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
         }
 
-        debug!("Overall f = {}, pdf = {}, ratio = {}",
-               f,
-               pdf,
-               if pdf > 0.0 {
-                   f / pdf
-               } else {
-                   Spectrum::black()
-               });
+        debug!(
+            "Overall f = {}, pdf = {}, ratio = {}",
+            f,
+            pdf,
+            if pdf > 0.0 {
+                f / pdf
+            } else {
+                Spectrum::black()
+            }
+        );
         (f, wi_w, pdf, sampled_type)
     }
 
@@ -187,9 +213,11 @@ impl BSDF {
     }
 
     fn local_to_world(&self, v: &Vector3f) -> Vector3f {
-        Vector3f::new(self.ss.x * v.x + self.ts.x * v.y + self.ns.x * v.z,
-                      self.ss.y * v.x + self.ts.y * v.y + self.ns.y * v.z,
-                      self.ss.z * v.z + self.ts.z * v.y + self.ns.z * v.z)
+        Vector3f::new(
+            self.ss.x * v.x + self.ts.x * v.y + self.ns.x * v.z,
+            self.ss.y * v.x + self.ts.y * v.y + self.ns.y * v.z,
+            self.ss.z * v.x + self.ts.z * v.y + self.ns.z * v.z,
+        )
     }
 
     /// Return the number of BxDFs matching the given flags
@@ -201,8 +229,8 @@ impl BSDF {
 #[test]
 fn test_flags() {
     let flags = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION;
-    let bxdf_type = BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION |
-                    BxDFType::BSDF_TRANSMISSION;
+    let bxdf_type =
+        BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION;
 
     assert!((bxdf_type & flags) == flags);
 }

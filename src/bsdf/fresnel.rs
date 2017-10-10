@@ -1,4 +1,5 @@
 use std::mem;
+use std::fmt::Debug;
 
 use {Point2f, Vector3f};
 use bsdf::{BxDF, BxDFType};
@@ -8,7 +9,7 @@ use na::clamp;
 
 /// Compute the reflection direction
 pub fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {
-    (-(*wo) + *n * 2.0 * wo.dot(n)).normalize()
+    -(*wo) + *n * 2.0 * wo.dot(n)
 }
 
 /// Compute the refraction direction
@@ -78,7 +79,7 @@ fn fr_conductor(cos_theta_i: f32, eta_i: &Spectrum, eta_t: &Spectrum, k: &Spectr
 }
 
 /// Trait for Fresnel materials
-pub trait Fresnel {
+pub trait Fresnel: Debug {
     fn evaluate(&self, cos_theta_i: f32) -> Spectrum;
 }
 
@@ -105,6 +106,7 @@ impl Fresnel {
 
 
 /// Fresnel for conductor materials
+#[derive(Debug)]
 pub struct FresnelConductor {
     eta_i: Spectrum,
     eta_t: Spectrum,
@@ -118,6 +120,7 @@ impl Fresnel for FresnelConductor {
 }
 
 /// Fresnel for dielectric materials
+#[derive(Debug)]
 pub struct FresnelDielectric {
     eta_i: f32,
     eta_t: f32,
@@ -129,6 +132,7 @@ impl Fresnel for FresnelDielectric {
     }
 }
 
+#[derive(Debug)]
 pub struct FresnelNoOp {}
 
 impl Fresnel for FresnelNoOp {
@@ -138,6 +142,7 @@ impl Fresnel for FresnelNoOp {
 }
 
 /// BRDF for perfect specular reflection
+#[derive(Debug)]
 pub struct SpecularReflection {
     r: Spectrum,
     fresnel: Box<Fresnel + Send + Sync>,
@@ -175,6 +180,7 @@ impl BxDF for SpecularReflection {
     }
 }
 
+#[derive(Debug)]
 pub struct SpecularTransmission {
     t: Spectrum,
     eta_a: f32,
@@ -251,6 +257,7 @@ impl BxDF for SpecularTransmission {
     }
 }
 
+#[derive(Debug)]
 pub struct FresnelSpecular {
     r: Spectrum,
     t: Spectrum,

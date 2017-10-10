@@ -1,8 +1,6 @@
 use std::f32::consts;
 
-use na::Vector2;
-
-use {Point2f, Vector3f};
+use {Point2f, Vector2f, Vector3f};
 
 mod distribution1d;
 mod distribution2d;
@@ -28,11 +26,15 @@ pub fn cosine_sample_hemisphere(u: &Point2f) -> Vector3f {
 }
 
 pub fn concentric_sample_disk(u: &Point2f) -> Point2f {
-    let u_offset = 2.0 * *u - Vector2::<f32>::new(1.0, 1.0);
+    // Map uniform random numbers to `[-1, 1]^2`
+    let u_offset = 2.0 * *u - Vector2f::new(1.0, 1.0);
+
+    // Handle degeneracy at the origin
     if u_offset.x == 0.0 && u_offset.y == 0.0 {
         return Point2f::new(0.0, 0.0);
     }
 
+    // Apply concentric mapping to point
     let (r, theta) = if u_offset.x.abs() > u_offset.y.abs() {
         (u_offset.x, FRAC_PI_4 * (u_offset.y / u_offset.x))
     } else {

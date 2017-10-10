@@ -3,9 +3,10 @@ use std::f32::consts;
 use Vector3f;
 use spectrum::Spectrum;
 use bsdf::BxDFType;
-use geometry::{sin_theta, sin_phi, cos_phi, abs_cos_theta};
+use geometry::{abs_cos_theta, cos_phi, sin_phi, sin_theta};
 use bsdf::bxdf::BxDF;
 
+#[derive(Debug)]
 pub struct OrenNayar {
     r: Spectrum,
     a: f32,

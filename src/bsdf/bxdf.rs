@@ -1,12 +1,13 @@
 use std::f32::consts;
+use std::fmt::Debug;
 
 use super::BxDFType;
-use {Vector3f, Point2f};
+use {Point2f, Vector3f};
 use geometry::{abs_cos_theta, same_hemisphere};
 use sampling::cosine_sample_hemisphere;
 use spectrum::Spectrum;
 
-pub trait BxDF {
+pub trait BxDF: Debug {
     /// Evaluate the BxDF for the given incoming and outgoing directions.
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum;
 
@@ -43,6 +44,7 @@ pub trait BxDF {
     }
 }
 
+#[derive(Debug)]
 pub struct ScaledBxDF {
     bxdf: Box<BxDF>,
     scale: Spectrum,
