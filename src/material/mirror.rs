@@ -28,7 +28,6 @@ impl Material for MirrorMaterial {
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
     ) {
-        info!("Creating Mirror material");
         // TODO bumpmap
         let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
         let R = self.kr.evaluate(si); // TODO clamp
