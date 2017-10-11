@@ -202,7 +202,7 @@ impl FilmTile {
 
     pub fn add_sample(&mut self, p_film: &Point2f, colour: Spectrum) {
         if colour.has_nan() {
-            println!("WARN: colour has NaNs! Ignoring");
+            warn!("colour has NaNs! Ignoring");
             return;
         }
         let float_pixel_bounds: Bounds2f = self.pixel_bounds.into();

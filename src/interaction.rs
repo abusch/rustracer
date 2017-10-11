@@ -31,12 +31,21 @@ pub struct Interaction {
 }
 
 impl Interaction {
+    pub fn empty() -> Self {
+        Interaction {
+            p: Point3f::new(0.0, 0.0, 0.0),
+            p_error: Vector3f::new(0.0, 0.0, 0.0),
+            wo: Vector3f::new(0.0, 0.0, 0.0),
+            n: Vector3f::new(0.0, 0.0, 0.0),
+        }
+    }
+
     pub fn new(p: Point3f, p_error: Vector3f, wo: Vector3f, n: Vector3f) -> Interaction {
         Interaction {
             p: p,
             p_error: p_error,
-            wo: wo,
-            n: n,
+            wo: wo.normalize(),
+            n: n.normalize(),
         }
     }
 
@@ -126,7 +135,7 @@ impl<'a> SurfaceInteraction<'a> {
             p_error: p_error,
             n: n,
             uv: uv,
-            wo: wo,
+            wo: wo.normalize(),
             dpdu: dpdu,
             dpdv: dpdv,
             dndu: na::zero(),

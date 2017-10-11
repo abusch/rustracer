@@ -1,11 +1,13 @@
 use std::sync::Arc;
+use std::f32;
 use std::f32::consts;
 
 use na;
 
-use {gamma, Transform, Point2f, Point3f, Vector3f};
+use {coordinate_system, gamma, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
+use geometry::{distance, distance_squared, offset_ray_origin, spherical_direction_vec};
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
 use ray::Ray;
@@ -21,6 +23,7 @@ pub struct Sphere {
     theta_min: f32,
     theta_max: f32,
     phi_max: f32,
+    reverse_orientation: bool,
 }
 
 impl Sphere {
@@ -34,6 +37,7 @@ impl Sphere {
             theta_min: consts::PI,
             theta_max: 0.0,
             phi_max: 2.0 * consts::PI,
+            reverse_orientation: false,
         }
     }
 
@@ -76,22 +80,32 @@ impl Sphere {
         self
     }
 
-    pub fn create(o2w: &Transform,
-                  _reverse_orientation: bool,
-                  params: &mut ParamSet)
-                  -> Arc<Shape + Send + Sync> {
+    pub fn reverse_orientation(mut self, reverse_orientation: bool) -> Self {
+        self.reverse_orientation = reverse_orientation;
+
+        self
+    }
+
+    pub fn create(
+        o2w: &Transform,
+        reverse_orientation: bool,
+        params: &mut ParamSet,
+    ) -> Arc<Shape + Send + Sync> {
         let radius = params.find_one_float("radius", 1.0);
         let zmin = params.find_one_float("zmin", -radius);
         let zmax = params.find_one_float("zmax", radius);
         let phimax = params.find_one_float("phimax", 360.0);
 
 
-        Arc::new(Sphere::new()
-                     .radius(radius)
-                     .z_min(zmin)
-                     .z_max(zmax)
-                     .phi_max(phimax)
-                     .transform(o2w.clone()))
+        Arc::new(
+            Sphere::new()
+                .radius(radius)
+                .z_min(zmin)
+                .z_max(zmax)
+                .phi_max(phimax)
+                .transform(o2w.clone())
+                .reverse_orientation(reverse_orientation),
+        )
     }
 }
 
@@ -109,8 +123,8 @@ impl Shape for Sphere {
         let dz = EFloat::new(r.d.z, d_err.z);
         let a = dx * dx + dy * dy + dz * dz;
         let b = 2.0 * (dx * ox + dy * oy + dz * oz);
-        let c = (ox * ox + oy * oy + oz * oz) -
-                EFloat::from(self.radius) * EFloat::from(self.radius);
+        let c =
+            (ox * ox + oy * oy + oz * oz) - EFloat::from(self.radius) * EFloat::from(self.radius);
 
         // Solve quadratic equation for t values
         efloat::solve_quadratic(&a, &b, &c).and_then(|(t0, t1)| {
@@ -138,9 +152,10 @@ impl Shape for Sphere {
                 phi += 2.0 * consts::PI;
             }
             // Test intersection against clipping parameters
-            if (self.z_min > -self.radius && p_hit.z < self.z_min) ||
-               (self.z_max < self.radius && p_hit.z > self.z_max) ||
-               phi > self.phi_max {
+            if (self.z_min > -self.radius && p_hit.z < self.z_min)
+                || (self.z_max < self.radius && p_hit.z > self.z_max)
+                || phi > self.phi_max
+            {
                 if t_shape_hit == t1 {
                     return None;
                 }
@@ -158,9 +173,10 @@ impl Shape for Sphere {
                 if phi < 0.0 {
                     phi += 2.0 * consts::PI;
                 }
-                if (self.z_min > -self.radius && p_hit.z < self.z_min) ||
-                   (self.z_max < self.radius && p_hit.z > self.z_max) ||
-                   phi > self.phi_max {
+                if (self.z_min > -self.radius && p_hit.z < self.z_min)
+                    || (self.z_max < self.radius && p_hit.z > self.z_max)
+                    || phi > self.phi_max
+                {
                     return None;
                 }
             }
@@ -176,10 +192,12 @@ impl Shape for Sphere {
             let cos_phi = p_hit.x * inv_z_radius;
             let sin_phi = p_hit.y * inv_z_radius;
             let dpdu = Vector3f::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
-            let dpdv = (self.theta_max - self.theta_min) *
-                       Vector3f::new(p_hit.z * cos_phi,
-                                     p_hit.z * sin_phi,
-                                     -self.radius * theta.sin());
+            let dpdv = (self.theta_max - self.theta_min)
+                * Vector3f::new(
+                    p_hit.z * cos_phi,
+                    p_hit.z * sin_phi,
+                    -self.radius * theta.sin(),
+                );
             // TODO Compute dn/du and dn/dv
             let isect =
                 SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, self);
@@ -211,15 +229,80 @@ impl Shape for Sphere {
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
-        let n = self.object_to_world
+        let mut it = Interaction::empty();
+        it.n = self.object_to_world
             .transform_normal(&p_obj.coords)
             .normalize();
         p_obj = p_obj * self.radius / p_obj.coords.norm();
         let p_obj_error = gamma(5) * p_obj.coords.abs();
         let (p, p_err) = self.object_to_world
             .transform_point_with_error(&p_obj, &p_obj_error);
+        it.p = p;
+        it.p_error = p_err;
         let pdf = 1.0 / self.area();
-        (Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n), pdf)
+        (it, pdf)
+    }
+
+    fn sample_si(&self, si: &Interaction, u: &Point2f) -> (Interaction, f32) {
+        let p_center = &self.object_to_world * &Point3f::new(0.0, 0.0, 0.0);
+
+        // Sample uniformly on sphere if `pt` is inside it
+        let p_origin = offset_ray_origin(&si.p, &si.p_error, &si.n, &(p_center - si.p));
+        if distance_squared(&p_origin, &p_center) <= self.radius * self.radius {
+            let (intr, mut pdf) = self.sample(u);
+            let mut wi = intr.p - si.p;
+            if wi.norm_squared() == 0.0 {
+                pdf = 0.0;
+            } else {
+                // Convert from area measure returned by sample() call above to solid angle measure.
+                wi = wi.normalize();
+                pdf *= distance_squared(&si.p, &intr.p) / intr.n.dot(&(-wi)).abs();
+            }
+
+            return (intr, pdf);
+        }
+
+        // Compute coordinate system for sphere sampling
+        let wc = (p_center - si.p).normalize();
+        let (wc_x, wc_y) = coordinate_system(&wc);
+
+        // Sample sphere uniformly inside subtended cone
+
+        // Compute `theta` and `phi` values for sample in cone
+        let sin_theta_max_2 = self.radius * self.radius / distance_squared(&si.p, &p_center);
+        let cos_theta_max = f32::sqrt(f32::max(0.0, 1.0 - sin_theta_max_2));
+        let cos_theta = (1.0 - u[0]) + u[0] * cos_theta_max;
+        let sin_theta = f32::sqrt(f32::max(0.0, 1.0 - cos_theta * cos_theta));
+        let phi = u[1] * 2.0 * consts::PI;
+
+        // Compute angle `alpha` from center of sphere to sampled point on surface
+        let dc = distance(&si.p, &p_center);
+        let ds = dc * cos_theta
+            - f32::sqrt(f32::max(
+                0.0,
+                self.radius * self.radius - dc * dc * sin_theta * sin_theta,
+            ));
+        let cos_alpha = (dc * dc + self.radius * self.radius - ds * ds) / (2.0 * dc * self.radius);
+        let sin_alpha = f32::sqrt(f32::max(0.0, 1.0 - cos_alpha * cos_alpha));
+
+        // Compute surface normal and sampled point on sphere
+        let n_world =
+            spherical_direction_vec(sin_alpha, cos_alpha, phi, &(-wc_x), &(-wc_y), &(-wc));
+        let p_world = Point3f::from_coordinates(p_center.coords + self.radius * n_world);
+
+        // Return `Interaction` for sampled point on sphere
+        let mut it = Interaction::empty();
+        it.p = p_world;
+        it.p_error = gamma(5) * p_world.coords.abs();
+        it.n = n_world;
+        if self.reverse_orientation {
+            it.n *= -1.0;
+        }
+
+        // Uniform cone PDF.
+        let pdf = 1.0 / (2.0 * consts::PI * (1.0 - cos_theta_max));
+
+        (it, pdf)
     }
 
     fn area(&self) -> f32 {

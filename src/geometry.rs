@@ -1,8 +1,9 @@
 use std::f32::consts::PI;
 
 use na;
+use fp::Ieee754;
 
-use Vector3f;
+use {Point3f, Vector3f};
 
 // Common geometric functions
 #[inline]
@@ -72,10 +73,12 @@ pub fn sin2_phi(w: &Vector3f) -> f32 {
 
 #[inline]
 pub fn cos_d_phi(wa: &Vector3f, wb: &Vector3f) -> f32 {
-    na::clamp((wa.x * wb.x + wa.y * wa.y) /
-              ((wa.x * wa.x + wa.y * wa.y) * (wb.x * wb.x + wb.y * wb.y)).sqrt(),
-              -1.0,
-              1.0)
+    na::clamp(
+        (wa.x * wb.x + wa.y * wa.y)
+            / ((wa.x * wa.x + wa.y * wa.y) * (wb.x * wb.x + wb.y * wb.y)).sqrt(),
+        -1.0,
+        1.0,
+    )
 }
 
 #[inline]
@@ -91,7 +94,11 @@ pub fn spherical_theta(v: &Vector3f) -> f32 {
 #[inline]
 pub fn spherical_phi(v: &Vector3f) -> f32 {
     let p = v.y.atan2(v.x);
-    if p < 0.0 { p + 2.0 * PI } else { p }
+    if p < 0.0 {
+        p + 2.0 * PI
+    } else {
+        p
+    }
 }
 
 #[inline]
@@ -100,8 +107,24 @@ pub fn spherical_direction(sin_theta: f32, cos_theta: f32, phi: f32) -> Vector3f
 }
 
 #[inline]
+pub fn spherical_direction_vec(
+    sin_theta: f32,
+    cos_theta: f32,
+    phi: f32,
+    x: &Vector3f,
+    y: &Vector3f,
+    z: &Vector3f,
+) -> Vector3f {
+    sin_theta * phi.cos() * x + sin_theta * phi.sin() * y + cos_theta * z
+}
+
+#[inline]
 pub fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
-    if v1.dot(v2) < 0.0 { -(*v1) } else { *v1 }
+    if v1.dot(v2) < 0.0 {
+        -(*v1)
+    } else {
+        *v1
+    }
 }
 
 
@@ -159,4 +182,32 @@ pub fn erf(x: f32) -> f32 {
     let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-x * x).exp();
 
     sign * y
+}
+
+#[inline]
+pub fn offset_ray_origin(p: &Point3f, p_error: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point3f {
+    let d = n.abs().dot(p_error);
+    let mut offset = d * *n;
+    if w.dot(n) < 0.0 {
+        offset = -offset;
+    }
+    let mut po = p + offset;
+    // Round offset point `po` away from `p`
+    for i in 0..3 {
+        if offset[i] > 0.0 {
+            po[i] = po[i].next();
+        } else if offset[i] < 0.0 {
+            po[i] = po[i].prev();
+        }
+    }
+
+    po
+}
+
+pub fn distance_squared(p1: &Point3f, p2: &Point3f) -> f32 {
+    (p2 - p1).norm_squared()
+}
+
+pub fn distance(p1: &Point3f, p2: &Point3f) -> f32 {
+    (p2 - p1).norm()
 }
