@@ -1,5 +1,6 @@
 use {Point2f, Point3f, Transform, Vector3f};
 use interaction::SurfaceInteraction;
+use paramset::TextureParams;
 use spectrum::Spectrum;
 
 mod constant;
@@ -25,6 +26,28 @@ impl UVTexture {
         UVTexture {
             mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),
         }
+    }
+
+    pub fn create_spectrum(tex2world: &Transform, tp: &mut TextureParams) -> UVTexture {
+        let typ = tp.find_string("mapping", "uv");
+        let mapping = if typ == "uv" {
+            let su = tp.find_float("uscale", 1.0);
+            let sv = tp.find_float("vscale", 1.0);
+            let du = tp.find_float("udelta", 0.0);
+            let dv = tp.find_float("vdelta", 0.0);
+            Box::new(UVMapping2D::new(su, sv, du, dv))
+        } else if typ == "spherical" {
+            unimplemented!()
+        } else if typ == "cylindrical" {
+            unimplemented!()
+        } else if typ == "planar" {
+            unimplemented!()
+        } else {
+            error!("2D texture mapping \"{}\" unknown.", typ);
+            Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0))
+        };
+
+        UVTexture { mapping }
     }
 }
 

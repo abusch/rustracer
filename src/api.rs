@@ -28,7 +28,7 @@ use shapes::cylinder::Cylinder;
 use shapes::disk::Disk;
 use shapes::mesh::TriangleMesh;
 use spectrum::Spectrum;
-use texture::Texture;
+use texture::{ConstantTexture, Texture, UVTexture};
 
 #[derive(Debug, Copy, Clone)]
 pub enum ApiState {
@@ -387,7 +387,13 @@ pub trait Api {
     fn attribute_end(&self) -> Result<()>;
     fn transform_begin(&self) -> Result<()>;
     fn transform_end(&self) -> Result<()>;
-    // TODO texture
+    fn texture(
+        &self,
+        name: String,
+        typ: String,
+        texname: String,
+        params: &mut ParamSet,
+    ) -> Result<()>;
     fn material(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn named_material(&self, name: String) -> Result<()>;
@@ -656,6 +662,65 @@ impl Api for RealApi {
         Ok(())
     }
 
+    fn texture(
+        &self,
+        name: String,
+        typ: String,
+        texname: String,
+        params: &mut ParamSet,
+    ) -> Result<()> {
+        info!("texture() called");
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+        let mut empty_params = ParamSet::default();
+
+        if typ == "float" {
+            let ft = {
+                let mut tp = TextureParams::new(
+                    params,
+                    &mut empty_params, // was `params`
+                    &state.graphics_state.float_textures,
+                    &state.graphics_state.spectrum_textures,
+                );
+                make_float_texture(&texname, &state.cur_transform, &mut tp)
+            };
+            if let Ok(ft) = ft {
+                if state
+                    .graphics_state
+                    .float_textures
+                    .insert(texname, ft)
+                    .is_some()
+                {
+                    warn!("Texture \"{}\" being redefined.", name);
+                }
+            }
+        } else if typ == "color" || typ == "spectrum" {
+            let ft = {
+                let mut tp = TextureParams::new(
+                    params,
+                    &mut empty_params, // was `params`
+                    &state.graphics_state.float_textures,
+                    &state.graphics_state.spectrum_textures,
+                );
+                make_spectrum_texture(&texname, &state.cur_transform, &mut tp)
+            };
+            if let Ok(ft) = ft {
+                if state
+                    .graphics_state
+                    .spectrum_textures
+                    .insert(texname, ft)
+                    .is_some()
+                {
+                    warn!("Texture \"{}\" being redefined.", name);
+                }
+            }
+        } else {
+            error!("Texture type \"{}\" unknown.", typ);
+        }
+
+        Ok(())
+    }
+
     fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()> {
         info!("MakeNamedMaterial called with {} and {:?}", name, params);
         let mut state = self.state.borrow_mut();
@@ -669,7 +734,7 @@ impl Api for RealApi {
                 &state.graphics_state.spectrum_textures,
             );
 
-            let mat_name = mp.find_string("type");
+            let mat_name = mp.find_string("type", "");
             if mat_name == "" {
                 bail!("No parameter string \"type\" found in named_material");
             }
@@ -870,4 +935,56 @@ fn make_area_light(
     } else {
         bail!("Area light {} unknown", name);
     }
+}
+
+fn make_float_texture(
+    name: &str,
+    transform: &Transform,
+    tp: &mut TextureParams,
+) -> Result<Arc<Texture<f32> + Send + Sync>> {
+    let tex: Arc<Texture<f32> + Send + Sync> = if name == "constant" {
+        Arc::new(ConstantTexture::create_float(transform, tp))
+    } else {
+        bail!("Unkown texture");
+    };
+
+    Ok(tex)
+}
+
+fn make_spectrum_texture(
+    name: &str,
+    transform: &Transform,
+    tp: &mut TextureParams,
+) -> Result<Arc<Texture<Spectrum> + Send + Sync>> {
+    let tex: Arc<Texture<Spectrum> + Send + Sync> = if name == "constant" {
+        Arc::new(ConstantTexture::create_spectrum(transform, tp))
+    } else if name == "scale" {
+        unimplemented!()
+    } else if name == "mix" {
+        unimplemented!()
+    } else if name == "bilerp" {
+        unimplemented!()
+    } else if name == "imagemap" {
+        unimplemented!()
+    } else if name == "uv" {
+        Arc::new(UVTexture::create_spectrum(transform, tp))
+    } else if name == "checkerboard" {
+        unimplemented!()
+    } else if name == "dots" {
+        unimplemented!()
+    } else if name == "fbm" {
+        unimplemented!()
+    } else if name == "wrinkled" {
+        unimplemented!()
+    } else if name == "marble" {
+        unimplemented!()
+    } else if name == "windy" {
+        unimplemented!()
+    } else if name == "ptex" {
+        unimplemented!()
+    } else {
+        bail!("Unkown texture");
+    };
+
+    Ok(tex)
 }

@@ -94,6 +94,11 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
         (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
                                                                     api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                 });
+
+    let texture = (token(Tokens::TEXTURE), string_(), string_(), string_(), param_list())
+    .and_then(|(_, name, typ, texname, mut params)| {
+        api.texture(name, typ, texname, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
+    });
     let transform = (token::<I>(Tokens::TRANSFORM), num_array())
         .and_then(|(_, nums)| {
                         api.transform(nums[0], nums[1], nums[2], nums[3],
@@ -122,6 +127,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(arealightsource),
                                              try(lightsource),
                                              try(material),
+                                             try(texture),
                                              try(make_named_material),
                                              try(named_material),
                                              try(sampler),

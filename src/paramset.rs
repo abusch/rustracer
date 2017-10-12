@@ -251,14 +251,24 @@ impl<'a> TextureParams<'a> {
         }
     }
 
-    pub fn find_string(&mut self, n: &str) -> String {
-        let mat_string = self.material_params.find_one_string(n, "".to_owned());
+    pub fn find_string(&mut self, n: &str, d: &str) -> String {
+        let mat_string = self.material_params.find_one_string(n, d.to_owned());
         self.geom_params.find_one_string(n, mat_string)
     }
 
     pub fn find_bool(&mut self, n: &str, d: bool) -> bool {
         let d = self.material_params.find_one_bool(n, d);
         self.geom_params.find_one_bool(n, d)
+    }
+
+    pub fn find_float(&mut self, n: &str, d: f32) -> f32 {
+        let d = self.material_params.find_one_float(n, d);
+        self.geom_params.find_one_float(n, d)
+    }
+
+    pub fn find_spectrum(&mut self, n: &str, d: Spectrum) -> Spectrum {
+        let d = self.material_params.find_one_spectrum(n, d);
+        self.geom_params.find_one_spectrum(n, d)
     }
 
     pub fn get_spectrum_texture(
