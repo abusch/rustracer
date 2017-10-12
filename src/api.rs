@@ -28,7 +28,7 @@ use shapes::cylinder::Cylinder;
 use shapes::disk::Disk;
 use shapes::mesh::TriangleMesh;
 use spectrum::Spectrum;
-use texture::{ConstantTexture, Texture, UVTexture};
+use texture::{CheckerboardTexture, ConstantTexture, Texture, UVTexture};
 
 #[derive(Debug, Copy, Clone)]
 pub enum ApiState {
@@ -969,7 +969,7 @@ fn make_spectrum_texture(
     } else if name == "uv" {
         Arc::new(UVTexture::create_spectrum(transform, tp))
     } else if name == "checkerboard" {
-        unimplemented!()
+        Arc::new(CheckerboardTexture::create_spectrum(transform, tp))
     } else if name == "dots" {
         unimplemented!()
     } else if name == "fbm" {

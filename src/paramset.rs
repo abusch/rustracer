@@ -251,6 +251,11 @@ impl<'a> TextureParams<'a> {
         }
     }
 
+    pub fn find_int(&mut self, n: &str, d: i32) -> i32 {
+        let d = self.material_params.find_one_int(n, d);
+        self.geom_params.find_one_int(n, d)
+    }
+
     pub fn find_string(&mut self, n: &str, d: &str) -> String {
         let mat_string = self.material_params.find_one_string(n, d.to_owned());
         self.geom_params.find_one_string(n, mat_string)
