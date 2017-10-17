@@ -400,7 +400,7 @@ pub trait Api {
     fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn shape(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    // TODO reverse_orientation
+    fn reverse_orientation(&self) -> Result<()>;
     // TODO object_begin
     // TODO object_end
     // TODO object_instance
@@ -828,6 +828,15 @@ impl Api for RealApi {
         }
         state.render_options.primitives.append(&mut prims);
         state.render_options.lights.append(&mut area_lights);
+        Ok(())
+    }
+
+    fn reverse_orientation(&self) -> Result<()> {
+        info!("ReverseOrientation called");
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+        state.graphics_state.reverse_orientation = !state.graphics_state.reverse_orientation;
+
         Ok(())
     }
 
