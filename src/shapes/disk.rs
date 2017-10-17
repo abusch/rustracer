@@ -18,6 +18,7 @@ pub struct Disk {
     phi_max: f32,
     object_to_world: Transform,
     world_to_object: Transform,
+    reverse_orientation: bool,
 }
 
 impl Disk {
@@ -27,6 +28,7 @@ impl Disk {
         inner_radius: f32,
         phi_max: f32,
         object_to_world: Transform,
+        reverse_orientation: bool,
     ) -> Disk {
         assert!(radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
         Disk {
@@ -36,12 +38,13 @@ impl Disk {
             phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
             world_to_object: object_to_world.inverse(),
             object_to_world: object_to_world,
+            reverse_orientation,
         }
     }
 
     pub fn create(
         o2w: &Transform,
-        _reverse_orientation: bool,
+        reverse_orientation: bool,
         params: &mut ParamSet,
     ) -> Arc<Shape + Send + Sync> {
         let height = params.find_one_float("height", 0.0);
@@ -49,7 +52,14 @@ impl Disk {
         let inner_radius = params.find_one_float("innerradius", 0.0);
         let phimax = params.find_one_float("phimax", 360.0);
 
-        Arc::new(Disk::new(height, radius, inner_radius, phimax, o2w.clone()))
+        Arc::new(Disk::new(
+            height,
+            radius,
+            inner_radius,
+            phimax,
+            o2w.clone(),
+            reverse_orientation,
+        ))
     }
 }
 
@@ -117,15 +127,21 @@ impl Shape for Disk {
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let pd = concentric_sample_disk(u);
         let p_obj = Point3f::new(pd.x * self.radius, pd.y * self.radius, self.height);
-        let n = self.object_to_world
+        let mut it = Interaction::empty();
+        it.n = self.object_to_world
             .transform_normal(&Vector3f::z())
             .normalize();
+        if self.reverse_orientation {
+            it.n = -it.n;
+        }
         let (p, p_err) = self.object_to_world
             .transform_point_with_error(&p_obj, &Vector3f::new(0.0, 0.0, 0.0));
+        it.p = p;
+        it.p_error = p_err;
         let pdf = 1.0 / self.area();
 
         (
-            Interaction::new(p, p_err, Vector3f::new(0.0, 0.0, 0.0), n),
+            it,
             pdf,
         )
     }
