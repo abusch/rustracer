@@ -221,7 +221,11 @@ impl RenderOptions {
     }
 
     pub fn make_scene(&mut self) -> Result<Box<Scene>> {
-        info!("Making scene");
+        info!(
+            "Making scene with {} primitives and {} lights",
+            self.primitives.len(),
+            self.lights.len()
+        );
         let accelerator = Arc::new(BVH::new(1, &mut self.primitives));
         Ok(Box::new(Scene::new(accelerator, self.lights.clone())))
     }
@@ -304,6 +308,7 @@ pub struct State {
     api_state: ApiState,
     render_options: RenderOptions,
     cur_transform: Transform,
+    named_coordinate_systems: HashMap<String, Transform>,
     pushed_transforms: Vec<Transform>,
     graphics_state: GraphicsState,
     pushed_graphics_states: Vec<GraphicsState>,
@@ -370,6 +375,7 @@ pub trait Api {
     ) -> Result<()>;
     // TODO coordinate_system
     // TODO coordinate_sys_transform
+    fn coord_sys_transform(&self, name: String) -> Result<()>;
     // TODO active_transform_all
     // TODO active_transform_end_time
     // TODO active_transform_start_time
@@ -551,6 +557,20 @@ impl Api for RealApi {
         Ok(())
     }
 
+    fn coord_sys_transform(&self, name: String) -> Result<()> {
+        info!("coord_sys_transform called");
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_initialized()?;
+
+        if let Some(t) = state.named_coordinate_systems.get(&name).cloned() {
+            state.cur_transform = t;
+        } else {
+            warn!("Couldn't find named coordinate system \"{}\"", name);
+        }
+
+        Ok(())
+    }
+
     fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -603,7 +623,8 @@ impl Api for RealApi {
         state.render_options.camera_name = name;
         state.render_options.camera_params = params.clone();
         state.render_options.camera_to_world = state.cur_transform.inverse();
-        // TODO named coordinate system
+        let c2w = state.render_options.camera_to_world.clone();
+        state.named_coordinate_systems.insert("camera".into(), c2w);
         Ok(())
     }
 
@@ -612,6 +633,10 @@ impl Api for RealApi {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         state.api_state = ApiState::WorldBlock;
+        let cur_transform = state.cur_transform.clone();
+        state
+            .named_coordinate_systems
+            .insert("world".into(), cur_transform);
         state.cur_transform = Transform::default();
         Ok(())
     }
@@ -669,7 +694,7 @@ impl Api for RealApi {
         texname: String,
         params: &mut ParamSet,
     ) -> Result<()> {
-        info!("texture() called");
+        info!("texture() called with {} and {} and {}", name, typ, texname);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
         let mut empty_params = ParamSet::default();
@@ -688,7 +713,7 @@ impl Api for RealApi {
                 if state
                     .graphics_state
                     .float_textures
-                    .insert(texname, ft)
+                    .insert(name.clone(), ft)
                     .is_some()
                 {
                     warn!("Texture \"{}\" being redefined.", name);
@@ -704,14 +729,17 @@ impl Api for RealApi {
                 );
                 make_spectrum_texture(&texname, &state.cur_transform, &mut tp)
             };
-            if let Ok(ft) = ft {
-                if state
+            match ft {
+                Ok(ft) => if state
                     .graphics_state
                     .spectrum_textures
-                    .insert(texname, ft)
+                    .insert(name.clone(), ft)
                     .is_some()
                 {
                     warn!("Texture \"{}\" being redefined.", name);
+                },
+                Err(e) => {
+                    error!("Failed to create texture {}: {}", name, e);
                 }
             }
         } else {

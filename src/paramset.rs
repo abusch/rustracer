@@ -120,6 +120,9 @@ impl ParamSet {
                         .collect();
                     self.add_vector3f(entry.param_name.clone(), vectors);
                 }
+                ParamType::Texture => {
+                    self.add_texture(entry.param_name.clone(), entry.values.as_str_array())
+                }
                 _ => error!(
                     "Parameter type {:?} is not implemented yet!",
                     entry.param_type
@@ -186,6 +189,14 @@ impl ParamSet {
 
     fn add_vector3f(&mut self, name: String, values: Vec<Vector3f>) {
         self.vector3fs.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
+    }
+
+    fn add_texture(&mut self, name: String, values: Vec<String>) {
+        self.textures.push(ParamSetItem {
             name: name,
             values: values,
             looked_up: false,

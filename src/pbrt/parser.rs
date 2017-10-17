@@ -37,6 +37,10 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                           api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
                               .map_err(|e| Error::Message(e.description().to_owned().into()))
                       });
+    let coord_sys_transform =
+        (token(Tokens::COORDSYSTRANSFORM), string_()).and_then(|(_, name)| {
+            api.coord_sys_transform(name).map_err(|e| Error::Message(e.description().to_owned().into()))
+        });
     let camera =
         (token(Tokens::CAMERA), string_(), param_list()).and_then(|(_, name, mut params)| {
                                                                       api.camera(name, &mut params)
@@ -80,6 +84,11 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
     let shape = (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, mut params)| {
                                                                         api.shape(name, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                     });
+
+    let reverse_orientation = token(Tokens::REVERSEORIENTATION).and_then(|_| {
+        api.reverse_orientation()
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+    });
     let filter =
         (token(Tokens::PIXELFILTER), string_(), param_list())
             .and_then(|(_, name, mut params)| {
@@ -120,6 +129,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(world_begin),
                                              try(world_end),
                                              try(look_at),
+                                             try(coord_sys_transform),
                                              try(camera),
                                              try(film),
                                              try(filter),
@@ -132,6 +142,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(named_material),
                                              try(sampler),
                                              try(shape),
+                                             try(reverse_orientation),
                                              try(scale),
                                              try(rotate),
                                              try(translate),
