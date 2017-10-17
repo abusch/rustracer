@@ -12,6 +12,7 @@ use errors::*;
 use filter::Filter;
 use filter::boxfilter::BoxFilter;
 use filter::gaussian::GaussianFilter;
+use filter::mitchell::MitchellNetravali;
 use film::Film;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
@@ -158,6 +159,7 @@ impl RenderOptions {
         info!("Making filter");
         let filter = match self.filter_name.as_ref() {
             "box" => BoxFilter::create(&mut self.filter_params),
+            "mitchell" => MitchellNetravali::create(&mut self.filter_params),
             "gaussian" => GaussianFilter::create(&mut self.film_params),
             _ => bail!(format!("Filter \"{}\" unknown.", self.filter_name)),
         };

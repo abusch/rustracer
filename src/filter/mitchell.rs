@@ -1,4 +1,5 @@
 use filter::Filter;
+use paramset::ParamSet;
 
 pub struct MitchellNetravali {
     width: f32,
@@ -24,16 +25,25 @@ impl MitchellNetravali {
     fn mitchell_1d(&self, x: f32) -> f32 {
         let fx = x.abs() * 2.0;
         if fx < 1.0 {
-            ((12.0 - 9.0 * self.b - 6.0 * self.c) * fx * fx * fx +
-             (-18.0 + 12.0 * self.b + 6.0 * self.c) * fx * fx +
-             (6.0 - 2.0 * self.b)) * (1.0 / 6.0)
+            ((12.0 - 9.0 * self.b - 6.0 * self.c) * fx * fx * fx
+                + (-18.0 + 12.0 * self.b + 6.0 * self.c) * fx * fx
+                + (6.0 - 2.0 * self.b)) * (1.0 / 6.0)
         } else if fx < 2.0 {
-            ((-self.b - 6.0 * self.c) * fx * fx * fx + (6.0 * self.b + 30.0 * self.c) * fx * fx +
-             (-12.0 * self.b - 48.0 * self.c) * fx + (8.0 * self.b + 24.0 * self.c)) *
-            (1.0 / 6.0)
+            ((-self.b - 6.0 * self.c) * fx * fx * fx + (6.0 * self.b + 30.0 * self.c) * fx * fx
+                + (-12.0 * self.b - 48.0 * self.c) * fx
+                + (8.0 * self.b + 24.0 * self.c)) * (1.0 / 6.0)
         } else {
             0.0
         }
+    }
+
+    pub fn create(ps: &mut ParamSet) -> Box<Filter + Send + Sync> {
+        let xw = ps.find_one_float("xwidth", 2.0);
+        let yw = ps.find_one_float("ywidth", 2.0);
+        let B = ps.find_one_float("B", 1.0 / 3.0);
+        let C = ps.find_one_float("C", 1.0 / 3.0);
+
+        Box::new(Self::new(xw, yw, B, C))
     }
 }
 
