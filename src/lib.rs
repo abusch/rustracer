@@ -140,6 +140,10 @@ where
     }
 }
 
+pub fn max_component(v: &Vector3f) -> f32 {
+    f32::max(v.x, f32::max(v.y, v.z))
+}
+
 /// Permute the components of this vector based on the given indices for x, y and z.
 pub fn permute_v<T>(v: &Vector3<T>, x: usize, y: usize, z: usize) -> Vector3<T>
 where
