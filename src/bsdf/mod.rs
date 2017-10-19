@@ -125,19 +125,19 @@ impl BSDF {
             .get(comp)
             .expect("Was expecting a BxDF with this index!");
 
-        debug!(
-            "BDDF::sample_f chose comp = {} / matching {}, bxdf = {:?}",
-            comp,
-            matching_comps.len(),
-            bxdf
-        );
+        // debug!(
+        //     "BDDF::sample_f chose comp = {} / matching {}, bxdf = {:?}",
+        //     comp,
+        //     matching_comps.len(),
+        //     bxdf
+        // );
 
         // Remap BxDF sample u to [0,1)^2
         let u_remapped = Point2f::new(
             (u[0] * matching_comps.len() as f32 - comp as f32).min(ONE_MINUS_EPSILON),
             u[1],
         );
-        debug!("u_remapped={}", u_remapped);
+        // debug!("u_remapped={}", u_remapped);
         // Sample chosen BxDF
         let wo = self.world_to_local(wo_w);
         if wo.z == 0.0 {
@@ -149,18 +149,18 @@ impl BSDF {
             );
         }
         let (mut f, wi, mut pdf, sampled_type) = bxdf.sample_f(&wo, &u_remapped);
-        debug!(
-            "For wo = {:?}, sampled f = {}, pdf = {}, ratio = {}, wi = {:?}",
-            wo,
-            f,
-            pdf,
-            if pdf > 0.0 {
-                f / pdf
-            } else {
-                Spectrum::black()
-            },
-            wi
-        );
+        // debug!(
+        //     "For wo = {:?}, sampled f = {}, pdf = {}, ratio = {}, wi = {:?}",
+        //     wo,
+        //     f,
+        //     pdf,
+        //     if pdf > 0.0 {
+        //         f / pdf
+        //     } else {
+        //         Spectrum::black()
+        //     },
+        //     wi
+        // );
         if pdf == 0.0 {
             return (
                 Spectrum::black(),
@@ -195,16 +195,16 @@ impl BSDF {
                 .fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
         }
 
-        debug!(
-            "Overall f = {}, pdf = {}, ratio = {}",
-            f,
-            pdf,
-            if pdf > 0.0 {
-                f / pdf
-            } else {
-                Spectrum::black()
-            }
-        );
+        // debug!(
+        //     "Overall f = {}, pdf = {}, ratio = {}",
+        //     f,
+        //     pdf,
+        //     if pdf > 0.0 {
+        //         f / pdf
+        //     } else {
+        //         Spectrum::black()
+        //     }
+        // );
         (f, wi_w, pdf, sampled_type)
     }
 

@@ -135,7 +135,7 @@ where
     }
 
     pub fn intersect_p_fast(&self, ray: &Ray, inv_dir: &Vector3f, dir_is_neg: &[usize; 3]) -> bool {
-        stats::inc_fast_bbox_isect();
+        // stats::inc_fast_bbox_isect();
         // Check intersection with X and Y slab
         let mut tmin = (self[dir_is_neg[0]].x.into() - ray.o.x) * inv_dir.x;
         let mut tmax = (self[1 - dir_is_neg[0]].x.into() - ray.o.x) * inv_dir.x;
