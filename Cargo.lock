@@ -12,6 +12,7 @@ dependencies = [
  "ieee754 0.2.1 (git+https://github.com/abusch/ieee754.git)",
  "image 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "light_arena 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -356,6 +357,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "libc"
 version = "0.2.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "light_arena"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -848,6 +854,7 @@ dependencies = [
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
 "checksum lazy_static 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)" = "c9e5e58fa1a4c3b915a561a78a22ee0cac6ab97dca2504428bc1cb074375f8d5"
 "checksum libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)" = "56cce3130fd040c28df6f495c8492e5ec5808fb4c9093c310df02b0c8f030148"
+"checksum light_arena 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a886ce2358566386500ec04e26a490e3033a5d8452747559bdaaa4955030bbc6"
 "checksum lzw 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
 "checksum matrixmultiply 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)" = "7ce012d2c43046267a74283eaa7e9a51941479901e2b86702be10f27e2779158"
 "checksum minifb 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)" = "de031ff6a2afd2b59a437fcb0d910b7e04a5b7526e969a8e703bba2907f81379"

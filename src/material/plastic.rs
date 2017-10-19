@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use light_arena::Allocator;
+
 use bsdf::{BxDF, Fresnel, LambertianReflection, MicrofacetReflection, TrowbridgeReitzDistribution,
            BSDF};
 use spectrum::Spectrum;
@@ -34,29 +36,39 @@ impl Plastic {
 }
 
 impl Material for Plastic {
-    fn compute_scattering_functions(
+    fn compute_scattering_functions<'a, 'b>(
         &self,
-        si: &mut SurfaceInteraction,
+        si: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
     ) {
-        let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
         let kd = self.kd.evaluate(si);
-        if !kd.is_black() {
-            bxdfs.push(Box::new(LambertianReflection::new(kd)));
-        }
         let ks = self.ks.evaluate(si);
+
+        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
+        let mut i = 0;
+        if !kd.is_black() {
+            bxdfs[i] = arena <- LambertianReflection::new(kd);
+            i += 1;
+        }
         if !ks.is_black() {
-            let fresnel = Box::new(Fresnel::dielectric(1.5, 1.0));
+            let fresnel = arena <- Fresnel::dielectric(1.5, 1.0);
             let mut roughness = self.roughness.evaluate(si);
             if self.remap_roughness {
                 roughness = TrowbridgeReitzDistribution::roughness_to_alpha(roughness);
             }
-            let distrib = Box::new(TrowbridgeReitzDistribution::new(roughness, roughness));
-            bxdfs.push(Box::new(MicrofacetReflection::new(ks, distrib, fresnel)));
+            let distrib = arena <- TrowbridgeReitzDistribution::new(roughness, roughness);
+            bxdfs[i] = arena <- MicrofacetReflection::new(ks, distrib, fresnel);
+            i += 1;
         }
 
-        let bsdf = BSDF::new(si, 1.5, bxdfs);
+        unsafe {
+            let ptr = bxdfs.as_mut_ptr();
+            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
+        }
+
+        let bsdf: BSDF<'b> = BSDF::new(si, 1.5, bxdfs);
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

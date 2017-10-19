@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use light_arena::Allocator;
+
 use bsdf::{BxDF, LambertianReflection, OrenNayar, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
@@ -13,19 +15,6 @@ pub struct MatteMaterial {
 }
 
 impl MatteMaterial {
-    pub fn bsdf(&self, si: &SurfaceInteraction) -> BSDF {
-        let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
-        let r = self.kd.evaluate(si);
-        let sigma = self.sigma.evaluate(si);
-        if sigma == 0.0 {
-            bxdfs.push(Box::new(LambertianReflection::new(r)));
-        } else {
-            bxdfs.push(Box::new(OrenNayar::new(r, sigma)));
-        }
-
-        BSDF::new(si, 1.5, bxdfs)
-    }
-
     pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
         info!("Creating Matte material");
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.5));
@@ -39,12 +28,31 @@ impl MatteMaterial {
 }
 
 impl Material for MatteMaterial {
-    fn compute_scattering_functions(
+    fn compute_scattering_functions<'a, 'b>(
         &self,
-        si: &mut SurfaceInteraction,
+        si: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
     ) {
-        si.bsdf = Some(Arc::new(self.bsdf(si)));
+        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
+        let mut i = 0;
+
+        let r = self.kd.evaluate(si);
+        let sigma = self.sigma.evaluate(si);
+        if sigma == 0.0 {
+            bxdfs[i] = arena <- LambertianReflection::new(r);
+            i += 1;
+        } else {
+            bxdfs[i] = arena <- OrenNayar::new(r, sigma);
+        }
+
+        unsafe {
+            let ptr = bxdfs.as_mut_ptr();
+            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
+        }
+
+        let bsdf = BSDF::new(si, 1.5, bxdfs);
+        si.bsdf = Some(Arc::new(bsdf));
     }
 }

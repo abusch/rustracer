@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use light_arena::Allocator;
+
 use bsdf::{BxDF, Fresnel, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission,
            SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
@@ -42,11 +44,12 @@ impl GlassMaterial {
 
 
 impl Material for GlassMaterial {
-    fn compute_scattering_functions(
+    fn compute_scattering_functions<'a, 'b>(
         &self,
-        isect: &mut SurfaceInteraction,
+        isect: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         allow_multiple_lobes: bool,
+        arena: &'b Allocator,
     ) {
         let eta = self.index.evaluate(isect);
         let mut u_rough = self.u_roughness.evaluate(isect);
@@ -54,39 +57,49 @@ impl Material for GlassMaterial {
         let r = self.kr.evaluate(isect);
         let t = self.kt.evaluate(isect);
 
-        let mut bxdfs: Vec<Box<BxDF + Send + Sync>> = Vec::new();
+        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
+        let mut i = 0;
 
         if !r.is_black() || !t.is_black() {
             let is_specular = u_rough == 0.0 && v_rough == 0.0;
             if is_specular && allow_multiple_lobes {
-                bxdfs.push(Box::new(FresnelSpecular::new()));
+                bxdfs[i] = arena <- FresnelSpecular::new();
+                i += 1;
             } else {
                 if self.remap_roughness {
                     u_rough = TrowbridgeReitzDistribution::roughness_to_alpha(u_rough);
                     v_rough = TrowbridgeReitzDistribution::roughness_to_alpha(v_rough);
                 }
                 if !r.is_black() {
-                    let fresnel = Box::new(Fresnel::dielectric(1.0, eta));
-                    let bxdf: Box<BxDF + Send + Sync> = if is_specular {
-                        Box::new(SpecularReflection::new(r, fresnel))
+                    let fresnel = arena <- Fresnel::dielectric(1.0, eta);
+                    let bxdf: &'b BxDF = if is_specular {
+                        arena <- SpecularReflection::new(r, fresnel)
                     } else {
-                        let distrib = Box::new(TrowbridgeReitzDistribution::new(u_rough, v_rough));
-                        Box::new(MicrofacetReflection::new(r, distrib, fresnel))
+                        let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
+                        arena <- MicrofacetReflection::new(r, distrib, fresnel)
                     };
-                    bxdfs.push(bxdf);
+                    bxdfs[i] = bxdf;
+                    i += 1;
                 }
                 if !t.is_black() {
-                    let bxdf: Box<BxDF + Send + Sync> = if is_specular {
-                        Box::new(SpecularTransmission::new(t, 1.0, eta))
+                    let bxdf: &'b BxDF = if is_specular {
+                        arena <- SpecularTransmission::new(t, 1.0, eta)
                     } else {
-                        let distrib = Box::new(TrowbridgeReitzDistribution::new(u_rough, v_rough));
-                        Box::new(MicrofacetTransmission::new(r, distrib, 1.0, eta))
+                        let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
+                        arena <- MicrofacetTransmission::new(r, distrib, 1.0, eta)
                     };
-                    bxdfs.push(bxdf);
+                    bxdfs[i] = bxdf;
+                    i += 1;
                 }
             }
         }
 
-        isect.bsdf = Some(Arc::new(BSDF::new(isect, eta, bxdfs)));
+        unsafe {
+            let ptr = bxdfs.as_mut_ptr();
+            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
+        }
+
+        let bsdf = BSDF::new(isect, eta, bxdfs);
+        isect.bsdf = Some(Arc::new(bsdf));
     }
 }

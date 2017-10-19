@@ -28,7 +28,7 @@ bitflags! {
 
 /// Represents the Bidirectional Scattering Distribution Function.
 /// It represents the properties of a material at a given point.
-pub struct BSDF {
+pub struct BSDF<'a> {
     /// Index of refraction of the surface
     pub eta: f32,
     /// Shading normal (i.e. potentially affected by bump-mapping)
@@ -37,11 +37,11 @@ pub struct BSDF {
     ng: Vector3f,
     ss: Vector3f,
     ts: Vector3f,
-    bxdfs: Vec<Box<BxDF + Sync + Send>>,
+    bxdfs: &'a [&'a BxDF],
 }
 
-impl BSDF {
-    pub fn new(isect: &SurfaceInteraction, eta: f32, bxdfs: Vec<Box<BxDF + Sync + Send>>) -> BSDF {
+impl<'a> BSDF<'a> {
+    pub fn new<'b>(isect: &'b SurfaceInteraction, eta: f32, bxdfs: &'a [&'a BxDF]) -> BSDF<'a> {
         let ss = isect.dpdu.normalize();
         BSDF {
             eta: eta,
@@ -85,7 +85,7 @@ impl BSDF {
 
         let mut matched_comps = 0;
         let mut pdf = 0.0;
-        for bxdf in &self.bxdfs {
+        for bxdf in self.bxdfs {
             if bxdf.matches(flags) {
                 matched_comps += 1;
                 pdf += bxdf.pdf(&wo, &wi);
@@ -107,7 +107,7 @@ impl BSDF {
         let matching_comps = self.bxdfs
             .iter()
             .filter(|b| b.matches(flags))
-            .collect::<Vec<&Box<BxDF + Sync + Send>>>();
+            .collect::<Vec<&&BxDF>>();
         if matching_comps.is_empty() {
             return (
                 Spectrum::black(),

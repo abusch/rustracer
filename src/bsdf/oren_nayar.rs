@@ -6,7 +6,7 @@ use bsdf::BxDFType;
 use geometry::{abs_cos_theta, cos_phi, sin_phi, sin_theta};
 use bsdf::bxdf::BxDF;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct OrenNayar {
     r: Spectrum,
     a: f32,

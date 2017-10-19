@@ -1,3 +1,5 @@
+use light_arena::Allocator;
+
 use bsdf;
 use integrator::SamplerIntegrator;
 use material::TransportMode;
@@ -31,7 +33,8 @@ impl SamplerIntegrator for Whitted {
           scene: &Scene,
           ray: &mut Ray,
           sampler: &mut Box<Sampler + Send + Sync>,
-          depth: u32)
+          depth: u32,
+          arena: &Allocator)
           -> Spectrum {
         let mut colour = Spectrum::black();
 
@@ -41,12 +44,12 @@ impl SamplerIntegrator for Whitted {
                 let wo = isect.wo;
 
                 // Compute scattering functions for surface interaction
-                isect.compute_scattering_functions(ray, TransportMode::RADIANCE, false);
+                isect.compute_scattering_functions(ray, TransportMode::RADIANCE, false, arena);
 
                 // Yuck, there's got to be a better way to do this FIXME
                 if isect.bsdf.is_none() {
                     let mut r = isect.spawn_ray(&ray.d);
-                    return self.li(scene, &mut r, sampler, depth);
+                    return self.li(scene, &mut r, sampler, depth, arena);
                 }
                 let bsdf = isect.bsdf.clone().unwrap();
 
@@ -68,8 +71,8 @@ impl SamplerIntegrator for Whitted {
                 }
 
                 if depth + 1 < self.max_ray_depth as u32 {
-                    colour += self.specular_reflection(ray, &isect, scene, &bsdf, sampler, depth);
-                    colour += self.specular_transmission(ray, &isect, scene, &bsdf, sampler, depth);
+                    colour += self.specular_reflection(ray, &isect, scene, &bsdf, sampler, depth, arena);
+                    colour += self.specular_transmission(ray, &isect, scene, &bsdf, sampler, depth, arena);
                 }
             }
             None => {
