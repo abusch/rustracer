@@ -9,19 +9,19 @@ use geometry::{abs_cos_theta, cos_phi, cos_theta, erf, erf_inv, same_hemisphere,
 use material::TransportMode;
 use bsdf::fresnel::{Fresnel, FresnelDielectric};
 
-#[derive(Debug)]
-pub struct MicrofacetReflection {
+#[derive(Copy, Clone, Debug)]
+pub struct MicrofacetReflection<'a> {
     r: Spectrum,
-    distribution: Box<MicrofacetDistribution + Send + Sync>,
-    fresnel: Box<Fresnel + Send + Sync>,
+    distribution: &'a MicrofacetDistribution,
+    fresnel: &'a Fresnel,
 }
 
-impl MicrofacetReflection {
+impl<'a> MicrofacetReflection<'a> {
     pub fn new(
         r: Spectrum,
-        distribution: Box<MicrofacetDistribution + Send + Sync>,
-        fresnel: Box<Fresnel + Send + Sync>,
-    ) -> MicrofacetReflection {
+        distribution: &'a MicrofacetDistribution,
+        fresnel: &'a Fresnel,
+    ) -> MicrofacetReflection<'a> {
         MicrofacetReflection {
             r: r,
             distribution: distribution,
@@ -30,7 +30,7 @@ impl MicrofacetReflection {
     }
 }
 
-impl BxDF for MicrofacetReflection {
+impl<'a> BxDF for MicrofacetReflection<'a> {
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
         let cos_theta_o = abs_cos_theta(wo);
         let cos_theta_i = abs_cos_theta(wi);
@@ -92,23 +92,23 @@ impl BxDF for MicrofacetReflection {
 }
 
 // MicrofacetTransmission
-#[derive(Debug)]
-pub struct MicrofacetTransmission {
+#[derive(Copy, Clone, Debug)]
+pub struct MicrofacetTransmission<'a> {
     t: Spectrum,
-    distribution: Box<MicrofacetDistribution + Send + Sync>,
+    distribution: &'a MicrofacetDistribution,
     eta_a: f32,
     eta_b: f32,
     fresnel: FresnelDielectric,
     mode: TransportMode,
 }
 
-impl MicrofacetTransmission {
+impl<'a> MicrofacetTransmission<'a> {
     pub fn new(
         t: Spectrum,
-        distribution: Box<MicrofacetDistribution + Send + Sync>,
+        distribution: &'a MicrofacetDistribution,
         eta_a: f32,
         eta_b: f32,
-    ) -> MicrofacetTransmission {
+    ) -> MicrofacetTransmission<'a> {
         MicrofacetTransmission {
             t: t,
             distribution: distribution,
@@ -120,7 +120,7 @@ impl MicrofacetTransmission {
     }
 }
 
-impl BxDF for MicrofacetTransmission {
+impl<'a> BxDF for MicrofacetTransmission<'a> {
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
         if same_hemisphere(wo, wi) {
             // transmission only
@@ -457,7 +457,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct TrowbridgeReitzDistribution {
     alpha_x: f32,
     alpha_y: f32,

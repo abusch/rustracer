@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use fp::Ieee754;
+use light_arena::Allocator;
 use na::{self, Matrix2};
 use num::Zero;
 
@@ -83,7 +84,7 @@ impl Interaction {
 }
 
 #[derive(Clone)]
-pub struct SurfaceInteraction<'a> {
+pub struct SurfaceInteraction<'a, 'b> {
     /// The point where the ray hit the primitive
     pub p: Point3f,
     /// Error bound for the intersection point
@@ -115,10 +116,10 @@ pub struct SurfaceInteraction<'a> {
     /// Shading information
     pub shading: Shading,
     /// BSDF of the surface at the intersection point
-    pub bsdf: Option<Arc<BSDF>>,
+    pub bsdf: Option<Arc<BSDF<'b>>>,
 }
 
-impl<'a> SurfaceInteraction<'a> {
+impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     pub fn new(
         p: Point3f,
         p_error: Vector3f,
@@ -167,7 +168,7 @@ impl<'a> SurfaceInteraction<'a> {
             .unwrap_or_else(Spectrum::black)
     }
 
-    pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a> {
+    pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a, 'b> {
         let (p, p_err) = t.transform_point_with_error(&self.p, &self.p_error);
         SurfaceInteraction {
             p: p,
@@ -203,10 +204,11 @@ impl<'a> SurfaceInteraction<'a> {
         ray: &Ray,
         transport: TransportMode,
         allow_multiple_lobes: bool,
+        arena: &'b Allocator,
     ) {
         self.compute_differential(ray);
         if let Some(primitive) = self.primitive {
-            primitive.compute_scattering_functions(self, transport, allow_multiple_lobes);
+            primitive.compute_scattering_functions(self, transport, allow_multiple_lobes, arena);
         }
     }
 
@@ -321,13 +323,13 @@ fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Vector3f, w: &Vector3f) -> P
     po
 }
 
-impl<'a> From<SurfaceInteraction<'a>> for Interaction {
+impl<'a, 'b> From<SurfaceInteraction<'a, 'b>> for Interaction {
     fn from(si: SurfaceInteraction) -> Interaction {
         Interaction::new(si.p, si.p_error, si.wo, si.n)
     }
 }
 
-impl<'a> From<&'a SurfaceInteraction<'a>> for Interaction {
+impl<'a, 'b> From<&'a SurfaceInteraction<'a, 'b>> for Interaction {
     fn from(si: &SurfaceInteraction) -> Interaction {
         Interaction::new(si.p, si.p_error, si.wo, si.n)
     }

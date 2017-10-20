@@ -5,6 +5,7 @@ use std::path::Path;
 
 use it;
 use na::Point3;
+use light_arena::Allocator;
 
 use {Point3f, Vector3f, Transform};
 use bounds::{Axis, Bounds3f};
@@ -363,10 +364,10 @@ impl Primitive for BVH {
         panic!("material() should not be called on an Aggregate Primitive!");
     }
 
-    fn compute_scattering_functions(&self,
-                                    _isect: &mut SurfaceInteraction,
+    fn compute_scattering_functions<'a, 'b>(&self,
+                                    _isect: &mut SurfaceInteraction<'a, 'b>,
                                     _mode: TransportMode,
-                                    _allow_multiple_lobes: bool) {
+                                    _allow_multiple_lobes: bool, _arena: &'b Allocator) {
         panic!("compute_scattering_functions() should not be called on an Aggregate Primitive!");
     }
 }

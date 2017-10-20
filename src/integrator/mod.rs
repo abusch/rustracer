@@ -6,6 +6,7 @@ use bsdf::{self, BxDFType};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use light::{is_delta_light, Light};
+use light_arena::Allocator;
 use ray::{Ray, RayDifferential};
 use sampler::Sampler;
 use sampling::{power_heuristic, Distribution1D};
@@ -31,6 +32,7 @@ pub trait SamplerIntegrator {
         scene: &Scene,
         ray: &mut Ray,
         sampler: &mut Box<Sampler + Send + Sync>,
+        arena: &Allocator,
         depth: u32,
     ) -> Spectrum;
 
@@ -42,6 +44,7 @@ pub trait SamplerIntegrator {
         scene: &Scene,
         bsdf: &bsdf::BSDF,
         sampler: &mut Box<Sampler + Send + Sync>,
+        arena: &Allocator,
         depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
@@ -65,7 +68,7 @@ pub trait SamplerIntegrator {
 
                 r.differential = Some(rddiff);
             }
-            let refl = self.li(scene, &mut r, sampler, depth + 1);
+            let refl = self.li(scene, &mut r, sampler, arena, depth + 1);
             f * refl * wi.dot(ns).abs() / pdf
         } else {
             Spectrum::black()
@@ -80,6 +83,7 @@ pub trait SamplerIntegrator {
         scene: &Scene,
         bsdf: &bsdf::BSDF,
         sampler: &mut Box<Sampler + Send + Sync>,
+        arena: &Allocator,
         depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
@@ -115,7 +119,7 @@ pub trait SamplerIntegrator {
 
                 r.differential = Some(rddiff);
             }
-            let refr = self.li(scene, &mut r, sampler, depth + 1);
+            let refr = self.li(scene, &mut r, sampler, arena, depth + 1);
             f * refr * wi.dot(ns).abs() / pdf
         } else {
             Spectrum::black()

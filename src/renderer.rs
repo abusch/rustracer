@@ -9,6 +9,7 @@ use camera::Camera;
 use display::DisplayUpdater;
 use errors::*;
 use integrator::SamplerIntegrator;
+use light_arena::MemoryArena;
 use sampler::Sampler;
 use scene::Scene;
 use stats;
@@ -59,6 +60,7 @@ pub fn render(
             let mut sampler = sampler.clone();
             scope.spawn(move || {
                 // let mut sampler = ZeroTwoSequence::new(spp, 4);
+                let mut arena = MemoryArena::new(1);
                 while let Some(block) = bq.next() {
                     info!("Rendering tile {}", block);
                     let seed =
@@ -68,10 +70,12 @@ pub fn render(
                     for p in &tile.get_pixel_bounds() {
                         sampler.start_pixel(&p);
                         loop {
+                            let alloc = arena.allocator();
                             let s = sampler.get_camera_sample(&p);
                             let mut ray = camera.generate_ray_differential(&s);
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
-                            let sample_colour = integrator.li(scene, &mut ray, &mut sampler, 0);
+                            let sample_colour =
+                                integrator.li(scene, &mut ray, &mut sampler, &alloc, 0);
                             tile.add_sample(&s.p_film, sample_colour);
                             if !sampler.start_next_sample() {
                                 break;

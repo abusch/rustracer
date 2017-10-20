@@ -1,3 +1,4 @@
+#![feature(placement_in_syntax)]
 #![recursion_limit = "1024"]
 #![deny(trivial_casts, unused_qualifications, unused_must_use)]
 #[cfg(test)]
@@ -13,6 +14,7 @@ extern crate error_chain;
 extern crate ieee754 as fp;
 extern crate image as img;
 extern crate itertools as it;
+extern crate light_arena;
 extern crate nalgebra as na;
 extern crate num;
 #[macro_use(slog_error, slog_warn, slog_info, slog_debug, slog_trace, slog_log, slog_record,

@@ -106,7 +106,7 @@ impl Fresnel {
 
 
 /// Fresnel for conductor materials
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct FresnelConductor {
     eta_i: Spectrum,
     eta_t: Spectrum,
@@ -120,7 +120,7 @@ impl Fresnel for FresnelConductor {
 }
 
 /// Fresnel for dielectric materials
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct FresnelDielectric {
     eta_i: f32,
     eta_t: f32,
@@ -132,8 +132,8 @@ impl Fresnel for FresnelDielectric {
     }
 }
 
-#[derive(Debug)]
-pub struct FresnelNoOp {}
+#[derive(Copy, Clone, Debug)]
+pub struct FresnelNoOp;
 
 impl Fresnel for FresnelNoOp {
     fn evaluate(&self, _cos_theta_i: f32) -> Spectrum {
@@ -142,14 +142,14 @@ impl Fresnel for FresnelNoOp {
 }
 
 /// BRDF for perfect specular reflection
-#[derive(Debug)]
-pub struct SpecularReflection {
+#[derive(Copy, Clone, Debug)]
+pub struct SpecularReflection<'a> {
     r: Spectrum,
-    fresnel: Box<Fresnel + Send + Sync>,
+    fresnel: &'a Fresnel,
 }
 
-impl SpecularReflection {
-    pub fn new(r: Spectrum, fresnel: Box<Fresnel + Send + Sync>) -> SpecularReflection {
+impl<'a> SpecularReflection<'a> {
+    pub fn new(r: Spectrum, fresnel: &'a Fresnel) -> SpecularReflection<'a> {
         SpecularReflection {
             r: r,
             fresnel: fresnel,
@@ -157,7 +157,7 @@ impl SpecularReflection {
     }
 }
 
-impl BxDF for SpecularReflection {
+impl<'a> BxDF for SpecularReflection<'a> {
     fn f(&self, _wo: &Vector3f, _wi: &Vector3f) -> Spectrum {
         // The probability to call f() with the exact (wo, wi) for specular reflection is 0, so we
         // return black here. Use sample_f() instead.
@@ -180,7 +180,7 @@ impl BxDF for SpecularReflection {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct SpecularTransmission {
     t: Spectrum,
     eta_a: f32,
@@ -257,7 +257,7 @@ impl BxDF for SpecularTransmission {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct FresnelSpecular {
     r: Spectrum,
     t: Spectrum,

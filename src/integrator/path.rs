@@ -1,3 +1,5 @@
+use light_arena::Allocator;
+
 use bsdf::BxDFType;
 use integrator::{uniform_sample_one_light, SamplerIntegrator};
 use lightdistrib::{LightDistribution, UniformLightDistribution};
@@ -36,6 +38,7 @@ impl SamplerIntegrator for PathIntegrator {
         scene: &Scene,
         r: &mut Ray,
         sampler: &mut Box<Sampler + Send + Sync>,
+        arena: &Allocator,
         _depth: u32,
     ) -> Spectrum {
         let mut l = Spectrum::black();
@@ -78,7 +81,7 @@ impl SamplerIntegrator for PathIntegrator {
 
             // Compute scattering functions and skip over medium boundaries
             let isect = found_intersection.as_mut().unwrap();
-            isect.compute_scattering_functions(&ray, TransportMode::RADIANCE, true);
+            isect.compute_scattering_functions(&ray, TransportMode::RADIANCE, true, arena);
             if isect.bsdf.is_none() {
                 // If there's no bsdf, it means we've hit the interface between two
                 // different mediums. We simply continue along the same direction.

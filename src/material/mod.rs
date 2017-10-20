@@ -1,3 +1,5 @@
+use light_arena::Allocator;
+
 use Vector2f;
 use interaction::SurfaceInteraction;
 use texture::Texture;
@@ -14,18 +16,19 @@ pub use self::plastic::Plastic;
 pub use self::glass::GlassMaterial;
 pub use self::mirror::MirrorMaterial;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum TransportMode {
     RADIANCE,
     IMPORTANCE,
 }
 
 pub trait Material {
-    fn compute_scattering_functions(
+    fn compute_scattering_functions<'a, 'b>(
         &self,
-        isect: &mut SurfaceInteraction,
+        isect: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         allow_multiple_lobes: bool,
+        arena: &'b Allocator,
     );
 }
 
