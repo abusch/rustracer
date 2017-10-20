@@ -5,6 +5,8 @@ use fp::Ieee754;
 
 use {Point3f, Vector3f};
 
+pub mod matrix;
+
 // Common geometric functions
 #[inline]
 pub fn cos_theta(w: &Vector3f) -> f32 {
