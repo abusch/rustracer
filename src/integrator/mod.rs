@@ -32,8 +32,8 @@ pub trait SamplerIntegrator {
         scene: &Scene,
         ray: &mut Ray,
         sampler: &mut Box<Sampler + Send + Sync>,
-        depth: u32,
         arena: &Allocator,
+        depth: u32,
     ) -> Spectrum;
 
     #[allow(non_snake_case)]
@@ -44,8 +44,8 @@ pub trait SamplerIntegrator {
         scene: &Scene,
         bsdf: &bsdf::BSDF,
         sampler: &mut Box<Sampler + Send + Sync>,
-        depth: u32,
         arena: &Allocator,
+        depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
@@ -68,7 +68,7 @@ pub trait SamplerIntegrator {
 
                 r.differential = Some(rddiff);
             }
-            let refl = self.li(scene, &mut r, sampler, depth + 1, arena);
+            let refl = self.li(scene, &mut r, sampler, arena, depth + 1);
             f * refl * wi.dot(ns).abs() / pdf
         } else {
             Spectrum::black()
@@ -83,8 +83,8 @@ pub trait SamplerIntegrator {
         scene: &Scene,
         bsdf: &bsdf::BSDF,
         sampler: &mut Box<Sampler + Send + Sync>,
-        depth: u32,
         arena: &Allocator,
+        depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
@@ -119,7 +119,7 @@ pub trait SamplerIntegrator {
 
                 r.differential = Some(rddiff);
             }
-            let refr = self.li(scene, &mut r, sampler, depth + 1, arena);
+            let refr = self.li(scene, &mut r, sampler, arena, depth + 1);
             f * refr * wi.dot(ns).abs() / pdf
         } else {
             Spectrum::black()

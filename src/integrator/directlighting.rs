@@ -80,8 +80,8 @@ impl SamplerIntegrator for DirectLightingIntegrator {
         scene: &Scene,
         ray: &mut Ray,
         sampler: &mut Box<Sampler + Send + Sync>,
-        depth: u32,
         arena: &Allocator,
+        depth: u32,
     ) -> Spectrum {
         let mut colour = Spectrum::black();
 
@@ -94,7 +94,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
 
                 if isect.bsdf.is_none() {
                     let mut r = isect.spawn_ray(&ray.d);
-                    return self.li(scene, &mut r, sampler, depth, arena);
+                    return self.li(scene, &mut r, sampler, arena, depth);
                 }
                 let bsdf = isect.bsdf.clone().unwrap();
 
@@ -114,15 +114,15 @@ impl SamplerIntegrator for DirectLightingIntegrator {
 
                 if depth + 1 < self.max_depth as u32 {
                     colour +=
-                        self.specular_reflection(ray, &isect, scene, &bsdf, sampler, depth, arena);
+                        self.specular_reflection(ray, &isect, scene, &bsdf, sampler, arena, depth);
                     colour += self.specular_transmission(
                         ray,
                         &isect,
                         scene,
                         &bsdf,
                         sampler,
-                        depth,
                         arena,
+                        depth,
                     );
                 }
             }

@@ -26,8 +26,8 @@ impl SamplerIntegrator for AmbientOcclusion {
         scene: &Scene,
         ray: &mut Ray,
         sampler: &mut Box<Sampler + Send + Sync>,
-        _depth: u32,
         _arena: &Allocator,
+        _depth: u32,
     ) -> Spectrum {
         let mut n_clear: usize = 0;
 
