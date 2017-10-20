@@ -5,7 +5,14 @@ use fp::Ieee754;
 
 use {Point3f, Vector3f};
 
-pub mod matrix;
+mod matrix;
+pub use self::matrix::*;
+mod vector;
+pub use self::vector::*;
+mod normal;
+pub use self::normal::*;
+mod point;
+pub use self::point::*;
 
 // Common geometric functions
 #[inline]
