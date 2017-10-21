@@ -184,15 +184,3 @@ where
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_add() {
-        let v1 = Normal3::new(1.0, 2.0);
-        let v2 = Normal3::new(3.0, 4.0);
-        assert_eq!(v1 + v2, Normal3::new(4.0, 6.0));
-    }
-}

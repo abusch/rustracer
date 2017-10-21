@@ -1,12 +1,11 @@
-extern crate rustracer as rt;
 extern crate rand;
-extern crate nalgebra as na;
+extern crate rustracer as rt;
 
 use std::f32;
-use rand::{Rng, StdRng, SeedableRng};
-use rand::distributions::{Range, IndependentSample};
+use rand::{Rng, SeedableRng, StdRng};
+use rand::distributions::{IndependentSample, Range};
 
-use rt::{Point3f, Point2f};
+use rt::{Point2f, Point3f};
 use rt::ray::Ray;
 use rt::sampling;
 use rt::shapes::Shape;
@@ -56,7 +55,6 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
             let ray_out = isect.spawn_ray(&w);
             assert!(!shape.intersect_p(&ray_out));
             assert!(shape.intersect(&ray_out).is_none());
-
         }
     }
 }

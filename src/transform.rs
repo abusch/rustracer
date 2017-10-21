@@ -411,11 +411,7 @@ pub fn solve_linear_system2x2(A: &[[f32; 2]; 2], B: &Vector2f) -> Option<(f32, f
 
 #[test]
 fn test_normal_transform() {
-    let t = Transform::new(
-        Vector3f::new(0.0, 0.0, 0.0),
-        Vector3f::new(4.0, 5.0, 6.0),
-        4.0,
-    );
+    let t = Transform::rotate(36.0, Vector3f::new(4.0, 5.0, 6.0));
     let t_inv = t.inverse();
 
     let v = Vector3f::x();

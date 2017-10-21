@@ -247,7 +247,7 @@ where
 fn test_gamma() {
     let g5 = gamma(5);
     let p = Point3f::new(-0.4, 0.9, 0.2);
-    let v = g5 * &p.coords.abs();
+    let v = g5 * p.abs();
     println!("gamma(5) = {}, p={:?}, v={:?}", gamma(5), p, v);
 }
 
