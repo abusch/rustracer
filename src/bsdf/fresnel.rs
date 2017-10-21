@@ -5,7 +5,7 @@ use {Point2f, Vector3f};
 use bsdf::{BxDF, BxDFType};
 use geometry::*;
 use spectrum::Spectrum;
-use na::clamp;
+use clamp;
 
 /// Compute the reflection direction
 pub fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {

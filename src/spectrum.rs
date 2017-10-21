@@ -1,10 +1,9 @@
 use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
 use std::fmt;
 
-use na;
 use num::{Zero, One};
 
-use {lerp, find_interval};
+use {clamp, lerp, find_interval};
 use cie;
 
 /// Represents a linear RGB spectrum.
@@ -60,7 +59,7 @@ impl Spectrum {
             } else {
                 (1.0 + a) * f32::powf(self[i], b) - a
             };
-            srgb[i] = na::clamp(v * 255.0, 0.0, 255.0) as u8;
+            srgb[i] = clamp(v * 255.0, 0.0, 255.0) as u8;
         }
         srgb
     }

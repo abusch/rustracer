@@ -1,17 +1,27 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub,
                SubAssign};
+use std::fmt::{Display, Error, Formatter};
+
+use num::{abs, Num, Signed, Zero};
 
 use geometry::{Vector2, Vector3};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Point2<T> {
-    x: T,
-    y: T,
+    pub x: T,
+    pub y: T,
 }
 
-impl<T> Point2<T> {
+impl<T> Point2<T>
+where
+    T: Num + Signed + Copy,
+{
     pub fn new(x: T, y: T) -> Point2<T> {
         Point2 { x, y }
+    }
+
+    pub fn abs(&self) -> Point2<T> {
+        Point2::new(abs(self.x), abs(self.y))
     }
 }
 
@@ -89,7 +99,7 @@ where
 // Point2 - Vector2 -> Point2
 impl<T> Sub<Vector2<T>> for Point2<T>
 where
-    T: Sub<Output = T> + Copy,
+    T: Num + Signed + Copy,
 {
     type Output = Point2<T>;
 
@@ -144,6 +154,14 @@ where
             x: self.x * v,
             y: self.y * v,
         }
+    }
+}
+
+impl Mul<Point2<f32>> for f32 {
+    type Output = Point2<f32>;
+
+    fn mul(self, p: Point2<f32>) -> Point2<f32> {
+        Point2::new(self * p.x, self * p.y)
     }
 }
 
@@ -205,17 +223,45 @@ where
     }
 }
 
+impl<T> Display for Point2<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "[{}, {}]", self.x, self.y)
+    }
+}
+
+impl<T> Zero for Point2<T>
+where
+    T: Num + Signed + Copy,
+{
+    fn zero() -> Point2<T> {
+        Point2::new(T::zero(), T::zero())
+    }
+
+    fn is_zero(&self) -> bool {
+        self.x.is_zero() && self.y.is_zero()
+    }
+}
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Point3<T> {
-    x: T,
-    y: T,
-    z: T,
+    pub x: T,
+    pub y: T,
+    pub z: T,
 }
 
-impl<T> Point3<T> {
+impl<T> Point3<T>
+where
+    T: Num + Signed + Copy,
+{
     pub fn new(x: T, y: T, z: T) -> Point3<T> {
         Point3 { x, y, z }
+    }
+
+    pub fn abs(&self) -> Point3<T> {
+        Point3::new(abs(self.x), abs(self.y), abs(self.z))
     }
 }
 
@@ -285,7 +331,7 @@ where
 // Point3 - Point3 -> Vector3
 impl<T> Sub<Point3<T>> for Point3<T>
 where
-    T: Sub<Output = T> + Copy,
+    T: Sub<Output = T> + Copy + Num,
 {
     type Output = Vector3<T>;
 
@@ -297,7 +343,7 @@ where
 // Point3 - Vector3 -> Point3
 impl<T> Sub<Vector3<T>> for Point3<T>
 where
-    T: Sub<Output = T> + Copy,
+    T: Num + Signed + Copy,
 {
     type Output = Point3<T>;
 
@@ -346,16 +392,20 @@ where
 
 impl<T> Mul<T> for Point3<T>
 where
-    T: Mul<Output = T> + Copy,
+    T: Num + Signed + Copy,
 {
     type Output = Point3<T>;
 
     fn mul(self, v: T) -> Point3<T> {
-        Point3 {
-            x: self.x * v,
-            y: self.y * v,
-            z: self.z * v,
-        }
+        Point3::new(self.x * v, self.y * v, self.z * v)
+    }
+}
+
+impl Mul<Point3<f32>> for f32 {
+    type Output = Point3<f32>;
+
+    fn mul(self, p: Point3<f32>) -> Point3<f32> {
+        Point3::new(self * p.x, self * p.y, self * p.z)
     }
 }
 
@@ -409,6 +459,15 @@ impl<T> IndexMut<usize> for Point3<T> {
     }
 }
 
+impl<T> From<Vector3<T>> for Point3<T>
+where
+    T: Num + Signed + Copy,
+{
+    fn from(p: Vector3<T>) -> Point3<T> {
+        Point3::new(p.x, p.y, p.z)
+    }
+}
+
 impl<T> Default for Point3<T>
 where
     T: Default,
@@ -419,6 +478,28 @@ where
             y: T::default(),
             z: T::default(),
         }
+    }
+}
+
+impl<T> Display for Point3<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "[{}, {}, {}]", self.x, self.y, self.z)
+    }
+}
+
+impl<T> Zero for Point3<T>
+where
+    T: Num + Signed + Copy,
+{
+    fn zero() -> Point3<T> {
+        Point3::new(T::zero(), T::zero(), T::zero())
+    }
+
+    fn is_zero(&self) -> bool {
+        self.x.is_zero() && self.y.is_zero() && self.z.is_zero()
     }
 }
 

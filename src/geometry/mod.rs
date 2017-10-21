@@ -1,9 +1,8 @@
 use std::f32::consts::PI;
 
-use na;
 use fp::Ieee754;
 
-use {Point3f, Vector3f};
+use {clamp, Point3f, Vector3f};
 
 mod matrix;
 pub use self::matrix::*;
@@ -56,7 +55,7 @@ pub fn cos_phi(w: &Vector3f) -> f32 {
     if sin_theta == 0.0 {
         0.0
     } else {
-        na::clamp(w.x / sin_theta, -1.0, 1.0)
+        clamp(w.x / sin_theta, -1.0, 1.0)
     }
 }
 
@@ -66,7 +65,7 @@ pub fn sin_phi(w: &Vector3f) -> f32 {
     if sin_theta == 0.0 {
         0.0
     } else {
-        na::clamp(w.y / sin_theta, -1.0, 1.0)
+        clamp(w.y / sin_theta, -1.0, 1.0)
     }
 }
 
@@ -82,7 +81,7 @@ pub fn sin2_phi(w: &Vector3f) -> f32 {
 
 #[inline]
 pub fn cos_d_phi(wa: &Vector3f, wb: &Vector3f) -> f32 {
-    na::clamp(
+    clamp(
         (wa.x * wb.x + wa.y * wa.y)
             / ((wa.x * wa.x + wa.y * wa.y) * (wb.x * wb.x + wb.y * wb.y)).sqrt(),
         -1.0,
@@ -97,7 +96,7 @@ pub fn same_hemisphere(w: &Vector3f, wp: &Vector3f) -> bool {
 
 #[inline]
 pub fn spherical_theta(v: &Vector3f) -> f32 {
-    na::clamp(v.z, -1.0, 1.0).acos()
+    clamp(v.z, -1.0, 1.0).acos()
 }
 
 #[inline]
@@ -124,7 +123,7 @@ pub fn spherical_direction_vec(
     y: &Vector3f,
     z: &Vector3f,
 ) -> Vector3f {
-    sin_theta * phi.cos() * x + sin_theta * phi.sin() * y + cos_theta * z
+    sin_theta * phi.cos() * *x + sin_theta * phi.sin() * *y + cos_theta * *z
 }
 
 #[inline]
@@ -140,7 +139,7 @@ pub fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
 /// Polynomial approximation of the inverse Gauss error function
 #[inline]
 pub fn erf_inv(x: f32) -> f32 {
-    let x = na::clamp(x, -0.99999, 0.99999);
+    let x = clamp(x, -0.99999, 0.99999);
     let mut w = -((1.0 - x) * (1.0 + x)).ln();
     let mut p;
     if w < 5.0 {
@@ -200,7 +199,7 @@ pub fn offset_ray_origin(p: &Point3f, p_error: &Vector3f, n: &Vector3f, w: &Vect
     if w.dot(n) < 0.0 {
         offset = -offset;
     }
-    let mut po = p + offset;
+    let mut po = *p + offset;
     // Round offset point `po` away from `p`
     for i in 0..3 {
         if offset[i] > 0.0 {
@@ -214,9 +213,9 @@ pub fn offset_ray_origin(p: &Point3f, p_error: &Vector3f, n: &Vector3f, w: &Vect
 }
 
 pub fn distance_squared(p1: &Point3f, p2: &Point3f) -> f32 {
-    (p2 - p1).norm_squared()
+    (*p2 - *p1).length_squared()
 }
 
 pub fn distance(p1: &Point3f, p2: &Point3f) -> f32 {
-    (p2 - p1).norm()
+    (*p2 - *p1).length()
 }

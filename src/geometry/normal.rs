@@ -3,9 +3,9 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, 
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Normal3<T> {
-    x: T,
-    y: T,
-    z: T,
+    pub x: T,
+    pub y: T,
+    pub z: T,
 }
 
 impl<T> Normal3<T> {

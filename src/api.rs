@@ -3,8 +3,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use na::{Matrix4, Similarity3};
-
 use {Point3f, Transform, Vector3f};
 use bvh::BVH;
 use camera::{Camera, PerspectiveCamera};
@@ -15,6 +13,7 @@ use filter::boxfilter::BoxFilter;
 use filter::gaussian::GaussianFilter;
 use filter::mitchell::MitchellNetravali;
 use film::Film;
+use geometry::Matrix4x4;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
 use material::{GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial, Plastic};
@@ -466,7 +465,7 @@ impl Api for RealApi {
         info!("Translate called with {} {} {}", dx, dy, dz);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
-        let t = Transform::translate(Vector3f::new(dx, dy, dz));
+        let t = Transform::translate(&Vector3f::new(dx, dy, dz));
         state.cur_transform = &state.cur_transform * &t;
         Ok(())
     }
@@ -510,7 +509,7 @@ impl Api for RealApi {
     ) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
-        let mat = Matrix4::new(
+        let mat = Matrix4x4::from_elements(
             tr00,
             tr04,
             tr08,
@@ -530,7 +529,7 @@ impl Api for RealApi {
         );
         state.cur_transform = Transform {
             m: mat,
-            m_inv: mat.try_inverse().expect("Non invertible matrix"),
+            m_inv: mat.inverse(),
         };
         Ok(())
     }
@@ -550,12 +549,11 @@ impl Api for RealApi {
         info!("look_at called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
-        let look_at = Transform::from_similarity(&Similarity3::look_at_lh(
+        let look_at = Transform::look_at(
             &Point3f::new(ex, ey, ez),
             &Point3f::new(lx, ly, lz),
             &Vector3f::new(ux, uy, uz),
-            1.0,
-        ));
+        );
         state.cur_transform = &state.cur_transform * &look_at;
         Ok(())
     }

@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
 
+use num::Zero;
 use uuid::Uuid;
 
 use {Point2f, Point3f, Transform, Vector3f};
@@ -33,7 +34,7 @@ impl DistantLight {
     pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light + Send + Sync> {
         let L = params.find_one_spectrum("L", Spectrum::white());
         let scale = params.find_one_spectrum("scale", Spectrum::white());
-        let from = params.find_one_point3f("from", Point3f::origin());
+        let from = params.find_one_point3f("from", Point3f::zero());
         let to = params.find_one_point3f("to", Point3f::new(0.0, 0.0, 1.0));
         let dir = from - to;
         Arc::new(DistantLight::new(l2w * &dir, L * scale))

@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use na;
-
-use {gamma, lerp, Point2f, Point3f, Transform, Vector3f};
+use {clamp, gamma, lerp, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use efloat::{solve_quadratic, EFloat};
 use interaction::{Interaction, SurfaceInteraction};
@@ -37,7 +35,7 @@ impl Cylinder {
             radius,
             z_min,
             z_max,
-            phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
+            phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
             reverse_orientation,
         })
     }

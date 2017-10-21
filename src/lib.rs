@@ -15,7 +15,7 @@ extern crate ieee754 as fp;
 extern crate image as img;
 extern crate itertools as it;
 extern crate light_arena;
-extern crate nalgebra as na;
+// extern crate nalgebra as na;
 extern crate num;
 #[macro_use(slog_error, slog_warn, slog_info, slog_debug, slog_trace, slog_log, slog_record,
             slog_record_static, slog_b, slog_kv)]
@@ -25,12 +25,9 @@ extern crate slog_scope;
 extern crate uuid;
 
 use std::f32;
-use std::fmt::Debug;
-use std::ops::{Add, Deref, Mul, Sub};
+use std::ops::{Add, Mul, Sub};
 
-use na::{Point2, Point3, Vector2, Vector3};
-use na::core::Scalar;
-use num::One;
+use num::{Num, One, Signed};
 
 mod api;
 mod blockedarray;
@@ -81,22 +78,24 @@ pub mod errors {
         }
     }
 }
+use geometry::{Normal3, Point2, Point3, Vector2, Vector3};
 
 pub type Vector2f = Vector2<f32>;
 pub type Vector3f = Vector3<f32>;
 pub type Point2f = Point2<f32>;
 pub type Point2i = Point2<i32>;
 pub type Point3f = Point3<f32>;
-// `Normal` is just a newtype of a `Vector`
-pub struct Normal3<T: Copy + Debug + PartialEq + 'static>(Vector3<T>);
-impl<T: Copy + Debug + PartialEq + 'static> Deref for Normal3<T> {
-    type Target = Vector3<T>;
-
-    fn deref(&self) -> &Vector3<T> {
-        &self.0
-    }
-}
 pub type Normal3f = Normal3<f32>;
+// `Normal` is just a newtype of a `Vector`
+// pub struct Normal3<T: Copy + Debug + PartialEq + 'static>(Vector3<T>);
+// impl<T: Copy + Debug + PartialEq + 'static> Deref for Normal3<T> {
+//     type Target = Vector3<T>;
+
+//     fn deref(&self) -> &Vector3<T> {
+//         &self.0
+//     }
+// }
+// pub type Normal3f = Normal3<f32>;
 
 pub use transform::Transform;
 
@@ -127,7 +126,7 @@ where
 /// Return the dimension index (0, 1 or 2) that contains the largest component.
 pub fn max_dimension<T>(v: Vector3<T>) -> usize
 where
-    T: Scalar + PartialOrd,
+    T: Num + PartialOrd,
 {
     if v.x > v.y {
         if v.x > v.z {
@@ -149,7 +148,7 @@ pub fn max_component(v: &Vector3f) -> f32 {
 /// Permute the components of this vector based on the given indices for x, y and z.
 pub fn permute_v<T>(v: &Vector3<T>, x: usize, y: usize, z: usize) -> Vector3<T>
 where
-    T: Scalar,
+    T: Num + Copy,
 {
     Vector3::new(v[x], v[y], v[z])
 }
@@ -157,7 +156,7 @@ where
 /// Permute the components of this point based on the given indices for x, y and z.
 pub fn permute_p<T>(v: &Point3<T>, x: usize, y: usize, z: usize) -> Point3<T>
 where
-    T: Scalar,
+    T: Num + Signed + Copy,
 {
     Point3::new(v[x], v[y], v[z])
 }
@@ -193,7 +192,7 @@ where
             len = half;
         }
     }
-    na::clamp(first - 1, 0, size - 2)
+    clamp(first - 1, 0, size - 2)
 }
 
 /// Version of min() that works on `PartialOrd`, so it works for both u32 and f32.
@@ -229,6 +228,19 @@ pub fn round_up_pow_2(v: i32) -> i32 {
     v |= v >> 8;
     v |= v >> 16;
     v + 1
+}
+
+pub fn clamp<T>(val: T, low: T, high: T) -> T
+where
+    T: PartialOrd + Copy,
+{
+    if val < low {
+        low
+    } else if val > high {
+        high
+    } else {
+        val
+    }
 }
 
 #[test]

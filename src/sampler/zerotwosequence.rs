@@ -1,3 +1,5 @@
+use num::Zero;
+
 use {Point2f, Point2i};
 use camera::CameraSample;
 use paramset::ParamSet;
@@ -115,16 +117,16 @@ impl Sampler for ZeroTwoSequence {
 
     fn request_1d_array(&mut self, n: usize) {
         self.sample_1d_array_sizes.push(n);
-        self.sample_array_1d.push(Vec::with_capacity(n * self.spp));
+        let mut vec = Vec::new();
+        vec.resize(n * self.spp, 0.0);
+        self.sample_array_1d.push(vec);
     }
 
     fn request_2d_array(&mut self, n: usize) {
         info!("Requesting 2d array of {} samples", n);
         self.sample_2d_array_sizes.push(n);
-        let mut vec = Vec::with_capacity(n * self.spp);
-        for _ in 0..(n * self.spp) {
-            vec.push(Point2f::origin());
-        }
+        let mut vec = Vec::new();
+        vec.resize(n * self.spp, Point2f::zero());
         self.sample_array_2d.push(vec);
     }
 

@@ -1,6 +1,4 @@
-use na;
-
-use Point2f;
+use {clamp, Point2f};
 use sampling::Distribution1D;
 
 pub struct Distribution2D {
@@ -35,12 +33,16 @@ impl Distribution2D {
     }
 
     pub fn pdf(&self, p: &Point2f) -> f32 {
-        let iu = na::clamp(p[0] as usize * self.p_conditional_v[0].count(),
-                           0,
-                           self.p_conditional_v[0].count() - 1);
-        let iv = na::clamp(p[1] as usize * self.p_marginal.count(),
-                           0,
-                           self.p_marginal.count() - 1);
+        let iu = clamp(
+            p[0] as usize * self.p_conditional_v[0].count(),
+            0,
+            self.p_conditional_v[0].count() - 1,
+        );
+        let iv = clamp(
+            p[1] as usize * self.p_marginal.count(),
+            0,
+            self.p_marginal.count() - 1,
+        );
 
         self.p_conditional_v[iv].func[iu] / self.p_marginal.func_int
     }

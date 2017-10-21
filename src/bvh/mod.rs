@@ -4,7 +4,6 @@ use std::sync::Arc;
 use std::path::Path;
 
 use it;
-use na::Point3;
 use light_arena::Allocator;
 
 use {Point3f, Vector3f, Transform};
@@ -382,7 +381,7 @@ impl BVHPrimitiveInfo {
     fn new(pn: usize, bb: Bounds3f) -> BVHPrimitiveInfo {
         BVHPrimitiveInfo {
             prim_number: pn,
-            centroid: Point3::from_coordinates(0.5 * bb[0].coords + 0.5 * bb[1].coords),
+            centroid: 0.5 * bb[0] + 0.5 * bb[1],
             bounds: bb,
         }
     }

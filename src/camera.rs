@@ -1,4 +1,4 @@
-use na::{self, Matrix4, Point3, Vector3};
+use num::Zero;
 
 use {Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds2f;
@@ -18,7 +18,7 @@ pub struct PerspectiveCamera {
     film: Box<Film>,
     camera_to_world: Transform,
     // camera_to_screen: Matrix4<f32>, // not used?
-    raster_to_camera: Matrix4<f32>,
+    raster_to_camera: Transform,
     lens_radius: f32,
     focal_distance: f32,
     dx_camera: Vector3f,
@@ -34,44 +34,31 @@ impl PerspectiveCamera {
         fov: f32,
         film: Box<Film>,
     ) -> PerspectiveCamera {
-        #[cfg_attr(rustfmt, rustfmt_skip)]
-        fn perspective(fov: f32, n: f32, f: f32) -> Matrix4<f32> {
-            let persp = Matrix4::<f32>::new(1.0, 0.0, 0.0, 0.0,
-                                            0.0, 1.0, 0.0, 0.0,
-                                            0.0, 0.0, f / (f - n), -f * n / (f - n),
-                                            0.0, 0.0, 1.0, 0.0);
-            let inv_tan_ang = 1.0 / (fov.to_radians() / 2.0).tan();
-            Matrix4::new_nonuniform_scaling(&Vector3f::new(inv_tan_ang, inv_tan_ang, 1.0)) * persp
-        }
-
-        let camera_to_screen = perspective(fov, 1e-2, 1000.0);
-        let screen_to_raster = Matrix4::new_nonuniform_scaling(&Vector3f::new(
+        let camera_to_screen = Transform::perspective(fov, 1e-2, 1000.0);
+        let screen_to_raster = Transform::scale(
             film.full_resolution.x as f32,
             film.full_resolution.y as f32,
             1.0,
-        ))
-            * Matrix4::new_nonuniform_scaling(&Vector3f::new(
+        )
+            * Transform::scale(
                 1.0 / (screen_window.p_max.x - screen_window.p_min.x),
                 1.0 / (screen_window.p_min.y - screen_window.p_max.y),
                 1.0,
-            ))
-            * Matrix4::new_translation(&Vector3f::new(
+            )
+            * Transform::translate(&Vector3f::new(
                 -screen_window.p_min.x,
                 -screen_window.p_max.y,
                 0.0,
             ));
-        let raster_to_screen = screen_to_raster.try_inverse().unwrap();
-        let raster_to_camera = camera_to_screen.try_inverse().unwrap() * raster_to_screen;
+
+        let raster_to_screen = screen_to_raster.inverse();
+        let raster_to_camera = camera_to_screen.inverse() * raster_to_screen;
 
         // compute differential changes in origin for perspective camera rays
-        let dx_camera = Vector3::from_homogeneous(
-            (raster_to_camera * Point3f::new(1.0, 0.0, 0.0).to_homogeneous())
-                - (raster_to_camera * Point3f::new(0.0, 0.0, 0.0).to_homogeneous()),
-        ).unwrap();
-        let dy_camera = Vector3::from_homogeneous(
-            (raster_to_camera * Point3f::new(0.0, 1.0, 0.0).to_homogeneous())
-                - (raster_to_camera * Point3f::new(0.0, 0.0, 0.0).to_homogeneous()),
-        ).unwrap();
+        let dx_camera = (&raster_to_camera * &Point3f::new(1.0, 0.0, 0.0))
+            - (&raster_to_camera * &Point3f::new(0.0, 0.0, 0.0));
+        let dy_camera = (&raster_to_camera * &Point3f::new(0.0, 1.0, 0.0))
+            - (&raster_to_camera * &Point3f::new(0.0, 0.0, 0.0));
 
         PerspectiveCamera {
             film: film,
@@ -149,10 +136,9 @@ impl Camera for PerspectiveCamera {
 
     fn generate_ray(&self, sample: &CameraSample) -> Ray {
         let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
-        let p_camera: Point3f =
-            Point3::from_homogeneous(self.raster_to_camera * p_film.to_homogeneous()).unwrap();
+        let p_camera: Point3f = &self.raster_to_camera * &p_film;
 
-        let mut ray = Ray::new(na::origin(), p_camera.coords.normalize());
+        let mut ray = Ray::new(Point3f::zero(), Vector3f::from(p_camera).normalize());
         // modify ray for depth of field
         if self.lens_radius > 0.0 {
             // Sample point on lens
@@ -169,10 +155,9 @@ impl Camera for PerspectiveCamera {
 
     fn generate_ray_differential(&self, sample: &CameraSample) -> Ray {
         let p_film = Point3f::new(sample.p_film.x, sample.p_film.y, 0.0);
-        let p_camera: Point3f =
-            Point3::from_homogeneous(self.raster_to_camera * p_film.to_homogeneous()).unwrap();
+        let p_camera = &self.raster_to_camera * &p_film;
 
-        let mut ray = Ray::new(na::origin(), p_camera.coords.normalize());
+        let mut ray = Ray::new(Point3f::zero(), Vector3f::from(p_camera).normalize());
         // modify ray for depth of field
         if self.lens_radius > 0.0 {
             // Sample point on lens
@@ -191,15 +176,15 @@ impl Camera for PerspectiveCamera {
             let origin = Point3f::new(p_lens.x, p_lens.y, 0.0);
 
             // ray differential in x direction
-            let dx = (p_camera + self.dx_camera).coords.normalize();
+            let dx = Vector3f::from(p_camera + self.dx_camera).normalize();
             let ft_x = self.focal_distance / dx.z;
-            let p_focus_x = Point3::from_coordinates(ft_x * dx);
+            let p_focus_x = Point3f::from(ft_x * dx);
             let rx_dir = (p_focus_x - origin).normalize();
 
             // ray differential in x direction
-            let dy = (p_camera + self.dy_camera).coords.normalize();
+            let dy = Vector3f::from(p_camera + self.dy_camera).normalize();
             let ft_y = self.focal_distance / dy.z;
-            let p_focus_y = Point3::from_coordinates(ft_y * dy);
+            let p_focus_y = Point3f::from(ft_y * dy);
             let ry_dir = (p_focus_y - origin).normalize();
 
             RayDifferential {
@@ -212,8 +197,8 @@ impl Camera for PerspectiveCamera {
             RayDifferential {
                 rx_origin: ray.o,
                 ry_origin: ray.o,
-                rx_direction: (p_camera.coords + self.dx_camera).normalize(),
-                ry_direction: (p_camera.coords + self.dy_camera).normalize(),
+                rx_direction: (Vector3f::from(p_camera) + self.dx_camera).normalize(),
+                ry_direction: (Vector3f::from(p_camera) + self.dy_camera).normalize(),
             }
         };
 

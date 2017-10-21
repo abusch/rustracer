@@ -2,7 +2,7 @@ use std::ops::Mul;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Matrix4x4 {
-    m: [[f32; 4]; 4],
+    pub m: [[f32; 4]; 4],
 }
 
 impl Matrix4x4 {

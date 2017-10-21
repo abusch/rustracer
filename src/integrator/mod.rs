@@ -63,8 +63,8 @@ pub trait SamplerIntegrator {
                 let dwody = -diff.ry_direction - isect.wo;
                 let dDNdx = dwodx.dot(ns) + isect.wo.dot(&dndx);
                 let dDNdy = dwody.dot(ns) + isect.wo.dot(&dndy);
-                rddiff.rx_direction = wi - dwodx + 2.0 * (isect.wo.dot(ns) * dndx + dDNdx * ns);
-                rddiff.ry_direction = wi - dwody + 2.0 * (isect.wo.dot(ns) * dndy + dDNdy * ns);
+                rddiff.rx_direction = wi - dwodx + 2.0 * (isect.wo.dot(ns) * dndx + dDNdx * *ns);
+                rddiff.ry_direction = wi - dwody + 2.0 * (isect.wo.dot(ns) * dndy + dDNdy * *ns);
 
                 r.differential = Some(rddiff);
             }
@@ -114,8 +114,8 @@ pub trait SamplerIntegrator {
                 let dmudx = (eta - (eta * eta * w.dot(ns)) / wi.dot(ns)) * dDNdx;
                 let dmudy = (eta - (eta * eta * w.dot(ns)) / wi.dot(ns)) * dDNdy;
 
-                rddiff.rx_direction = wi + eta * dwodx - (mu * dndx + dDNdx * ns);
-                rddiff.ry_direction = wi + eta * dwody - (mu * dndy + dDNdy * ns);
+                rddiff.rx_direction = wi + eta * dwodx - (mu * dndx + dDNdx * *ns);
+                rddiff.ry_direction = wi + eta * dwody - (mu * dndy + dDNdy * *ns);
 
                 r.differential = Some(rddiff);
             }

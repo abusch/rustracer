@@ -1,36 +1,27 @@
 use std::f32;
-use std::ops::{Add, Index, Mul, Sub, SubAssign};
+use std::ops::{Index, SubAssign};
 use std::cmp::PartialOrd;
 use std::fmt;
 
-use na::{Point2, Point3, Vector2};
-use na::core::Scalar;
-use num::{Bounded, One};
+use num::{Bounded, Num, Signed};
 
 use {lerp, max, min, Point2f, Point2i, Point3f, Vector3f};
+use geometry::{Point2, Point3, Vector2};
 use ray::Ray;
-use stats;
+// use stats;
 
 pub type Bounds3f = Bounds3<f32>;
 
 /// Axis Aligned Bounding Box
 #[derive(Debug, Copy, Clone)]
-pub struct Bounds3<T: Scalar> {
+pub struct Bounds3<T: Num> {
     pub p_min: Point3<T>,
     pub p_max: Point3<T>,
 }
 
 impl<T> Bounds3<T>
 where
-    T: Bounded
-        + PartialOrd
-        + Into<f32>
-        + Scalar
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + One
-        + SubAssign,
+    T: Bounded + PartialOrd + Into<f32> + Num + Signed + SubAssign + Copy,
 {
     pub fn new() -> Bounds3<T> {
         let min = T::min_value();
@@ -190,7 +181,7 @@ impl Bounds3<f32> {
             (self.p_min.z + self.p_max.z) / 2.0,
         );
         let radius = if self.inside(&center) {
-            (self.p_max - center).norm()
+            (self.p_max - center).length()
         } else {
             0.0
         };
@@ -201,15 +192,7 @@ impl Bounds3<f32> {
 
 impl<T> Default for Bounds3<T>
 where
-    T: Bounded
-        + PartialOrd
-        + Into<f32>
-        + Scalar
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + One
-        + SubAssign,
+    T: Bounded + PartialOrd + Into<f32> + Num + Signed + Copy + SubAssign,
 {
     fn default() -> Self {
         Self::new()
@@ -220,21 +203,14 @@ pub type Bounds2i = Bounds2<i32>;
 pub type Bounds2f = Bounds2<f32>;
 
 #[derive(Debug, Copy, Clone)]
-pub struct Bounds2<T: Scalar> {
+pub struct Bounds2<T: Num> {
     pub p_min: Point2<T>,
     pub p_max: Point2<T>,
 }
 
 impl<T> Bounds2<T>
 where
-    T: Bounded
-        + PartialOrd
-        + fmt::Display
-        + Scalar
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + One,
+    T: Bounded + PartialOrd + fmt::Display + Num + Signed + Copy,
 {
     pub fn new() -> Bounds2<T> {
         let min = T::min_value();
@@ -352,14 +328,7 @@ where
 
 impl<T> Default for Bounds2<T>
 where
-    T: Bounded
-        + PartialOrd
-        + fmt::Display
-        + Scalar
-        + Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + One,
+    T: Bounded + PartialOrd + fmt::Display + Num + Signed + Copy,
 {
     fn default() -> Self {
         Self::new()
@@ -368,7 +337,7 @@ where
 
 impl<T> Index<usize> for Bounds3<T>
 where
-    T: Copy + Scalar,
+    T: Copy + Num,
 {
     type Output = Point3<T>;
 
@@ -455,7 +424,7 @@ impl Index<Axis> for Point3<f32> {
 
 impl<T> fmt::Display for Bounds2<T>
 where
-    T: fmt::Display + Scalar,
+    T: fmt::Display + Num,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} → {}", self.p_min, self.p_max)

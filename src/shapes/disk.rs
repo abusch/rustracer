@@ -1,9 +1,7 @@
 use std::sync::Arc;
 use std::f32::consts;
 
-use na;
-
-use {Point2f, Point3f, Transform, Vector3f};
+use {clamp, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
@@ -35,7 +33,7 @@ impl Disk {
             height: height,
             radius: radius,
             inner_radius: inner_radius,
-            phi_max: na::clamp(phi_max, 0.0, 360.0).to_radians(),
+            phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
             world_to_object: object_to_world.inverse(),
             object_to_world: object_to_world,
             reverse_orientation,

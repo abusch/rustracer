@@ -26,7 +26,7 @@ pub trait Shape {
     fn sample_si(&self, si: &Interaction, u: &Point2f) -> (Interaction, f32) {
         let (intr, mut pdf) = self.sample(u);
         let mut wi = intr.p - si.p;
-        let d2 = wi.norm_squared();
+        let d2 = wi.length_squared();
         if d2 == 0.0 {
             pdf = 0.0;
         } else {
@@ -48,7 +48,7 @@ pub trait Shape {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            (si.p - isect_light.p).norm_squared()
+            (si.p - isect_light.p).length_squared()
                 / (isect_light.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0

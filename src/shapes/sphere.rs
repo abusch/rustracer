@@ -2,9 +2,7 @@ use std::sync::Arc;
 use std::f32;
 use std::f32::consts;
 
-use na;
-
-use {coordinate_system, gamma, Point2f, Point3f, Transform, Vector3f};
+use {clamp, coordinate_system, gamma, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
 use geometry::{distance, distance_squared, offset_ray_origin, spherical_direction_vec};
@@ -53,22 +51,22 @@ impl Sphere {
 
     pub fn z_min(mut self, z_min: f32) -> Self {
         assert!(z_min <= self.z_max);
-        self.z_min = na::clamp(z_min, -self.radius, self.radius);
-        self.theta_min = na::clamp(z_min / self.radius, -1.0, 1.0).acos();
+        self.z_min = clamp(z_min, -self.radius, self.radius);
+        self.theta_min = clamp(z_min / self.radius, -1.0, 1.0).acos();
 
         self
     }
 
     pub fn z_max(mut self, z_max: f32) -> Self {
         assert!(self.z_min <= z_max);
-        self.z_max = na::clamp(z_max, -self.radius, self.radius);
-        self.theta_max = na::clamp(z_max / self.radius, -1.0, 1.0).acos();
+        self.z_max = clamp(z_max, -self.radius, self.radius);
+        self.theta_max = clamp(z_max / self.radius, -1.0, 1.0).acos();
 
         self
     }
 
     pub fn phi_max(mut self, phi_max: f32) -> Self {
-        self.phi_max = na::clamp(phi_max, 0.0, 360.0).to_radians();
+        self.phi_max = clamp(phi_max, 0.0, 360.0).to_radians();
 
         self
     }
@@ -146,7 +144,7 @@ impl Shape for Sphere {
             if p_hit.x == 0.0 && p_hit.y == 0.0 {
                 p_hit.x = 1e-5 * self.radius;
             }
-            p_hit *= self.radius / p_hit.coords.norm();
+            p_hit *= self.radius / Vector3f::from(p_hit).length();
             let mut phi = f32::atan2(p_hit.x, p_hit.y);
             if phi < 0.0 {
                 phi += 2.0 * consts::PI;
@@ -168,7 +166,7 @@ impl Shape for Sphere {
                 if p_hit.x == 0.0 && p_hit.y == 0.0 {
                     p_hit.x = 1e-5 * self.radius;
                 }
-                p_hit *= self.radius / p_hit.coords.norm();
+                p_hit *= self.radius / Vector3f::from(p_hit).length();
                 phi = f32::atan2(p_hit.x, p_hit.y);
                 if phi < 0.0 {
                     phi += 2.0 * consts::PI;
@@ -182,10 +180,10 @@ impl Shape for Sphere {
             }
             // Find parametric representation of sphere hit
             let u = phi / self.phi_max;
-            let theta = na::clamp(p_hit.z / self.radius, -1.0, 1.0).acos();
+            let theta = clamp(p_hit.z / self.radius, -1.0, 1.0).acos();
             let v = (theta - self.theta_min) / (self.theta_max - self.theta_min);
             // Compute error bound for sphere intersection
-            let p_error = gamma(5) * p_hit.coords.abs();
+            let p_error = gamma(5) * Vector3f::from(p_hit).abs();
             // Compute dp/du and dp/dv
             let z_radius = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
             let inv_z_radius = 1.0 / z_radius;
@@ -231,10 +229,10 @@ impl Shape for Sphere {
         let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
         let mut it = Interaction::empty();
         it.n = self.object_to_world
-            .transform_normal(&p_obj.coords)
+            .transform_normal(&Vector3f::from(p_obj))
             .normalize();
-        p_obj = p_obj * self.radius / p_obj.coords.norm();
-        let p_obj_error = gamma(5) * p_obj.coords.abs();
+        p_obj = p_obj * self.radius / Vector3f::from(p_obj).length();
+        let p_obj_error = gamma(5) * Vector3f::from(p_obj).abs();
         let (p, p_err) = self.object_to_world
             .transform_point_with_error(&p_obj, &p_obj_error);
         it.p = p;
@@ -251,7 +249,7 @@ impl Shape for Sphere {
         if distance_squared(&p_origin, &p_center) <= self.radius * self.radius {
             let (intr, mut pdf) = self.sample(u);
             let mut wi = intr.p - si.p;
-            if wi.norm_squared() == 0.0 {
+            if wi.length_squared() == 0.0 {
                 pdf = 0.0;
             } else {
                 // Convert from area measure returned by sample() call above to solid angle measure.
@@ -288,12 +286,12 @@ impl Shape for Sphere {
         // Compute surface normal and sampled point on sphere
         let n_world =
             spherical_direction_vec(sin_alpha, cos_alpha, phi, &(-wc_x), &(-wc_y), &(-wc));
-        let p_world = Point3f::from_coordinates(p_center.coords + self.radius * n_world);
+        let p_world = p_center + self.radius * n_world;
 
         // Return `Interaction` for sampled point on sphere
         let mut it = Interaction::empty();
         it.p = p_world;
-        it.p_error = gamma(5) * p_world.coords.abs();
+        it.p_error = gamma(5) * Vector3f::from(p_world).abs();
         it.n = n_world;
         if self.reverse_orientation {
             it.n *= -1.0;

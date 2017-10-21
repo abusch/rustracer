@@ -3,9 +3,8 @@ use std::path::Path;
 use std::f32;
 
 use img;
-use na::clamp;
 
-use {Point2f, Point2i, Vector2f};
+use {clamp, Point2f, Point2i, Vector2f};
 use bounds::{Bounds2f, Bounds2i};
 use errors::*;
 use filter::Filter;

@@ -1,7 +1,7 @@
 use std::f32::INFINITY;
 use std::ops::Mul;
 
-use num::Zero;
+use num::zero;
 
 use {Point3f, Transform, Vector3f};
 use stats;
@@ -19,7 +19,7 @@ impl Ray {
         stats::inc_primary_ray();
         assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
-        assert_ne!(d.norm_squared(), 0.0);
+        assert_ne!(d.length_squared(), 0.0);
         Ray {
             o: o,
             d: d,
@@ -32,7 +32,7 @@ impl Ray {
         stats::inc_primary_ray();
         assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
-        assert_ne!(d.norm_squared(), 0.0);
+        assert_ne!(d.length_squared(), 0.0);
         Ray {
             o: o,
             d: d,
@@ -49,7 +49,7 @@ impl Ray {
         let (mut o, o_error) = transform.transform_point(&self.o);
         let (d, d_error) = transform.transform_vector(&self.d);
         let t_max = self.t_max;
-        let length_squared = d.norm_squared();
+        let length_squared = d.length_squared();
 
         if length_squared > 0.0 {
             let dt = d.abs().dot(&o_error) / length_squared;
@@ -107,10 +107,10 @@ pub struct RayDifferential {
 impl Default for RayDifferential {
     fn default() -> Self {
         RayDifferential {
-            rx_origin: Point3f::origin(),
-            ry_origin: Point3f::origin(),
-            rx_direction: Vector3f::zero(),
-            ry_direction: Vector3f::zero(),
+            rx_origin: zero(),
+            ry_origin: zero(),
+            rx_direction: zero(),
+            ry_direction: zero(),
         }
     }
 }

@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use fp::Ieee754;
 use light_arena::Allocator;
-use na::{self, Matrix2};
 use num::Zero;
 
 use {Point2f, Point3f, Transform, Vector2f, Vector3f};
@@ -139,10 +138,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             wo: wo.normalize(),
             dpdu: dpdu,
             dpdv: dpdv,
-            dndu: na::zero(),
-            dndv: na::zero(),
-            dpdx: na::zero(),
-            dpdy: na::zero(),
+            dndu: Vector3f::zero(),
+            dndv: Vector3f::zero(),
+            dpdx: Vector3f::zero(),
+            dpdy: Vector3f::zero(),
             dudx: 0.0,
             dvdx: 0.0,
             dudy: 0.0,
@@ -154,8 +153,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 n: n,
                 dpdu: dpdu,
                 dpdv: dpdv,
-                dndu: na::zero(),
-                dndv: na::zero(),
+                dndu: Vector3f::zero(),
+                dndv: Vector3f::zero(),
             },
             bsdf: None,
         }
@@ -178,10 +177,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             wo: t * &self.wo,
             dpdu: t * &self.dpdu,
             dpdv: t * &self.dpdv,
-            dndu: na::zero(),
-            dndv: na::zero(),
-            dpdx: na::zero(),
-            dpdy: na::zero(),
+            dndu: Vector3f::zero(),
+            dndv: Vector3f::zero(),
+            dpdx: Vector3f::zero(),
+            dpdy: Vector3f::zero(),
             dudx: 0.0,
             dvdx: 0.0,
             dudy: 0.0,
@@ -192,8 +191,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 n: t.transform_normal(&self.n),
                 dpdu: t * &self.dpdu,
                 dpdv: t * &self.dpdv,
-                dndu: na::zero(),
-                dndv: na::zero(),
+                dndu: Vector3f::zero(),
+                dndv: Vector3f::zero(),
             },
             bsdf: self.bsdf.clone(),
         }
@@ -258,9 +257,11 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
 
             // Compute auxiliary intersection points with plane
             let d = self.n.dot(&Vector3f::new(self.p.x, self.p.y, self.p.z));
-            let tx = -(self.n.dot(&diff.rx_origin.coords) - d) / self.n.dot(&diff.rx_direction);
+            let tx =
+                -(self.n.dot(&Vector3f::from(diff.rx_origin)) - d) / self.n.dot(&diff.rx_direction);
             let px = diff.rx_origin + tx * diff.rx_direction;
-            let ty = -(self.n.dot(&diff.ry_origin.coords) - d) / self.n.dot(&diff.ry_direction);
+            let ty =
+                -(self.n.dot(&Vector3f::from(diff.ry_origin)) - d) / self.n.dot(&diff.ry_direction);
             let py = diff.ry_origin + ty * diff.ry_direction;
             self.dpdx = px - self.p;
             self.dpdy = py - self.p;
@@ -279,12 +280,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 dim[1] = 1;
             }
             // Initialize A, Bx, and By matrices for offset computation
-            let A = Matrix2::new(
-                self.dpdu[dim[0]],
-                self.dpdv[dim[0]],
-                self.dpdu[dim[1]],
-                self.dpdv[dim[1]],
-            );
+            let A = [
+                [self.dpdu[dim[0]], self.dpdv[dim[0]]],
+                [self.dpdu[dim[1]], self.dpdv[dim[1]]],
+            ];
             let Bx = Vector2f::new(px[dim[0]] - self.p[dim[0]], px[dim[1]] - self.p[dim[1]]);
             let By = Vector2f::new(py[dim[0]] - self.p[dim[0]], py[dim[1]] - self.p[dim[1]]);
 
@@ -349,11 +348,11 @@ pub struct Shading {
 impl Default for Shading {
     fn default() -> Self {
         Shading {
-            n: na::zero(),
-            dpdu: na::zero(),
-            dpdv: na::zero(),
-            dndu: na::zero(),
-            dndv: na::zero(),
+            n: Vector3f::zero(),
+            dpdu: Vector3f::zero(),
+            dpdv: Vector3f::zero(),
+            dndu: Vector3f::zero(),
+            dndv: Vector3f::zero(),
         }
     }
 }

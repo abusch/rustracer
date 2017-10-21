@@ -1,5 +1,10 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub,
                SubAssign};
+use std::convert::From;
+use std::fmt::{Display, Error, Formatter};
+
+use Point3;
+use num::{Num, Zero};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vector2<T> {
@@ -172,6 +177,28 @@ where
     }
 }
 
+impl<T> Zero for Vector2<T>
+where
+    T: Num + Copy,
+{
+    fn zero() -> Vector2<T> {
+        Vector2::new(T::zero(), T::zero())
+    }
+
+    fn is_zero(&self) -> bool {
+        self.x == T::zero() && self.y == T::zero()
+    }
+}
+
+impl<T> Display for Vector2<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "[{}, {}]", self.x, self.y)
+    }
+}
+
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vector3<T> {
@@ -180,9 +207,28 @@ pub struct Vector3<T> {
     pub z: T,
 }
 
-impl<T> Vector3<T> {
+impl<T> Vector3<T>
+where
+    T: Num + Copy,
+{
     pub fn new(x: T, y: T, z: T) -> Vector3<T> {
         Vector3 { x, y, z }
+    }
+
+    pub fn dot(&self, v: &Vector3<T>) -> T {
+        self.x * v.x + self.y * v.y + self.z * v.z
+    }
+
+    pub fn x() -> Vector3<T> {
+        Vector3::new(T::one(), T::zero(), T::zero())
+    }
+
+    pub fn y() -> Vector3<T> {
+        Vector3::new(T::zero(), T::one(), T::zero())
+    }
+
+    pub fn z() -> Vector3<T> {
+        Vector3::new(T::zero(), T::zero(), T::one())
     }
 }
 
@@ -198,6 +244,24 @@ impl Vector3<f32> {
     pub fn length(&self) -> f32 {
         f32::sqrt(self.length_squared())
     }
+
+    pub fn normalize(&self) -> Vector3<f32> {
+        *self / self.length()
+    }
+
+    pub fn cross(&self, v: &Vector3<f32>) -> Vector3<f32> {
+        Vector3::new(
+            (self.y * v.z) - (self.z * v.y),
+            (self.z * v.x) - (self.x * v.z),
+            (self.x * v.y) - (self.y * v.x),
+        )
+    }
+
+    pub fn abs(&self) -> Vector3<f32> {
+        Vector3::new(f32::abs(self.x), f32::abs(self.y), f32::abs(self.z))
+    }
+
+    // TODO cross_normal()
 }
 
 // Operators
@@ -294,6 +358,18 @@ where
     }
 }
 
+impl Mul<Vector3<f32>> for f32 {
+    type Output = Vector3<f32>;
+
+    fn mul(self, v: Vector3<f32>) -> Vector3<f32> {
+        Vector3 {
+            x: self * v.x,
+            y: self * v.y,
+            z: self * v.z,
+        }
+    }
+}
+
 impl<T> MulAssign<T> for Vector3<T>
 where
     T: MulAssign + Copy,
@@ -344,6 +420,15 @@ impl<T> IndexMut<usize> for Vector3<T> {
     }
 }
 
+impl<T> From<Point3<T>> for Vector3<T>
+where
+    T: Num + Copy,
+{
+    fn from(p: Point3<T>) -> Vector3<T> {
+        Vector3::new(p.x, p.y, p.z)
+    }
+}
+
 impl<T> Default for Vector3<T>
 where
     T: Default,
@@ -354,6 +439,28 @@ where
             y: T::default(),
             z: T::default(),
         }
+    }
+}
+
+impl<T> Zero for Vector3<T>
+where
+    T: Num + Copy,
+{
+    fn zero() -> Vector3<T> {
+        Vector3::new(T::zero(), T::zero(), T::zero())
+    }
+
+    fn is_zero(&self) -> bool {
+        self.x == T::zero() && self.y == T::zero() && self.z == T::zero()
+    }
+}
+
+impl<T> Display for Vector3<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "[{}, {}, {}]", self.x, self.y, self.z)
     }
 }
 

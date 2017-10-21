@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::path::Path;
 use std::collections::HashMap;
 
-use na::{self, Point2, Point3};
+use num::zero;
 
 use {Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
      coordinate_system, gamma, max_component};
@@ -155,9 +155,9 @@ impl Shape for Triangle {
         // Perform ray-triangle intersection test
         // - transform triangle vertices to ray coordinate space
         // -- translate vertices based on ray origin
-        let mut p0t = p0 - ray.o.coords;
-        let mut p1t = p1 - ray.o.coords;
-        let mut p2t = p2 - ray.o.coords;
+        let mut p0t = *p0 - Vector3f::from(ray.o);
+        let mut p1t = *p1 - Vector3f::from(ray.o);
+        let mut p2t = *p2 - Vector3f::from(ray.o);
 
         // -- permute components of triangle vertices and ray direction
         let kz = max_dimension(ray.d.abs());
@@ -256,8 +256,8 @@ impl Shape for Triangle {
         // - compute deltas for partial derivatives
         let duv02 = uv[0] - uv[2];
         let duv12 = uv[1] - uv[2];
-        let dp02 = p0 - p2;
-        let dp12 = p1 - p2;
+        let dp02 = *p0 - *p2;
+        let dp12 = *p1 - *p2;
         let determinant = duv02[0] * duv12[1] - duv02[1] * duv12[0];
         let degenerate_uv = determinant.abs() < 1e-8;
         if !degenerate_uv {
@@ -265,9 +265,9 @@ impl Shape for Triangle {
             dpdu = (duv12[1] * dp02 - duv02[1] * dp12) / inv_det;
             dpdv = (-duv12[0] * dp02 + duv02[0] * dp12) / inv_det;
         }
-        if degenerate_uv || dpdu.cross(&dpdv).norm_squared() == 0.0 {
+        if degenerate_uv || dpdu.cross(&dpdv).length_squared() == 0.0 {
             // handle zero determinant for triangle partial derivative matric
-            let (v1, v2) = coordinate_system(&(p2 - p0).cross(&(p1 - p0)).normalize());
+            let (v1, v2) = coordinate_system(&(*p2 - *p0).cross(&(*p1 - *p0)).normalize());
             dpdu = v1;
             dpdv = v2;
         }
@@ -279,9 +279,8 @@ impl Shape for Triangle {
         let p_error = gamma(7) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
 
         // interpolate (u,v) parametric coordinates and hit point
-        let p_hit = Point3::from_coordinates(p0.coords * b0 + p1.coords * b1 + p2.coords * b2);
-        let uv_hit = Point2::from_coordinates(uv[0].coords * b0 + uv[1].coords * b1 +
-                                              uv[2].coords * b2);
+        let p_hit = *p0 * b0 + *p1 * b1 + *p2 * b2;
+        let uv_hit = uv[0] * b0 + uv[1] * b1 + uv[2] * b2;
         
         // test intersection against alpha texture if present
         // TODO
@@ -307,7 +306,7 @@ impl Shape for Triangle {
         };
         // - shading bitangent
         let mut ts = ss.cross(&ns);
-        if ts.norm_squared() > 0.0 {
+        if ts.length_squared() > 0.0 {
             ts = ts.normalize();
             // adjust ss to make sure it's orthogonal with ns and ts
             ss = ts.cross(&ns);
@@ -337,7 +336,7 @@ impl Shape for Triangle {
         let p1 = self.mesh.p[self.v(1)];
         let p2 = self.mesh.p[self.v(2)];
 
-        0.5 * (p1 - p0).cross(&(p2 - p0)).norm()
+        0.5 * (p1 - p0).cross(&(p2 - p0)).length()
     }
 
     fn object_bounds(&self) -> Bounds3f {
@@ -360,9 +359,9 @@ impl Shape for Triangle {
         let p1 = &self.mesh.p[self.v(1)];
         let p2 = &self.mesh.p[self.v(2)];
 
-        let p = Point3f::from_coordinates((b[0] * p0.coords) + (b[1] * p1.coords) + ((1.0 - b[0] - b[1]) * p2.coords));
+        let p = (b[0] * *p0) + (b[1] * *p1) + ((1.0 - b[0] - b[1]) * *p2);
         // Compute surface normal for sampled point on triangle
-        let mut normal = (p1 - p0).cross(&(p2 - p0)).normalize();
+        let mut normal = (*p1 - *p0).cross(&(*p2 - *p0)).normalize();
         // Ensure correct orientation of the geometric normal; follow the same
         // approach as was used in Triangle::intersect().
         if let Some(n) = self.mesh.n.as_ref() {
@@ -373,9 +372,9 @@ impl Shape for Triangle {
         }
 
         // Compute error bounds for sampled point on triangle
-        let p_abs_sum = (b[0] * p0).coords.abs() + (b[1] * p1).coords.abs() + ((1.0 - b[0] - b[1]) * p2).coords.abs();
+        let p_abs_sum = (b[0] * *p0).abs() + (b[1] * *p1).abs() + ((1.0 - b[0] - b[1]) * *p2).abs();
         let p_error = gamma(6) * p_abs_sum;
-        let it = Interaction::new(p, p_error, na::zero(), normal);
+        let it = Interaction::new(p, Vector3f::from(p_error), zero(), normal);
 
         (it, 1.0 / self.area())
     }
