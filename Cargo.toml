@@ -25,7 +25,6 @@ image = "0.16"
 itertools = "0.6"
 light_arena = "0.1"
 minifb = { version = "0.10", optional = true }
-nalgebra = "0.13"
 num = "0.1"
 num_cpus = "1"
 openexr = { version = "0.5", optional = true }
