@@ -1,5 +1,10 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub,
                SubAssign};
+use std::convert::From;
+
+use num::{Num, Zero};
+
+use geometry::Vector3;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Normal3<T> {
@@ -8,9 +13,20 @@ pub struct Normal3<T> {
     pub z: T,
 }
 
-impl<T> Normal3<T> {
+impl<T> Normal3<T>
+where
+    T: Num + Copy,
+{
     pub fn new(x: T, y: T, z: T) -> Normal3<T> {
         Normal3 { x, y, z }
+    }
+
+    pub fn dot(&self, v: &Vector3<T>) -> T {
+        self.x * v.x + self.y * v.y + self.z * v.z
+    }
+
+    pub fn dotn(&self, v: &Normal3<T>) -> T {
+        self.x * v.x + self.y * v.y + self.z * v.z
     }
 }
 
@@ -25,6 +41,14 @@ impl Normal3<f32> {
 
     pub fn length(&self) -> f32 {
         f32::sqrt(self.length_squared())
+    }
+
+    pub fn normalize(&self) -> Normal3<f32> {
+        *self / self.length()
+    }
+
+    pub fn abs(&self) -> Normal3<f32> {
+        Normal3::new(self.x.abs(), self.y.abs(), self.z.abs())
     }
 }
 
@@ -122,6 +146,19 @@ where
     }
 }
 
+impl Mul<Normal3<f32>> for f32 {
+    type Output = Normal3<f32>;
+
+    fn mul(self, v: Normal3<f32>) -> Normal3<f32> {
+        Normal3 {
+            x: self * v.x,
+            y: self * v.y,
+            z: self * v.z,
+        }
+    }
+}
+
+
 impl<T> MulAssign<T> for Normal3<T>
 where
     T: MulAssign + Copy,
@@ -182,5 +219,27 @@ where
             y: T::default(),
             z: T::default(),
         }
+    }
+}
+
+impl<T> Zero for Normal3<T>
+where
+    T: Num + Copy,
+{
+    fn zero() -> Normal3<T> {
+        Normal3::new(T::zero(), T::zero(), T::zero())
+    }
+
+    fn is_zero(&self) -> bool {
+        self.x.is_zero() && self.y.is_zero() && self.z.is_zero()
+    }
+}
+
+impl<T> From<Vector3<T>> for Normal3<T>
+where
+    T: Num + Copy,
+{
+    fn from(v: Vector3<T>) -> Normal3<T> {
+        Normal3::new(v.x, v.y, v.z)
     }
 }

@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use {clamp, gamma, lerp, Point2f, Point3f, Transform, Vector3f};
+use num::zero;
+
+use {clamp, gamma, lerp, Normal3f, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use efloat::{solve_quadratic, EFloat};
 use interaction::{Interaction, SurfaceInteraction};
@@ -145,8 +147,12 @@ impl Shape for Cylinder {
 
             // Compute dndu and dndv from fundamental form coefficients
             let inv_EGF2 = 1.0 / (E * G - F * F);
-            let dndu = (f * F - e * G) * inv_EGF2 * dpdu + (e * F - f * E) * inv_EGF2 * dpdv;
-            let dndv = (g * F - f * G) * inv_EGF2 * dpdu + (f * F - g * E) * inv_EGF2 * dpdv;
+            let dndu = Normal3f::from(
+                (f * F - e * G) * inv_EGF2 * dpdu + (e * F - f * E) * inv_EGF2 * dpdv,
+            );
+            let dndv = Normal3f::from(
+                (g * F - f * G) * inv_EGF2 * dpdu + (f * F - g * E) * inv_EGF2 * dpdv,
+            );
 
             let p_error = gamma(3) * Vector3f::new(p_hit.x.abs(), p_hit.y.abs(), 0.0);
 
@@ -177,7 +183,7 @@ impl Shape for Cylinder {
         let z = lerp(u[0], self.z_min, self.z_max);
         let phi = u[1] * self.phi_max;
         let mut p_obj = Point3f::new(self.radius * phi.cos(), self.radius * phi.sin(), z);
-        let mut n = (&self.object_to_world * &Vector3f::new(p_obj.x, p_obj.y, 0.0)).normalize();
+        let mut n = (&self.object_to_world * &Normal3f::new(p_obj.x, p_obj.y, 0.0)).normalize();
         if self.reverse_orientation {
             n *= -1.0;
         }
@@ -189,7 +195,7 @@ impl Shape for Cylinder {
         let (p, p_error) = self.object_to_world
             .transform_point_with_error(&p_obj, &p_obj_error);
 
-        let it = Interaction::new(p, p_error, Vector3f::new(0.0, 0.0, 0.0), n);
+        let it = Interaction::new(p, p_error, zero(), n);
         (it, 1.0 / self.area())
     }
 }

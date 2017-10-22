@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use {Point2f, Point3f, Vector3f};
+use {Normal3f, Point2f, Point3f, Vector3f};
 use api::{ParamListEntry, ParamType};
 use spectrum::Spectrum;
 use texture::Texture;
@@ -49,6 +49,7 @@ pub struct ParamSet {
     point2fs: Vec<ParamSetItem<Point2f>>,
     point3fs: Vec<ParamSetItem<Point3f>>,
     vector3fs: Vec<ParamSetItem<Vector3f>>,
+    normal3fs: Vec<ParamSetItem<Normal3f>>,
     textures: Vec<ParamSetItem<String>>,
 }
 
@@ -119,6 +120,16 @@ impl ParamSet {
                         .map(|s| Vector3f::new(s[0], s[1], s[2]))
                         .collect();
                     self.add_vector3f(entry.param_name.clone(), vectors);
+                }
+                ParamType::Normal => {
+                    let vectors = entry
+                        .values
+                        .as_num_array()
+                        .chunks(3)
+                        .filter(|s| s.len() == 3)
+                        .map(|s| Normal3f::new(s[0], s[1], s[2]))
+                        .collect();
+                    self.add_normal3f(entry.param_name.clone(), vectors);
                 }
                 ParamType::Texture => {
                     self.add_texture(entry.param_name.clone(), entry.values.as_str_array())
@@ -195,6 +206,14 @@ impl ParamSet {
         });
     }
 
+    fn add_normal3f(&mut self, name: String, values: Vec<Normal3f>) {
+        self.normal3fs.push(ParamSetItem {
+            name: name,
+            values: values,
+            looked_up: false,
+        });
+    }
+
     fn add_texture(&mut self, name: String, values: Vec<String>) {
         self.textures.push(ParamSetItem {
             name: name,
@@ -211,6 +230,7 @@ impl ParamSet {
     find!(find_point2f, point2fs, Point2f);
     find!(find_point3f, point3fs, Point3f);
     find!(find_vector3f, vector3fs, Vector3f);
+    find!(find_normal3f, normal3fs, Normal3f);
     find!(find_texture, textures, String);
     find_one!(find_one_bool, bools, bool);
     find_one!(find_one_int, ints, i32);
@@ -220,6 +240,7 @@ impl ParamSet {
     find_one!(find_one_point2f, point2fs, Point2f);
     find_one!(find_one_point3f, point3fs, Point3f);
     find_one!(find_one_vector3f, vector3fs, Vector3f);
+    find_one!(find_one_normal3f, normal3fs, Normal3f);
     find_one!(find_one_texture, textures, String);
 }
 

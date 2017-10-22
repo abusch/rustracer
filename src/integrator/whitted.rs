@@ -67,7 +67,7 @@ impl SamplerIntegrator for Whitted {
 
                     let f = bsdf.f(&wo, &wi, bsdf::BxDFType::all());
                     if !f.is_black() && visibility_tester.unoccluded(scene) {
-                        colour += f * li * wi.dot(&n).abs() / pdf;
+                        colour += f * li * wi.dotn(&n).abs() / pdf;
                     }
                 }
 

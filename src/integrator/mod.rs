@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::cmp;
 
-use Point2f;
+use {Point2f, Vector3f};
 use bsdf::{self, BxDFType};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
@@ -50,7 +50,7 @@ pub trait SamplerIntegrator {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
-        if !f.is_black() && pdf != 0.0 && wi.dot(ns) != 0.0 {
+        if !f.is_black() && pdf != 0.0 && wi.dotn(ns) != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
                 let mut rddiff = RayDifferential::default();
@@ -61,15 +61,17 @@ pub trait SamplerIntegrator {
                 let dndy = isect.shading.dndu * isect.dudy + isect.dndv * isect.dvdy;
                 let dwodx = -diff.rx_direction - isect.wo;
                 let dwody = -diff.ry_direction - isect.wo;
-                let dDNdx = dwodx.dot(ns) + isect.wo.dot(&dndx);
-                let dDNdy = dwody.dot(ns) + isect.wo.dot(&dndy);
-                rddiff.rx_direction = wi - dwodx + 2.0 * (isect.wo.dot(ns) * dndx + dDNdx * *ns);
-                rddiff.ry_direction = wi - dwody + 2.0 * (isect.wo.dot(ns) * dndy + dDNdy * *ns);
+                let dDNdx = dwodx.dotn(ns) + isect.wo.dotn(&dndx);
+                let dDNdy = dwody.dotn(ns) + isect.wo.dotn(&dndy);
+                rddiff.rx_direction =
+                    wi - dwodx + 2.0 * Vector3f::from(isect.wo.dotn(ns) * dndx + dDNdx * *ns);
+                rddiff.ry_direction =
+                    wi - dwody + 2.0 * Vector3f::from(isect.wo.dotn(ns) * dndy + dDNdy * *ns);
 
                 r.differential = Some(rddiff);
             }
             let refl = self.li(scene, &mut r, sampler, arena, depth + 1);
-            f * refl * wi.dot(ns).abs() / pdf
+            f * refl * wi.dotn(ns).abs() / pdf
         } else {
             Spectrum::black()
         }
@@ -89,7 +91,7 @@ pub trait SamplerIntegrator {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
-        if !f.is_black() && pdf != 0.0 && wi.dot(ns) != 0.0 {
+        if !f.is_black() && pdf != 0.0 && wi.dotn(ns) != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
                 let mut rddiff = RayDifferential::default();
@@ -98,7 +100,7 @@ pub trait SamplerIntegrator {
 
                 let mut eta = bsdf.eta;
                 let w = -isect.wo;
-                if isect.wo.dot(ns) < 0.0 {
+                if isect.wo.dotn(ns) < 0.0 {
                     eta = 1.0 / eta;
                 }
 
@@ -107,20 +109,20 @@ pub trait SamplerIntegrator {
                 let dndy = isect.shading.dndu * isect.dudy + isect.dndv * isect.dvdy;
                 let dwodx = -diff.rx_direction - isect.wo;
                 let dwody = -diff.ry_direction - isect.wo;
-                let dDNdx = dwodx.dot(ns) + isect.wo.dot(&dndx);
-                let dDNdy = dwody.dot(ns) + isect.wo.dot(&dndy);
+                let dDNdx = dwodx.dotn(ns) + isect.wo.dotn(&dndx);
+                let dDNdy = dwody.dotn(ns) + isect.wo.dotn(&dndy);
 
-                let mu = eta * w.dot(ns) - wi.dot(ns);
-                let dmudx = (eta - (eta * eta * w.dot(ns)) / wi.dot(ns)) * dDNdx;
-                let dmudy = (eta - (eta * eta * w.dot(ns)) / wi.dot(ns)) * dDNdy;
+                let mu = eta * w.dotn(ns) - wi.dotn(ns);
+                let dmudx = (eta - (eta * eta * w.dotn(ns)) / wi.dotn(ns)) * dDNdx;
+                let dmudy = (eta - (eta * eta * w.dotn(ns)) / wi.dotn(ns)) * dDNdy;
 
-                rddiff.rx_direction = wi + eta * dwodx - (mu * dndx + dDNdx * *ns);
-                rddiff.ry_direction = wi + eta * dwody - (mu * dndy + dDNdy * *ns);
+                rddiff.rx_direction = wi + eta * dwodx - Vector3f::from(mu * dndx + dDNdx * *ns);
+                rddiff.ry_direction = wi + eta * dwody - Vector3f::from(mu * dndy + dDNdy * *ns);
 
                 r.differential = Some(rddiff);
             }
             let refr = self.li(scene, &mut r, sampler, arena, depth + 1);
-            f * refr * wi.dot(ns).abs() / pdf
+            f * refr * wi.dotn(ns).abs() / pdf
         } else {
             Spectrum::black()
         }
@@ -229,7 +231,7 @@ pub fn estimate_direct(
     let (mut li, wi, light_pdf, vis) = light.sample_li(it, u_light);
     if light_pdf > 0.0 && !li.is_black() {
         // Compute BSDF for light sample
-        let f = bsdf.f(&it.wo, &wi, bsdf_flags) * wi.dot(&it.shading.n).abs();
+        let f = bsdf.f(&it.wo, &wi, bsdf_flags) * wi.dotn(&it.shading.n).abs();
         let scattering_pdf = bsdf.pdf(&it.wo, &wi, bsdf_flags);
         if !f.is_black() {
             if !vis.unoccluded(scene) {
@@ -251,7 +253,7 @@ pub fn estimate_direct(
     if !is_delta_light(light.flags()) {
         let (mut f, wi, scattering_pdf, sampled_type) =
             bsdf.sample_f(&it.wo, u_scattering, bsdf_flags);
-        f = f * wi.dot(&it.shading.n).abs();
+        f = f * wi.dotn(&it.shading.n).abs();
         let sampled_specular = sampled_type.contains(BxDFType::BSDF_SPECULAR);
         // TODO compute medium interaction when supported
         if !f.is_black() && scattering_pdf > 0.0 {

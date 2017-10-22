@@ -106,7 +106,7 @@ impl SamplerIntegrator for PathIntegrator {
                 break;
             }
             debug!("Update beta. beta={}, f={}, pdf={}", beta, f, pdf);
-            beta = beta * f * wi.dot(&isect.shading.n).abs() / pdf;
+            beta = beta * f * wi.dotn(&isect.shading.n).abs() / pdf;
             assert!(beta.y() >= 0.0);
             assert!(!beta.y().is_infinite());
             specular_bounce = flags.contains(BxDFType::BSDF_SPECULAR);
@@ -117,7 +117,7 @@ impl SamplerIntegrator for PathIntegrator {
                 // Update the term that tracks radiance scaling for refraction
                 // depending on whether the ray is entering or leaving the
                 // medium.
-                eta_scale *= if wo.dot(&isect.n) > 0.0 {
+                eta_scale *= if wo.dotn(&isect.n) > 0.0 {
                     eta * eta
                 } else {
                     1.0 / (eta * eta)

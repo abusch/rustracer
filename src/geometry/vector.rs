@@ -3,7 +3,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, 
 use std::convert::From;
 use std::fmt::{Display, Error, Formatter};
 
-use Point3;
+use {Normal3, Point3};
 use num::{Num, Zero};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -219,6 +219,10 @@ where
         self.x * v.x + self.y * v.y + self.z * v.z
     }
 
+    pub fn dotn(&self, v: &Normal3<T>) -> T {
+        self.x * v.x + self.y * v.y + self.z * v.z
+    }
+
     pub fn x() -> Vector3<T> {
         Vector3::new(T::one(), T::zero(), T::zero())
     }
@@ -426,6 +430,15 @@ where
 {
     fn from(p: Point3<T>) -> Vector3<T> {
         Vector3::new(p.x, p.y, p.z)
+    }
+}
+
+impl<T> From<Normal3<T>> for Vector3<T>
+where
+    T: Num + Copy,
+{
+    fn from(n: Normal3<T>) -> Vector3<T> {
+        Vector3::new(n.x, n.y, n.z)
     }
 }
 

@@ -271,13 +271,11 @@ impl Transform {
         (tv, v_err)
     }
 
-    // TODO use Normal3f
-    // pub fn transform_normal(&self, normal: &Normal3f) -> Normal3f {
-    pub fn transform_normal(&self, normal: &Vector3f) -> Vector3f {
+    pub fn transform_normal(&self, normal: &Normal3f) -> Normal3f {
         let (x, y, z) = (normal.x, normal.y, normal.z);
         let m = self.m_inv.m;
 
-        Vector3f::new(
+        Normal3f::new(
             m[0][0] * x + m[1][0] * y + m[2][0] * z,
             m[0][1] * x + m[1][1] * y + m[2][1] * z,
             m[0][2] * x + m[1][2] * y + m[2][2] * z,
@@ -329,6 +327,21 @@ impl<'a, 'b> Mul<&'a Vector3f> for &'b Transform {
             m[0][0] * x + m[0][1] * y + m[0][2] * z,
             m[1][0] * x + m[1][1] * y + m[1][2] * z,
             m[2][0] * x + m[2][1] * y + m[2][2] * z,
+        )
+    }
+}
+
+impl<'a, 'b> Mul<&'a Normal3f> for &'b Transform {
+    type Output = Normal3f;
+
+    fn mul(self, n: &'a Normal3f) -> Normal3f {
+        let (x, y, z) = (n.x, n.y, n.z);
+        let m = self.m_inv.m;
+
+        Normal3f::new(
+            m[0][0] * x + m[1][0] * y + m[2][0] * z,
+            m[0][1] * x + m[1][1] * y + m[2][1] * z,
+            m[0][2] * x + m[1][2] * y + m[2][2] * z,
         )
     }
 }

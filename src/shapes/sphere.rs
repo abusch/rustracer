@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::f32;
 use std::f32::consts;
 
-use {clamp, coordinate_system, gamma, Point2f, Point3f, Transform, Vector3f};
+use {clamp, coordinate_system, gamma, Normal3f, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
 use geometry::{distance, distance_squared, offset_ray_origin, spherical_direction_vec};
@@ -229,7 +229,7 @@ impl Shape for Sphere {
         let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
         let mut it = Interaction::empty();
         it.n = self.object_to_world
-            .transform_normal(&Vector3f::from(p_obj))
+            .transform_normal(&Normal3f::new(p_obj.x, p_obj.y, p_obj.z))
             .normalize();
         p_obj = p_obj * self.radius / Vector3f::from(p_obj).length();
         let p_obj_error = gamma(5) * Vector3f::from(p_obj).abs();
@@ -292,7 +292,7 @@ impl Shape for Sphere {
         let mut it = Interaction::empty();
         it.p = p_world;
         it.p_error = gamma(5) * Vector3f::from(p_world).abs();
-        it.n = n_world;
+        it.n = Normal3f::from(n_world);
         if self.reverse_orientation {
             it.n *= -1.0;
         }

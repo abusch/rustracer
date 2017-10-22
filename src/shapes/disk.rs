@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::f32::consts;
 
-use {clamp, Point2f, Point3f, Transform, Vector3f};
+use {clamp, Normal3f, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
@@ -126,9 +126,7 @@ impl Shape for Disk {
         let pd = concentric_sample_disk(u);
         let p_obj = Point3f::new(pd.x * self.radius, pd.y * self.radius, self.height);
         let mut it = Interaction::empty();
-        it.n = self.object_to_world
-            .transform_normal(&Vector3f::z())
-            .normalize();
+        it.n = (&self.object_to_world * &Normal3f::new(0.0, 0.0, 1.0)).normalize();
         if self.reverse_orientation {
             it.n = -it.n;
         }
@@ -138,10 +136,7 @@ impl Shape for Disk {
         it.p_error = p_err;
         let pdf = 1.0 / self.area();
 
-        (
-            it,
-            pdf,
-        )
+        (it, pdf)
     }
 
     fn area(&self) -> f32 {

@@ -36,7 +36,7 @@ impl SamplerIntegrator for AmbientOcclusion {
             for _ in 0..self.n_samples {
                 let s = sampler.get_2d();
                 let mut w = uniform_sample_sphere(&s);
-                if w.dot(&n) < 0.0 {
+                if w.dotn(&n) < 0.0 {
                     w = -w;
                 }
                 let ao_ray = intersection.spawn_ray(&w);

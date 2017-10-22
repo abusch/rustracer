@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use num::zero;
 
-use {Transform, Point2f, Point3f, Vector3f, max_dimension, permute_v, permute_p,
+use {Transform, Point2f, Point3f, Vector3f, Normal3f, max_dimension, permute_v, permute_p,
      coordinate_system, gamma, max_component};
 use bounds::Bounds3f;
 use geometry;
@@ -23,7 +23,7 @@ pub struct TriangleMesh {
     world_to_object: Transform,
     vertex_indices: Vec<usize>,
     p: Vec<Point3f>,
-    n: Option<Vec<Vector3f>>,
+    n: Option<Vec<Normal3f>>,
     s: Option<Vec<Vector3f>>,
     uv: Option<Vec<Point2f>>, // TODO alpha mask
 }
@@ -33,7 +33,7 @@ impl TriangleMesh {
                vertex_indices: &[usize],
                p: &[Point3f],
                s: Option<&[Vector3f]>,
-               n: Option<&[Vector3f]>,
+               n: Option<&[Normal3f]>,
                uv: Option<&[Point2f]>)
                -> Self {
         let points: Vec<Point3f> = p.iter().map(|pt| object_to_world * pt).collect();
@@ -87,7 +87,7 @@ impl TriangleMesh {
             }
         });
         // TODO should be Normal3f
-        let N = params.find_vector3f("N").and_then(|n| {
+        let N = params.find_normal3f("N").and_then(|n| {
             if n.len() != P.len() {
                 error!("Number of \"N\"s for mesh triangle must match \"P\"s");
                 None
@@ -288,7 +288,7 @@ impl Shape for Triangle {
         // Fill in SurfaceInteraction from triangle hit
         let mut isect = SurfaceInteraction::new(p_hit, p_error, uv_hit, -ray.d, dpdu, dpdv, self);
         // - Override surface normal
-        let n = dp02.cross(&dp12).normalize();
+        let n = Normal3f::from(dp02.cross(&dp12).normalize());
         isect.n = n;
         isect.shading.n = n;
         // Initialize triangle shading geometry
@@ -305,13 +305,13 @@ impl Shape for Triangle {
             isect.dpdu.normalize()
         };
         // - shading bitangent
-        let mut ts = ss.cross(&ns);
+        let mut ts = ss.cross(&Vector3f::from(ns));
         if ts.length_squared() > 0.0 {
             ts = ts.normalize();
             // adjust ss to make sure it's orthogonal with ns and ts
-            ss = ts.cross(&ns);
+            ss = ts.cross(&Vector3f::from(ns));
         } else {
-            let (ss1, ts1) = coordinate_system(&ns);
+            let (ss1, ts1) = coordinate_system(&Vector3f::from(ns));
             ss = ss1;
             ts = ts1;
         }
@@ -321,7 +321,7 @@ impl Shape for Triangle {
 
         // Ensure correct orientation of the geometric normal
         if self.mesh.n.is_some() {
-            isect.n = geometry::face_forward(&isect.n, &isect.shading.n);
+            isect.n = geometry::face_forward_n(&isect.n, &isect.shading.n);
         } else if self.reverse_orientation ^ self.swaps_handedness {
             isect.n = -isect.n;
             isect.shading.n = isect.n;
@@ -361,12 +361,12 @@ impl Shape for Triangle {
 
         let p = (b[0] * *p0) + (b[1] * *p1) + ((1.0 - b[0] - b[1]) * *p2);
         // Compute surface normal for sampled point on triangle
-        let mut normal = (*p1 - *p0).cross(&(*p2 - *p0)).normalize();
+        let mut normal = Normal3f::from((*p1 - *p0).cross(&(*p2 - *p0))).normalize();
         // Ensure correct orientation of the geometric normal; follow the same
         // approach as was used in Triangle::intersect().
         if let Some(n) = self.mesh.n.as_ref() {
             let ns = b[0] * n[self.v(0)] + b[1] * n[self.v(1)] + (1.0 - b[0] - b[1]) * n[self.v(2)];
-            normal = geometry::face_forward(&normal, &ns);
+            normal = geometry::face_forward_n(&normal, &ns);
         } else if self.reverse_orientation ^ self.swaps_handedness {
             normal *= -1.0;
         }
@@ -405,7 +405,7 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
                             vertex_indices: &[usize],
                             p: &[Point3f],
                             s: Option<&[Vector3f]>,
-                            n: Option<&[Vector3f]>,
+                            n: Option<&[Normal3f]>,
                             uv: Option<&[Point2f]>)
                             -> Vec<Arc<Shape + Send + Sync>> {
     let mesh = Arc::new(TriangleMesh::new(object_to_world, vertex_indices, p, s, n, uv));
@@ -443,11 +443,11 @@ pub fn load_triangle_mesh(file: &Path, model_name: &str, transform: &Transform) 
         .collect();
 
     info!("\tProcessing normals");
-    let normals: Vec<Vector3f> = model
+    let normals: Vec<Normal3f> = model
         .mesh
         .normals
         .chunks(3)
-        .map(|n| Vector3f::new(n[0], n[1], n[2]))
+        .map(|n| Normal3f::new(n[0], n[1], n[2]))
         .collect();
 
     info!("\tProcessing UV coordinates");

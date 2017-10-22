@@ -12,7 +12,7 @@ pub use self::microfacet::*;
 
 use std::cmp;
 
-use {Point2f, Vector3f, ONE_MINUS_EPSILON};
+use {Normal3f, Point2f, Vector3f, ONE_MINUS_EPSILON};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 
@@ -32,9 +32,9 @@ pub struct BSDF<'a> {
     /// Index of refraction of the surface
     pub eta: f32,
     /// Shading normal (i.e. potentially affected by bump-mapping)
-    ns: Vector3f,
+    ns: Normal3f,
     /// Geometry normal
-    ng: Vector3f,
+    ng: Normal3f,
     ss: Vector3f,
     ts: Vector3f,
     bxdfs: &'a [&'a BxDF],
@@ -48,7 +48,7 @@ impl<'a> BSDF<'a> {
             ns: isect.shading.n,
             ng: isect.n,
             ss: ss,
-            ts: isect.shading.n.cross(&ss),
+            ts: Vector3f::from(isect.shading.n).cross(&ss),
             bxdfs: bxdfs,
         }
     }
@@ -60,7 +60,7 @@ impl<'a> BSDF<'a> {
         if wo.z == 0.0 {
             return Spectrum::black();
         }
-        let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
+        let reflect = wi_w.dotn(&self.ng) * wo_w.dotn(&self.ng) > 0.0;
         self.bxdfs
             .iter()
             .filter(|b| {
@@ -185,7 +185,7 @@ impl<'a> BSDF<'a> {
 
         // Compute value of BSDF for sampled direction
         if !bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps.len() > 1 {
-            let reflect = wi_w.dot(&self.ng) * wo_w.dot(&self.ng) > 0.0;
+            let reflect = wi_w.dotn(&self.ng) * wo_w.dotn(&self.ng) > 0.0;
             f = matching_comps
                 .iter()
                 .filter(|b| {
@@ -209,7 +209,7 @@ impl<'a> BSDF<'a> {
     }
 
     fn world_to_local(&self, v: &Vector3f) -> Vector3f {
-        Vector3f::new(v.dot(&self.ss), v.dot(&self.ts), v.dot(&self.ns))
+        Vector3f::new(v.dot(&self.ss), v.dot(&self.ts), v.dotn(&self.ns))
     }
 
     fn local_to_world(&self, v: &Vector3f) -> Vector3f {

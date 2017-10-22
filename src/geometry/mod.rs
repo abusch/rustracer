@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use fp::Ieee754;
 
-use {clamp, Point3f, Vector3f};
+use {clamp, Normal3f, Point3f, Vector3f};
 
 mod matrix;
 pub use self::matrix::*;
@@ -135,6 +135,14 @@ pub fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
     }
 }
 
+#[inline]
+pub fn face_forward_n(v1: &Normal3f, v2: &Normal3f) -> Normal3f {
+    if v1.dotn(v2) < 0.0 {
+        -(*v1)
+    } else {
+        *v1
+    }
+}
 
 /// Polynomial approximation of the inverse Gauss error function
 #[inline]
@@ -193,10 +201,10 @@ pub fn erf(x: f32) -> f32 {
 }
 
 #[inline]
-pub fn offset_ray_origin(p: &Point3f, p_error: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point3f {
+pub fn offset_ray_origin(p: &Point3f, p_error: &Vector3f, n: &Normal3f, w: &Vector3f) -> Point3f {
     let d = n.abs().dot(p_error);
-    let mut offset = d * *n;
-    if w.dot(n) < 0.0 {
+    let mut offset = d * Vector3f::from(*n);
+    if w.dotn(n) < 0.0 {
         offset = -offset;
     }
     let mut po = *p + offset;

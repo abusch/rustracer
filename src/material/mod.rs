@@ -1,6 +1,6 @@
 use light_arena::Allocator;
 
-use Vector2f;
+use {Normal3f, Vector2f, Vector3f};
 use interaction::SurfaceInteraction;
 use texture::Texture;
 
@@ -42,7 +42,8 @@ pub fn bump(d: &Box<Texture<f32> + Send + Sync>, si: &mut SurfaceInteraction) {
     }
     si_eval.p = si.p + du * si.shading.dpdu;
     si_eval.uv = si.uv + Vector2f::new(du, 0.0);
-    si_eval.n = (si.shading.dpdu.cross(&si.shading.dpdv) + du * si.dndu).normalize();
+    si_eval.n =
+        (Normal3f::from(si.shading.dpdu.cross(&si.shading.dpdv)) + du * si.dndu).normalize();
     let u_displace = d.evaluate(&si_eval);
 
     // Shift si dv in the dv direction
@@ -52,16 +53,17 @@ pub fn bump(d: &Box<Texture<f32> + Send + Sync>, si: &mut SurfaceInteraction) {
     }
     si_eval.p = si.p + dv * si.shading.dpdv;
     si_eval.uv = si.uv + Vector2f::new(dv, 0.0);
-    si_eval.n = (si.shading.dpdv.cross(&si.shading.dpdv) + dv * si.dndv).normalize();
+    si_eval.n =
+        (Normal3f::from(si.shading.dpdu.cross(&si.shading.dpdv)) + dv * si.dndv).normalize();
     let v_displace = d.evaluate(&si_eval);
 
     let displace = d.evaluate(si);
 
     // Compute bump-mapped differential geometry
-    let dpdu =
-        si.shading.dpdu + (u_displace - displace) / du * si.shading.n + displace * si.shading.dndu;
-    let dpdv =
-        si.shading.dpdv + (v_displace - displace) / dv * si.shading.n + displace * si.shading.dndv;
+    let dpdu = si.shading.dpdu + (u_displace - displace) / du * Vector3f::from(si.shading.n)
+        + displace * Vector3f::from(si.shading.dndu);
+    let dpdv = si.shading.dpdv + (v_displace - displace) / dv * Vector3f::from(si.shading.n)
+        + displace * Vector3f::from(si.shading.dndv);
     let dndu = si.shading.dndu;
     let dndv = si.shading.dndv;
     si.set_shading_geometry(&dpdu, &dpdv, &dndu, &dndv, false);

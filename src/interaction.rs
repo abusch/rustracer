@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use fp::Ieee754;
 use light_arena::Allocator;
-use num::Zero;
+use num::{zero, Zero};
 
-use {Point2f, Point3f, Transform, Vector2f, Vector3f};
+use {Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
 use bsdf::BSDF;
-use geometry::face_forward;
+use geometry::face_forward_n;
 use material::TransportMode;
 use primitive::Primitive;
 use ray::Ray;
@@ -27,34 +27,34 @@ pub struct Interaction {
     /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
     pub wo: Vector3f,
     /// Normal
-    pub n: Vector3f,
+    pub n: Normal3f,
 }
 
 impl Interaction {
     pub fn empty() -> Self {
         Interaction {
-            p: Point3f::new(0.0, 0.0, 0.0),
-            p_error: Vector3f::new(0.0, 0.0, 0.0),
-            wo: Vector3f::new(0.0, 0.0, 0.0),
-            n: Vector3f::new(0.0, 0.0, 0.0),
+            p: zero(),
+            p_error: zero(),
+            wo: zero(),
+            n: zero(),
         }
     }
 
-    pub fn new(p: Point3f, p_error: Vector3f, wo: Vector3f, n: Vector3f) -> Interaction {
+    pub fn new(p: Point3f, p_error: Vector3f, wo: Vector3f, n: Normal3f) -> Interaction {
         Interaction {
             p: p,
             p_error: p_error,
             wo: wo.normalize(),
-            n: n.normalize(),
+            n: n,
         }
     }
 
     pub fn from_point(p: &Point3f) -> Interaction {
         Interaction {
             p: *p,
-            p_error: Vector3f::new(0.0, 0.0, 0.0),
-            wo: Vector3f::new(0.0, 0.0, 0.0),
-            n: Vector3f::new(0.0, 0.0, 0.0),
+            p_error: zero(),
+            wo: zero(),
+            n: zero(),
         }
     }
 
@@ -91,15 +91,15 @@ pub struct SurfaceInteraction<'a, 'b> {
     /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
     pub wo: Vector3f,
     /// Normal
-    pub n: Vector3f,
+    pub n: Normal3f,
     /// Texture coordinates
     pub uv: Point2f,
     /// Partial derivatives at the intersection point
     pub dpdu: Vector3f,
     pub dpdv: Vector3f,
     /// Partial derivatives of the normal
-    pub dndu: Vector3f,
-    pub dndv: Vector3f,
+    pub dndu: Normal3f,
+    pub dndv: Normal3f,
     /// Ray differentials
     pub dpdx: Vector3f,
     pub dpdy: Vector3f,
@@ -128,7 +128,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         dpdv: Vector3f,
         shape: &Shape,
     ) -> SurfaceInteraction {
-        let n = dpdu.cross(&dpdv).normalize();
+        let n = Normal3f::from(dpdu.cross(&dpdv).normalize());
         // TODO adjust normal for handedness
         SurfaceInteraction {
             p: p,
@@ -138,10 +138,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             wo: wo.normalize(),
             dpdu: dpdu,
             dpdv: dpdv,
-            dndu: Vector3f::zero(),
-            dndv: Vector3f::zero(),
-            dpdx: Vector3f::zero(),
-            dpdy: Vector3f::zero(),
+            dndu: zero(),
+            dndv: zero(),
+            dpdx: zero(),
+            dpdy: zero(),
             dudx: 0.0,
             dvdx: 0.0,
             dudy: 0.0,
@@ -153,8 +153,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 n: n,
                 dpdu: dpdu,
                 dpdv: dpdv,
-                dndu: Vector3f::zero(),
-                dndv: Vector3f::zero(),
+                dndu: zero(),
+                dndv: zero(),
             },
             bsdf: None,
         }
@@ -177,10 +177,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             wo: t * &self.wo,
             dpdu: t * &self.dpdu,
             dpdv: t * &self.dpdv,
-            dndu: Vector3f::zero(),
-            dndv: Vector3f::zero(),
-            dpdx: Vector3f::zero(),
-            dpdy: Vector3f::zero(),
+            dndu: zero(),
+            dndv: zero(),
+            dpdx: zero(),
+            dpdy: zero(),
             dudx: 0.0,
             dvdx: 0.0,
             dudy: 0.0,
@@ -191,8 +191,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 n: t.transform_normal(&self.n),
                 dpdu: t * &self.dpdu,
                 dpdv: t * &self.dpdv,
-                dndu: Vector3f::zero(),
-                dndv: Vector3f::zero(),
+                dndu: zero(),
+                dndv: zero(),
             },
             bsdf: self.bsdf.clone(),
         }
@@ -230,17 +230,17 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         &mut self,
         dpdus: &Vector3f,
         dpdvs: &Vector3f,
-        dndus: &Vector3f,
-        dndvs: &Vector3f,
+        dndus: &Normal3f,
+        dndvs: &Normal3f,
         is_orientation_authoritative: bool,
     ) {
         // Compute shading.n for SurfaceInteraction
-        self.shading.n = dpdus.cross(dpdvs).normalize();
+        self.shading.n = Normal3f::from(dpdus.cross(dpdvs).normalize());
         // TODO handle handedness
         if is_orientation_authoritative {
-            self.n = face_forward(&self.n, &self.shading.n);
+            self.n = face_forward_n(&self.n, &self.shading.n);
         } else {
-            self.shading.n = face_forward(&self.shading.n, &self.n);
+            self.shading.n = face_forward_n(&self.shading.n, &self.n);
         }
 
         // Initialize shading partial derivative values
@@ -299,16 +299,16 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             self.dudy = 0.0;
             self.dvdx = 0.0;
             self.dvdy = 0.0;
-            self.dpdx = Vector3f::zero();
-            self.dpdy = Vector3f::zero();
+            self.dpdx = zero();
+            self.dpdy = zero();
         }
     }
 }
 
-fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Vector3f, w: &Vector3f) -> Point3f {
+fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Normal3f, w: &Vector3f) -> Point3f {
     let d = n.abs().dot(p_err);
-    let mut offset = d * *n;
-    if w.dot(n) < 0.0 {
+    let mut offset = d * Vector3f::from(*n);
+    if w.dotn(n) < 0.0 {
         offset = -offset;
     }
     let mut po = *p + offset;
@@ -338,21 +338,21 @@ impl<'a, 'b> From<&'a SurfaceInteraction<'a, 'b>> for Interaction {
 /// bump mapping, etc.
 #[derive(Clone)]
 pub struct Shading {
-    pub n: Vector3f,
+    pub n: Normal3f,
     pub dpdu: Vector3f,
     pub dpdv: Vector3f,
-    pub dndu: Vector3f,
-    pub dndv: Vector3f,
+    pub dndu: Normal3f,
+    pub dndv: Normal3f,
 }
 
 impl Default for Shading {
     fn default() -> Self {
         Shading {
-            n: Vector3f::zero(),
-            dpdu: Vector3f::zero(),
-            dpdv: Vector3f::zero(),
-            dndu: Vector3f::zero(),
-            dndv: Vector3f::zero(),
+            n: zero(),
+            dpdu: zero(),
+            dpdv: zero(),
+            dndu: zero(),
+            dndv: zero(),
         }
     }
 }
