@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use fp::Ieee754;
 use light_arena::Allocator;
-use num::{zero, Zero};
+use num::zero;
 
 use {Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
 use bsdf::BSDF;
@@ -128,8 +128,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         dpdv: Vector3f,
         shape: &Shape,
     ) -> SurfaceInteraction {
-        let n = Normal3f::from(dpdu.cross(&dpdv).normalize());
-        // TODO adjust normal for handedness
+        let mut n = Normal3f::from(dpdu.cross(&dpdv).normalize());
+        if shape.reverse_orientation() ^ shape.transform_swaps_handedness() {
+            n *= -1.0;
+        }
         SurfaceInteraction {
             p: p,
             p_error: p_error,
@@ -169,12 +171,12 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
 
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a, 'b> {
         let (p, p_err) = t.transform_point_with_error(&self.p, &self.p_error);
-        SurfaceInteraction {
+        let mut si = SurfaceInteraction {
             p: p,
             p_error: p_err,
-            n: t.transform_normal(&self.n),
+            n: t.transform_normal(&self.n).normalize(),
             uv: self.uv,
-            wo: t * &self.wo,
+            wo: (t * &self.wo).normalize(),
             dpdu: t * &self.dpdu,
             dpdv: t * &self.dpdv,
             dndu: zero(),
@@ -188,14 +190,17 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             shape: self.shape,
             primitive: self.primitive,
             shading: Shading {
-                n: t.transform_normal(&self.n),
-                dpdu: t * &self.dpdu,
-                dpdv: t * &self.dpdv,
+                n: t.transform_normal(&self.shading.n).normalize(),
+                dpdu: t * &self.shading.dpdu,
+                dpdv: t * &self.shading.dpdv,
                 dndu: zero(),
                 dndv: zero(),
             },
             bsdf: self.bsdf.clone(),
-        }
+        };
+        si.shading.n = face_forward_n(&si.shading.n, &si.n);
+
+        si
     }
 
     pub fn compute_scattering_functions(
@@ -236,7 +241,9 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     ) {
         // Compute shading.n for SurfaceInteraction
         self.shading.n = Normal3f::from(dpdus.cross(dpdvs).normalize());
-        // TODO handle handedness
+        if self.shape.reverse_orientation() ^ self.shape.transform_swaps_handedness() {
+            self.shading.n *= -1.0;
+        }
         if is_orientation_authoritative {
             self.n = face_forward_n(&self.n, &self.shading.n);
         } else {

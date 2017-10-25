@@ -22,67 +22,33 @@ pub struct Sphere {
     theta_max: f32,
     phi_max: f32,
     reverse_orientation: bool,
+    transform_swaps_handedness: bool,
 }
 
 impl Sphere {
-    pub fn new() -> Self {
+    pub fn new(
+        o2w: Transform,
+        radius: f32,
+        z_min: f32,
+        z_max: f32,
+        phi_max: f32,
+        reverse_orientation: bool,
+    ) -> Self {
+        let transform_swaps_handedness = o2w.swaps_handedness();
         Sphere {
-            object_to_world: Transform::default(),
-            world_to_object: Transform::default(),
-            radius: 1.0,
-            z_min: -1.0,
-            z_max: 1.0,
-            theta_min: consts::PI,
-            theta_max: 0.0,
-            phi_max: 2.0 * consts::PI,
-            reverse_orientation: false,
+            world_to_object: o2w.inverse(),
+            object_to_world: o2w,
+            radius,
+            z_min: clamp(f32::min(z_min, z_max), -radius, radius),
+            z_max: clamp(f32::max(z_min, z_max), -radius, radius),
+            theta_min: f32::acos(clamp(f32::min(z_min, z_max) / radius, -1.0, 1.0)),
+            theta_max: f32::acos(clamp(f32::max(z_min, z_max) / radius, -1.0, 1.0)),
+            phi_max: f32::to_radians(clamp(phi_max, 0.0, 360.0)),
+            reverse_orientation,
+            transform_swaps_handedness,
         }
     }
 
-    pub fn radius(mut self, radius: f32) -> Self {
-        self.radius = radius;
-        self.z_min = -radius;
-        self.z_max = radius;
-        self.theta_min = consts::PI;
-        self.theta_max = 0.0;
-
-        self
-    }
-
-    pub fn z_min(mut self, z_min: f32) -> Self {
-        assert!(z_min <= self.z_max);
-        self.z_min = clamp(z_min, -self.radius, self.radius);
-        self.theta_min = clamp(z_min / self.radius, -1.0, 1.0).acos();
-
-        self
-    }
-
-    pub fn z_max(mut self, z_max: f32) -> Self {
-        assert!(self.z_min <= z_max);
-        self.z_max = clamp(z_max, -self.radius, self.radius);
-        self.theta_max = clamp(z_max / self.radius, -1.0, 1.0).acos();
-
-        self
-    }
-
-    pub fn phi_max(mut self, phi_max: f32) -> Self {
-        self.phi_max = clamp(phi_max, 0.0, 360.0).to_radians();
-
-        self
-    }
-
-    pub fn transform(mut self, object_to_world: Transform) -> Self {
-        self.world_to_object = object_to_world.inverse();
-        self.object_to_world = object_to_world;
-
-        self
-    }
-
-    pub fn reverse_orientation(mut self, reverse_orientation: bool) -> Self {
-        self.reverse_orientation = reverse_orientation;
-
-        self
-    }
 
     pub fn create(
         o2w: &Transform,
@@ -95,15 +61,14 @@ impl Sphere {
         let phimax = params.find_one_float("phimax", 360.0);
 
 
-        Arc::new(
-            Sphere::new()
-                .radius(radius)
-                .z_min(zmin)
-                .z_max(zmax)
-                .phi_max(phimax)
-                .transform(o2w.clone())
-                .reverse_orientation(reverse_orientation),
-        )
+        Arc::new(Sphere::new(
+            o2w.clone(),
+            radius,
+            zmin,
+            zmax,
+            phimax,
+            reverse_orientation,
+        ))
     }
 }
 
@@ -306,10 +271,12 @@ impl Shape for Sphere {
     fn area(&self) -> f32 {
         self.phi_max * self.radius * (self.z_max - self.z_min)
     }
-}
 
-impl Default for Sphere {
-    fn default() -> Self {
-        Sphere::new()
+    fn reverse_orientation(&self) -> bool {
+        self.reverse_orientation
+    }
+
+    fn transform_swaps_handedness(&self) -> bool {
+        self.transform_swaps_handedness
     }
 }

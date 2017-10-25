@@ -26,12 +26,11 @@ pub trait Shape {
     fn sample_si(&self, si: &Interaction, u: &Point2f) -> (Interaction, f32) {
         let (intr, mut pdf) = self.sample(u);
         let mut wi = intr.p - si.p;
-        let d2 = wi.length_squared();
-        if d2 == 0.0 {
+        if wi.length_squared() == 0.0 {
             pdf = 0.0;
         } else {
             wi = wi.normalize();
-            pdf *= d2 / (intr.n.dot(&(-wi)).abs());
+            pdf *= ::geometry::distance_squared(&si.p, &intr.p) / (intr.n.dot(&(-wi)).abs());
             if pdf.is_infinite() {
                 pdf = 0.0;
             }
@@ -48,10 +47,14 @@ pub trait Shape {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            (si.p - isect_light.p).length_squared()
+            ::geometry::distance_squared(&si.p, &isect_light.p)
                 / (isect_light.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0
         }
     }
+
+    fn reverse_orientation(&self) -> bool;
+
+    fn transform_swaps_handedness(&self) -> bool;
 }

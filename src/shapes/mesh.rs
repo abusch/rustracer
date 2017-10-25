@@ -378,6 +378,14 @@ impl Shape for Triangle {
 
         (it, 1.0 / self.area())
     }
+
+    fn reverse_orientation(&self) -> bool {
+        self.reverse_orientation
+    }
+
+    fn transform_swaps_handedness(&self) -> bool {
+        self.swaps_handedness
+    }
 }
 
 pub fn create_square(object_to_world: &Transform, reverse_orientation: bool) -> Vec<Arc<Shape + Send + Sync>> {

@@ -18,6 +18,7 @@ pub struct Cylinder {
     z_max: f32,
     phi_max: f32,
     reverse_orientation: bool,
+    transform_swaps_handedness: bool,
 }
 
 impl Cylinder {
@@ -39,6 +40,7 @@ impl Cylinder {
             z_max,
             phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
             reverse_orientation,
+            transform_swaps_handedness: object_to_world.swaps_handedness(),
         })
     }
 }
@@ -197,5 +199,13 @@ impl Shape for Cylinder {
 
         let it = Interaction::new(p, p_error, zero(), n);
         (it, 1.0 / self.area())
+    }
+
+    fn reverse_orientation(&self) -> bool {
+        self.reverse_orientation
+    }
+
+    fn transform_swaps_handedness(&self) -> bool {
+        self.transform_swaps_handedness
     }
 }

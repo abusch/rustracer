@@ -68,7 +68,7 @@ impl SamplerIntegrator for PathIntegrator {
                     l += beta * isect.le(&(-ray.d));
                 } else {
                     l = scene
-                        .lights
+                        .infinite_lights
                         .iter()
                         .fold(Spectrum::black(), |c, l| c + beta * l.le(&ray));
                 }
@@ -131,7 +131,7 @@ impl SamplerIntegrator for PathIntegrator {
             // Factor out radiance scaling due to refraction in rr_beta.
             let rr_beta = beta * eta_scale;
             if rr_beta.max_component_value() < self.rr_threshold && bounces > 3 {
-                let q = (1. - -rr_beta.max_component_value()).max(0.5);
+                let q = (1.0 - rr_beta.max_component_value()).max(0.05);
                 if sampler.get_1d() < q {
                     break;
                 }

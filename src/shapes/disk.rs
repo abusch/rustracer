@@ -17,6 +17,7 @@ pub struct Disk {
     object_to_world: Transform,
     world_to_object: Transform,
     reverse_orientation: bool,
+    transform_swaps_handedness: bool,
 }
 
 impl Disk {
@@ -29,6 +30,7 @@ impl Disk {
         reverse_orientation: bool,
     ) -> Disk {
         assert!(radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
+        let transform_swaps_handedness = object_to_world.swaps_handedness();
         Disk {
             height: height,
             radius: radius,
@@ -37,6 +39,7 @@ impl Disk {
             world_to_object: object_to_world.inverse(),
             object_to_world: object_to_world,
             reverse_orientation,
+            transform_swaps_handedness,
         }
     }
 
@@ -141,5 +144,13 @@ impl Shape for Disk {
 
     fn area(&self) -> f32 {
         self.phi_max * 0.5 * (self.radius * self.radius - self.inner_radius * self.inner_radius)
+    }
+
+    fn reverse_orientation(&self) -> bool {
+        self.reverse_orientation
+    }
+
+    fn transform_swaps_handedness(&self) -> bool {
+        self.transform_swaps_handedness
     }
 }

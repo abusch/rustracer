@@ -16,7 +16,7 @@ pub use self::plastic::Plastic;
 pub use self::glass::GlassMaterial;
 pub use self::mirror::MirrorMaterial;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum TransportMode {
     RADIANCE,
     IMPORTANCE,

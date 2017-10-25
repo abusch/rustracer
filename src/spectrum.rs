@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut};
+use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut, MulAssign};
 use std::fmt;
 
 use num::{Zero, One};
@@ -232,6 +232,14 @@ impl Mul<f32> for Spectrum {
 
     fn mul(self, rhs: f32) -> Spectrum {
         Spectrum::rgb(self.r * rhs, self.g * rhs, self.b * rhs)
+    }
+}
+
+impl MulAssign<f32> for Spectrum {
+    fn mul_assign(&mut self, v: f32) {
+        self.r *= v;
+        self.g *= v;
+        self.b *= v;
     }
 }
 

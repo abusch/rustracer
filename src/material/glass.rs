@@ -47,7 +47,7 @@ impl Material for GlassMaterial {
     fn compute_scattering_functions<'a, 'b>(
         &self,
         isect: &mut SurfaceInteraction<'a, 'b>,
-        _mode: TransportMode,
+        mode: TransportMode,
         allow_multiple_lobes: bool,
         arena: &'b Allocator,
     ) {
@@ -63,7 +63,7 @@ impl Material for GlassMaterial {
         if !r.is_black() || !t.is_black() {
             let is_specular = u_rough == 0.0 && v_rough == 0.0;
             if is_specular && allow_multiple_lobes {
-                bxdfs[i] = arena <- FresnelSpecular::new();
+                bxdfs[i] = arena <- FresnelSpecular::new(r, t, 1.0, eta, mode);
                 i += 1;
             } else {
                 if self.remap_roughness {

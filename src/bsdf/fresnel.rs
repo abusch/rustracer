@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use {Point2f, Vector3f};
 use bsdf::{BxDF, BxDFType};
 use geometry::*;
+use material::TransportMode;
 use spectrum::Spectrum;
 use clamp;
 
@@ -263,15 +264,23 @@ pub struct FresnelSpecular {
     t: Spectrum,
     eta_a: f32,
     eta_b: f32,
+    mode: TransportMode,
 }
 
 impl FresnelSpecular {
-    pub fn new() -> FresnelSpecular {
+    pub fn new(
+        r: Spectrum,
+        t: Spectrum,
+        eta_a: f32,
+        eta_b: f32,
+        mode: TransportMode,
+    ) -> FresnelSpecular {
         FresnelSpecular {
-            r: Spectrum::white(),
-            t: Spectrum::white(),
-            eta_a: 1.0,
-            eta_b: 1.5,
+            r,
+            t,
+            eta_a,
+            eta_b,
+            mode,
         }
     }
 }
@@ -292,7 +301,7 @@ impl BxDF for FresnelSpecular {
             let wi = Vector3f::new(-wo.x, -wo.y, wo.z);
 
             (
-                fr * self.r * abs_cos_theta(&wi),
+                fr * self.r / abs_cos_theta(&wi),
                 wi,
                 fr,
                 BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION,
@@ -311,11 +320,12 @@ impl BxDF for FresnelSpecular {
                 &face_forward(&Vector3f::new(0.0, 0.0, 1.0), wo),
                 eta_i / eta_t,
             ) {
-                let ft = self.t * (1.0 - fr);
+                let mut ft = self.t * (1.0 - fr);
 
                 // Account for non-symmetry with transmission to different medium
-                // TODO
-                //
+                if self.mode == TransportMode::RADIANCE {
+                    ft *= (eta_i * eta_i) / (eta_t * eta_t);
+                }
                 (
                     ft / abs_cos_theta(&wi),
                     wi,
@@ -324,7 +334,7 @@ impl BxDF for FresnelSpecular {
                 )
             } else {
                 (
-                    Spectrum::white(),
+                    Spectrum::black(),
                     Vector3f::new(0.0, 0.0, 0.0),
                     0.0,
                     BxDFType::empty(),

@@ -9,6 +9,7 @@ use ray::Ray;
 
 pub struct Scene {
     pub lights: Vec<Arc<Light + Sync + Send>>,
+    pub infinite_lights: Vec<Arc<Light + Sync + Send>>,
     aggregate: Arc<Primitive + Sync + Send>,
 }
 
@@ -18,6 +19,7 @@ impl Scene {
                -> Scene {
         let mut scene = Scene {
             lights: Vec::new(),
+            infinite_lights: Vec::new(),
             aggregate: aggregate,
         };
         // TODO There's a bit of a circular reference with AreaLight <-> Shape <-> GeometricPrimitive which
