@@ -582,7 +582,7 @@ impl Api for RealApi {
     }
 
     fn film(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("Film called with {} and {:?}", name, params);
+        info!("Film called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         state.render_options.film_name = name;
@@ -609,7 +609,7 @@ impl Api for RealApi {
     }
 
     fn integrator(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("Integrator called with {} and {:?}", name, params);
+        info!("Integrator called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         state.render_options.integrator_name = name;
@@ -620,7 +620,7 @@ impl Api for RealApi {
     fn camera(&self, name: String, params: &mut ParamSet) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
-        info!("Camera called with {} and {:?}", name, params);
+        info!("Camera called with {}", name);
         state.render_options.camera_name = name;
         state.render_options.camera_params = params.clone();
         state.render_options.camera_to_world = state.cur_transform.inverse();
@@ -751,7 +751,7 @@ impl Api for RealApi {
     }
 
     fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("MakeNamedMaterial called with {} and {:?}", name, params);
+        info!("MakeNamedMaterial called with {}", name);
         let mut state = self.state.borrow_mut();
 
         let mtl = {
@@ -781,7 +781,7 @@ impl Api for RealApi {
     }
 
     fn material(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("Material called with {} and {:?}", name, params);
+        info!("Material called with {}", name);
         let mut state = self.state.borrow_mut();
         state.graphics_state.material = name;
         state.graphics_state.material_param = params.clone();
@@ -798,7 +798,7 @@ impl Api for RealApi {
     }
 
     fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("Lightsource called with {} and {:?}", name, params);
+        info!("Lightsource called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
         let lt = self.make_light(&name, params, &state.cur_transform)?;
@@ -807,7 +807,7 @@ impl Api for RealApi {
     }
 
     fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("Arealightsource called with {} and {:?}", name, params);
+        info!("Arealightsource called with {}", name);
         let mut state = self.state.borrow_mut();
         state.graphics_state.area_light = name;
         state.graphics_state.area_light_params = params.clone();
@@ -815,7 +815,7 @@ impl Api for RealApi {
     }
 
     fn shape(&self, name: String, params: &mut ParamSet) -> Result<()> {
-        info!("Shape called with {} and {:?}", name, params);
+        info!("Shape called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
 
