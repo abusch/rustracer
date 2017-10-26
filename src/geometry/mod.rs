@@ -53,7 +53,7 @@ pub fn tan2_theta(w: &Vector3f) -> f32 {
 pub fn cos_phi(w: &Vector3f) -> f32 {
     let sin_theta = sin_theta(w);
     if sin_theta == 0.0 {
-        0.0
+        1.0
     } else {
         clamp(w.x / sin_theta, -1.0, 1.0)
     }
@@ -80,6 +80,7 @@ pub fn sin2_phi(w: &Vector3f) -> f32 {
 }
 
 #[inline]
+#[allow(dead_code)]
 pub fn cos_d_phi(wa: &Vector3f, wb: &Vector3f) -> f32 {
     clamp(
         (wa.x * wb.x + wa.y * wa.y)

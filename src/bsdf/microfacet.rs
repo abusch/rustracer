@@ -1,6 +1,8 @@
 use std::f32::consts;
 use std::fmt::Debug;
 
+use num::Zero;
+
 use {Point2f, Vector3f};
 use spectrum::Spectrum;
 use bsdf::{reflect, refract, BxDF, BxDFType};
@@ -127,8 +129,8 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
             return Spectrum::black();
         }
 
-        let cos_theta_o = abs_cos_theta(wo);
-        let cos_theta_i = abs_cos_theta(wi);
+        let cos_theta_o = cos_theta(wo);
+        let cos_theta_i = cos_theta(wi);
         // Handle degenerate case for microfacet reflection
         if cos_theta_o == 0.0 || cos_theta_i == 0.0 {
             return Spectrum::black();
@@ -154,10 +156,12 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
         };
 
 
-        (Spectrum::white() - f) * self.t * self.distribution.d(&wh).abs()
-            * self.distribution.g(wo, wi) * eta * eta * wi.dot(&wh).abs()
-            * wo.dot(&wh).abs() * factor * factor
-            / (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom)
+        (Spectrum::white() - f) * self.t
+            * f32::abs(
+                self.distribution.d(&wh) * self.distribution.g(wo, wi) * eta * eta
+                    * wi.dot(&wh).abs() * wo.dot(&wh).abs() * factor * factor
+                    / (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom),
+            )
     }
 
     fn get_type(&self) -> BxDFType {
@@ -178,9 +182,9 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
 
         let wh = self.distribution.sample_wh(wo, u);
         let eta = if cos_theta(wo) > 0.0 {
-            self.eta_b / self.eta_a
-        } else {
             self.eta_a / self.eta_b
+        } else {
+            self.eta_b / self.eta_a
         };
 
         if let Some(wi) = refract(wo, &wh, eta) {
@@ -574,21 +578,23 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
         1.0 / (consts::PI * self.alpha_x * self.alpha_y * cos4theta * (1.0 + e) * (1.0 + e))
     }
 
-    fn lambda(&self, wh: &Vector3f) -> f32 {
-        let abs_tan_theta = tan_theta(wh).abs();
+    fn lambda(&self, w: &Vector3f) -> f32 {
+        let abs_tan_theta = tan_theta(w).abs();
         if abs_tan_theta.is_infinite() {
             return 0.0;
         }
 
         // Compute alpha for direction w
-        let alpha = (cos2_phi(wh) * self.alpha_x * self.alpha_x
-            + sin2_phi(wh) * self.alpha_y * self.alpha_y)
+        let alpha = (cos2_phi(w) * self.alpha_x * self.alpha_x
+            + sin2_phi(w) * self.alpha_y * self.alpha_y)
             .sqrt();
         let alpha2tan2theta = (alpha * abs_tan_theta) * (alpha * abs_tan_theta);
         (-1.0 + (1.0 + alpha2tan2theta).sqrt()) / 2.0
     }
 
     fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
+        let mut wh = Vector3f::zero();
+
         if !self.sample_visible_area {
             let cos_theta;
             let mut phi = (2.0 * consts::PI) * u[1];
@@ -597,9 +603,10 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
                 let tan_theta2 = self.alpha_x * self.alpha_x * u[0] / (1.0 - u[0]);
                 cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
             } else {
-                phi = (self.alpha_y / self.alpha_x
-                    * (2.0 * consts::PI * u[1] + 0.5 * consts::PI).tan())
-                    .atan();
+                phi = f32::atan(
+                    self.alpha_y / self.alpha_x
+                        * f32::tan(2.0 * consts::PI * u[1] + 0.5 * consts::PI),
+                );
                 if u[1] > 0.5 {
                     phi += consts::PI;
                 }
@@ -613,22 +620,19 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
                 cos_theta = 1.0 / (1.0 + tan_theta2).sqrt();
             }
             let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
-            let wh = spherical_direction(sin_theta, cos_theta, phi);
+            wh = spherical_direction(sin_theta, cos_theta, phi);
             if !same_hemisphere(wo, &wh) {
-                -wh
-            } else {
-                wh
+                wh = -wh;
             }
         } else {
             let flip = wo.z < 0.0;
             let wo = if flip { -(*wo) } else { *wo };
-            let wh = self.sample(&wo, u[0], u[1]);
+            wh = self.sample(&wo, u[0], u[1]);
             if flip {
-                -wh
-            } else {
-                wh
+                wh = -wh;
             }
         }
+        wh
     }
 
     fn sample_visible_area(&self) -> bool {
