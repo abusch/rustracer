@@ -8,6 +8,7 @@ use mipmap::{MIPMap, WrapMode};
 use spectrum::Spectrum;
 use texture::{Texture, TextureMapping2D, UVMapping2D};
 
+#[derive(Debug)]
 pub struct ImageTexture {
     mapping: Box<TextureMapping2D + Send + Sync>,
     mipmap: Arc<MIPMap<Spectrum>>,
@@ -18,7 +19,6 @@ impl ImageTexture {
         info!("Loading texture {}", path.display());
         let (res, pixels) = match read_image(path) {
             Ok((mut pixels, res)) => {
-
                 // Flip image in y; texture coordinate space has (0,0) at the lower
                 // left corner.
                 for y in 0..res.y / 2 {
@@ -32,8 +32,10 @@ impl ImageTexture {
                 (res, pixels)
             }
             Err(e) => {
-                warn!("Could not open texture file. Using grey texture instead: {}",
-                      e);
+                warn!(
+                    "Could not open texture file. Using grey texture instead: {}",
+                    e
+                );
                 (Point2i::new(1, 1), vec![Spectrum::grey(0.18)])
             }
         };

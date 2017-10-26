@@ -10,6 +10,7 @@ use paramset::ParamSet;
 use ray::Ray;
 use shapes::Shape;
 
+#[derive(Debug)]
 pub struct Cylinder {
     object_to_world: Transform,
     world_to_object: Transform,

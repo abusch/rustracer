@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::fmt::Debug;
 
 use Transform;
 use interaction::SurfaceInteraction;
@@ -6,6 +7,7 @@ use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::{ConstantTexture, Texture, TextureMapping2D, UVMapping2D};
 
+#[derive(Debug)]
 pub struct CheckerboardTexture<T> {
     tex1: Arc<Texture<T> + Send + Sync>,
     tex2: Arc<Texture<T> + Send + Sync>,
@@ -75,7 +77,7 @@ impl CheckerboardTexture<Spectrum> {
     }
 }
 
-impl<T> Texture<T> for CheckerboardTexture<T> {
+impl<T: Debug> Texture<T> for CheckerboardTexture<T> {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {
         let st = self.mapping.map(si);
         if (st.x.floor() as u32 + st.y.floor() as u32) % 2 == 0 {

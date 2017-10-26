@@ -10,6 +10,7 @@ use material::{Material, TransportMode};
 use spectrum::Spectrum;
 use texture::Texture;
 
+#[derive(Debug)]
 pub struct GlassMaterial {
     kr: Arc<Texture<Spectrum> + Send + Sync>,
     kt: Arc<Texture<Spectrum> + Send + Sync>,

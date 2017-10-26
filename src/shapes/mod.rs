@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use {Point2f, Vector3f};
 use ray::Ray;
 use bounds::Bounds3f;
@@ -8,7 +10,7 @@ pub mod disk;
 pub mod mesh;
 pub mod cylinder;
 
-pub trait Shape {
+pub trait Shape: Debug {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
 
     fn intersect_p(&self, ray: &Ray) -> bool {

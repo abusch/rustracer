@@ -11,6 +11,7 @@ use spectrum::Spectrum;
 use interaction::{Interaction, SurfaceInteraction};
 
 
+#[derive(Debug)]
 pub struct DiffuseAreaLight {
     id: Uuid,
     l_emit: Spectrum,

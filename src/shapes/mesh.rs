@@ -18,6 +18,7 @@ use shapes::Shape;
 use stats;
 use texture::Texture;
 
+#[derive(Debug)]
 pub struct TriangleMesh {
     object_to_world: Transform,
     world_to_object: Transform,
@@ -111,6 +112,7 @@ impl TriangleMesh {
     }
 }
 
+#[derive(Debug)]
 pub struct Triangle {
     mesh: Arc<TriangleMesh>,
     v_start_index: usize,

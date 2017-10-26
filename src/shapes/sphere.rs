@@ -12,6 +12,7 @@ use ray::Ray;
 use sampling::uniform_sample_sphere;
 use shapes::Shape;
 
+#[derive(Debug)]
 pub struct Sphere {
     object_to_world: Transform,
     world_to_object: Transform,

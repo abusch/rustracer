@@ -1,9 +1,12 @@
+use std::fmt::Debug;
+
 use Transform;
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::Texture;
 
+#[derive(Debug)]
 pub struct ConstantTexture<T> {
     value: T,
 }
@@ -29,7 +32,7 @@ impl ConstantTexture<Spectrum> {
     }
 }
 
-impl<T: Copy> Texture<T> for ConstantTexture<T> {
+impl<T: Copy + Debug> Texture<T> for ConstantTexture<T> {
     fn evaluate(&self, _si: &SurfaceInteraction) -> T {
         self.value
     }

@@ -1,6 +1,7 @@
 use {clamp, Point2f};
 use sampling::Distribution1D;
 
+#[derive(Debug)]
 pub struct Distribution2D {
     p_conditional_v: Vec<Distribution1D>,
     p_marginal: Distribution1D,

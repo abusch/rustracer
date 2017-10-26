@@ -16,6 +16,7 @@ use ray::Ray;
 use shapes::Shape;
 use shapes::mesh;
 
+#[derive(Debug)]
 pub struct BVH {
     max_prims_per_node: usize,
     primitives: Vec<Box<Primitive + Send + Sync>>,

@@ -10,12 +10,14 @@ use {clamp, lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
 use spectrum::Spectrum;
 
+#[derive(Debug)]
 pub enum WrapMode {
     Repeat,
     Black,
     Clamp,
 }
 
+#[derive(Debug)]
 pub struct MIPMap<T> {
     do_trilinear: bool,
     max_anisotropy: f32,

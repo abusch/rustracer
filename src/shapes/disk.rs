@@ -9,6 +9,7 @@ use ray::Ray;
 use sampling::concentric_sample_disk;
 use shapes::Shape;
 
+#[derive(Debug)]
 pub struct Disk {
     height: f32,
     radius: f32,

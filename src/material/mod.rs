@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use light_arena::Allocator;
 
 use {Normal3f, Vector2f, Vector3f};
@@ -22,7 +24,7 @@ pub enum TransportMode {
     IMPORTANCE,
 }
 
-pub trait Material {
+pub trait Material: Debug {
     fn compute_scattering_functions<'a, 'b>(
         &self,
         isect: &mut SurfaceInteraction<'a, 'b>,

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use {Point2f, Point3f, Transform, Vector3f};
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;
@@ -13,10 +15,11 @@ pub use self::checkerboard::CheckerboardTexture;
 pub use self::imagemap::ImageTexture;
 pub use self::fbm::FbmTexture;
 
-pub trait Texture<T> {
+pub trait Texture<T>: Debug {
     fn evaluate(&self, si: &SurfaceInteraction) -> T;
 }
 
+#[derive(Debug)]
 pub struct UVTexture {
     mapping: Box<TextureMapping2D + Send + Sync>,
 }
@@ -60,10 +63,11 @@ impl Texture<Spectrum> for UVTexture {
 
 // Texture mappings
 
-pub trait TextureMapping2D {
+pub trait TextureMapping2D: Debug {
     fn map(&self, si: &SurfaceInteraction) -> Point2f;
 }
 
+#[derive(Debug)]
 pub struct UVMapping2D {
     su: f32,
     sv: f32,
@@ -88,11 +92,11 @@ impl TextureMapping2D for UVMapping2D {
     }
 }
 
-pub trait TextureMapping3D {
+pub trait TextureMapping3D: Debug {
     fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f);
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct TransformMapping3D {
     world_to_texture: Transform,
 }

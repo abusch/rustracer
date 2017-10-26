@@ -17,6 +17,7 @@ use ray::Ray;
 use sampling::Distribution2D;
 use spectrum::Spectrum;
 
+#[derive(Debug)]
 pub struct InfiniteAreaLight {
     id: Uuid,
     light_to_world: Transform,

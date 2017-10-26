@@ -11,6 +11,7 @@ use paramset::TextureParams;
 use texture::Texture;
 
 
+#[derive(Debug)]
 pub struct Plastic {
     kd: Arc<Texture<Spectrum> + Send + Sync>,
     ks: Arc<Texture<Spectrum> + Send + Sync>,

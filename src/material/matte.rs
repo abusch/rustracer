@@ -9,6 +9,7 @@ use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::Texture;
 
+#[derive(Debug)]
 pub struct MatteMaterial {
     kd: Arc<Texture<Spectrum> + Sync + Send>,
     sigma: Arc<Texture<f32> + Sync + Send>,

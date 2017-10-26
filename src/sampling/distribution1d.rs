@@ -1,5 +1,6 @@
 use find_interval;
 
+#[derive(Debug)]
 pub struct Distribution1D {
     pub func: Vec<f32>,
     cdf: Vec<f32>,

@@ -1,4 +1,5 @@
 use std::f32;
+use std::fmt::Debug;
 
 use uuid::Uuid;
 
@@ -48,7 +49,7 @@ impl VisibilityTester {
     }
 }
 
-pub trait Light {
+pub trait Light: Debug {
     fn id(&self) -> Uuid;
     /// Sample the light source
     /// Return a tuple of:

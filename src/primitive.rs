@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::sync::Arc;
 
 use light_arena::Allocator;
@@ -9,7 +10,7 @@ use material::{Material, TransportMode};
 use ray::Ray;
 use shapes::Shape;
 
-pub trait Primitive {
+pub trait Primitive: Debug {
     fn world_bounds(&self) -> Bounds3f;
 
     fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction>;
@@ -28,6 +29,7 @@ pub trait Primitive {
     );
 }
 
+#[derive(Debug)]
 pub struct GeometricPrimitive {
     pub shape: Arc<Shape + Send + Sync>,
     pub area_light: Option<Arc<AreaLight + Send + Sync>>,

@@ -8,6 +8,7 @@ use material::{self, Material, TransportMode};
 use spectrum::Spectrum;
 use texture::{ConstantTexture, Texture};
 
+#[derive(Debug)]
 pub struct Metal {
     eta: Box<Texture<Spectrum> + Send + Sync>,
     k: Box<Texture<Spectrum> + Send + Sync>,

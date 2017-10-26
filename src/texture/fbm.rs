@@ -2,6 +2,7 @@ use interaction::SurfaceInteraction;
 use noise;
 use texture::{Texture, TextureMapping3D, TransformMapping3D};
 
+#[derive(Debug)]
 pub struct FbmTexture {
     mapping: Box<TextureMapping3D>,
     omega: f32,
