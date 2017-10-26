@@ -9,6 +9,7 @@ use paramset::TextureParams;
 use texture::Texture;
 use spectrum::Spectrum;
 
+#[derive(Debug)]
 pub struct MirrorMaterial {
     kr: Arc<Texture<Spectrum> + Send + Sync>,
 }
@@ -35,7 +36,7 @@ impl Material for MirrorMaterial {
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
         let R = self.kr.evaluate(si); // TODO clamp
-        if R.is_black() {
+        if !R.is_black() {
             let fresnel = arena <- Fresnel::no_op();
             bxdfs[i] = arena <- SpecularReflection::new(R, fresnel);
             i += 1;
