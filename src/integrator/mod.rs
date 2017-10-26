@@ -50,7 +50,7 @@ pub trait SamplerIntegrator {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
-        if !f.is_black() && pdf != 0.0 && wi.dotn(ns) != 0.0 {
+        if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
                 let mut rddiff = RayDifferential::default();
@@ -91,7 +91,7 @@ pub trait SamplerIntegrator {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
-        if !f.is_black() && pdf != 0.0 && wi.dotn(ns) != 0.0 {
+        if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
                 let mut rddiff = RayDifferential::default();
