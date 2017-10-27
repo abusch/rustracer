@@ -6,7 +6,7 @@ use std::fs::File;
 
 use img;
 #[cfg(openexr)]
-use openexr::{InputFile, FrameBufferMut};
+use openexr::{FrameBufferMut, InputFile};
 
 use Point2i;
 use errors::*;
@@ -17,8 +17,8 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     let path = path.as_ref();
     let extension = path.extension()
         .ok_or("Texture filename doesn't have an extension")?;
-    if extension == "tga" || extension == "TGA" {
-        read_image_tga(path)
+    if extension == "tga" || extension == "TGA" || extension == "png" || extension == "PNG" {
+        read_image_tga_png(path)
     } else if extension == "exr" || extension == "EXR" {
         read_image_exr(path)
     } else {
@@ -26,15 +26,13 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     }
 }
 
-fn read_image_tga<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
-    info!("Loading TGA texture {}", path.as_ref().display());
+fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+    info!("Loading texture {}", path.as_ref().display());
     let buf = img::open(path)?;
 
     let rgb = buf.to_rgb();
     let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
-    let pixels: Vec<Spectrum> = rgb.pixels()
-        .map(|p| Spectrum::from_srgb(&p.data))
-        .collect();
+    let pixels: Vec<Spectrum> = rgb.pixels().map(|p| Spectrum::from_srgb(&p.data)).collect();
 
     Ok((pixels, res))
 }
@@ -57,7 +55,7 @@ fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
         (width, height)
     };
 
-    let mut pixel_data: Vec<(f32, f32, f32)> = vec![(0.0, 0.0, 0.0); (width*height) as usize];
+    let mut pixel_data: Vec<(f32, f32, f32)> = vec![(0.0, 0.0, 0.0); (width * height) as usize];
 
     {
         let mut fb = {
@@ -75,6 +73,4 @@ fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
         .map(|&(r, g, b)| Spectrum::rgb(r, g, b))
         .collect();
     Ok((pixels, Point2i::new(width, height)))
-
-
 }

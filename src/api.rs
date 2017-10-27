@@ -29,7 +29,7 @@ use shapes::cylinder::Cylinder;
 use shapes::disk::Disk;
 use shapes::mesh::TriangleMesh;
 use spectrum::Spectrum;
-use texture::{CheckerboardTexture, ConstantTexture, Texture, UVTexture};
+use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, Texture, UVTexture};
 
 #[derive(Debug, Copy, Clone)]
 pub enum ApiState {
@@ -1006,7 +1006,7 @@ fn make_spectrum_texture(
     } else if name == "bilerp" {
         unimplemented!()
     } else if name == "imagemap" {
-        unimplemented!()
+        Arc::new(ImageTexture::create(transform, tp))
     } else if name == "uv" {
         Arc::new(UVTexture::create_spectrum(transform, tp))
     } else if name == "checkerboard" {

@@ -12,6 +12,7 @@ dependencies = [
  "ieee754 0.2.1 (git+https://github.com/abusch/ieee754.git)",
  "image 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "light_arena 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",

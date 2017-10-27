@@ -3,6 +3,7 @@ mod parser;
 
 use api::{Api, RealApi};
 use errors::*;
+use fileutil;
 
 pub fn parse_scene(input: &str) -> Result<()> {
     // TODO handle errors
@@ -14,6 +15,7 @@ pub fn parse_scene(input: &str) -> Result<()> {
         .into_iter()
         .filter(|x| *x != lexer::Tokens::COMMENT)
         .collect::<Vec<_>>();
+    fileutil::set_search_directory(fileutil::directory_containing(input));
     let api = RealApi::default();
     api.init()?;
     parser::parse(&filtered_tokens[..], &api)

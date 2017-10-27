@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use {Normal3f, Point2f, Point3f, Vector3f};
 use api::{ParamListEntry, ParamType};
+use fileutil::resolve_filename;
 use spectrum::Spectrum;
 use texture::Texture;
 use texture::ConstantTexture;
@@ -140,6 +141,16 @@ impl ParamSet {
                 ),
             }
         }
+    }
+
+    pub fn find_one_filename(&mut self, name: &str, d: String) -> String {
+        let mut filename = self.find_one_string(name, "".to_owned());
+        if filename == "" {
+            return d;
+        }
+        filename = resolve_filename(&filename);
+
+        return filename;
     }
 
     fn add_bool(&mut self, name: String, values: Vec<bool>) {
@@ -291,6 +302,11 @@ impl<'a> TextureParams<'a> {
     pub fn find_string(&mut self, n: &str, d: &str) -> String {
         let mat_string = self.material_params.find_one_string(n, d.to_owned());
         self.geom_params.find_one_string(n, mat_string)
+    }
+
+    pub fn find_filename(&mut self, n: &str, d: &str) -> String {
+        let mat_string = self.material_params.find_one_filename(n, d.to_owned());
+        self.geom_params.find_one_filename(n, mat_string)
     }
 
     pub fn find_bool(&mut self, n: &str, d: bool) -> bool {

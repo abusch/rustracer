@@ -23,6 +23,7 @@ error-chain = "0.11"
 ieee754 = { git = "https://github.com/abusch/ieee754.git" }
 image = "0.17"
 itertools = "0.7"
+lazy_static = "0.2"
 light_arena = "0.1"
 minifb = { version = "0.10", optional = true }
 num = "0.1"

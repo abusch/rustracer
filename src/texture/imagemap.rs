@@ -7,6 +7,8 @@ use imageio::read_image;
 use mipmap::{MIPMap, WrapMode};
 use spectrum::Spectrum;
 use texture::{Texture, TextureMapping2D, UVMapping2D};
+use paramset::TextureParams;
+use transform::Transform;
 
 #[derive(Debug)]
 pub struct ImageTexture {
@@ -44,6 +46,33 @@ impl ImageTexture {
             mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),
             mipmap: Arc::new(MIPMap::new(&res, &pixels[..], false, 0.0, WrapMode::Repeat)),
         }
+    }
+
+    pub fn create(tex2world: &Transform, tp: &mut TextureParams) -> ImageTexture {
+        let typ = tp.find_string("mapping", "uv");
+        let map = if typ == "uv" {
+            let su = tp.find_float("uscale", 1.0);
+            let sv = tp.find_float("vscale", 1.0);
+            let du = tp.find_float("udelta", 0.0);
+            let dv = tp.find_float("vdelta", 0.0);
+
+            UVMapping2D::new(su, sv, du, dv)
+        } else {
+            unimplemented!();
+        };
+        let max_aniso = tp.find_float("maxanisotropy", 8.0);
+        let trilerp = tp.find_bool("trilinear", false);
+        let wrap = tp.find_string("wrap", "repeat");
+        let wrap_mode = if wrap == "black" {
+            WrapMode::Black
+        } else if wrap == "clamp" {
+            WrapMode::Clamp
+        } else {
+            WrapMode::Repeat
+        };
+        let filename = tp.find_filename("filename", "");
+
+        Self::new(&Path::new(&filename))
     }
 }
 
