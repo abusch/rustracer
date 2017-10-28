@@ -3,7 +3,7 @@ use std::mem;
 
 use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
-use light::Light;
+use light::{Light, LightFlags};
 use primitive::Primitive;
 use ray::Ray;
 
@@ -17,19 +17,23 @@ impl Scene {
     pub fn new(aggregate: Arc<Primitive + Sync + Send>,
                lights: Vec<Arc<Light + Sync + Send>>)
                -> Scene {
-        let mut scene = Scene {
-            lights: Vec::new(),
-            infinite_lights: Vec::new(),
-            aggregate: aggregate,
-        };
         // TODO There's a bit of a circular reference with AreaLight <-> Shape <-> GeometricPrimitive which
         // doesn't play well with mutation needed by preprocessing...
         // for l in lights.iter_mut() {
         //     l.borrow_mut().preprocess(&scene);
         // }
-        mem::replace(&mut scene.lights, lights);
+        let mut infinite_lights = Vec::new();
+        for l in &lights {
+            if l.flags().contains(LightFlags::INFINITE) {
+                infinite_lights.push(l.clone());
+            }
+        }
 
-        scene
+        Scene {
+            lights: lights,
+            infinite_lights: infinite_lights,
+            aggregate: aggregate,
+        }
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
