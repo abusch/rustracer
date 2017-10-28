@@ -15,8 +15,8 @@ pub struct Metal {
     k: Arc<Texture<Spectrum> + Send + Sync>,
     rough: Arc<Texture<f32> + Send + Sync>,
     bump: Option<Arc<Texture<f32> + Send + Sync>>,
-    // urough: Box<Texture<f32>>,
-    // vrough: Box<Texture<f32>>,
+    urough: Option<Arc<Texture<f32> + Send + Sync>>,
+    vrough: Option<Arc<Texture<f32> + Send + Sync>>,
     remap_roughness: bool,
 }
 
@@ -34,8 +34,8 @@ impl Metal {
                 COPPER_SAMPLES,
             ))),
             rough: Arc::new(ConstantTexture::new(0.01)),
-            // urough: Box::new(ConstantTexture::new(...)),
-            // vrough: Box::new(ConstantTexture::new(...)),
+            urough: None,
+            vrough: None,
             remap_roughness: true,
             bump: None,
         }
@@ -49,6 +49,8 @@ impl Metal {
             Spectrum::from_sampled(&COPPER_WAVELENGTHS[..], &COPPER_K[..], COPPER_SAMPLES);
         let k = mp.get_spectrum_texture("k", &copper_k);
         let rough = mp.get_float_texture("roughness", 0.01);
+        let urough = mp.get_float_texture_or_none("uroughness");
+        let vrough = mp.get_float_texture_or_none("vroughness");
         // TODO uroughness and vroughness
         let bump = mp.get_float_texture_or_none("bumpmap");
         let remap_roughness = mp.find_bool("remaproughness", true);
@@ -58,28 +60,10 @@ impl Metal {
             k,
             rough,
             bump,
+            urough,
+            vrough,
             remap_roughness,
         })
-    }
-
-    pub fn gold() -> Self {
-        Metal {
-            eta: Arc::new(ConstantTexture::new(Spectrum::from_sampled(
-                &AU_WAVELENGTHS[..],
-                &AU_N[..],
-                AU_SAMPLES,
-            ))),
-            k: Arc::new(ConstantTexture::new(Spectrum::from_sampled(
-                &AU_WAVELENGTHS[..],
-                &AU_K[..],
-                AU_SAMPLES,
-            ))),
-            rough: Arc::new(ConstantTexture::new(0.01)),
-            // urough: Box::new(ConstantTexture::new(...)),
-            // vrough: Box::new(ConstantTexture::new(...)),
-            remap_roughness: true,
-            bump: None,
-        }
     }
 }
 
@@ -96,14 +80,16 @@ impl Material for Metal {
         }
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
-        let mut rough = self.rough.evaluate(si);
+        let mut urough = self.urough.as_ref().unwrap_or(&self.rough).evaluate(si);
+        let mut vrough = self.vrough.as_ref().unwrap_or(&self.rough).evaluate(si);
         if self.remap_roughness {
-            rough = TrowbridgeReitzDistribution::roughness_to_alpha(rough);
+            urough = TrowbridgeReitzDistribution::roughness_to_alpha(urough);
+            vrough = TrowbridgeReitzDistribution::roughness_to_alpha(vrough);
         }
         let fresnel = arena <- Fresnel::conductor(Spectrum::white(),
                                                   self.eta.evaluate(si),
                                                   self.k.evaluate(si));
-        let distrib = arena <- TrowbridgeReitzDistribution::new(rough, rough);
+        let distrib = arena <- TrowbridgeReitzDistribution::new(urough, vrough);
         bxdfs[i] = arena <- MicrofacetReflection::new(Spectrum::white(), distrib, fresnel);
         i += 1;
 
