@@ -89,7 +89,12 @@ impl Film {
 
     pub fn create(ps: &mut ParamSet, filter: Box<Filter + Send + Sync>) -> Box<Film> {
         // TODO filename
-        let filename = "image.png";
+        let mut filename = ps.find_one_string("filename", "".into());
+        if filename == "" {
+            filename = "image.png".into();
+        } else {
+            filename = String::from("rt-") + &filename;
+        }
         let xres = ps.find_one_int("xresolution", 1280);
         let yres = ps.find_one_int("yresolution", 720);
         let mut crop = Bounds2f::from_points(&Point2f::new(0.0, 0.0), &Point2f::new(1.0, 1.0));
@@ -111,7 +116,7 @@ impl Film {
             crop,
             filter,
             diagonal,
-            filename,
+            &filename,
             scale,
         ))
     }
