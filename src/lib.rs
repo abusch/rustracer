@@ -19,6 +19,7 @@ extern crate lazy_static;
 extern crate light_arena;
 // extern crate nalgebra as na;
 extern crate num;
+extern crate ply_rs;
 #[macro_use(slog_error, slog_warn, slog_info, slog_debug, slog_trace, slog_log, slog_record,
             slog_record_static, slog_b, slog_kv)]
 extern crate slog;

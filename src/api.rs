@@ -28,6 +28,7 @@ use shapes::sphere::Sphere;
 use shapes::cylinder::Cylinder;
 use shapes::disk::Disk;
 use shapes::mesh::TriangleMesh;
+use shapes::plymesh;
 use spectrum::Spectrum;
 use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, Texture, UVTexture};
 
@@ -933,6 +934,15 @@ fn make_shapes(
         unimplemented!();
     } else if name == "trianglemesh" {
         let mut tris = TriangleMesh::create(
+            object2world,
+            world2object,
+            reverse_orientation,
+            ps,
+            &graphics_state.float_textures,
+        );
+        shapes.append(&mut tris);
+    } else if name == "plymesh" {
+        let mut tris = plymesh::create(
             object2world,
             world2object,
             reverse_orientation,

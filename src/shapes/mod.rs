@@ -5,10 +5,11 @@ use ray::Ray;
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 
-pub mod sphere;
+pub mod cylinder;
 pub mod disk;
 pub mod mesh;
-pub mod cylinder;
+pub mod plymesh;
+pub mod sphere;
 
 pub trait Shape: Debug {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;

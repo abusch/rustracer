@@ -39,11 +39,7 @@ fn main() {
 
 fn run(matches: &ArgMatches) -> Result<()> {
     let filename = matches.value_of("INPUT").unwrap();
-    let mut file = fs::File::open(filename).chain_err(|| "Failed to open scene file")?;
-    let mut file_content = String::new();
-    file.read_to_string(&mut file_content)
-        .chain_err(|| "Failed to read content of scene file")?;
-    pbrt::parse_scene(&file_content[..])?;
+    pbrt::parse_scene(filename)?;
 
     /*
     let (scene, camera) = samplescenes::build_scene(dim);

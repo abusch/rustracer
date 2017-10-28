@@ -15,6 +15,8 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
     // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
     let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
     let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
+    let transform_begin = token(Tokens::TRANSFORMBEGIN).and_then(|_| api.transform_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
+    let transform_end = token(Tokens::TRANSFORMEND).and_then(|_| api.transform_end().map_err(|e| Error::Message(e.description().to_owned().into())));
     let world_begin = token(Tokens::WORLDBEGIN).and_then(|_| {
                                                              api.world_begin()
                                                    .map_err(|e| {
@@ -126,6 +128,8 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
 
     let parsers = many1::<Vec<_>, _>(choice!(try(attribute_begin),
                                              try(attribute_end),
+                                             try(transform_begin),
+                                             try(transform_end),
                                              try(world_begin),
                                              try(world_end),
                                              try(look_at),
