@@ -5,15 +5,16 @@ use light_arena::Allocator;
 use bsdf::{BxDF, Fresnel, MicrofacetReflection, TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
 use material::{self, Material, TransportMode};
+use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::{ConstantTexture, Texture};
 
 #[derive(Debug)]
 pub struct Metal {
-    eta: Box<Texture<Spectrum> + Send + Sync>,
-    k: Box<Texture<Spectrum> + Send + Sync>,
-    rough: Box<Texture<f32> + Send + Sync>,
-    bump: Option<Box<Texture<f32> + Send + Sync>>,
+    eta: Arc<Texture<Spectrum> + Send + Sync>,
+    k: Arc<Texture<Spectrum> + Send + Sync>,
+    rough: Arc<Texture<f32> + Send + Sync>,
+    bump: Option<Arc<Texture<f32> + Send + Sync>>,
     // urough: Box<Texture<f32>>,
     // vrough: Box<Texture<f32>>,
     remap_roughness: bool,
@@ -22,17 +23,17 @@ pub struct Metal {
 impl Metal {
     pub fn new() -> Self {
         Metal {
-            eta: Box::new(ConstantTexture::new(Spectrum::from_sampled(
+            eta: Arc::new(ConstantTexture::new(Spectrum::from_sampled(
                 &COPPER_WAVELENGTHS[..],
                 &COPPER_N[..],
                 COPPER_SAMPLES,
             ))),
-            k: Box::new(ConstantTexture::new(Spectrum::from_sampled(
+            k: Arc::new(ConstantTexture::new(Spectrum::from_sampled(
                 &COPPER_WAVELENGTHS[..],
                 &COPPER_K[..],
                 COPPER_SAMPLES,
             ))),
-            rough: Box::new(ConstantTexture::new(0.01)),
+            rough: Arc::new(ConstantTexture::new(0.01)),
             // urough: Box::new(ConstantTexture::new(...)),
             // vrough: Box::new(ConstantTexture::new(...)),
             remap_roughness: true,
@@ -40,19 +41,40 @@ impl Metal {
         }
     }
 
+    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+        let copper_eta =
+            Spectrum::from_sampled(&COPPER_WAVELENGTHS[..], &COPPER_N[..], COPPER_SAMPLES);
+        let eta = mp.get_spectrum_texture("eta", &copper_eta);
+        let copper_k =
+            Spectrum::from_sampled(&COPPER_WAVELENGTHS[..], &COPPER_K[..], COPPER_SAMPLES);
+        let k = mp.get_spectrum_texture("k", &copper_k);
+        let rough = mp.get_float_texture("roughness", 0.01);
+        // TODO uroughness and vroughness
+        let bump = mp.get_float_texture_or_none("bumpmap");
+        let remap_roughness = mp.find_bool("remaproughness", true);
+
+        Arc::new(Metal {
+            eta: eta,
+            k,
+            rough,
+            bump,
+            remap_roughness,
+        })
+    }
+
     pub fn gold() -> Self {
         Metal {
-            eta: Box::new(ConstantTexture::new(Spectrum::from_sampled(
+            eta: Arc::new(ConstantTexture::new(Spectrum::from_sampled(
                 &AU_WAVELENGTHS[..],
                 &AU_N[..],
                 AU_SAMPLES,
             ))),
-            k: Box::new(ConstantTexture::new(Spectrum::from_sampled(
+            k: Arc::new(ConstantTexture::new(Spectrum::from_sampled(
                 &AU_WAVELENGTHS[..],
                 &AU_K[..],
                 AU_SAMPLES,
             ))),
-            rough: Box::new(ConstantTexture::new(0.01)),
+            rough: Arc::new(ConstantTexture::new(0.01)),
             // urough: Box::new(ConstantTexture::new(...)),
             // vrough: Box::new(ConstantTexture::new(...)),
             remap_roughness: true,

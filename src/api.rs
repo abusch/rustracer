@@ -966,6 +966,8 @@ fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material + Send + Sy
         GlassMaterial::create(mp)
     } else if name == "mirror" {
         MirrorMaterial::create(mp)
+    } else if name == "metal" {
+        Metal::create(mp)
     } else {
         warn!("Unknown material {}. Using matte.", name);
         MatteMaterial::create(mp)
