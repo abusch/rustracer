@@ -47,7 +47,7 @@ pub fn create(
                 return Vec::new();
             }
             if elem.properties.contains_key("nx") && elem.properties.contains_key("ny")
-                || elem.properties.contains_key("nz")
+                && elem.properties.contains_key("nz")
             {
                 has_normals = true;
             }
