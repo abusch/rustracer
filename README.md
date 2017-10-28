@@ -20,8 +20,8 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
 ![example1](example1.png)
 
 ## Currently supported
- * Whitted and Direct Lighting integrators
- * Basic shapes (disc, sphere) + triangle meshes
+ * Whitted, Direct Lighting and Path Tracing integrators
+ * Basic shapes (disc, sphere, cylinder) + triangle meshes
  * Perspective camera with thin-lens depth-of-field
  * Point lights, distant lights
  * diffuse area lights
@@ -32,20 +32,22 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * BVH (only with MIDDLE splitting strategy)
  * multi-threaded rendering
  * Support for PBRT scene file format (still incomplete)
- * Read textures in TGA or EXR (thanks to [openexr-rs](https://github.com/cessen/openexr-rs))
+ * Read textures in PNG, TGA or EXR (thanks to [openexr-rs](https://github.com/cessen/openexr-rs))
+ * Support for PLY meshes (thanks to [ply-rs](https://github.com/Fluci/ply-rs))
 
 ## TODO
  * More camera types (orthographic, realistic, environment)
  * More shapes (cone, paraboloid, hyperboloid, NURBs...)
- * More samplers (Haldon...)
+ * More samplers (Halton, Sobol...)
  * More BxDFs and materials
  * Implement subsurface scattering
  * Bump mapping
  * Volumetric rendering
- * More integrators: path-tracing and bidirectional path tracing
+ * More integrators: bidirectional path tracing
+ * More light sampling strategies (e.g. spatial)
  * Animations
  * Support for writing EXR files
- * Support for PLY meshes (look at [ply-rs](https://github.com/Fluci/ply-rs))
+ * Support pfm format for envmaps
  * more light types
  * Finish ray-differential support
  * Add support for EWA filtering for MIPMap
