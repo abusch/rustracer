@@ -1,10 +1,12 @@
 use std::mem;
 use std::fmt::Debug;
+use std::f32;
 
-use {Point2f, Vector3f};
-use bsdf::{BxDF, BxDFType};
+use {Point2f, Vector3f, ONE_MINUS_EPSILON};
+use bsdf::{BxDF, BxDFType, MicrofacetDistribution};
 use geometry::*;
 use material::TransportMode;
+use sampling::cosine_sample_hemisphere;
 use spectrum::Spectrum;
 use clamp;
 
@@ -350,4 +352,83 @@ impl BxDF for FresnelSpecular {
     fn get_type(&self) -> BxDFType {
         BxDFType::BSDF_SPECULAR | BxDFType::BSDF_REFLECTION | BxDFType::BSDF_TRANSMISSION
     }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct FresnelBlend<'a> {
+    rd: Spectrum,
+    rs: Spectrum,
+    distrib: &'a MicrofacetDistribution,
+}
+
+impl<'a> FresnelBlend<'a> {
+    pub fn new(rs: Spectrum, rd: Spectrum, distrib: &MicrofacetDistribution) -> FresnelBlend {
+        FresnelBlend { rd, rs, distrib }
+    }
+
+    fn schlick_fresnel(&self, cos_theta: f32) -> Spectrum {
+        self.rs + pow5(1.0 - cos_theta) * (Spectrum::white() - self.rs)
+    }
+}
+
+impl<'a> BxDF for FresnelBlend<'a> {
+    fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
+        let diffuse = (28.0 / (23.0 * f32::consts::PI)) * self.rd * (Spectrum::white() - self.rs)
+            * (1.0 - pow5(1.0 - 0.5 * abs_cos_theta(wi)))
+            * (1.0 - pow5(1.0 - 0.5 * abs_cos_theta(wo)));
+
+        let mut wh = *wi + *wo;
+        if wh.x == 0.0 && wh.y == 0.0 && wh.z == 0.0 {
+            return 0.0.into();
+        }
+        wh = wh.normalize();
+        let specular = self.distrib.d(&wh)
+            / (4.0 * wi.dot(&wh).abs() * f32::max(abs_cos_theta(wi), abs_cos_theta(wo)))
+            * self.schlick_fresnel(wi.dot(&wh));
+
+        diffuse * specular
+    }
+
+    fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+        if !same_hemisphere(wo, wi) {
+            return 0.0;
+        }
+        let wh = (*wo + *wi).normalize();
+        let pdf_wh = self.distrib.pdf(wo, &wh);
+
+        0.5 * (abs_cos_theta(wi) * f32::consts::FRAC_1_PI + pdf_wh / (4.0 * wo.dot(&wh)))
+    }
+
+    fn sample_f(&self, wo: &Vector3f, u_orig: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+        let mut u = *u_orig;
+        let mut wi;
+        if u[0] < 0.5 {
+            u[0] = f32::min(2.0 * u[0], ONE_MINUS_EPSILON);
+            // Cosine-sample the hemisphere, flipping the direction if necessary
+            wi = cosine_sample_hemisphere(&u);
+            if wo.z < 0.0 {
+                wi.z *= -1.0;
+            }
+        } else {
+            u[0] = f32::min(2.0 * (u[0] - 0.5), ONE_MINUS_EPSILON);
+            // Sample microfacet orientation `wh` and reflected direction `wi`
+            let wh = self.distrib.sample_wh(wo, &u);
+            wi = reflect(wo, &wh);
+            if !same_hemisphere(wo, &wi) {
+                return (0.0.into(), wi, 0.0, BxDFType::empty());
+            }
+        }
+
+        let pdf = self.pdf(wo, &wi);
+        (self.f(wo, &wi), wi, pdf, BxDFType::empty())
+    }
+
+    fn get_type(&self) -> BxDFType {
+        BxDFType::BSDF_REFLECTION | BxDFType::BSDF_GLOSSY
+    }
+}
+
+#[inline]
+fn pow5(v: f32) -> f32 {
+    (v * v) * (v * v) * v
 }

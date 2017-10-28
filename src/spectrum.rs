@@ -1,5 +1,6 @@
 use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut, MulAssign};
 use std::fmt;
+use std::convert::From;
 
 use num::{Zero, One};
 
@@ -311,5 +312,11 @@ impl One for Spectrum {
 impl fmt::Display for Spectrum {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[ {}, {}, {} ]", self.r, self.g, self.b)
+    }
+}
+
+impl From<f32> for Spectrum {
+    fn from(v: f32) -> Spectrum {
+        Spectrum::grey(v)
     }
 }

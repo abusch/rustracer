@@ -12,12 +12,15 @@ mod metal;
 mod plastic;
 mod glass;
 mod mirror;
+mod substrate;
 
 pub use self::matte::MatteMaterial;
 pub use self::metal::Metal;
 pub use self::plastic::Plastic;
 pub use self::glass::GlassMaterial;
 pub use self::mirror::MirrorMaterial;
+pub use self::substrate::SubstrateMaterial;
+
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum TransportMode {
