@@ -1,6 +1,7 @@
 pub mod boxfilter;
 pub mod mitchell;
 pub mod gaussian;
+pub mod triangle;
 
 pub trait Filter {
     fn evaluate(&self, x: f32, y: f32) -> f32;

@@ -12,6 +12,7 @@ use filter::Filter;
 use filter::boxfilter::BoxFilter;
 use filter::gaussian::GaussianFilter;
 use filter::mitchell::MitchellNetravali;
+use filter::triangle::TriangleFilter;
 use film::Film;
 use geometry::Matrix4x4;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
@@ -163,6 +164,7 @@ impl RenderOptions {
             "box" => BoxFilter::create(&mut self.filter_params),
             "mitchell" => MitchellNetravali::create(&mut self.filter_params),
             "gaussian" => GaussianFilter::create(&mut self.film_params),
+            "triangle" => TriangleFilter::create(&mut self.film_params),
             _ => bail!(format!("Filter \"{}\" unknown.", self.filter_name)),
         };
 
