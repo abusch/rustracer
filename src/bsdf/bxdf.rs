@@ -44,6 +44,7 @@ pub trait BxDF: Debug {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct ScaledBxDF {
     bxdf: Box<BxDF>,
@@ -51,6 +52,7 @@ pub struct ScaledBxDF {
 }
 
 impl ScaledBxDF {
+#[allow(dead_code)]
     fn new(bxdf: Box<BxDF>, scale: Spectrum) -> ScaledBxDF {
         ScaledBxDF {
             bxdf: bxdf,

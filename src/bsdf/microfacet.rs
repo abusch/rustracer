@@ -1,8 +1,6 @@
 use std::f32::consts;
 use std::fmt::Debug;
 
-use num::Zero;
-
 use {Point2f, Vector3f};
 use spectrum::Spectrum;
 use bsdf::{reflect, refract, BxDF, BxDFType};
@@ -254,6 +252,7 @@ pub struct BeckmannDistribution {
 }
 
 impl BeckmannDistribution {
+    #[allow(dead_code)]
     pub fn new(ax: f32, ay: f32) -> BeckmannDistribution {
         BeckmannDistribution {
             alpha_x: ax,
@@ -593,7 +592,7 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
     }
 
     fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
-        let mut wh = Vector3f::zero();
+        let mut wh;
 
         if !self.sample_visible_area {
             let cos_theta;
