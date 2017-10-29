@@ -189,15 +189,17 @@ pub struct SpecularTransmission {
     eta_a: f32,
     eta_b: f32,
     fresnel: FresnelDielectric,
+    mode: TransportMode,
 }
 
 impl SpecularTransmission {
-    pub fn new(t: Spectrum, eta_a: f32, eta_b: f32) -> SpecularTransmission {
+    pub fn new(t: Spectrum, eta_a: f32, eta_b: f32, mode: TransportMode) -> SpecularTransmission {
         SpecularTransmission {
-            t: t,
-            eta_a: eta_a,
-            eta_b: eta_b,
+            t,
+            eta_a,
+            eta_b,
             fresnel: Fresnel::dielectric(eta_a, eta_b),
+            mode,
         }
     }
 }
@@ -223,8 +225,10 @@ impl BxDF for SpecularTransmission {
         ) {
             let mut ft = self.t * (Spectrum::white() - self.fresnel.evaluate(cos_theta(&wi)));
 
-            // Account for non-symmetry with transmission to different medium TODO
-            ft = ft * (eta_i * eta_i) / (eta_t * eta_t);
+            // Account for non-symmetry with transmission to different medium
+            if self.mode == TransportMode::RADIANCE {
+                ft = ft * (eta_i * eta_i) / (eta_t * eta_t);
+            }
             debug!(
                 "wo={}. wi={}, cos_theta(wo)={}, cos_theta(wi)={}, abs_cos_theta(wi)={}, ft={}",
                 wo,

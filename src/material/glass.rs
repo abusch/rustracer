@@ -84,7 +84,7 @@ impl Material for GlassMaterial {
                 }
                 if !t.is_black() {
                     let bxdf: &'b BxDF = if is_specular {
-                        arena <- SpecularTransmission::new(t, 1.0, eta)
+                        arena <- SpecularTransmission::new(t, 1.0, eta, mode)
                     } else {
                         let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
                         arena <- MicrofacetTransmission::new(r, distrib, 1.0, eta)

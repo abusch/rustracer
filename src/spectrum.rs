@@ -1,6 +1,7 @@
 use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut, MulAssign};
 use std::fmt;
 use std::convert::From;
+use std::f32;
 
 use num::{Zero, One};
 
@@ -135,6 +136,10 @@ impl Spectrum {
 
     pub fn max_component_value(&self) -> f32 {
         self.r.max(self.g).max(self.b)
+    }
+
+    pub fn clamp(&self) -> Spectrum {
+        Spectrum::rgb(clamp(self.r, 0.0, f32::INFINITY), clamp(self.g, 0.0, f32::INFINITY), clamp(self.b, 0.0, f32::INFINITY))
     }
 }
 

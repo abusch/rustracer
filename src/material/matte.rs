@@ -53,7 +53,7 @@ impl Material for MatteMaterial {
             bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
         }
 
-        let bsdf = BSDF::new(si, 1.5, bxdfs);
+        let bsdf = BSDF::new(si, 1.0, bxdfs);
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

@@ -11,9 +11,6 @@ extern crate thread_id;
 mod logging;
 mod argparse;
 
-use std::fs;
-use std::io::Read;
-
 use clap::ArgMatches;
 
 use rt::errors::*;
