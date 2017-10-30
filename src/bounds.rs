@@ -228,14 +228,10 @@ where
         }
     }
 
-    pub fn from_points(min: &Point2<T>, max: &Point2<T>) -> Bounds2<T> {
-        assert!(
-            min.x <= max.x && min.y <= max.y,
-            format!("Invalid bounds: {} - {}", min, max)
-        );
+    pub fn from_points(p1: &Point2<T>, p2: &Point2<T>) -> Bounds2<T> {
         Bounds2 {
-            p_min: *min,
-            p_max: *max,
+            p_min: Point2::new(min(p1.x, p2.x), min(p1.y, p2.y)),
+            p_max: Point2::new(max(p1.x, p2.x), max(p1.y, p2.y)),
         }
     }
 
@@ -299,6 +295,10 @@ where
         p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y && p.y <= self.p_max.y
     }
 
+    pub fn inside_exclusive(&self, p: &Point2<T>) -> bool {
+        p.x >= self.p_min.x && p.x < self.p_max.x && p.y >= self.p_min.y && p.y < self.p_max.y
+    }
+
     pub fn area(&self) -> T {
         (self.p_max.x - self.p_min.x) * (self.p_max.y - self.p_min.y)
     }
@@ -322,7 +322,8 @@ where
     pub fn diagonal(&self) -> Vector2<T> {
         // Not sure why this doesn't work??
         // &self.p_max - &self.p_min
-        Vector2::new(self.p_max.x - self.p_min.x, self.p_max.y - self.p_min.y)
+        self.p_max - self.p_min
+        // Vector2::new(self.p_max.x - self.p_min.x, self.p_max.y - self.p_min.y)
     }
 }
 
@@ -359,16 +360,18 @@ impl<'a> Iterator for Bounds2Iterator<'a> {
     type Item = Point2i;
 
     fn next(&mut self) -> Option<Point2i> {
+        if self.p.y >= self.bounds.p_max.y {
+            return None;
+        }
+        let p = self.p;
+
         self.p.x += 1;
         if self.p.x == self.bounds.p_max.x {
             self.p.x = self.bounds.p_min.x;
             self.p.y += 1;
         }
-        if self.p.y == self.bounds.p_max.y {
-            None
-        } else {
-            Some(self.p)
-        }
+
+        Some(p)
     }
 }
 
@@ -379,7 +382,7 @@ impl<'a> IntoIterator for &'a Bounds2<i32> {
     fn into_iter(self) -> Self::IntoIter {
         Bounds2Iterator {
             // Need to start 1 before p_min.x as next() will be called to get the first element
-            p: Point2i::new(self.p_min.x - 1, self.p_min.y),
+            p: Point2i::new(self.p_min.x, self.p_min.y),
             bounds: self,
         }
     }
@@ -429,4 +432,17 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} → {}", self.p_min, self.p_max)
     }
+}
+
+#[test]
+fn test_bounds2_iterator() {
+    let bounds = Bounds2i::from_points(&Point2i::new(0, 1), &Point2i::new(2, 3));
+
+    let points: Vec<Point2i> = bounds.into_iter().collect();
+
+    assert_eq!(points.len(), 4);
+    assert_eq!(points[0], Point2i::new(0, 1));
+    assert_eq!(points[1], Point2i::new(1, 1));
+    assert_eq!(points[2], Point2i::new(0, 2));
+    assert_eq!(points[3], Point2i::new(1, 2));
 }

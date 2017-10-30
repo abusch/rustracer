@@ -62,15 +62,18 @@ impl SamplerIntegrator for PathIntegrator {
                 l,
                 beta
             );
+            // Intersect _ray_ with scene and store intersection in _isect_
             let mut found_intersection = scene.intersect(&mut ray);
+
+            // Possibly add emitted light at intersection
             if bounces == 0 || specular_bounce {
+                // Add emitted light at path vertex or from the environment
                 if let Some(ref isect) = found_intersection {
                     l += beta * isect.le(&(-ray.d));
                 } else {
-                    l = scene
-                        .infinite_lights
-                        .iter()
-                        .fold(Spectrum::black(), |c, l| c + beta * l.le(&ray));
+                    for light in &scene.infinite_lights {
+                        l += beta * light.le(&ray);
+                    }
                 }
             }
 

@@ -245,6 +245,18 @@ where
     }
 }
 
+impl From<Point2<f32>> for Point2<i32> {
+    fn from(p: Point2<f32>) -> Point2<i32> {
+        Point2::new(p.x as i32, p.y as i32)
+    }
+}
+
+impl From<Point2<i32>> for Point2<f32> {
+    fn from(p: Point2<i32>) -> Point2<f32> {
+        Point2::new(p.x as f32, p.y as f32)
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Point3<T> {
     pub x: T,

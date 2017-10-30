@@ -2,6 +2,7 @@ use std::ops::Add;
 use std::cell::RefCell;
 
 thread_local! {
+    static NUM_CAMERA_RAYS: RefCell<u64> = RefCell::new(0);
     static NUM_PRIMARY_RAYS: RefCell<u64> = RefCell::new(0);
     static NUM_SECONDARY_RAYS: RefCell<u64> = RefCell::new(0);
     static NUM_TRIANGLES: RefCell<u64> = RefCell::new(0);
@@ -12,6 +13,7 @@ thread_local! {
 
 #[derive(Debug, Default)]
 pub struct Stats {
+    pub camera_rays: u64,
     pub primary_rays: u64,
     pub secondary_rays: u64,
     pub triangles: u64,
@@ -20,6 +22,9 @@ pub struct Stats {
     pub fast_bbox_isect: u64,
 }
 
+pub fn inc_camera_ray() {
+    NUM_CAMERA_RAYS.with(inc_counter);
+}
 pub fn inc_primary_ray() {
     NUM_PRIMARY_RAYS.with(inc_counter);
 }
@@ -41,6 +46,7 @@ pub fn inc_fast_bbox_isect() {
 
 pub fn get_stats() -> Stats {
     Stats {
+        camera_rays: NUM_CAMERA_RAYS.with(get_counter),
         primary_rays: NUM_PRIMARY_RAYS.with(get_counter),
         secondary_rays: NUM_SECONDARY_RAYS.with(get_counter),
         triangles: NUM_TRIANGLES.with(get_counter),
@@ -63,6 +69,7 @@ impl Add<Stats> for Stats {
 
     fn add(self, rhs: Stats) -> Stats {
         Stats {
+            camera_rays: self.camera_rays + rhs.camera_rays,
             primary_rays: self.primary_rays + rhs.primary_rays,
             secondary_rays: self.secondary_rays + rhs.secondary_rays,
             triangles: self.triangles + rhs.triangles,

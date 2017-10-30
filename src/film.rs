@@ -35,7 +35,7 @@ pub struct Film {
     samples: Mutex<Vec<PixelSample>>,
     filter_table: [f32; FILTER_TABLE_SIZE],
     filter_radius: Vector2f,
-    cropped_pixel_bounds: Bounds2i,
+    pub cropped_pixel_bounds: Bounds2i,
     scale: f32,
     diagonal: f32,
     filename: String,
@@ -130,7 +130,7 @@ impl Film {
         // temporarily be negative which would cause u32 to wrap around.
         let p0 = ceil(float_bounds.p_min - half_pixel - self.filter_radius);
         let p1 =
-            floor(float_bounds.p_max - half_pixel - self.filter_radius + Vector2f::new(1.0, 1.0));
+            floor(float_bounds.p_max - half_pixel + self.filter_radius + Vector2f::new(1.0, 1.0));
         let sample_extent_bounds = Bounds2f::from_points(&p0, &p1);
 
         let tile_pixel_bounds: Bounds2i = Bounds2i::from(Bounds2f::intersect(
@@ -178,6 +178,16 @@ impl Film {
             res.y as u32,
             img::RGB(8),
         ).chain_err(|| format!("Failed to save image file {}", self.filename))
+    }
+
+    pub fn get_sample_bounds(&self) -> Bounds2i {
+        let half = Vector2f::new(0.5, 0.5);
+        let float_bounds = Bounds2f::from_points(
+            &floor(Point2f::from(self.cropped_pixel_bounds.p_min) + half - self.filter_radius),
+            &ceil(Point2f::from(self.cropped_pixel_bounds.p_max) - half + self.filter_radius),
+        );
+
+        float_bounds.into()
     }
 }
 

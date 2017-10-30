@@ -1,10 +1,12 @@
 extern crate pbr;
 
 use std::sync::mpsc::channel;
+use std::sync::{Arc, Mutex};
 
 use crossbeam;
 
-use block_queue::BlockQueue;
+use Point2i;
+use bounds::Bounds2i;
 use camera::Camera;
 use display::DisplayUpdater;
 use errors::*;
@@ -24,19 +26,33 @@ pub fn render(
     mut display: Box<DisplayUpdater + Send>,
 ) -> Result<stats::Stats> {
     integrator.preprocess(&scene, sampler);
-    let res = camera.get_film().full_resolution;
-    info!("Rendering with resolution {}", res);
-    let block_queue = BlockQueue::new(res, block_size);
-    let num_blocks = block_queue.num_blocks;
+    let sample_bounds = camera.get_film().get_sample_bounds();
+    let sample_extent = sample_bounds.diagonal();
+    let pixel_bounds = &sample_bounds; // FIXME
+    info!(
+        "Rendering with sample_bounds = {}, pixel_bounds = {}",
+        sample_bounds,
+        pixel_bounds
+    );
+    let n_tiles = Point2i::new(
+        (sample_extent.x + block_size - 1) / block_size,
+        (sample_extent.y + block_size - 1) / block_size,
+    );
+    info!("n_tiles = {}", n_tiles);
+
+    // let block_queue = BlockQueue::new(sample_bounds, block_size);
+    let num_blocks = n_tiles.x * n_tiles.y;
     // This channel will receive tiles of sampled pixels
     let (pixel_tx, pixel_rx) = channel();
     // This channel will receive the stats from each worker thread
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
+    let image_bounds =
+        Bounds2i::from_points(&Point2i::new(0, 0), &Point2i::new(n_tiles.x, n_tiles.y));
+    let tiles_iter = Arc::new(Mutex::new(image_bounds.into_iter()));
     crossbeam::scope(|scope| {
         // We only want to use references to these in the thread, not move the structs themselves...
         let scene = &scene;
-        let bq = &block_queue;
         let integrator = &integrator;
         let camera = &camera;
 
@@ -58,25 +74,58 @@ pub fn render(
             let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
             let mut sampler = sampler.clone();
+            let bq = tiles_iter.clone();
             scope.spawn(move || {
-                // let mut sampler = ZeroTwoSequence::new(spp, 4);
-                let mut arena = MemoryArena::new(1);
-                while let Some(block) = bq.next() {
-                    info!("Rendering tile {}", block);
-                    let seed =
-                        block.start.y / bq.block_size * bq.dims.x + block.start.x / bq.block_size;
+                loop {
+                    let maybe_tile = {
+                        let mut iter = bq.lock().unwrap();
+                        iter.next()
+                    };
+                    let tile = if let Some(t) = maybe_tile {
+                        t
+                    } else {
+                        break;
+                    };
+                    // Render section of image corresponding to `tile`
+                    info!("Tile number: {}", tile);
+
+                    // Allocate MemoryArena for tile
+                    let mut arena = MemoryArena::new(1);
+
+                    // Get sampler instance for tile
+                    let seed = tile.y * n_tiles.x + tile.x;
                     sampler.reseed(seed as u64);
-                    let mut tile = camera.get_film().get_film_tile(&block.bounds());
-                    for p in &tile.get_pixel_bounds() {
+
+                    // Compute sample bounds for tile
+                    let x0 = sample_bounds.p_min.x + tile.x * block_size;
+                    let x1 = i32::min(x0 + block_size, sample_bounds.p_max.x);
+                    let y0 = sample_bounds.p_min.y + tile.y * block_size;
+                    let y1 = i32::min(y0 + block_size, sample_bounds.p_max.y);
+                    let tile_bounds =
+                        Bounds2i::from_points(&Point2i::new(x0, y0), &Point2i::new(x1, y1));
+                    info!("Starting image tile {}", tile_bounds);
+
+                    let mut film_tile = camera.get_film().get_film_tile(&tile_bounds);
+                    for p in &tile_bounds {
                         sampler.start_pixel(&p);
+
+                        // Do this check after the start_pixel() call; this keeps
+                        // the usage of RNG values from (most) Samplers that use
+                        // RNGs consistent, which improves reproducability /
+                        // debugging
+                        if !pixel_bounds.inside_exclusive(&p) {
+                            continue;
+                        }
+
                         loop {
                             let alloc = arena.allocator();
                             let s = sampler.get_camera_sample(&p);
                             let mut ray = camera.generate_ray_differential(&s);
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
+                            stats::inc_camera_ray();
                             let sample_colour =
                                 integrator.li(scene, &mut ray, &mut sampler, &alloc, 0);
-                            tile.add_sample(&s.p_film, sample_colour);
+                            film_tile.add_sample(&s.p_film, sample_colour);
                             if !sampler.start_next_sample() {
                                 break;
                             }
@@ -85,7 +134,7 @@ pub fn render(
                     // Once we've rendered all the samples for the tile, send the tile through the
                     // channel to the main thread which will add it to the film.
                     pixel_tx
-                        .send(tile)
+                        .send(film_tile)
                         .unwrap_or_else(|e| error!("Failed to send tile: {}", e));
                 }
                 // Once there are no more tiles to render, send the thread's accumulated stats back
