@@ -5,7 +5,7 @@ use std::f32;
 use rand::{Rng, SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
 
-use rt::{Point2f, Point3f};
+use rt::{Point2f, Point3f, Transform};
 use rt::ray::Ray;
 use rt::sampling;
 use rt::shapes::Shape;
@@ -24,7 +24,7 @@ fn full_sphere_reintersect() {
     for i in 0..1000 {
         rng.reseed(&[i]);
         let radius = pexp(&mut rng, 4.0);
-        let sphere = Sphere::new().radius(radius);
+        let sphere = Sphere::new(Transform::default(), radius, -radius, radius, 360.0, false);
         test_reintersection_convex(&sphere, &mut rng);
     }
 }
@@ -49,7 +49,7 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
             // Random direction leaving the intersection point
             let u = Point2f::new(rng.next_f32(), rng.next_f32());
             let mut w = sampling::uniform_sample_sphere(&u);
-            if w.dot(&isect.n) < 0.0 {
+            if w.dotn(&isect.n) < 0.0 {
                 w = -w;
             }
             let ray_out = isect.spawn_ray(&w);

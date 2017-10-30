@@ -1,6 +1,7 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub,
                SubAssign};
 use std::convert::From;
+use std::fmt::{Display, Error, Formatter};
 
 use num::{Num, Zero};
 
@@ -241,5 +242,14 @@ where
 {
     fn from(v: Vector3<T>) -> Normal3<T> {
         Normal3::new(v.x, v.y, v.z)
+    }
+}
+
+impl<T> Display for Normal3<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "[{}, {}, {}]", self.x, self.y, self.z)
     }
 }

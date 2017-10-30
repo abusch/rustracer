@@ -433,7 +433,7 @@ fn test_normal_transform() {
     assert_eq!(v.dot(&n), 0.0);
 
     let v2 = &t * &v;
-    let n2 = t_inv.transform_normal(&n);
+    let n2 = t_inv.transform_normal(&Normal3f::from(n));
     println!("v = {}, n = {}", v2, n2);
-    relative_eq!(v2.dot(&n2), 0.0);
+    relative_eq!(v2.dotn(&n2), 0.0);
 }

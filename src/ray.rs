@@ -118,7 +118,7 @@ impl Default for RayDifferential {
 #[test]
 fn test_translation() {
     let r = Ray::new(Point3f::new(1.0, 0.0, 0.0), Vector3f::new(0.0, 1.0, 0.0));
-    let t = Transform::translate(Vector3f::new(1.0, 1.0, 1.0));
+    let t = Transform::translate(&Vector3f::new(1.0, 1.0, 1.0));
     let s = t * r;
 
     assert_eq!(s.o, Point3f::new(2.0, 1.0, 1.0));
