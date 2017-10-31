@@ -44,7 +44,8 @@ impl InfiniteAreaLight {
                 "Loading environment map {} for infinite light",
                 texmap.display()
             );
-            (res, pixels)
+            let texels = pixels.iter().map(|s| *s * power).collect();
+            (res, texels)
         } else {
             warn!(
                 "Environment map {} for infinite light not found! Using constant texture \
