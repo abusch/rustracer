@@ -162,7 +162,7 @@ pub fn uniform_sample_all_light(
                     sampler,
                 );
             }
-            L += Ld;
+            L += Ld / n_samples as f32;
         }
     }
 
