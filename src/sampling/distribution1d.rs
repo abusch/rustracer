@@ -46,10 +46,15 @@ impl Distribution1D {
         // compute offset along CDF segment
         let mut du = u - self.cdf[offset];
         if self.cdf[offset + 1] - self.cdf[offset] > 0.0 {
+            assert!(self.cdf[offset + 1] > self.cdf[offset]);
             du /= self.cdf[offset + 1] - self.cdf[offset];
         }
         // compute PDF for sampled offset
-        let pdf = self.func[offset] / self.func_int;
+        let pdf = if self.func_int > 0.0 {
+            self.func[offset] / self.func_int
+        } else {
+            0.0
+        };
 
         // return x ∈ [0,1) corresponding to sample
         let x = (offset as f32 + du) / self.count() as f32;
