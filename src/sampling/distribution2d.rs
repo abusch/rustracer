@@ -27,19 +27,23 @@ impl Distribution2D {
     }
 
     pub fn sample_continuous(&self, u: &Point2f) -> (Point2f, f32) {
-        let (d_0, pdf_0, v) = self.p_marginal.sample_continuous(u[0]);
-        let (d_1, pdf_1, _) = self.p_conditional_v[v].sample_continuous(u[1]);
+        let (d_1, pdf_1, v) = self.p_marginal.sample_continuous(u[1]);
+        let (d_0, pdf_0, _) = self.p_conditional_v[v].sample_continuous(u[0]);
 
         (Point2f::new(d_0, d_1), pdf_0 * pdf_1)
     }
 
     pub fn pdf(&self, p: &Point2f) -> f32 {
-        let iu = clamp(p[0] as usize * self.p_conditional_v[0].count(),
-                       0,
-                       self.p_conditional_v[0].count() - 1);
-        let iv = clamp(p[1] as usize * self.p_marginal.count(),
-                       0,
-                       self.p_marginal.count() - 1);
+        let iu = clamp(
+            p[0] as usize * self.p_conditional_v[0].count(),
+            0,
+            self.p_conditional_v[0].count() - 1,
+        );
+        let iv = clamp(
+            p[1] as usize * self.p_marginal.count(),
+            0,
+            self.p_marginal.count() - 1,
+        );
 
         self.p_conditional_v[iv].func[iu] / self.p_marginal.func_int
     }
