@@ -36,7 +36,12 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
     let rgb = buf.to_rgb();
     let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
     let pixels: Vec<Spectrum> = rgb.pixels()
-        .map(|p| Spectrum::from_srgb(&p.data))
+        .map(|p| {
+            let r = f32::from(p.data[0]) / 255.0;
+            let g = f32::from(p.data[1]) / 255.0;
+            let b = f32::from(p.data[2]) / 255.0;
+            Spectrum::rgb(r, g, b)
+        })
         .collect();
 
     Ok((pixels, res))
@@ -127,11 +132,13 @@ fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     let file_little_endian = scale < 0.0;
     let host_little_endian = true;
 
-    info!("n_channels={}, width={}, height={}, scale={}",
-          n_channels,
-          width,
-          height,
-          scale);
+    info!(
+        "n_channels={}, width={}, height={}, scale={}",
+        n_channels,
+        width,
+        height,
+        scale
+    );
 
     // Read the rest of the data
     let n_floats = n_channels * width * height;
