@@ -9,6 +9,8 @@ thread_local! {
     static NUM_RAY_TRI_TEST: RefCell<u64> = RefCell::new(0);
     static NUM_RAY_TRI_ISECT: RefCell<u64> = RefCell::new(0);
     static NUM_FAST_BBOX_ISECT: RefCell<u64> = RefCell::new(0);
+    static NUM_INTERSECTION_TEST: RefCell<u64> = RefCell::new(0);
+    static NUM_SHADOW_TEST: RefCell<u64> = RefCell::new(0);
 }
 
 #[derive(Debug, Default)]
@@ -20,6 +22,8 @@ pub struct Stats {
     pub ray_triangle_tests: u64,
     pub ray_triangle_isect: u64,
     pub fast_bbox_isect: u64,
+    pub intersection_test: u64,
+    pub shadow_test: u64,
 }
 
 pub fn inc_camera_ray() {
@@ -43,6 +47,12 @@ pub fn inc_triangle_isect() {
 pub fn inc_fast_bbox_isect() {
     NUM_FAST_BBOX_ISECT.with(inc_counter);
 }
+pub fn inc_intersection_test() {
+    NUM_INTERSECTION_TEST.with(inc_counter);
+}
+pub fn inc_shadow_test() {
+    NUM_SHADOW_TEST.with(inc_counter);
+}
 
 pub fn get_stats() -> Stats {
     Stats {
@@ -53,6 +63,8 @@ pub fn get_stats() -> Stats {
         ray_triangle_tests: NUM_RAY_TRI_TEST.with(get_counter),
         ray_triangle_isect: NUM_RAY_TRI_ISECT.with(get_counter),
         fast_bbox_isect: NUM_FAST_BBOX_ISECT.with(get_counter),
+        intersection_test: NUM_INTERSECTION_TEST.with(get_counter),
+        shadow_test: NUM_SHADOW_TEST.with(get_counter),
     }
 }
 
@@ -76,6 +88,8 @@ impl Add<Stats> for Stats {
             ray_triangle_tests: self.ray_triangle_tests + rhs.ray_triangle_tests,
             ray_triangle_isect: self.ray_triangle_isect + rhs.ray_triangle_isect,
             fast_bbox_isect: self.fast_bbox_isect + rhs.fast_bbox_isect,
+            intersection_test: self.intersection_test + rhs.intersection_test,
+            shadow_test: self.shadow_test + rhs.shadow_test,
         }
     }
 }

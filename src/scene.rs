@@ -40,10 +40,12 @@ impl Scene {
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+        stats::inc_intersection_test();
         self.aggregate.intersect(ray)
     }
 
     pub fn intersect_p(&self, ray: &Ray) -> bool {
+        stats::inc_shadow_test();
         self.aggregate.intersect_p(ray)
     }
 
