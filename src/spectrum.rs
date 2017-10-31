@@ -69,7 +69,7 @@ impl Spectrum {
     /// Convert a non-linear sRGB value to a linear RGB spectrum.
     pub fn from_srgb(rgb: &[u8; 3]) -> Spectrum {
         fn convert(v: u8) -> f32 {
-            let value = v as f32 / 255.0;
+            let value = f32::from(v) / 255.0;
             if value <= 0.04045 {
                 value / 12.92
             } else {
@@ -139,7 +139,9 @@ impl Spectrum {
     }
 
     pub fn clamp(&self) -> Spectrum {
-        Spectrum::rgb(clamp(self.r, 0.0, f32::INFINITY), clamp(self.g, 0.0, f32::INFINITY), clamp(self.b, 0.0, f32::INFINITY))
+        Spectrum::rgb(clamp(self.r, 0.0, f32::INFINITY),
+                      clamp(self.g, 0.0, f32::INFINITY),
+                      clamp(self.b, 0.0, f32::INFINITY))
     }
 }
 

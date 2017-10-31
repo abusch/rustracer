@@ -22,14 +22,13 @@ pub struct Disk {
 }
 
 impl Disk {
-    pub fn new(
-        height: f32,
-        radius: f32,
-        inner_radius: f32,
-        phi_max: f32,
-        object_to_world: Transform,
-        reverse_orientation: bool,
-    ) -> Disk {
+    pub fn new(height: f32,
+               radius: f32,
+               inner_radius: f32,
+               phi_max: f32,
+               object_to_world: Transform,
+               reverse_orientation: bool)
+               -> Disk {
         assert!(radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
         let transform_swaps_handedness = object_to_world.swaps_handedness();
         Disk {
@@ -44,24 +43,21 @@ impl Disk {
         }
     }
 
-    pub fn create(
-        o2w: &Transform,
-        reverse_orientation: bool,
-        params: &mut ParamSet,
-    ) -> Arc<Shape + Send + Sync> {
+    pub fn create(o2w: &Transform,
+                  reverse_orientation: bool,
+                  params: &mut ParamSet)
+                  -> Arc<Shape + Send + Sync> {
         let height = params.find_one_float("height", 0.0);
         let radius = params.find_one_float("radius", 1.0);
         let inner_radius = params.find_one_float("innerradius", 0.0);
         let phimax = params.find_one_float("phimax", 360.0);
 
-        Arc::new(Disk::new(
-            height,
-            radius,
-            inner_radius,
-            phimax,
-            o2w.clone(),
-            reverse_orientation,
-        ))
+        Arc::new(Disk::new(height,
+                           radius,
+                           inner_radius,
+                           phimax,
+                           o2w.clone(),
+                           reverse_orientation))
     }
 }
 
@@ -111,10 +107,8 @@ impl Shape for Disk {
     }
 
     fn object_bounds(&self) -> Bounds3f {
-        Bounds3f::from_points(
-            &Point3f::new(-self.radius, -self.radius, self.height),
-            &Point3f::new(self.radius, self.radius, self.height),
-        )
+        Bounds3f::from_points(&Point3f::new(-self.radius, -self.radius, self.height),
+                              &Point3f::new(self.radius, self.radius, self.height))
     }
 
     fn world_bounds(&self) -> Bounds3f {

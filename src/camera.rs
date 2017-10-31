@@ -26,39 +26,33 @@ pub struct PerspectiveCamera {
 }
 
 impl PerspectiveCamera {
-    pub fn new(
-        camera_to_world: Transform,
-        screen_window: Bounds2f,
-        lens_radius: f32,
-        focal_distance: f32,
-        fov: f32,
-        film: Box<Film>,
-    ) -> PerspectiveCamera {
+    pub fn new(camera_to_world: Transform,
+               screen_window: Bounds2f,
+               lens_radius: f32,
+               focal_distance: f32,
+               fov: f32,
+               film: Box<Film>)
+               -> PerspectiveCamera {
         let camera_to_screen = Transform::perspective(fov, 1e-2, 1000.0);
-        let screen_to_raster = Transform::scale(
-            film.full_resolution.x as f32,
-            film.full_resolution.y as f32,
-            1.0,
-        )
-            * Transform::scale(
-                1.0 / (screen_window.p_max.x - screen_window.p_min.x),
-                1.0 / (screen_window.p_min.y - screen_window.p_max.y),
-                1.0,
-            )
-            * Transform::translate(&Vector3f::new(
-                -screen_window.p_min.x,
-                -screen_window.p_max.y,
-                0.0,
-            ));
+        let screen_to_raster =
+            Transform::scale(film.full_resolution.x as f32,
+                             film.full_resolution.y as f32,
+                             1.0) *
+            Transform::scale(1.0 / (screen_window.p_max.x - screen_window.p_min.x),
+                             1.0 / (screen_window.p_min.y - screen_window.p_max.y),
+                             1.0) *
+            Transform::translate(&Vector3f::new(-screen_window.p_min.x,
+                                                -screen_window.p_max.y,
+                                                0.0));
 
         let raster_to_screen = screen_to_raster.inverse();
         let raster_to_camera = camera_to_screen.inverse() * raster_to_screen;
 
         // compute differential changes in origin for perspective camera rays
-        let dx_camera = (&raster_to_camera * &Point3f::new(1.0, 0.0, 0.0))
-            - (&raster_to_camera * &Point3f::new(0.0, 0.0, 0.0));
-        let dy_camera = (&raster_to_camera * &Point3f::new(0.0, 1.0, 0.0))
-            - (&raster_to_camera * &Point3f::new(0.0, 0.0, 0.0));
+        let dx_camera = (&raster_to_camera * &Point3f::new(1.0, 0.0, 0.0)) -
+                        (&raster_to_camera * &Point3f::new(0.0, 0.0, 0.0));
+        let dy_camera = (&raster_to_camera * &Point3f::new(0.0, 1.0, 0.0)) -
+                        (&raster_to_camera * &Point3f::new(0.0, 0.0, 0.0));
 
         PerspectiveCamera {
             film: film,
@@ -72,34 +66,28 @@ impl PerspectiveCamera {
         }
     }
 
-    pub fn create(
-        ps: &mut ParamSet,
-        cam2world: &Transform,
-        film: Box<Film>,
-    ) -> Box<Camera + Send + Sync> {
+    pub fn create(ps: &mut ParamSet,
+                  cam2world: &Transform,
+                  film: Box<Film>)
+                  -> Box<Camera + Send + Sync> {
         let mut shutteropen = ps.find_one_float("shutteropen", 0.0);
         let mut shutterclose = ps.find_one_float("shutterclose", 1.0);
         if shutterclose < shutteropen {
-            warn!(
-                "Shutter close time {} < shutter open time {}.  Swapping them.",
-                shutterclose,
-                shutteropen
-            );
+            warn!("Shutter close time {} < shutter open time {}.  Swapping them.",
+                  shutterclose,
+                  shutteropen);
             ::std::mem::swap(&mut shutteropen, &mut shutterclose);
         }
         let lensradius = ps.find_one_float("lensradius", 0.0);
         let focaldistance = ps.find_one_float("focaldistance", 1e6);
-        let frame = ps.find_one_float(
-            "frameaspectratio",
-            (film.full_resolution.x as f32 / film.full_resolution.y as f32),
-        );
+        let frame = ps.find_one_float("frameaspectratio",
+                                      (film.full_resolution.x as f32 /
+                                       film.full_resolution.y as f32));
         let mut screen = if frame > 1.0 {
             Bounds2f::from_points(&Point2f::new(-frame, -1.0), &Point2f::new(frame, 1.0))
         } else {
-            Bounds2f::from_points(
-                &Point2f::new(-1.0, -1.0 / frame),
-                &Point2f::new(1.0, 1.0 / frame),
-            )
+            Bounds2f::from_points(&Point2f::new(-1.0, -1.0 / frame),
+                                  &Point2f::new(1.0, 1.0 / frame))
         };
         if let Some(sw) = ps.find_float("screenwindow") {
             if sw.len() == 4 {
@@ -118,14 +106,12 @@ impl PerspectiveCamera {
             fov = halffov * 2.0;
         }
 
-        Box::new(PerspectiveCamera::new(
-            cam2world.clone(),
-            screen,
-            lensradius,
-            focaldistance,
-            fov,
-            film,
-        ))
+        Box::new(PerspectiveCamera::new(cam2world.clone(),
+                                        screen,
+                                        lensradius,
+                                        focaldistance,
+                                        fov,
+                                        film))
     }
 }
 

@@ -35,14 +35,16 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
 
     let rgb = buf.to_rgb();
     let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
-    let pixels: Vec<Spectrum> = rgb.pixels().map(|p| Spectrum::from_srgb(&p.data)).collect();
+    let pixels: Vec<Spectrum> = rgb.pixels()
+        .map(|p| Spectrum::from_srgb(&p.data))
+        .collect();
 
     Ok((pixels, res))
 }
 
 
 #[cfg(not(openexr))]
-fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     panic!("EXR support is not compiled in. Please recompile with the \"openexr\" feature.")
 }
 
@@ -97,7 +99,7 @@ fn read_word<R: BufRead>(f: &mut R) -> String {
 
 fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     info!("Loading PFM file {}", path.as_ref().display());
-    let mut file = File::open(path.as_ref())?;
+    let file = File::open(path.as_ref())?;
     let mut reader = BufReader::new(file);
     let mut word;
 
@@ -125,13 +127,11 @@ fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     let file_little_endian = scale < 0.0;
     let host_little_endian = true;
 
-    info!(
-        "n_channels={}, width={}, height={}, scale={}",
-        n_channels,
-        width,
-        height,
-        scale
-    );
+    info!("n_channels={}, width={}, height={}, scale={}",
+          n_channels,
+          width,
+          height,
+          scale);
 
     // Read the rest of the data
     let n_floats = n_channels * width * height;

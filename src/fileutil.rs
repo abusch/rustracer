@@ -18,30 +18,25 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
     path.canonicalize()
         .unwrap()
         .parent()
-        .expect(
-            format!(
-                "Failed to get the parent directory of the input file {}",
-                path.display()
-            ).as_ref(),
-        )
+        .expect(format!("Failed to get the parent directory of the input file {}",
+                        path.display())
+                        .as_ref())
         .to_owned()
 }
 
 pub fn resolve_filename(filename: &str) -> String {
     info!("Resolving filename {}", filename);
     let search_directory = SEARCH_DIR.lock().unwrap();
-    if search_directory.is_none() || filename == "" {
-        return filename.to_owned();
-    } else if Path::new(filename).is_absolute() {
-        return filename.to_owned();
+    if search_directory.is_none() || filename == "" || Path::new(filename).is_absolute() {
+        filename.to_owned()
     } else {
         let mut buf = (*search_directory).clone().unwrap(); //PathBuf::from(*search_directory);
         buf.push(filename);
-        return buf.as_path()
+        buf.as_path()
             .canonicalize()
             .unwrap()
             .to_str()
             .expect("Filename contained invalid UTF-8 characters")
-            .to_owned();
+            .to_owned()
     }
 }

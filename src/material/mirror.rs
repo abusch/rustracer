@@ -25,13 +25,11 @@ impl MirrorMaterial {
 }
 
 impl Material for MirrorMaterial {
-    fn compute_scattering_functions<'a, 'b>(
-        &self,
-        si: &mut SurfaceInteraction<'a, 'b>,
-        _mode: TransportMode,
-        _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
-    ) {
+    fn compute_scattering_functions<'a, 'b>(&self,
+                                            si: &mut SurfaceInteraction<'a, 'b>,
+                                            _mode: TransportMode,
+                                            _allow_multiple_lobes: bool,
+                                            arena: &'b Allocator) {
         // TODO bumpmap
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;

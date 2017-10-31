@@ -28,22 +28,20 @@ impl Plastic {
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(Plastic {
-            kd: Kd,
-            ks: Ks,
-            roughness: roughness,
-            remap_roughness: remap_roughness,
-        })
+                     kd: Kd,
+                     ks: Ks,
+                     roughness: roughness,
+                     remap_roughness: remap_roughness,
+                 })
     }
 }
 
 impl Material for Plastic {
-    fn compute_scattering_functions<'a, 'b>(
-        &self,
-        si: &mut SurfaceInteraction<'a, 'b>,
-        _mode: TransportMode,
-        _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
-    ) {
+    fn compute_scattering_functions<'a, 'b>(&self,
+                                            si: &mut SurfaceInteraction<'a, 'b>,
+                                            _mode: TransportMode,
+                                            _allow_multiple_lobes: bool,
+                                            arena: &'b Allocator) {
         let kd = self.kd.evaluate(si);
         let ks = self.ks.evaluate(si);
 

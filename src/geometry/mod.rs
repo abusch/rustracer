@@ -82,12 +82,10 @@ pub fn sin2_phi(w: &Vector3f) -> f32 {
 #[inline]
 #[allow(dead_code)]
 pub fn cos_d_phi(wa: &Vector3f, wb: &Vector3f) -> f32 {
-    clamp(
-        (wa.x * wb.x + wa.y * wa.y)
-            / ((wa.x * wa.x + wa.y * wa.y) * (wb.x * wb.x + wb.y * wb.y)).sqrt(),
-        -1.0,
-        1.0,
-    )
+    clamp((wa.x * wb.x + wa.y * wa.y) /
+          ((wa.x * wa.x + wa.y * wa.y) * (wb.x * wb.x + wb.y * wb.y)).sqrt(),
+          -1.0,
+          1.0)
 }
 
 #[inline]
@@ -103,11 +101,7 @@ pub fn spherical_theta(v: &Vector3f) -> f32 {
 #[inline]
 pub fn spherical_phi(v: &Vector3f) -> f32 {
     let p = v.y.atan2(v.x);
-    if p < 0.0 {
-        p + 2.0 * PI
-    } else {
-        p
-    }
+    if p < 0.0 { p + 2.0 * PI } else { p }
 }
 
 #[inline]
@@ -116,33 +110,24 @@ pub fn spherical_direction(sin_theta: f32, cos_theta: f32, phi: f32) -> Vector3f
 }
 
 #[inline]
-pub fn spherical_direction_vec(
-    sin_theta: f32,
-    cos_theta: f32,
-    phi: f32,
-    x: &Vector3f,
-    y: &Vector3f,
-    z: &Vector3f,
-) -> Vector3f {
+pub fn spherical_direction_vec(sin_theta: f32,
+                               cos_theta: f32,
+                               phi: f32,
+                               x: &Vector3f,
+                               y: &Vector3f,
+                               z: &Vector3f)
+                               -> Vector3f {
     sin_theta * phi.cos() * *x + sin_theta * phi.sin() * *y + cos_theta * *z
 }
 
 #[inline]
 pub fn face_forward(v1: &Vector3f, v2: &Vector3f) -> Vector3f {
-    if v1.dot(v2) < 0.0 {
-        -(*v1)
-    } else {
-        *v1
-    }
+    if v1.dot(v2) < 0.0 { -(*v1) } else { *v1 }
 }
 
 #[inline]
 pub fn face_forward_n(v1: &Normal3f, v2: &Normal3f) -> Normal3f {
-    if v1.dotn(v2) < 0.0 {
-        -(*v1)
-    } else {
-        *v1
-    }
+    if v1.dotn(v2) < 0.0 { -(*v1) } else { *v1 }
 }
 
 /// Polynomial approximation of the inverse Gauss error function
@@ -152,7 +137,7 @@ pub fn erf_inv(x: f32) -> f32 {
     let mut w = -((1.0 - x) * (1.0 + x)).ln();
     let mut p;
     if w < 5.0 {
-        w = w - 2.5;
+        w -= 2.5;
         p = 2.81022636e-08;
         p = 3.43273939e-07 + p * w;
         p = -3.5233877e-06 + p * w;

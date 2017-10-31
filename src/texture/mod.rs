@@ -26,12 +26,10 @@ pub struct UVTexture {
 
 impl UVTexture {
     pub fn new() -> UVTexture {
-        UVTexture {
-            mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),
-        }
+        UVTexture { mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)) }
     }
 
-    pub fn create_spectrum(tex2world: &Transform, tp: &mut TextureParams) -> UVTexture {
+    pub fn create_spectrum(_tex2world: &Transform, tp: &mut TextureParams) -> UVTexture {
         let typ = tp.find_string("mapping", "uv");
         let mapping = if typ == "uv" {
             let su = tp.find_float("uscale", 1.0);
@@ -103,9 +101,7 @@ pub struct TransformMapping3D {
 
 impl TransformMapping3D {
     pub fn new() -> TransformMapping3D {
-        TransformMapping3D {
-            world_to_texture: Transform::default(),
-        }
+        TransformMapping3D { world_to_texture: Transform::default() }
     }
 }
 

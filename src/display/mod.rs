@@ -38,8 +38,7 @@ impl DisplayUpdater for MinifbDisplayUpdater {
             .iter()
             .map(|p| {
                      let rgb = p.to_srgb();
-                     (rgb[0] as u32) << 16 | (rgb[1] as u32) << 8 | (rgb[2] as u32)
-
+                     (u32::from(rgb[0])) << 16 | (u32::from(rgb[1])) << 8 | (u32::from(rgb[2]))
                  })
             .collect();
 

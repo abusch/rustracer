@@ -27,23 +27,21 @@ impl SubstrateMaterial {
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(SubstrateMaterial {
-            kd,
-            ks,
-            nu: urough,
-            nv: vrough,
-            remap_roughness,
-        })
+                     kd,
+                     ks,
+                     nu: urough,
+                     nv: vrough,
+                     remap_roughness,
+                 })
     }
 }
 
 impl Material for SubstrateMaterial {
-    fn compute_scattering_functions<'a, 'b>(
-        &self,
-        si: &mut SurfaceInteraction<'a, 'b>,
-        _mode: TransportMode,
-        _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
-    ) {
+    fn compute_scattering_functions<'a, 'b>(&self,
+                                            si: &mut SurfaceInteraction<'a, 'b>,
+                                            _mode: TransportMode,
+                                            _allow_multiple_lobes: bool,
+                                            arena: &'b Allocator) {
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
 

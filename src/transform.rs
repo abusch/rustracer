@@ -66,42 +66,38 @@ impl Transform {
     }
 
     pub fn translate(delta: &Vector3f) -> Transform {
-        let m = Matrix4x4::from_elements(
-            1.0,
-            0.0,
-            0.0,
-            delta.x,
-            0.0,
-            1.0,
-            0.0,
-            delta.y,
-            0.0,
-            0.0,
-            1.0,
-            delta.z,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        );
-        let minv = Matrix4x4::from_elements(
-            1.0,
-            0.0,
-            0.0,
-            -delta.x,
-            0.0,
-            1.0,
-            0.0,
-            -delta.y,
-            0.0,
-            0.0,
-            1.0,
-            -delta.z,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        );
+        let m = Matrix4x4::from_elements(1.0,
+                                         0.0,
+                                         0.0,
+                                         delta.x,
+                                         0.0,
+                                         1.0,
+                                         0.0,
+                                         delta.y,
+                                         0.0,
+                                         0.0,
+                                         1.0,
+                                         delta.z,
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         1.0);
+        let minv = Matrix4x4::from_elements(1.0,
+                                            0.0,
+                                            0.0,
+                                            -delta.x,
+                                            0.0,
+                                            1.0,
+                                            0.0,
+                                            -delta.y,
+                                            0.0,
+                                            0.0,
+                                            1.0,
+                                            -delta.z,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            1.0);
         Transform { m: m, m_inv: minv }
     }
 
@@ -118,42 +114,38 @@ impl Transform {
     }
 
     pub fn scale(sx: f32, sy: f32, sz: f32) -> Transform {
-        let m = Matrix4x4::from_elements(
-            sx,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            sy,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            sz,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        );
-        let minv = Matrix4x4::from_elements(
-            1.0 / sx,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0 / sy,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0 / sz,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-        );
+        let m = Matrix4x4::from_elements(sx,
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         sy,
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         sz,
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         0.0,
+                                         1.0);
+        let minv = Matrix4x4::from_elements(1.0 / sx,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            1.0 / sy,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            1.0 / sz,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            0.0,
+                                            1.0);
         Transform { m: m, m_inv: minv }
     }
 
@@ -168,7 +160,9 @@ impl Transform {
         // Initialize first three columns of viewing matrix
         let dir = (*look - *pos).normalize();
         if up.normalize().cross(&dir).length() == 0.0 {
-            error!("\"up\" vector {} and viewing direction {} passed to LookAt are pointing in the same direction.  Using the identity transformation.", up, dir);
+            error!("\"up\" vector {} and viewing direction {} passed to LookAt are pointing in the same direction.  Using the identity transformation.",
+                   up,
+                   dir);
             return Transform::new();
         }
         let left = up.normalize().cross(&dir).normalize();
@@ -215,40 +209,42 @@ impl Transform {
         let (x, y, z) = (p.x, p.y, p.z);
         let tp = self * p;
         let m = self.m.m;
-        let x_abs_sum =
-            (m[0][0] * x).abs() + (m[0][1] * y).abs() + (m[0][2] * z).abs() + m[0][3].abs();
-        let y_abs_sum =
-            (m[1][0] * x).abs() + (m[1][1] * y).abs() + (m[1][2] * z).abs() + m[1][3].abs();
-        let z_abs_sum =
-            (m[2][0] * x).abs() + (m[2][1] * y).abs() + (m[2][2] * z).abs() + m[2][3].abs();
+        let x_abs_sum = (m[0][0] * x).abs() + (m[0][1] * y).abs() + (m[0][2] * z).abs() +
+                        m[0][3].abs();
+        let y_abs_sum = (m[1][0] * x).abs() + (m[1][1] * y).abs() + (m[1][2] * z).abs() +
+                        m[1][3].abs();
+        let z_abs_sum = (m[2][0] * x).abs() + (m[2][1] * y).abs() + (m[2][2] * z).abs() +
+                        m[2][3].abs();
         let p_err = gamma(3) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
 
         (tp, p_err)
     }
 
-    pub fn transform_point_with_error(
-        &self,
-        p: &Point3f,
-        p_error: &Vector3f,
-    ) -> (Point3f, Vector3f) {
+    pub fn transform_point_with_error(&self,
+                                      p: &Point3f,
+                                      p_error: &Vector3f)
+                                      -> (Point3f, Vector3f) {
         let (x, y, z) = (p.x, p.y, p.z);
         let tp = self * p;
         let m = self.m.m;
-        let x_abs_err = (gamma(3) + 1.0)
-            * ((m[0][0] * p_error.x).abs() + (m[0][1] * p_error.y).abs()
-                + (m[0][2] * p_error.z).abs())
-            + gamma(3)
-                * ((m[0][0] * x).abs() + (m[0][1] * y).abs() + (m[0][2] * z).abs() + m[0][3].abs());
-        let y_abs_err = (gamma(3) + 1.0)
-            * ((m[1][0] * p_error.x).abs() + (m[1][1] * p_error.y).abs()
-                + (m[1][2] * p_error.z).abs())
-            + gamma(3)
-                * ((m[1][0] * x).abs() + (m[1][1] * y).abs() + (m[1][2] * z).abs() + m[1][3].abs());
-        let z_abs_err = (gamma(3) + 1.0)
-            * ((m[2][0] * p_error.x).abs() + (m[2][1] * p_error.y).abs()
-                + (m[2][2] * p_error.z).abs())
-            + gamma(3)
-                * ((m[2][0] * x).abs() + (m[2][1] * y).abs() + (m[2][2] * z).abs() + m[2][3].abs());
+        let x_abs_err = (gamma(3) + 1.0) *
+                        ((m[0][0] * p_error.x).abs() + (m[0][1] * p_error.y).abs() +
+                         (m[0][2] * p_error.z).abs()) +
+                        gamma(3) *
+                        ((m[0][0] * x).abs() + (m[0][1] * y).abs() + (m[0][2] * z).abs() +
+                         m[0][3].abs());
+        let y_abs_err = (gamma(3) + 1.0) *
+                        ((m[1][0] * p_error.x).abs() + (m[1][1] * p_error.y).abs() +
+                         (m[1][2] * p_error.z).abs()) +
+                        gamma(3) *
+                        ((m[1][0] * x).abs() + (m[1][1] * y).abs() + (m[1][2] * z).abs() +
+                         m[1][3].abs());
+        let z_abs_err = (gamma(3) + 1.0) *
+                        ((m[2][0] * p_error.x).abs() + (m[2][1] * p_error.y).abs() +
+                         (m[2][2] * p_error.z).abs()) +
+                        gamma(3) *
+                        ((m[2][0] * x).abs() + (m[2][1] * y).abs() + (m[2][2] * z).abs() +
+                         m[2][3].abs());
         let p_err = Vector3f::new(x_abs_err, y_abs_err, z_abs_err);
 
         (tp, p_err)
@@ -260,12 +256,12 @@ impl Transform {
         let (x, y, z) = (v.x, v.y, v.z);
         let tv = self * v;
         let m = self.m.m;
-        let x_abs_sum = f32::abs(m[0][0] * x) + f32::abs(m[0][1] * y) + f32::abs(m[0][2] * z)
-            + f32::abs(m[0][3]);
-        let y_abs_sum = f32::abs(m[1][0] * x) + f32::abs(m[1][1] * y) + f32::abs(m[1][2] * z)
-            + f32::abs(m[1][3]);
-        let z_abs_sum = f32::abs(m[2][0] * x) + f32::abs(m[2][1] * y) + f32::abs(m[2][2] * z)
-            + f32::abs(m[2][3]);
+        let x_abs_sum = f32::abs(m[0][0] * x) + f32::abs(m[0][1] * y) + f32::abs(m[0][2] * z) +
+                        f32::abs(m[0][3]);
+        let y_abs_sum = f32::abs(m[1][0] * x) + f32::abs(m[1][1] * y) + f32::abs(m[1][2] * z) +
+                        f32::abs(m[1][3]);
+        let z_abs_sum = f32::abs(m[2][0] * x) + f32::abs(m[2][1] * y) + f32::abs(m[2][2] * z) +
+                        f32::abs(m[2][3]);
         let v_err = gamma(3) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
 
         (tv, v_err)
@@ -275,18 +271,16 @@ impl Transform {
         let (x, y, z) = (normal.x, normal.y, normal.z);
         let m = self.m_inv.m;
 
-        Normal3f::new(
-            m[0][0] * x + m[1][0] * y + m[2][0] * z,
-            m[0][1] * x + m[1][1] * y + m[2][1] * z,
-            m[0][2] * x + m[1][2] * y + m[2][2] * z,
-        )
+        Normal3f::new(m[0][0] * x + m[1][0] * y + m[2][0] * z,
+                      m[0][1] * x + m[1][1] * y + m[2][1] * z,
+                      m[0][2] * x + m[1][2] * y + m[2][2] * z)
     }
 
     pub fn swaps_handedness(&self) -> bool {
         let m = self.m.m;
-        let det = m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
-            - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
-            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+        let det = m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                  m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                  m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
         det < 0.0
     }
 }
@@ -323,11 +317,9 @@ impl<'a, 'b> Mul<&'a Vector3f> for &'b Transform {
         let z = v.z;
         let m = self.m.m;
 
-        Vector3f::new(
-            m[0][0] * x + m[0][1] * y + m[0][2] * z,
-            m[1][0] * x + m[1][1] * y + m[1][2] * z,
-            m[2][0] * x + m[2][1] * y + m[2][2] * z,
-        )
+        Vector3f::new(m[0][0] * x + m[0][1] * y + m[0][2] * z,
+                      m[1][0] * x + m[1][1] * y + m[1][2] * z,
+                      m[2][0] * x + m[2][1] * y + m[2][2] * z)
     }
 }
 
@@ -338,11 +330,9 @@ impl<'a, 'b> Mul<&'a Normal3f> for &'b Transform {
         let (x, y, z) = (n.x, n.y, n.z);
         let m = self.m_inv.m;
 
-        Normal3f::new(
-            m[0][0] * x + m[1][0] * y + m[2][0] * z,
-            m[0][1] * x + m[1][1] * y + m[2][1] * z,
-            m[0][2] * x + m[1][2] * y + m[2][2] * z,
-        )
+        Normal3f::new(m[0][0] * x + m[1][0] * y + m[2][0] * z,
+                      m[0][1] * x + m[1][1] * y + m[2][1] * z,
+                      m[0][2] * x + m[1][2] * y + m[2][2] * z)
     }
 }
 
@@ -372,36 +362,22 @@ impl<'a, 'b> Mul<&'a Bounds3f> for &'b Transform {
     type Output = Bounds3f;
 
     fn mul(self, b: &'a Bounds3f) -> Bounds3f {
-        let mut ret =
-            Bounds3f::from_point(&(self * &Point3f::new(b.p_min.x, b.p_min.y, b.p_min.z)));
-        ret = Bounds3f::union_point(
-            &ret,
-            &(self * &Point3f::new(b.p_max.x, b.p_min.y, b.p_min.z)),
-        );
-        ret = Bounds3f::union_point(
-            &ret,
-            &(self * &Point3f::new(b.p_min.x, b.p_max.y, b.p_min.z)),
-        );
-        ret = Bounds3f::union_point(
-            &ret,
-            &(self * &Point3f::new(b.p_min.x, b.p_min.y, b.p_max.z)),
-        );
-        ret = Bounds3f::union_point(
-            &ret,
-            &(self * &Point3f::new(b.p_min.x, b.p_max.y, b.p_max.z)),
-        );
-        ret = Bounds3f::union_point(
-            &ret,
-            &(self * &Point3f::new(b.p_max.x, b.p_max.y, b.p_min.z)),
-        );
-        ret = Bounds3f::union_point(
-            &ret,
-            &(self * &Point3f::new(b.p_max.x, b.p_min.y, b.p_max.z)),
-        );
-        ret = Bounds3f::union_point(
-            &ret,
-            &(self * &Point3f::new(b.p_max.x, b.p_max.y, b.p_max.z)),
-        );
+        let mut ret = Bounds3f::from_point(&(self *
+                                             &Point3f::new(b.p_min.x, b.p_min.y, b.p_min.z)));
+        ret = Bounds3f::union_point(&ret,
+                                    &(self * &Point3f::new(b.p_max.x, b.p_min.y, b.p_min.z)));
+        ret = Bounds3f::union_point(&ret,
+                                    &(self * &Point3f::new(b.p_min.x, b.p_max.y, b.p_min.z)));
+        ret = Bounds3f::union_point(&ret,
+                                    &(self * &Point3f::new(b.p_min.x, b.p_min.y, b.p_max.z)));
+        ret = Bounds3f::union_point(&ret,
+                                    &(self * &Point3f::new(b.p_min.x, b.p_max.y, b.p_max.z)));
+        ret = Bounds3f::union_point(&ret,
+                                    &(self * &Point3f::new(b.p_max.x, b.p_max.y, b.p_min.z)));
+        ret = Bounds3f::union_point(&ret,
+                                    &(self * &Point3f::new(b.p_max.x, b.p_min.y, b.p_max.z)));
+        ret = Bounds3f::union_point(&ret,
+                                    &(self * &Point3f::new(b.p_max.x, b.p_max.y, b.p_max.z)));
 
         ret
     }

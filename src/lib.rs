@@ -1,6 +1,7 @@
 #![feature(placement_in_syntax)]
 #![recursion_limit = "1024"]
 #![deny(trivial_casts, unused_qualifications, unused_must_use)]
+#![allow(non_snake_case)]
 #[cfg(test)]
 #[macro_use]
 extern crate approx;
@@ -34,7 +35,6 @@ use num::{Num, One, Signed};
 
 mod api;
 mod blockedarray;
-mod block_queue;
 pub mod bounds;
 mod bsdf;
 pub mod bvh;
@@ -59,7 +59,7 @@ pub mod pbrt;
 pub mod primitive;
 pub mod ray;
 pub mod renderer;
-mod rng;
+pub mod rng;
 pub mod sampling;
 pub mod sampler;
 pub mod scene;
@@ -116,28 +116,22 @@ pub const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
 /// This version should be generic enough to linearly interpolate between 2 Spectrums using an f32
 /// parameter.
 pub fn lerp<S, T>(t: S, a: T, b: T) -> T
-where
-    S: One,
-    S: Sub<S, Output = S>,
-    S: Copy,
-    T: Add<T, Output = T>,
-    T: Mul<S, Output = T>,
+    where S: One,
+          S: Sub<S, Output = S>,
+          S: Copy,
+          T: Add<T, Output = T>,
+          T: Mul<S, Output = T>
 {
     let one: S = num::one();
     a * (one - t) + b * t
 }
 
 /// Return the dimension index (0, 1 or 2) that contains the largest component.
-pub fn max_dimension<T>(v: Vector3<T>) -> usize
-where
-    T: Num + PartialOrd,
+pub fn max_dimension<T>(v: &Vector3<T>) -> usize
+    where T: Num + PartialOrd
 {
     if v.x > v.y {
-        if v.x > v.z {
-            0
-        } else {
-            2
-        }
+        if v.x > v.z { 0 } else { 2 }
     } else if v.y > v.z {
         1
     } else {
@@ -151,16 +145,14 @@ pub fn max_component(v: &Vector3f) -> f32 {
 
 /// Permute the components of this vector based on the given indices for x, y and z.
 pub fn permute_v<T>(v: &Vector3<T>, x: usize, y: usize, z: usize) -> Vector3<T>
-where
-    T: Num + Copy,
+    where T: Num + Copy
 {
     Vector3::new(v[x], v[y], v[z])
 }
 
 /// Permute the components of this point based on the given indices for x, y and z.
 pub fn permute_p<T>(v: &Point3<T>, x: usize, y: usize, z: usize) -> Point3<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     Point3::new(v[x], v[y], v[z])
 }
@@ -180,8 +172,7 @@ pub fn coordinate_system(v1: &Vector3f) -> (Vector3f, Vector3f) {
 
 // TODO does this exist in std?
 pub fn find_interval<P>(size: usize, pred: P) -> usize
-where
-    P: Fn(usize) -> bool,
+    where P: Fn(usize) -> bool
 {
     let mut first = 0;
     let mut len = size;
@@ -201,20 +192,12 @@ where
 
 /// Version of min() that works on `PartialOrd`, so it works for both u32 and f32.
 pub fn min<T: PartialOrd + Copy>(a: T, b: T) -> T {
-    if a.lt(&b) {
-        a
-    } else {
-        b
-    }
+    if a.lt(&b) { a } else { b }
 }
 
 /// Version of max() that works on `PartialOrd`, so it works for both u32 and f32.
 pub fn max<T: PartialOrd + Copy>(a: T, b: T) -> T {
-    if a.gt(&b) {
-        a
-    } else {
-        b
-    }
+    if a.gt(&b) { a } else { b }
 }
 
 #[inline]
@@ -235,8 +218,7 @@ pub fn round_up_pow_2(v: i32) -> i32 {
 }
 
 pub fn clamp<T>(val: T, low: T, high: T) -> T
-where
-    T: PartialOrd + Copy,
+    where T: PartialOrd + Copy
 {
     if val < low {
         low

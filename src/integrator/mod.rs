@@ -27,26 +27,24 @@ pub use self::normal::Normal;
 pub trait SamplerIntegrator {
     fn preprocess(&mut self, _scene: &Scene, _sampler: &mut Box<Sampler + Send + Sync>) {}
 
-    fn li(
-        &self,
-        scene: &Scene,
-        ray: &mut Ray,
-        sampler: &mut Box<Sampler + Send + Sync>,
-        arena: &Allocator,
-        depth: u32,
-    ) -> Spectrum;
+    fn li(&self,
+          scene: &Scene,
+          ray: &mut Ray,
+          sampler: &mut Box<Sampler + Send + Sync>,
+          arena: &Allocator,
+          depth: u32)
+          -> Spectrum;
 
     #[allow(non_snake_case)]
-    fn specular_reflection(
-        &self,
-        ray: &mut Ray,
-        isect: &SurfaceInteraction,
-        scene: &Scene,
-        bsdf: &bsdf::BSDF,
-        sampler: &mut Box<Sampler + Send + Sync>,
-        arena: &Allocator,
-        depth: u32,
-    ) -> Spectrum {
+    fn specular_reflection(&self,
+                           ray: &mut Ray,
+                           isect: &SurfaceInteraction,
+                           scene: &Scene,
+                           bsdf: &bsdf::BSDF,
+                           sampler: &mut Box<Sampler + Send + Sync>,
+                           arena: &Allocator,
+                           depth: u32)
+                           -> Spectrum {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
@@ -63,10 +61,10 @@ pub trait SamplerIntegrator {
                 let dwody = -diff.ry_direction - isect.wo;
                 let dDNdx = dwodx.dotn(ns) + isect.wo.dotn(&dndx);
                 let dDNdy = dwody.dotn(ns) + isect.wo.dotn(&dndy);
-                rddiff.rx_direction =
-                    wi - dwodx + 2.0 * Vector3f::from(isect.wo.dotn(ns) * dndx + dDNdx * *ns);
-                rddiff.ry_direction =
-                    wi - dwody + 2.0 * Vector3f::from(isect.wo.dotn(ns) * dndy + dDNdy * *ns);
+                rddiff.rx_direction = wi - dwodx +
+                                      2.0 * Vector3f::from(isect.wo.dotn(ns) * dndx + dDNdx * *ns);
+                rddiff.ry_direction = wi - dwody +
+                                      2.0 * Vector3f::from(isect.wo.dotn(ns) * dndy + dDNdy * *ns);
 
                 r.differential = Some(rddiff);
             }
@@ -78,16 +76,15 @@ pub trait SamplerIntegrator {
     }
 
     #[allow(non_snake_case)]
-    fn specular_transmission(
-        &self,
-        ray: &mut Ray,
-        isect: &SurfaceInteraction,
-        scene: &Scene,
-        bsdf: &bsdf::BSDF,
-        sampler: &mut Box<Sampler + Send + Sync>,
-        arena: &Allocator,
-        depth: u32,
-    ) -> Spectrum {
+    fn specular_transmission(&self,
+                             ray: &mut Ray,
+                             isect: &SurfaceInteraction,
+                             scene: &Scene,
+                             bsdf: &bsdf::BSDF,
+                             sampler: &mut Box<Sampler + Send + Sync>,
+                             arena: &Allocator,
+                             depth: u32)
+                             -> Spectrum {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
         let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
@@ -113,8 +110,8 @@ pub trait SamplerIntegrator {
                 let dDNdy = dwody.dotn(ns) + isect.wo.dotn(&dndy);
 
                 let mu = eta * w.dotn(ns) - wi.dotn(ns);
-                let dmudx = (eta - (eta * eta * w.dotn(ns)) / wi.dotn(ns)) * dDNdx;
-                let dmudy = (eta - (eta * eta * w.dotn(ns)) / wi.dotn(ns)) * dDNdy;
+                let _dmudx = (eta - (eta * eta * w.dotn(ns)) / wi.dotn(ns)) * dDNdx;
+                let _dmudy = (eta - (eta * eta * w.dotn(ns)) / wi.dotn(ns)) * dDNdy;
 
                 rddiff.rx_direction = wi + eta * dwodx - Vector3f::from(mu * dndx + dDNdx * *ns);
                 rddiff.ry_direction = wi + eta * dwody - Vector3f::from(mu * dndy + dDNdy * *ns);
@@ -129,12 +126,11 @@ pub trait SamplerIntegrator {
     }
 }
 
-pub fn uniform_sample_all_light(
-    it: &SurfaceInteraction,
-    scene: &Scene,
-    sampler: &mut Box<Sampler + Send + Sync>,
-    n_light_samples: &[usize],
-) -> Spectrum {
+pub fn uniform_sample_all_light(it: &SurfaceInteraction,
+                                scene: &Scene,
+                                sampler: &mut Box<Sampler + Send + Sync>,
+                                n_light_samples: &[usize])
+                                -> Spectrum {
     let mut L = Spectrum::black();
     for j in 0..scene.lights.len() {
         // Accumulate contribution of j_th light to L
@@ -153,14 +149,12 @@ pub fn uniform_sample_all_light(
             let u_scattering_array = u_scattering_array.unwrap();
             let mut Ld = Spectrum::black();
             for k in 0..n_samples {
-                Ld += estimate_direct(
-                    it,
-                    &u_scattering_array[k],
-                    light,
-                    &u_light_array[k],
-                    scene,
-                    sampler,
-                );
+                Ld += estimate_direct(it,
+                                      &u_scattering_array[k],
+                                      light,
+                                      &u_light_array[k],
+                                      scene,
+                                      sampler);
             }
             L += Ld / n_samples as f32;
         }
@@ -174,7 +168,7 @@ pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
     scene: &Scene,
     sampler: &mut Box<Sampler + Send + Sync>,
     distrib: D,
-) -> Spectrum {
+) -> Spectrum{
     let distrib = distrib.into();
     let n_lights = scene.lights.len();
     if n_lights == 0 {
@@ -184,19 +178,14 @@ pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
         let s = sampler.get_1d();
         let (light_num, light_pdf) = match distrib {
             Some(distrib) => distrib.sample_discrete(s),
-            None => (
-                cmp::min(n_lights - 1, (s * n_lights as f32) as usize),
-                1.0 / n_lights as f32,
-            ),
+            None => (cmp::min(n_lights - 1, (s * n_lights as f32) as usize), 1.0 / n_lights as f32),
         };
 
-        debug!(
-            "sampler.get_1d()={}, n_lights={}, light_num={}, light_pdf={}",
-            s,
-            n_lights,
-            light_num,
-            light_pdf
-        );
+        debug!("sampler.get_1d()={}, n_lights={}, light_num={}, light_pdf={}",
+               s,
+               n_lights,
+               light_num,
+               light_pdf);
 
         if light_pdf == 0.0 {
             return Spectrum::black();
@@ -208,14 +197,13 @@ pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
     }
 }
 
-pub fn estimate_direct(
-    it: &SurfaceInteraction,
-    u_scattering: &Point2f,
-    light: &Arc<Light + Send + Sync>,
-    u_light: &Point2f,
-    scene: &Scene,
-    _sampler: &mut Box<Sampler + Send + Sync>,
-) -> Spectrum {
+pub fn estimate_direct(it: &SurfaceInteraction,
+                       u_scattering: &Point2f,
+                       light: &Arc<Light + Send + Sync>,
+                       u_light: &Point2f,
+                       scene: &Scene,
+                       _sampler: &mut Box<Sampler + Send + Sync>)
+                       -> Spectrum {
     let specular = false;
 
     let bsdf_flags = if specular {
@@ -229,6 +217,13 @@ pub fn estimate_direct(
         .as_ref()
         .expect("There should be a BSDF set at this point!");
     let (mut li, wi, light_pdf, vis) = light.sample_li(it, u_light);
+    // info!(
+    //     "EstimateDirect u_light: {} -> Li: {}, wi: {}, pdf: {}",
+    //     u_light,
+    //     li,
+    //     wi,
+    //     light_pdf
+    // );
     if light_pdf > 0.0 && !li.is_black() {
         // Compute BSDF for light sample
         let f = bsdf.f(&it.wo, &wi, bsdf_flags) * wi.dotn(&it.shading.n).abs();
@@ -253,7 +248,7 @@ pub fn estimate_direct(
     if !is_delta_light(light.flags()) {
         let (mut f, wi, scattering_pdf, sampled_type) =
             bsdf.sample_f(&it.wo, u_scattering, bsdf_flags);
-        f = f * wi.dotn(&it.shading.n).abs();
+        f *= wi.dotn(&it.shading.n).abs();
         let sampled_specular = sampled_type.contains(BxDFType::BSDF_SPECULAR);
         // TODO compute medium interaction when supported
         if !f.is_black() && scattering_pdf > 0.0 {

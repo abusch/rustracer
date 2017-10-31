@@ -11,7 +11,8 @@ use fileutil;
 
 pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<()> {
     let filename = filename.as_ref();
-    let mut file = File::open(filename).chain_err(|| "Failed to open scene file")?;
+    let mut file = File::open(filename)
+        .chain_err(|| "Failed to open scene file")?;
     let mut file_content = String::new();
     file.read_to_string(&mut file_content)
         .chain_err(|| "Failed to read content of scene file")?;
@@ -34,6 +35,7 @@ pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<()> {
     Ok(())
 }
 
+#[ignore]
 #[test]
 fn test_parse_scene() {
     let scene = r##"

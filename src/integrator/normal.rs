@@ -9,14 +9,13 @@ use scene::Scene;
 pub struct Normal {}
 
 impl SamplerIntegrator for Normal {
-    fn li(
-        &self,
-        scene: &Scene,
-        ray: &mut Ray,
-        _sampler: &mut Box<Sampler + Send + Sync>,
-        _arena: &Allocator,
-        _depth: u32,
-    ) -> Spectrum {
+    fn li(&self,
+          scene: &Scene,
+          ray: &mut Ray,
+          _sampler: &mut Box<Sampler + Send + Sync>,
+          _arena: &Allocator,
+          _depth: u32)
+          -> Spectrum {
         if let Some(intersection) = scene.intersect(ray) {
             let n = intersection.n;
             Spectrum::grey(ray.d.dotn(&n).abs())

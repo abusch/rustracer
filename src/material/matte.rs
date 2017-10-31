@@ -22,20 +22,18 @@ impl MatteMaterial {
         let sigma = mp.get_float_texture("sigma", 0.0);
 
         Arc::new(MatteMaterial {
-            kd: kd,
-            sigma: sigma,
-        })
+                     kd: kd,
+                     sigma: sigma,
+                 })
     }
 }
 
 impl Material for MatteMaterial {
-    fn compute_scattering_functions<'a, 'b>(
-        &self,
-        si: &mut SurfaceInteraction<'a, 'b>,
-        _mode: TransportMode,
-        _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
-    ) {
+    fn compute_scattering_functions<'a, 'b>(&self,
+                                            si: &mut SurfaceInteraction<'a, 'b>,
+                                            _mode: TransportMode,
+                                            _allow_multiple_lobes: bool,
+                                            arena: &'b Allocator) {
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
 

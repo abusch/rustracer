@@ -20,8 +20,7 @@ pub struct Bounds3<T: Num> {
 }
 
 impl<T> Bounds3<T>
-where
-    T: Bounded + PartialOrd + Into<f32> + Num + Signed + SubAssign + Copy,
+    where T: Bounded + PartialOrd + Into<f32> + Num + Signed + SubAssign + Copy
 {
     pub fn new() -> Bounds3<T> {
         let min = T::min_value();
@@ -47,11 +46,9 @@ where
     }
 
     pub fn corner(&self, corner: usize) -> Point3<T> {
-        Point3::new(
-            self[corner & 1].x,
-            self[if corner & 2 != 0 { 1 } else { 0 }].y,
-            self[if corner & 4 != 0 { 1 } else { 0 }].z,
-        )
+        Point3::new(self[corner & 1].x,
+                    self[if corner & 2 != 0 { 1 } else { 0 }].y,
+                    self[if corner & 4 != 0 { 1 } else { 0 }].z)
     }
 
     pub fn extend(&mut self, p: Point3<T>) {
@@ -78,11 +75,7 @@ where
     pub fn maximum_extent(&self) -> Axis {
         let v = self.p_max - self.p_min;
         if v.x > v.y {
-            if v.x > v.z {
-                Axis::X
-            } else {
-                Axis::Z
-            }
+            if v.x > v.z { Axis::X } else { Axis::Z }
         } else if v.y > v.z {
             Axis::Y
         } else {
@@ -91,16 +84,12 @@ where
     }
 
     pub fn union(bbox1: &Bounds3<T>, bbox2: &Bounds3<T>) -> Bounds3<T> {
-        let min = Point3::new(
-            min(bbox1.p_min.x, bbox2.p_min.x),
-            min(bbox1.p_min.y, bbox2.p_min.y),
-            min(bbox1.p_min.z, bbox2.p_min.z),
-        );
-        let max = Point3::new(
-            max(bbox1.p_max.x, bbox2.p_max.x),
-            max(bbox1.p_max.y, bbox2.p_max.y),
-            max(bbox1.p_max.z, bbox2.p_max.z),
-        );
+        let min = Point3::new(min(bbox1.p_min.x, bbox2.p_min.x),
+                              min(bbox1.p_min.y, bbox2.p_min.y),
+                              min(bbox1.p_min.z, bbox2.p_min.z));
+        let max = Point3::new(max(bbox1.p_max.x, bbox2.p_max.x),
+                              max(bbox1.p_max.y, bbox2.p_max.y),
+                              max(bbox1.p_max.z, bbox2.p_max.z));
 
         Bounds3 {
             p_min: min,
@@ -116,11 +105,9 @@ where
 
     pub fn intersect_p(&self, ray: &Ray) -> bool {
         let invdir = Vector3f::new(1.0 / ray.d.x, 1.0 / ray.d.y, 1.0 / ray.d.z);
-        let sign = [
-            (ray.d.x < 0.0) as usize,
-            (ray.d.y < 0.0) as usize,
-            (ray.d.z < 0.0) as usize,
-        ];
+        let sign = [(ray.d.x < 0.0) as usize,
+                    (ray.d.y < 0.0) as usize,
+                    (ray.d.z < 0.0) as usize];
 
         self.intersect_p_fast(ray, &invdir, &sign)
     }
@@ -159,27 +146,23 @@ where
 
     /// Linearly interpolate a point inside the bounds
     pub fn lerp(&self, t: &Point3<T>) -> Point3<T> {
-        Point3::new(
-            lerp(t.x, self.p_min.x, self.p_max.x),
-            lerp(t.y, self.p_min.y, self.p_max.y),
-            lerp(t.z, self.p_min.z, self.p_max.z),
-        )
+        Point3::new(lerp(t.x, self.p_min.x, self.p_max.x),
+                    lerp(t.y, self.p_min.y, self.p_max.y),
+                    lerp(t.z, self.p_min.z, self.p_max.z))
     }
 
     pub fn inside(&self, p: &Point3<T>) -> bool {
-        p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y && p.y <= self.p_max.y
-            && p.z >= self.p_min.z && p.z <= self.p_max.z
+        p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y &&
+        p.y <= self.p_max.y && p.z >= self.p_min.z && p.z <= self.p_max.z
     }
 }
 
 impl Bounds3<f32> {
     /// Compute the bounding sphere of the current bounding box, and returns its center and radius.
     pub fn bounding_sphere(&self) -> (Point3f, f32) {
-        let center = Point3f::new(
-            (self.p_min.x + self.p_max.x) / 2.0,
-            (self.p_min.y + self.p_max.y) / 2.0,
-            (self.p_min.z + self.p_max.z) / 2.0,
-        );
+        let center = Point3f::new((self.p_min.x + self.p_max.x) / 2.0,
+                                  (self.p_min.y + self.p_max.y) / 2.0,
+                                  (self.p_min.z + self.p_max.z) / 2.0);
         let radius = if self.inside(&center) {
             (self.p_max - center).length()
         } else {
@@ -191,8 +174,7 @@ impl Bounds3<f32> {
 }
 
 impl<T> Default for Bounds3<T>
-where
-    T: Bounded + PartialOrd + Into<f32> + Num + Signed + Copy + SubAssign,
+    where T: Bounded + PartialOrd + Into<f32> + Num + Signed + Copy + SubAssign
 {
     fn default() -> Self {
         Self::new()
@@ -209,8 +191,7 @@ pub struct Bounds2<T: Num> {
 }
 
 impl<T> Bounds2<T>
-where
-    T: Bounded + PartialOrd + fmt::Display + Num + Signed + Copy,
+    where T: Bounded + PartialOrd + fmt::Display + Num + Signed + Copy
 {
     pub fn new() -> Bounds2<T> {
         let min = T::min_value();
@@ -262,14 +243,10 @@ where
     // }
 
     pub fn union(bbox1: &Bounds2<T>, bbox2: &Bounds2<T>) -> Bounds2<T> {
-        let min = Point2::new(
-            min(bbox1.p_min.x, bbox2.p_min.x),
-            min(bbox1.p_min.y, bbox2.p_min.y),
-        );
-        let max = Point2::new(
-            max(bbox1.p_max.x, bbox2.p_max.x),
-            max(bbox1.p_max.y, bbox2.p_max.y),
-        );
+        let min = Point2::new(min(bbox1.p_min.x, bbox2.p_min.x),
+                              min(bbox1.p_min.y, bbox2.p_min.y));
+        let max = Point2::new(max(bbox1.p_max.x, bbox2.p_max.x),
+                              max(bbox1.p_max.y, bbox2.p_max.y));
 
         Bounds2 {
             p_min: min,
@@ -285,10 +262,8 @@ where
 
     /// Linearly interpolate a point inside the bounds
     pub fn lerp(&self, t: &Point2<T>) -> Point2<T> {
-        Point2::new(
-            lerp(t.x, self.p_min.x, self.p_max.x),
-            lerp(t.y, self.p_min.y, self.p_max.y),
-        )
+        Point2::new(lerp(t.x, self.p_min.x, self.p_max.x),
+                    lerp(t.y, self.p_min.y, self.p_max.y))
     }
 
     pub fn inside(&self, p: &Point2<T>) -> bool {
@@ -304,14 +279,10 @@ where
     }
 
     pub fn intersect(bbox1: &Bounds2<T>, bbox2: &Bounds2<T>) -> Bounds2<T> {
-        let p_min = Point2::new(
-            max(bbox1.p_min.x, bbox2.p_min.x),
-            max(bbox1.p_min.y, bbox2.p_min.y),
-        );
-        let p_max = Point2::new(
-            min(bbox1.p_max.x, bbox2.p_max.x),
-            min(bbox1.p_max.y, bbox2.p_max.y),
-        );
+        let p_min = Point2::new(max(bbox1.p_min.x, bbox2.p_min.x),
+                                max(bbox1.p_min.y, bbox2.p_min.y));
+        let p_max = Point2::new(min(bbox1.p_max.x, bbox2.p_max.x),
+                                min(bbox1.p_max.y, bbox2.p_max.y));
 
         Bounds2 {
             p_min: p_min,
@@ -328,8 +299,7 @@ where
 }
 
 impl<T> Default for Bounds2<T>
-where
-    T: Bounded + PartialOrd + fmt::Display + Num + Signed + Copy,
+    where T: Bounded + PartialOrd + fmt::Display + Num + Signed + Copy
 {
     fn default() -> Self {
         Self::new()
@@ -337,8 +307,7 @@ where
 }
 
 impl<T> Index<usize> for Bounds3<T>
-where
-    T: Copy + Num,
+    where T: Copy + Num
 {
     type Output = Point3<T>;
 
@@ -390,19 +359,15 @@ impl<'a> IntoIterator for &'a Bounds2<i32> {
 
 impl From<Bounds2i> for Bounds2f {
     fn from(b: Bounds2i) -> Self {
-        Bounds2f::from_points(
-            &Point2f::new(b.p_min.x as f32, b.p_min.y as f32),
-            &Point2f::new(b.p_max.x as f32, b.p_max.y as f32),
-        )
+        Bounds2f::from_points(&Point2f::new(b.p_min.x as f32, b.p_min.y as f32),
+                              &Point2f::new(b.p_max.x as f32, b.p_max.y as f32))
     }
 }
 
 impl From<Bounds2f> for Bounds2i {
     fn from(b: Bounds2f) -> Self {
-        Bounds2i::from_points(
-            &Point2i::new(b.p_min.x as i32, b.p_min.y as i32),
-            &Point2i::new(b.p_max.x as i32, b.p_max.y as i32),
-        )
+        Bounds2i::from_points(&Point2i::new(b.p_min.x as i32, b.p_min.y as i32),
+                              &Point2i::new(b.p_max.x as i32, b.p_max.y as i32))
     }
 }
 
@@ -426,8 +391,7 @@ impl Index<Axis> for Point3<f32> {
 }
 
 impl<T> fmt::Display for Bounds2<T>
-where
-    T: fmt::Display + Num,
+    where T: fmt::Display + Num
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} → {}", self.p_min, self.p_max)

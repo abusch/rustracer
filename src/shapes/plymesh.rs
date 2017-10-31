@@ -13,13 +13,12 @@ use shapes::mesh::create_triangle_mesh;
 use texture::Texture;
 use transform::Transform;
 
-pub fn create(
-    o2w: &Transform,
-    w2o: &Transform,
-    reverse_orientation: bool,
-    params: &mut ParamSet,
-    float_textures: &HashMap<String, Arc<Texture<f32> + Send + Sync>>,
-) -> Vec<Arc<Shape + Send + Sync>> {
+pub fn create(o2w: &Transform,
+              _w2o: &Transform,
+              reverse_orientation: bool,
+              params: &mut ParamSet,
+              _float_textures: &HashMap<String, Arc<Texture<f32> + Send + Sync>>)
+              -> Vec<Arc<Shape + Send + Sync>> {
     let filename = params.find_one_filename("filename", "".into());
     let f = File::open(&filename).unwrap();
     let mut f = BufReader::new(f);
@@ -37,27 +36,22 @@ pub fn create(
     for (key, elem) in &header.elements {
         if key == "vertex" {
             vertex_count = elem.count;
-            if !elem.properties.contains_key("x") || !elem.properties.contains_key("y")
-                || !elem.properties.contains_key("z")
-            {
-                error!(
-                    "PLY file \"{}\": Vertex coordinate property not found",
-                    filename
-                );
+            if !elem.properties.contains_key("x") || !elem.properties.contains_key("y") ||
+               !elem.properties.contains_key("z") {
+                error!("PLY file \"{}\": Vertex coordinate property not found",
+                       filename);
                 return Vec::new();
             }
-            if elem.properties.contains_key("nx") && elem.properties.contains_key("ny")
-                && elem.properties.contains_key("nz")
-            {
+            if elem.properties.contains_key("nx") && elem.properties.contains_key("ny") &&
+               elem.properties.contains_key("nz") {
                 has_normals = true;
             }
-            if (elem.properties.contains_key("u") && elem.properties.contains_key("v"))
-                || (elem.properties.contains_key("s") && elem.properties.contains_key("t"))
-                || (elem.properties.contains_key("texture_u")
-                    && elem.properties.contains_key("texture_v"))
-                || (elem.properties.contains_key("texture_s")
-                    && elem.properties.contains_key("texture_t"))
-            {
+            if (elem.properties.contains_key("u") && elem.properties.contains_key("v")) ||
+               (elem.properties.contains_key("s") && elem.properties.contains_key("t")) ||
+               (elem.properties.contains_key("texture_u") &&
+                elem.properties.contains_key("texture_v")) ||
+               (elem.properties.contains_key("texture_s") &&
+                elem.properties.contains_key("texture_t")) {
                 has_texture = true;
             }
         } else if key == "face" {
@@ -66,17 +60,13 @@ pub fn create(
     }
 
     if vertex_count == 0 || face_count == 0 {
-        error!(
-            "PLY file \"{}\" is invalid! No face/vertex elements found!",
-            filename
-        );
+        error!("PLY file \"{}\" is invalid! No face/vertex elements found!",
+               filename);
         return Vec::new();
     } else {
-        info!(
-            "Loading PLY file with {} vertices and {} faces",
-            vertex_count,
-            face_count
-        );
+        info!("Loading PLY file with {} vertices and {} faces",
+              vertex_count,
+              face_count);
     }
 
     let mut vertices = Vec::new();
@@ -84,13 +74,17 @@ pub fn create(
     for (_key, elem) in &header.elements {
         match elem.name.as_ref() {
             "vertex" => {
-                vertices = vertex_parser.read_payload_for_element(&mut f, &elem, &header).unwrap();
+                vertices = vertex_parser
+                    .read_payload_for_element(&mut f, elem, &header)
+                    .unwrap();
                 // TODO normals + texture
             }
             "face" => {
-                faces = face_parser.read_payload_for_element(&mut f, &elem, &header).unwrap();
+                faces = face_parser
+                    .read_payload_for_element(&mut f, elem, &header)
+                    .unwrap();
             }
-            _ => panic!("Unexpected element \"{}\"", elem.name)
+            _ => panic!("Unexpected element \"{}\"", elem.name),
         }
     }
 
@@ -129,15 +123,13 @@ pub fn create(
         }
     }
 
-    create_triangle_mesh(
-        o2w,
-        reverse_orientation,
-        &vertex_indices,
-        &p,
-        None,
-        if has_normals {Some(&n)} else {None},
-        if has_texture {Some(&uv)} else {None}
-    )
+    create_triangle_mesh(o2w,
+                         reverse_orientation,
+                         &vertex_indices,
+                         &p,
+                         None,
+                         if has_normals { Some(&n) } else { None },
+                         if has_texture { Some(&uv) } else { None })
 }
 
 struct Vertex {
@@ -166,13 +158,13 @@ impl ply::PropertyAccess for Vertex {
             ("ny", ply::Property::Float(v)) => self.n.y = v,
             ("nz", ply::Property::Float(v)) => self.n.z = v,
             // texture coordinates
-            ("u", ply::Property::Float(v)) => self.uv.x = v,
-            ("s", ply::Property::Float(v)) => self.uv.x = v,
-            ("texture_u", ply::Property::Float(v)) => self.uv.x = v,
+            ("u", ply::Property::Float(v)) |
+            ("texture_u", ply::Property::Float(v)) |
+            ("s", ply::Property::Float(v)) |
             ("texture_s", ply::Property::Float(v)) => self.uv.x = v,
-            ("v", ply::Property::Float(v)) => self.uv.y = v,
-            ("t", ply::Property::Float(v)) => self.uv.y = v,
-            ("texture_v", ply::Property::Float(v)) => self.uv.y = v,
+            ("v", ply::Property::Float(v)) |
+            ("t", ply::Property::Float(v)) |
+            ("texture_v", ply::Property::Float(v)) |
             ("texture_t", ply::Property::Float(v)) => self.uv.y = v,
             _ => panic!("Unknown property \"{}\" found for vertex element", key),
         }
@@ -185,15 +177,13 @@ struct Face {
 
 impl ply::PropertyAccess for Face {
     fn new() -> Face {
-        Face {
-            vertex_indices: Vec::new()
-        }
+        Face { vertex_indices: Vec::new() }
     }
 
     fn set_property(&mut self, key: String, prop: ply::Property) {
         match (key.as_ref(), prop) {
             ("vertex_indices", ply::Property::ListInt(v)) => self.vertex_indices = v,
-            (k, _) => panic!("Face: Invalid combination key/value for key {}", key),
+            (_k, _) => panic!("Face: Invalid combination key/value for key {}", key),
         }
     }
 }

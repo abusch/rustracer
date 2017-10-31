@@ -1,5 +1,5 @@
-use combine::{eof, value, satisfy_map, token, between, many, many1, try, Parser,
-             Stream, ParseError};
+use combine::{eof, value, satisfy_map, token, between, many, many1, try, Parser, Stream,
+              ParseError};
 use combine::char::{string, spaces};
 use combine::primitives::Error;
 
@@ -87,10 +87,11 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                                                         api.shape(name, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
                                                                     });
 
-    let reverse_orientation = token(Tokens::REVERSEORIENTATION).and_then(|_| {
-        api.reverse_orientation()
+    let reverse_orientation =
+        token(Tokens::REVERSEORIENTATION).and_then(|_| {
+                                                       api.reverse_orientation()
                           .map_err(|e| Error::Message(e.description().to_owned().into()))
-    });
+                                                   });
     let filter =
         (token(Tokens::PIXELFILTER), string_(), param_list())
             .and_then(|(_, name, mut params)| {
@@ -107,9 +108,10 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                                                 });
 
     let texture = (token(Tokens::TEXTURE), string_(), string_(), string_(), param_list())
-    .and_then(|(_, name, typ, texname, mut params)| {
-        api.texture(name, typ, texname, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
-    });
+        .and_then(|(_, name, typ, texname, mut params)| {
+                      api.texture(name, typ, texname, &mut params)
+                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                  });
     let transform = (token::<I>(Tokens::TRANSFORM), num_array())
         .and_then(|(_, nums)| {
                         api.transform(nums[0], nums[1], nums[2], nums[3],

@@ -27,14 +27,13 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(
-        o2w: Transform,
-        radius: f32,
-        z_min: f32,
-        z_max: f32,
-        phi_max: f32,
-        reverse_orientation: bool,
-    ) -> Self {
+    pub fn new(o2w: Transform,
+               radius: f32,
+               z_min: f32,
+               z_max: f32,
+               phi_max: f32,
+               reverse_orientation: bool)
+               -> Self {
         let transform_swaps_handedness = o2w.swaps_handedness();
         Sphere {
             world_to_object: o2w.inverse(),
@@ -51,25 +50,17 @@ impl Sphere {
     }
 
 
-    pub fn create(
-        o2w: &Transform,
-        reverse_orientation: bool,
-        params: &mut ParamSet,
-    ) -> Arc<Shape + Send + Sync> {
+    pub fn create(o2w: &Transform,
+                  reverse_orientation: bool,
+                  params: &mut ParamSet)
+                  -> Arc<Shape + Send + Sync> {
         let radius = params.find_one_float("radius", 1.0);
         let zmin = params.find_one_float("zmin", -radius);
         let zmax = params.find_one_float("zmax", radius);
         let phimax = params.find_one_float("phimax", 360.0);
 
 
-        Arc::new(Sphere::new(
-            o2w.clone(),
-            radius,
-            zmin,
-            zmax,
-            phimax,
-            reverse_orientation,
-        ))
+        Arc::new(Sphere::new(o2w.clone(), radius, zmin, zmax, phimax, reverse_orientation))
     }
 }
 
@@ -87,8 +78,8 @@ impl Shape for Sphere {
         let dz = EFloat::new(r.d.z, d_err.z);
         let a = dx * dx + dy * dy + dz * dz;
         let b = 2.0 * (dx * ox + dy * oy + dz * oz);
-        let c =
-            (ox * ox + oy * oy + oz * oz) - EFloat::from(self.radius) * EFloat::from(self.radius);
+        let c = (ox * ox + oy * oy + oz * oz) -
+                EFloat::from(self.radius) * EFloat::from(self.radius);
 
         // Solve quadratic equation for t values
         efloat::solve_quadratic(&a, &b, &c).and_then(|(t0, t1)| {
@@ -116,10 +107,9 @@ impl Shape for Sphere {
                 phi += 2.0 * consts::PI;
             }
             // Test intersection against clipping parameters
-            if (self.z_min > -self.radius && p_hit.z < self.z_min)
-                || (self.z_max < self.radius && p_hit.z > self.z_max)
-                || phi > self.phi_max
-            {
+            if (self.z_min > -self.radius && p_hit.z < self.z_min) ||
+               (self.z_max < self.radius && p_hit.z > self.z_max) ||
+               phi > self.phi_max {
                 if t_shape_hit == t1 {
                     return None;
                 }
@@ -137,10 +127,9 @@ impl Shape for Sphere {
                 if phi < 0.0 {
                     phi += 2.0 * consts::PI;
                 }
-                if (self.z_min > -self.radius && p_hit.z < self.z_min)
-                    || (self.z_max < self.radius && p_hit.z > self.z_max)
-                    || phi > self.phi_max
-                {
+                if (self.z_min > -self.radius && p_hit.z < self.z_min) ||
+                   (self.z_max < self.radius && p_hit.z > self.z_max) ||
+                   phi > self.phi_max {
                     return None;
                 }
             }
@@ -156,12 +145,10 @@ impl Shape for Sphere {
             let cos_phi = p_hit.x * inv_z_radius;
             let sin_phi = p_hit.y * inv_z_radius;
             let dpdu = Vector3f::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
-            let dpdv = (self.theta_max - self.theta_min)
-                * Vector3f::new(
-                    p_hit.z * cos_phi,
-                    p_hit.z * sin_phi,
-                    -self.radius * theta.sin(),
-                );
+            let dpdv = (self.theta_max - self.theta_min) *
+                       Vector3f::new(p_hit.z * cos_phi,
+                                     p_hit.z * sin_phi,
+                                     -self.radius * theta.sin());
             // TODO Compute dn/du and dn/dv
             let isect =
                 SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, self);
@@ -241,11 +228,9 @@ impl Shape for Sphere {
 
         // Compute angle `alpha` from center of sphere to sampled point on surface
         let dc = distance(&si.p, &p_center);
-        let ds = dc * cos_theta
-            - f32::sqrt(f32::max(
-                0.0,
-                self.radius * self.radius - dc * dc * sin_theta * sin_theta,
-            ));
+        let ds = dc * cos_theta -
+                 f32::sqrt(f32::max(0.0,
+                                    self.radius * self.radius - dc * dc * sin_theta * sin_theta));
         let cos_alpha = (dc * dc + self.radius * self.radius - ds * ds) / (2.0 * dc * self.radius);
         let sin_alpha = f32::sqrt(f32::max(0.0, 1.0 - cos_alpha * cos_alpha));
 

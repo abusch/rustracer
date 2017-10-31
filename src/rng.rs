@@ -39,7 +39,6 @@ impl RNG {
 
     pub fn uniform_f32(&mut self) -> f32 {
         (self.uniform_u32() as f32 * 2.3283064365386963e-10).min(ONE_MINUS_EPSILON)
-
     }
 
     pub fn set_sequence(&mut self, seed: u64) {
@@ -48,5 +47,11 @@ impl RNG {
         let _ = self.uniform_u32();
         self.state += PCG32_DEFAULT_STATE;
         let _ = self.uniform_u32();
+    }
+}
+
+impl Default for RNG {
+    fn default() -> RNG {
+        RNG::new()
     }
 }

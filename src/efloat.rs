@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub, Div};
+use std::ops::{Add, Div, Mul, Sub};
 use std::f32;
 use std::mem;
 use fp::Ieee754;
@@ -96,7 +96,7 @@ impl Default for EFloat {
 
 // Quadratic solver
 pub fn solve_quadratic(a: &EFloat, b: &EFloat, c: &EFloat) -> Option<(EFloat, EFloat)> {
-    let discrim: f64 = b.v as f64 * b.v as f64 - 4f64 * a.v as f64 * c.v as f64;
+    let discrim: f64 = f64::from(b.v) * f64::from(b.v) - 4f64 * f64::from(a.v) * f64::from(c.v);
     if discrim < 0.0 {
         return None;
     }
@@ -187,7 +187,6 @@ impl Div<EFloat> for EFloat {
                                  self.upper_bound() / f.upper_bound()];
             (f32::min(f32::min(div[0], div[1]), f32::min(div[2], div[3])).prev(),
              f32::max(f32::max(div[0], div[1]), f32::max(div[2], div[3])).next())
-
         };
         let r = EFloat {
             v: self.v / f.v,

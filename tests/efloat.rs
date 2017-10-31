@@ -37,15 +37,15 @@ fn get_float<T: Rng>(rng: &mut T, min_exp: f32, max_exp: f32) -> EFloat {
 #[cfg(test)]
 fn get_precise<T: Rng>(ef: &EFloat, rng: &mut T) -> f64 {
     match rng.gen_range(0, 3) {
-        0 => ef.lower_bound() as f64,
-        1 => ef.upper_bound() as f64,
+        0 => f64::from(ef.lower_bound()),
+        1 => f64::from(ef.upper_bound()),
         2 => {
             let t = rng.next_f64();
-            let p: f64 = (1.0 - t) * ef.lower_bound() as f64 + t * ef.upper_bound() as f64;
-            if p > ef.upper_bound() as f64 {
-                ef.upper_bound() as f64
-            } else if p < ef.lower_bound() as f64 {
-                ef.lower_bound() as f64
+            let p: f64 = (1.0 - t) * f64::from(ef.lower_bound()) + t * f64::from(ef.upper_bound());
+            if p > f64::from(ef.upper_bound()) {
+                f64::from(ef.upper_bound())
+            } else if p < f64::from(ef.lower_bound()) {
+                f64::from(ef.lower_bound())
             } else {
                 p
             }
@@ -65,8 +65,8 @@ fn test_efloat_abs() {
         let result = ef.abs();
         let precise_result = precise.abs();
 
-        assert!(precise_result >= result.lower_bound() as f64);
-        assert!(precise_result <= result.upper_bound() as f64);
+        assert!(precise_result >= f64::from(result.lower_bound()));
+        assert!(precise_result <= f64::from(result.upper_bound()));
     }
 }
 
@@ -81,8 +81,8 @@ fn test_efloat_sqrt() {
         let result = ef.abs();
         let precise_result = precise.abs();
 
-        assert!(precise_result >= result.lower_bound() as f64);
-        assert!(precise_result <= result.upper_bound() as f64);
+        assert!(precise_result >= f64::from(result.lower_bound()));
+        assert!(precise_result <= f64::from(result.upper_bound()));
     }
 }
 
@@ -99,8 +99,8 @@ fn test_efloat_add() {
         let result = a + b;
         let precise_result = ap + bp;
 
-        assert!(precise_result >= result.lower_bound() as f64);
-        assert!(precise_result <= result.upper_bound() as f64);
+        assert!(precise_result >= f64::from(result.lower_bound()));
+        assert!(precise_result <= f64::from(result.upper_bound()));
     }
 }
 
@@ -117,8 +117,8 @@ fn test_efloat_sub() {
         let result = a - b;
         let precise_result = ap - bp;
 
-        assert!(precise_result >= result.lower_bound() as f64);
-        assert!(precise_result <= result.upper_bound() as f64);
+        assert!(precise_result >= f64::from(result.lower_bound()));
+        assert!(precise_result <= f64::from(result.upper_bound()));
     }
 }
 
@@ -135,8 +135,8 @@ fn test_efloat_mul() {
         let result = a * b;
         let precise_result = ap * bp;
 
-        assert!(precise_result >= result.lower_bound() as f64);
-        assert!(precise_result <= result.upper_bound() as f64);
+        assert!(precise_result >= f64::from(result.lower_bound()));
+        assert!(precise_result <= f64::from(result.upper_bound()));
     }
 }
 
@@ -153,8 +153,8 @@ fn test_efloat_div() {
         let result = a / b;
         let precise_result = ap / bp;
 
-        assert!(precise_result >= result.lower_bound() as f64);
-        assert!(precise_result <= result.upper_bound() as f64);
+        assert!(precise_result >= f64::from(result.lower_bound()));
+        assert!(precise_result <= f64::from(result.upper_bound()));
     }
 }
 

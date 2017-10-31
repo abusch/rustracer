@@ -52,7 +52,7 @@ pub struct ScaledBxDF {
 }
 
 impl ScaledBxDF {
-#[allow(dead_code)]
+    #[allow(dead_code)]
     fn new(bxdf: Box<BxDF>, scale: Spectrum) -> ScaledBxDF {
         ScaledBxDF {
             bxdf: bxdf,

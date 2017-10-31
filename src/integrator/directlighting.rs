@@ -44,10 +44,8 @@ impl DirectLightingIntegrator {
         } else if st == "all" {
             LightStrategy::UniformSampleAll
         } else {
-            warn!(
-                "Strategy \"{}\" for directlighting unknown. Using \"all\".",
-                st
-            );
+            warn!("Strategy \"{}\" for directlighting unknown. Using \"all\".",
+                  st);
             LightStrategy::UniformSampleAll
         };
         // TODO pixel_bounds
@@ -75,14 +73,13 @@ impl SamplerIntegrator for DirectLightingIntegrator {
         }
     }
 
-    fn li(
-        &self,
-        scene: &Scene,
-        ray: &mut Ray,
-        sampler: &mut Box<Sampler + Send + Sync>,
-        arena: &Allocator,
-        depth: u32,
-    ) -> Spectrum {
+    fn li(&self,
+          scene: &Scene,
+          ray: &mut Ray,
+          sampler: &mut Box<Sampler + Send + Sync>,
+          arena: &Allocator,
+          depth: u32)
+          -> Spectrum {
         let mut colour = Spectrum::black();
 
         match scene.intersect(ray) {
@@ -112,18 +109,16 @@ impl SamplerIntegrator for DirectLightingIntegrator {
                     }
                 }
 
-                if depth + 1 < self.max_depth as u32 {
+                if depth + 1 < u32::from(self.max_depth) {
                     colour +=
                         self.specular_reflection(ray, &isect, scene, &bsdf, sampler, arena, depth);
-                    colour += self.specular_transmission(
-                        ray,
-                        &isect,
-                        scene,
-                        &bsdf,
-                        sampler,
-                        arena,
-                        depth,
-                    );
+                    colour += self.specular_transmission(ray,
+                                                         &isect,
+                                                         scene,
+                                                         &bsdf,
+                                                         sampler,
+                                                         arena,
+                                                         depth);
                 }
             }
             None => {

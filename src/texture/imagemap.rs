@@ -17,7 +17,12 @@ pub struct ImageTexture {
 }
 
 impl ImageTexture {
-    pub fn new(path: &Path) -> ImageTexture {
+    pub fn new(path: &Path,
+               wrap_mode: WrapMode,
+               trilerp: bool,
+               max_aniso: f32,
+               map: Box<TextureMapping2D + Send + Sync>)
+               -> ImageTexture {
         info!("Loading texture {}", path.display());
         let (res, pixels) = match read_image(path) {
             Ok((mut pixels, res)) => {
@@ -34,21 +39,19 @@ impl ImageTexture {
                 (res, pixels)
             }
             Err(e) => {
-                warn!(
-                    "Could not open texture file. Using grey texture instead: {}",
-                    e
-                );
+                warn!("Could not open texture file. Using grey texture instead: {}",
+                      e);
                 (Point2i::new(1, 1), vec![Spectrum::grey(0.18)])
             }
         };
 
         ImageTexture {
-            mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),
-            mipmap: Arc::new(MIPMap::new(&res, &pixels[..], false, 0.0, WrapMode::Repeat)),
+            mapping: map,
+            mipmap: Arc::new(MIPMap::new(&res, &pixels[..], trilerp, max_aniso, wrap_mode)),
         }
     }
 
-    pub fn create(tex2world: &Transform, tp: &mut TextureParams) -> ImageTexture {
+    pub fn create(_tex2world: &Transform, tp: &mut TextureParams) -> ImageTexture {
         let typ = tp.find_string("mapping", "uv");
         let map = if typ == "uv" {
             let su = tp.find_float("uscale", 1.0);
@@ -58,7 +61,7 @@ impl ImageTexture {
 
             UVMapping2D::new(su, sv, du, dv)
         } else {
-            unimplemented!();
+            unimplemented!()
         };
         let max_aniso = tp.find_float("maxanisotropy", 8.0);
         let trilerp = tp.find_bool("trilinear", false);
@@ -72,7 +75,11 @@ impl ImageTexture {
         };
         let filename = tp.find_filename("filename", "");
 
-        Self::new(&Path::new(&filename))
+        Self::new(Path::new(&filename),
+                  wrap_mode,
+                  trilerp,
+                  max_aniso,
+                  Box::new(map))
     }
 }
 
@@ -82,10 +89,4 @@ impl Texture<Spectrum> for ImageTexture {
         // TODO Call correct lookup method once we have ray differentials
         self.mipmap.lookup(&st, 0.0)
     }
-}
-
-#[test]
-fn load_texture() {
-    ImageTexture::new(&Path::new("lines.png"));
-    assert!(true);
 }

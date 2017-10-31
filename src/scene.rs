@@ -14,10 +14,9 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(
-        aggregate: Arc<Primitive + Sync + Send>,
-        lights: Vec<Arc<Light + Sync + Send>>,
-    ) -> Scene {
+    pub fn new(aggregate: Arc<Primitive + Sync + Send>,
+               lights: Vec<Arc<Light + Sync + Send>>)
+               -> Scene {
         let mut scene = Scene {
             lights: Vec::new(),
             infinite_lights: Vec::new(),
@@ -29,7 +28,7 @@ impl Scene {
         for l in &lights {
             l.preprocess(&scene);
             if l.flags().contains(LightFlags::INFINITE) {
-                infinite_lights.push(l.clone());
+                infinite_lights.push(Arc::clone(&l));
             }
         }
 

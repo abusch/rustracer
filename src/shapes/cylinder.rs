@@ -23,35 +23,32 @@ pub struct Cylinder {
 }
 
 impl Cylinder {
-    pub fn create(
-        object_to_world: &Transform,
-        reverse_orientation: bool,
-        params: &mut ParamSet,
-    ) -> Arc<Shape + Send + Sync> {
+    pub fn create(object_to_world: &Transform,
+                  reverse_orientation: bool,
+                  params: &mut ParamSet)
+                  -> Arc<Shape + Send + Sync> {
         let radius = params.find_one_float("radius", 1.0);
         let z_min = params.find_one_float("z_min", -1.0);
         let z_max = params.find_one_float("z_max", 1.0);
         let phi_max = params.find_one_float("phi_max", 360.0);
 
         Arc::new(Cylinder {
-            object_to_world: object_to_world.clone(),
-            world_to_object: object_to_world.inverse(),
-            radius,
-            z_min,
-            z_max,
-            phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
-            reverse_orientation,
-            transform_swaps_handedness: object_to_world.swaps_handedness(),
-        })
+                     object_to_world: object_to_world.clone(),
+                     world_to_object: object_to_world.inverse(),
+                     radius,
+                     z_min,
+                     z_max,
+                     phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
+                     reverse_orientation,
+                     transform_swaps_handedness: object_to_world.swaps_handedness(),
+                 })
     }
 }
 
 impl Shape for Cylinder {
     fn object_bounds(&self) -> Bounds3f {
-        Bounds3f::from_points(
-            &Point3f::new(-self.radius, -self.radius, self.z_min),
-            &Point3f::new(self.radius, self.radius, self.z_max),
-        )
+        Bounds3f::from_points(&Point3f::new(-self.radius, -self.radius, self.z_min),
+                              &Point3f::new(self.radius, self.radius, self.z_max))
     }
 
     fn world_bounds(&self) -> Bounds3f {
@@ -68,10 +65,10 @@ impl Shape for Cylinder {
         // Initialize EFloat ray coordinate values
         let ox = EFloat::new(ray.o.x, o_err.x);
         let oy = EFloat::new(ray.o.y, o_err.y);
-        let oz = EFloat::new(ray.o.z, o_err.z);
+        let _oz = EFloat::new(ray.o.z, o_err.z);
         let dx = EFloat::new(ray.d.x, d_err.x);
         let dy = EFloat::new(ray.d.y, d_err.y);
-        let dz = EFloat::new(ray.d.z, d_err.z);
+        let _dz = EFloat::new(ray.d.z, d_err.z);
         let a = dx * dx + dy * dy;
         let b = 2.0 * (dx * ox + dy * oy);
         let c = ox * ox + oy * oy - EFloat::from(self.radius) * EFloat::from(self.radius);
@@ -150,24 +147,20 @@ impl Shape for Cylinder {
 
             // Compute dndu and dndv from fundamental form coefficients
             let inv_EGF2 = 1.0 / (E * G - F * F);
-            let dndu = Normal3f::from(
-                (f * F - e * G) * inv_EGF2 * dpdu + (e * F - f * E) * inv_EGF2 * dpdv,
-            );
-            let dndv = Normal3f::from(
-                (g * F - f * G) * inv_EGF2 * dpdu + (f * F - g * E) * inv_EGF2 * dpdv,
-            );
+            let _dndu = Normal3f::from((f * F - e * G) * inv_EGF2 * dpdu +
+                                       (e * F - f * E) * inv_EGF2 * dpdv);
+            let _dndv = Normal3f::from((g * F - f * G) * inv_EGF2 * dpdu +
+                                       (f * F - g * E) * inv_EGF2 * dpdv);
 
             let p_error = gamma(3) * Vector3f::new(p_hit.x.abs(), p_hit.y.abs(), 0.0);
 
-            let isect = SurfaceInteraction::new(
-                p_hit,
-                p_error,
-                Point2f::new(u, v),
-                -ray.d,
-                dpdu,
-                dpdv,
-                self,
-            );
+            let isect = SurfaceInteraction::new(p_hit,
+                                                p_error,
+                                                Point2f::new(u, v),
+                                                -ray.d,
+                                                dpdu,
+                                                dpdv,
+                                                self);
 
             Some((isect, t_shape_hit.into()))
         } else {

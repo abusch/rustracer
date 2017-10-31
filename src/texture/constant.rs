@@ -24,10 +24,9 @@ impl ConstantTexture<f32> {
 }
 
 impl ConstantTexture<Spectrum> {
-    pub fn create_spectrum(
-        _tex2world: &Transform,
-        tp: &mut TextureParams,
-    ) -> ConstantTexture<Spectrum> {
+    pub fn create_spectrum(_tex2world: &Transform,
+                           tp: &mut TextureParams)
+                           -> ConstantTexture<Spectrum> {
         ConstantTexture::new(tp.find_spectrum("value", Spectrum::white()))
     }
 }

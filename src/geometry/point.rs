@@ -13,8 +13,7 @@ pub struct Point2<T> {
 }
 
 impl<T> Point2<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     pub fn new(x: T, y: T) -> Point2<T> {
         Point2 { x, y }
@@ -34,8 +33,7 @@ impl Point2<f32> {
 // Operators
 // Point2 + Point2 -> Point2
 impl<T> Add<Point2<T>> for Point2<T>
-where
-    T: Add<Output = T> + Copy,
+    where T: Add<Output = T> + Copy
 {
     type Output = Point2<T>;
 
@@ -49,8 +47,7 @@ where
 
 // Point2 + Vector2 -> Point2
 impl<T> Add<Vector2<T>> for Point2<T>
-where
-    T: Add<Output = T> + Copy,
+    where T: Add<Output = T> + Copy
 {
     type Output = Point2<T>;
 
@@ -64,8 +61,7 @@ where
 
 // Point2 += Point2 -> Point2
 impl<T> AddAssign<Point2<T>> for Point2<T>
-where
-    T: AddAssign + Copy,
+    where T: AddAssign + Copy
 {
     fn add_assign(&mut self, other: Point2<T>) {
         self.x += other.x;
@@ -75,8 +71,7 @@ where
 
 // Point2 += Vector2 -> Point2
 impl<T> AddAssign<Vector2<T>> for Point2<T>
-where
-    T: AddAssign + Copy,
+    where T: AddAssign + Copy
 {
     fn add_assign(&mut self, other: Vector2<T>) {
         self.x += other.x;
@@ -86,8 +81,7 @@ where
 
 // Point2 - Point2 -> Vector2
 impl<T> Sub<Point2<T>> for Point2<T>
-where
-    T: Sub<Output = T> + Copy,
+    where T: Sub<Output = T> + Copy
 {
     type Output = Vector2<T>;
 
@@ -98,8 +92,7 @@ where
 
 // Point2 - Vector2 -> Point2
 impl<T> Sub<Vector2<T>> for Point2<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     type Output = Point2<T>;
 
@@ -110,8 +103,7 @@ where
 
 // Point2 -= Vector2 -> Point2
 impl<T> SubAssign<Vector2<T>> for Point2<T>
-where
-    T: SubAssign + Copy,
+    where T: SubAssign + Copy
 {
     fn sub_assign(&mut self, other: Vector2<T>) {
         self.x -= other.x;
@@ -120,8 +112,7 @@ where
 }
 
 impl<T> Div<T> for Point2<T>
-where
-    T: Div<Output = T> + Copy,
+    where T: Div<Output = T> + Copy
 {
     type Output = Point2<T>;
 
@@ -134,8 +125,7 @@ where
 }
 
 impl<T> DivAssign<T> for Point2<T>
-where
-    T: DivAssign + Copy,
+    where T: DivAssign + Copy
 {
     fn div_assign(&mut self, v: T) {
         self.x /= v;
@@ -144,8 +134,7 @@ where
 }
 
 impl<T> Mul<T> for Point2<T>
-where
-    T: Mul<Output = T> + Copy,
+    where T: Mul<Output = T> + Copy
 {
     type Output = Point2<T>;
 
@@ -166,8 +155,7 @@ impl Mul<Point2<f32>> for f32 {
 }
 
 impl<T> MulAssign<T> for Point2<T>
-where
-    T: MulAssign + Copy,
+    where T: MulAssign + Copy
 {
     fn mul_assign(&mut self, v: T) {
         self.x *= v;
@@ -176,8 +164,7 @@ where
 }
 
 impl<T> Neg for Point2<T>
-where
-    T: Neg<Output = T>,
+    where T: Neg<Output = T>
 {
     type Output = Point2<T>;
 
@@ -212,8 +199,7 @@ impl<T> IndexMut<usize> for Point2<T> {
 }
 
 impl<T> Default for Point2<T>
-where
-    T: Default,
+    where T: Default
 {
     fn default() -> Self {
         Point2 {
@@ -224,8 +210,7 @@ where
 }
 
 impl<T> Display for Point2<T>
-where
-    T: Display,
+    where T: Display
 {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "[{}, {}]", self.x, self.y)
@@ -233,8 +218,7 @@ where
 }
 
 impl<T> Zero for Point2<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     fn zero() -> Point2<T> {
         Point2::new(T::zero(), T::zero())
@@ -265,8 +249,7 @@ pub struct Point3<T> {
 }
 
 impl<T> Point3<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     pub fn new(x: T, y: T, z: T) -> Point3<T> {
         Point3 { x, y, z }
@@ -286,8 +269,7 @@ impl Point3<f32> {
 // Operators
 // Point3 + Point3 -> Point3
 impl<T> Add<Point3<T>> for Point3<T>
-where
-    T: Add<Output = T> + Copy,
+    where T: Add<Output = T> + Copy
 {
     type Output = Point3<T>;
 
@@ -302,8 +284,7 @@ where
 
 // Point3 + Vector3 -> Point3
 impl<T> Add<Vector3<T>> for Point3<T>
-where
-    T: Add<Output = T> + Copy,
+    where T: Add<Output = T> + Copy
 {
     type Output = Point3<T>;
 
@@ -318,8 +299,7 @@ where
 
 // Point3 += Vector3 -> Point3
 impl<T> AddAssign<Vector3<T>> for Point3<T>
-where
-    T: AddAssign + Copy,
+    where T: AddAssign + Copy
 {
     fn add_assign(&mut self, other: Vector3<T>) {
         self.x += other.x;
@@ -330,8 +310,7 @@ where
 
 // Point3 += Point3 -> Point3
 impl<T> AddAssign<Point3<T>> for Point3<T>
-where
-    T: AddAssign + Copy,
+    where T: AddAssign + Copy
 {
     fn add_assign(&mut self, other: Point3<T>) {
         self.x += other.x;
@@ -342,8 +321,7 @@ where
 
 // Point3 - Point3 -> Vector3
 impl<T> Sub<Point3<T>> for Point3<T>
-where
-    T: Sub<Output = T> + Copy + Num,
+    where T: Sub<Output = T> + Copy + Num
 {
     type Output = Vector3<T>;
 
@@ -354,8 +332,7 @@ where
 
 // Point3 - Vector3 -> Point3
 impl<T> Sub<Vector3<T>> for Point3<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     type Output = Point3<T>;
 
@@ -366,8 +343,7 @@ where
 
 // Point3 -= Vector3 -> Point3
 impl<T> SubAssign<Vector3<T>> for Point3<T>
-where
-    T: SubAssign + Copy,
+    where T: SubAssign + Copy
 {
     fn sub_assign(&mut self, other: Vector3<T>) {
         self.x -= other.x;
@@ -377,8 +353,7 @@ where
 }
 
 impl<T> Div<T> for Point3<T>
-where
-    T: Div<Output = T> + Copy,
+    where T: Div<Output = T> + Copy
 {
     type Output = Point3<T>;
 
@@ -392,8 +367,7 @@ where
 }
 
 impl<T> DivAssign<T> for Point3<T>
-where
-    T: DivAssign + Copy,
+    where T: DivAssign + Copy
 {
     fn div_assign(&mut self, v: T) {
         self.x /= v;
@@ -403,8 +377,7 @@ where
 }
 
 impl<T> Mul<T> for Point3<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     type Output = Point3<T>;
 
@@ -422,8 +395,7 @@ impl Mul<Point3<f32>> for f32 {
 }
 
 impl<T> MulAssign<T> for Point3<T>
-where
-    T: MulAssign + Copy,
+    where T: MulAssign + Copy
 {
     fn mul_assign(&mut self, v: T) {
         self.x *= v;
@@ -433,8 +405,7 @@ where
 }
 
 impl<T> Neg for Point3<T>
-where
-    T: Neg<Output = T>,
+    where T: Neg<Output = T>
 {
     type Output = Point3<T>;
 
@@ -472,8 +443,7 @@ impl<T> IndexMut<usize> for Point3<T> {
 }
 
 impl<T> From<Vector3<T>> for Point3<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     fn from(p: Vector3<T>) -> Point3<T> {
         Point3::new(p.x, p.y, p.z)
@@ -481,8 +451,7 @@ where
 }
 
 impl<T> Default for Point3<T>
-where
-    T: Default,
+    where T: Default
 {
     fn default() -> Self {
         Point3 {
@@ -494,8 +463,7 @@ where
 }
 
 impl<T> Display for Point3<T>
-where
-    T: Display,
+    where T: Display
 {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "[{}, {}, {}]", self.x, self.y, self.z)
@@ -503,8 +471,7 @@ where
 }
 
 impl<T> Zero for Point3<T>
-where
-    T: Num + Signed + Copy,
+    where T: Num + Signed + Copy
 {
     fn zero() -> Point3<T> {
         Point3::new(T::zero(), T::zero(), T::zero())

@@ -135,102 +135,111 @@ impl ParamSet {
                 ParamType::Texture => {
                     self.add_texture(entry.param_name.clone(), entry.values.as_str_array())
                 }
-                _ => error!(
-                    "Parameter type {:?} is not implemented yet!",
-                    entry.param_type
-                ),
+                _ => {
+                    error!("Parameter type {:?} is not implemented yet!",
+                           entry.param_type)
+                }
             }
         }
     }
 
     pub fn find_one_filename(&mut self, name: &str, d: String) -> String {
-        let mut filename = self.find_one_string(name, "".to_owned());
+        let filename = self.find_one_string(name, "".to_owned());
         if filename == "" {
-            return d;
+            d
+        } else {
+            resolve_filename(&filename)
         }
-        filename = resolve_filename(&filename);
-
-        return filename;
     }
 
     fn add_bool(&mut self, name: String, values: Vec<bool>) {
-        self.bools.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.bools
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_int(&mut self, name: String, values: Vec<i32>) {
-        self.ints.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.ints
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_float(&mut self, name: String, values: Vec<f32>) {
-        self.floats.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.floats
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_string(&mut self, name: String, values: Vec<String>) {
-        self.strings.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.strings
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_rgb_spectrum(&mut self, name: String, values: Vec<Spectrum>) {
-        self.spectra.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.spectra
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_point2f(&mut self, name: String, values: Vec<Point2f>) {
-        self.point2fs.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.point2fs
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_point3f(&mut self, name: String, values: Vec<Point3f>) {
-        self.point3fs.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.point3fs
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_vector3f(&mut self, name: String, values: Vec<Vector3f>) {
-        self.vector3fs.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.vector3fs
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_normal3f(&mut self, name: String, values: Vec<Normal3f>) {
-        self.normal3fs.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.normal3fs
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     fn add_texture(&mut self, name: String, values: Vec<String>) {
-        self.textures.push(ParamSetItem {
-            name: name,
-            values: values,
-            looked_up: false,
-        });
+        self.textures
+            .push(ParamSetItem {
+                      name: name,
+                      values: values,
+                      looked_up: false,
+                  });
     }
 
     find!(find_bool, bools, bool);
@@ -280,12 +289,11 @@ pub struct TextureParams<'a> {
 }
 
 impl<'a> TextureParams<'a> {
-    pub fn new(
-        gp: &'a mut ParamSet,
-        mp: &'a mut ParamSet,
-        ft: &'a HashMap<String, Arc<Texture<f32> + Send + Sync>>,
-        st: &'a HashMap<String, Arc<Texture<Spectrum> + Send + Sync>>,
-    ) -> TextureParams<'a> {
+    pub fn new(gp: &'a mut ParamSet,
+               mp: &'a mut ParamSet,
+               ft: &'a HashMap<String, Arc<Texture<f32> + Send + Sync>>,
+               st: &'a HashMap<String, Arc<Texture<Spectrum> + Send + Sync>>)
+               -> TextureParams<'a> {
         TextureParams {
             geom_params: gp,
             material_params: mp,
@@ -324,11 +332,10 @@ impl<'a> TextureParams<'a> {
         self.geom_params.find_one_spectrum(n, d)
     }
 
-    pub fn get_spectrum_texture(
-        &mut self,
-        n: &str,
-        default: &Spectrum,
-    ) -> Arc<Texture<Spectrum> + Send + Sync> {
+    pub fn get_spectrum_texture(&mut self,
+                                n: &str,
+                                default: &Spectrum)
+                                -> Arc<Texture<Spectrum> + Send + Sync> {
         let mut name = self.geom_params.find_one_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_one_texture(n, "".to_owned());
@@ -337,11 +344,9 @@ impl<'a> TextureParams<'a> {
             if let Some(tex) = self.spectrum_textures.get(&name) {
                 return Arc::clone(tex);
             } else {
-                error!(
-                    "Couldn't find spectrum texture {} for parameter {}",
-                    name,
-                    n
-                );
+                error!("Couldn't find spectrum texture {} for parameter {}",
+                       name,
+                       n);
             }
         }
         // If texture wasn't found
@@ -359,11 +364,9 @@ impl<'a> TextureParams<'a> {
             if let Some(tex) = self.float_textures.get(&name) {
                 return Arc::clone(tex);
             } else {
-                error!(
-                    "Couldn't find spectrum texture {} for parameter {}",
-                    name,
-                    n
-                );
+                error!("Couldn't find spectrum texture {} for parameter {}",
+                       name,
+                       n);
             }
         }
         // If texture wasn't found
@@ -372,10 +375,9 @@ impl<'a> TextureParams<'a> {
         Arc::new(ConstantTexture::new(val))
     }
 
-    pub fn get_float_texture_or_none(
-        &mut self,
-        n: &str,
-    ) -> Option<Arc<Texture<f32> + Send + Sync>> {
+    pub fn get_float_texture_or_none(&mut self,
+                                     n: &str)
+                                     -> Option<Arc<Texture<f32> + Send + Sync>> {
         let mut name = self.geom_params.find_one_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_one_texture(n, "".to_owned());
@@ -384,11 +386,9 @@ impl<'a> TextureParams<'a> {
             if let Some(tex) = self.float_textures.get(&name) {
                 return Some(Arc::clone(tex));
             } else {
-                error!(
-                    "Couldn't find spectrum texture {} for parameter {}",
-                    name,
-                    n
-                );
+                error!("Couldn't find spectrum texture {} for parameter {}",
+                       name,
+                       n);
                 return None;
             }
         }
@@ -397,8 +397,9 @@ impl<'a> TextureParams<'a> {
             .find_float(n)
             .or_else(|| self.material_params.find_float(n))
             .map(|val| {
-                let tex: Arc<Texture<f32> + Send + Sync> = Arc::new(ConstantTexture::new(val[0]));
-                tex
-            })
+                     let tex: Arc<Texture<f32> + Send + Sync> =
+                         Arc::new(ConstantTexture::new(val[0]));
+                     tex
+                 })
     }
 }

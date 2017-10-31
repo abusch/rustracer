@@ -21,10 +21,10 @@ pub use self::infinite::InfiniteAreaLight;
 
 bitflags! {
     pub struct LightFlags: u32 {
-        const DELTA_POSITION  = 0b_00000001;
-        const DELTA_DIRECTION = 0b_00000010;
-        const AREA            = 0b_00000100;
-        const INFINITE        = 0b_00001000;
+        const DELTA_POSITION  = 0b_0000_0001;
+        const DELTA_DIRECTION = 0b_0000_0010;
+        const AREA            = 0b_0000_0100;
+        const INFINITE        = 0b_0000_1000;
     }
 }
 
@@ -57,11 +57,10 @@ pub trait Light: Debug {
     ///  * the sampled direction wi
     ///  * the pdf for that direction
     ///  * A VisibilityTester
-    fn sample_li(
-        &self,
-        isect: &SurfaceInteraction,
-        u: &Point2f,
-    ) -> (Spectrum, Vector3f, f32, VisibilityTester);
+    fn sample_li(&self,
+                 isect: &SurfaceInteraction,
+                 u: &Point2f)
+                 -> (Spectrum, Vector3f, f32, VisibilityTester);
 
     fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32;
 

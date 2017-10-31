@@ -54,19 +54,16 @@ impl Light for DistantLight {
         *wr = w_radius;
     }
 
-    fn sample_li(
-        &self,
-        isect: &SurfaceInteraction,
-        _u: &Point2f,
-    ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
+    fn sample_li(&self,
+                 isect: &SurfaceInteraction,
+                 _u: &Point2f)
+                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let wr = self.w_radius.read().unwrap();
         let p_outside = isect.p + self.dir * (2.0 * *wr);
-        (
-            self.emission_colour,
-            self.dir,
-            1.0,
-            VisibilityTester::new(isect.into(), Interaction::from_point(&p_outside)),
-        )
+        (self.emission_colour,
+         self.dir,
+         1.0,
+         VisibilityTester::new(isect.into(), Interaction::from_point(&p_outside)))
     }
 
     fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector3f) -> f32 {

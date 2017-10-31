@@ -33,7 +33,9 @@ impl BVH {
         BVH::from_triangles(shapes, material)
     }
 
-    pub fn from_triangles(mut tris: Vec<Arc<Shape + Send + Sync>>, material: Arc<Material + Send + Sync>) -> BVH {
+    pub fn from_triangles(mut tris: Vec<Arc<Shape + Send + Sync>>,
+                          material: Arc<Material + Send + Sync>)
+                          -> BVH {
         let mut prims: Vec<Box<Primitive + Send + Sync>> = tris.drain(..)
             .map(|t| {
                      let prim = GeometricPrimitive {
@@ -365,9 +367,10 @@ impl Primitive for BVH {
     }
 
     fn compute_scattering_functions<'a, 'b>(&self,
-                                    _isect: &mut SurfaceInteraction<'a, 'b>,
-                                    _mode: TransportMode,
-                                    _allow_multiple_lobes: bool, _arena: &'b Allocator) {
+                                            _isect: &mut SurfaceInteraction<'a, 'b>,
+                                            _mode: TransportMode,
+                                            _allow_multiple_lobes: bool,
+                                            _arena: &'b Allocator) {
         panic!("compute_scattering_functions() should not be called on an Aggregate Primitive!");
     }
 }

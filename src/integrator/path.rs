@@ -33,14 +33,13 @@ impl SamplerIntegrator for PathIntegrator {
         self.light_distribution = Some(Box::new(UniformLightDistribution::new(scene)));
     }
 
-    fn li(
-        &self,
-        scene: &Scene,
-        r: &mut Ray,
-        sampler: &mut Box<Sampler + Send + Sync>,
-        arena: &Allocator,
-        _depth: u32,
-    ) -> Spectrum {
+    fn li(&self,
+          scene: &Scene,
+          r: &mut Ray,
+          sampler: &mut Box<Sampler + Send + Sync>,
+          arena: &Allocator,
+          _depth: u32)
+          -> Spectrum {
         let mut l = Spectrum::black();
         let mut beta = Spectrum::white();
         let mut specular_bounce = false;
@@ -56,12 +55,10 @@ impl SamplerIntegrator for PathIntegrator {
         let mut eta_scale = 1.0;
         loop {
             // Find next path vertex and accumulate contribution
-            debug!(
-                "Path tracer bounce {}, current L={:?}, beta={:?}",
-                bounces,
-                l,
-                beta
-            );
+            debug!("Path tracer bounce {}, current L={:?}, beta={:?}",
+                   bounces,
+                   l,
+                   beta);
             // Intersect _ray_ with scene and store intersection in _isect_
             let mut found_intersection = scene.intersect(&mut ray);
 
@@ -93,7 +90,10 @@ impl SamplerIntegrator for PathIntegrator {
                 continue;
             }
             let bsdf = isect.bsdf.clone().unwrap();
-            let distrib = self.light_distribution.as_ref().unwrap().lookup(&isect.p);
+            let distrib = self.light_distribution
+                .as_ref()
+                .unwrap()
+                .lookup(&isect.p);
 
             // Sample illumination from lights to find path contribution.
             if bsdf.num_components(BxDFType::all() & !BxDFType::BSDF_SPECULAR) > 0 {
@@ -115,9 +115,8 @@ impl SamplerIntegrator for PathIntegrator {
             assert!(beta.y() >= 0.0);
             assert!(!beta.y().is_infinite());
             specular_bounce = flags.contains(BxDFType::BSDF_SPECULAR);
-            if flags.contains(BxDFType::BSDF_SPECULAR)
-                && flags.contains(BxDFType::BSDF_TRANSMISSION)
-            {
+            if flags.contains(BxDFType::BSDF_SPECULAR) &&
+               flags.contains(BxDFType::BSDF_TRANSMISSION) {
                 let eta = bsdf.eta;
                 // Update the term that tracks radiance scaling for refraction
                 // depending on whether the ray is entering or leaving the

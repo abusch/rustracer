@@ -31,37 +31,26 @@ pub struct InfiniteAreaLight {
 }
 
 impl InfiniteAreaLight {
-    pub fn new<P: AsRef<Path>>(
-        l2w: Transform,
-        n_samples: u32,
-        power: Spectrum,
-        texmap: P,
-    ) -> InfiniteAreaLight {
+    pub fn new<P: AsRef<Path>>(l2w: Transform,
+                               n_samples: u32,
+                               power: Spectrum,
+                               texmap: P)
+                               -> InfiniteAreaLight {
         let texmap = texmap.as_ref();
         // Read texel data from texmap and initialise Lmap
         let (resolution, texels) = if let Ok((pixels, res)) = read_image(texmap) {
-            info!(
-                "Loading environment map {} for infinite light",
-                texmap.display()
-            );
+            info!("Loading environment map {} for infinite light",
+                  texmap.display());
             let texels = pixels.iter().map(|s| *s * power).collect();
             (res, texels)
         } else {
-            warn!(
-                "Environment map {} for infinite light not found! Using constant texture \
+            warn!("Environment map {} for infinite light not found! Using constant texture \
                  instead.",
-                texmap.display()
-            );
+                  texmap.display());
             (Point2i::new(1, 1), vec![power])
         };
         //
-        let l_map = Box::new(MIPMap::new(
-            &resolution,
-            &texels[..],
-            false,
-            0.0,
-            WrapMode::Repeat,
-        ));
+        let l_map = Box::new(MIPMap::new(&resolution, &texels[..], false, 0.0, WrapMode::Repeat));
         // initialize sampling PDFs for infinite area light
         // - compute scalar-valued image img from environment map
         let (width, height) = (2 * l_map.width(), 2 * l_map.height());
@@ -97,12 +86,7 @@ impl InfiniteAreaLight {
         let mapname = params.find_one_filename("mapname", "".to_owned());
         let n_samples = params.find_one_int("samples", 1);
         // TODO quickrender
-        Arc::new(InfiniteAreaLight::new(
-            l2w.clone(),
-            n_samples as u32,
-            L * scale,
-            mapname,
-        ))
+        Arc::new(InfiniteAreaLight::new(l2w.clone(), n_samples as u32, L * scale, mapname))
     }
 }
 
@@ -119,23 +103,18 @@ impl Light for InfiniteAreaLight {
         self.id
     }
 
-    fn sample_li(
-        &self,
-        isect: &SurfaceInteraction,
-        u: &Point2f,
-    ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
+    fn sample_li(&self,
+                 isect: &SurfaceInteraction,
+                 u: &Point2f)
+                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
         // Find (u, v) sample coordinates in infinite light texture
         let (uv, map_pdf) = self.distribution.sample_continuous(u);
         if map_pdf == 0.0 {
-            return (
-                Spectrum::black(),
-                Vector3f::new(0.0, 0.0, 0.0),
-                0.0,
-                VisibilityTester::new(
-                    Interaction::from_point(&Point3f::zero()),
-                    Interaction::from_point(&Point3f::zero()),
-                ),
-            );
+            return (Spectrum::black(),
+                    Vector3f::new(0.0, 0.0, 0.0),
+                    0.0,
+                    VisibilityTester::new(Interaction::from_point(&Point3f::zero()),
+                                          Interaction::from_point(&Point3f::zero())));
         }
         // Convert infinite light sample point to direction
         let theta = uv[1] * PI;
@@ -144,8 +123,8 @@ impl Light for InfiniteAreaLight {
         let sin_theta = theta.sin();
         let cos_phi = phi.cos();
         let sin_phi = phi.sin();
-        let wi = &self.light_to_world
-            * &Vector3f::new(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
+        let wi = &self.light_to_world *
+                 &Vector3f::new(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta);
         // Compute PDF for sampled infinite light direction
         let pdf = if sin_theta == 0.0 {
             0.0
@@ -169,8 +148,8 @@ impl Light for InfiniteAreaLight {
             0.0
         } else {
             self.distribution
-                .pdf(&Point2f::new(phi * FRAC_1_PI * 0.5, theta * FRAC_1_PI))
-                / (2.0 * PI * PI * sin_theta)
+                .pdf(&Point2f::new(phi * FRAC_1_PI * 0.5, theta * FRAC_1_PI)) /
+            (2.0 * PI * PI * sin_theta)
         }
     }
 
@@ -189,10 +168,8 @@ impl Light for InfiniteAreaLight {
 
     fn le(&self, ray: &Ray) -> Spectrum {
         let w = (&self.world_to_light * &ray.d).normalize();
-        let st = Point2f::new(
-            spherical_phi(&w) * FRAC_1_PI * 0.5,
-            spherical_theta(&w) * FRAC_1_PI,
-        );
+        let st = Point2f::new(spherical_phi(&w) * FRAC_1_PI * 0.5,
+                              spherical_theta(&w) * FRAC_1_PI);
 
         self.l_map.lookup(&st, 0.0)
     }

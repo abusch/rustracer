@@ -224,7 +224,7 @@ WorldEnd
         "##;
     let result = tokenize(scene);
     assert!(result.is_ok());
-    let (tokens, rest) = result.unwrap();
+    let (_tokens, rest) = result.unwrap();
     assert_eq!(rest, "");
 }
 

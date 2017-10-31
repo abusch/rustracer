@@ -22,12 +22,11 @@ pub struct DiffuseAreaLight {
 }
 
 impl DiffuseAreaLight {
-    pub fn new(
-        l_emit: Spectrum,
-        shape: Arc<Shape + Send + Sync>,
-        n_samples: u32,
-        two_sided: bool,
-    ) -> DiffuseAreaLight {
+    pub fn new(l_emit: Spectrum,
+               shape: Arc<Shape + Send + Sync>,
+               n_samples: u32,
+               two_sided: bool)
+               -> DiffuseAreaLight {
         let area = shape.area();
         DiffuseAreaLight {
             id: Uuid::new_v4(),
@@ -39,11 +38,10 @@ impl DiffuseAreaLight {
         }
     }
 
-    pub fn create(
-        _light2world: &Transform,
-        ps: &mut ParamSet,
-        shape: Arc<Shape + Send + Sync>,
-    ) -> Arc<DiffuseAreaLight> {
+    pub fn create(_light2world: &Transform,
+                  ps: &mut ParamSet,
+                  shape: Arc<Shape + Send + Sync>)
+                  -> Arc<DiffuseAreaLight> {
         let L = ps.find_one_spectrum("L", Spectrum::white());
         let sc = ps.find_one_spectrum("scale", Spectrum::white());
         let nsamples = ps.find_one_int("nsamples", 1);
@@ -59,11 +57,10 @@ impl Light for DiffuseAreaLight {
         self.id
     }
 
-    fn sample_li(
-        &self,
-        si: &SurfaceInteraction,
-        u: &Point2f,
-    ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
+    fn sample_li(&self,
+                 si: &SurfaceInteraction,
+                 u: &Point2f)
+                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let (p_shape, pdf) = self.shape.sample_si(&si.into(), u);
         assert!(!p_shape.p.x.is_nan() && !p_shape.p.y.is_nan() && !p_shape.p.z.is_nan());
         let wi = (p_shape.p - si.p).normalize();

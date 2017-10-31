@@ -33,25 +33,23 @@ impl GlassMaterial {
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(GlassMaterial {
-            kr: Kr,
-            kt: Kt,
-            u_roughness: rough_u,
-            v_roughness: rough_v,
-            index: eta,
-            remap_roughness,
-        })
+                     kr: Kr,
+                     kt: Kt,
+                     u_roughness: rough_u,
+                     v_roughness: rough_v,
+                     index: eta,
+                     remap_roughness,
+                 })
     }
 }
 
 
 impl Material for GlassMaterial {
-    fn compute_scattering_functions<'a, 'b>(
-        &self,
-        isect: &mut SurfaceInteraction<'a, 'b>,
-        mode: TransportMode,
-        allow_multiple_lobes: bool,
-        arena: &'b Allocator,
-    ) {
+    fn compute_scattering_functions<'a, 'b>(&self,
+                                            isect: &mut SurfaceInteraction<'a, 'b>,
+                                            mode: TransportMode,
+                                            allow_multiple_lobes: bool,
+                                            arena: &'b Allocator) {
         let eta = self.index.evaluate(isect);
         let mut u_rough = self.u_roughness.evaluate(isect);
         let mut v_rough = self.v_roughness.evaluate(isect);

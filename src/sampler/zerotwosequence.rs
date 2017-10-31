@@ -66,38 +66,30 @@ impl Sampler for ZeroTwoSequence {
     fn start_pixel(&mut self, p: &Point2i) {
         // Generate 1D and 2D pixel sample components using (0, 2)-sequence
         for i in 0..self.samples_1d.len() {
-            van_der_corput(
-                1,
-                self.spp as u32,
-                &mut self.samples_1d[i][..],
-                &mut self.rng,
-            );
+            van_der_corput(1,
+                           self.spp as u32,
+                           &mut self.samples_1d[i][..],
+                           &mut self.rng);
         }
         for i in 0..self.samples_2d.len() {
-            sobol_2d(
-                1,
-                self.spp as u32,
-                &mut self.samples_2d[i][..],
-                &mut self.rng,
-            );
+            sobol_2d(1,
+                     self.spp as u32,
+                     &mut self.samples_2d[i][..],
+                     &mut self.rng);
         }
 
         // generate 1d and 2d array samples
         for i in 0..self.sample_1d_array_sizes.len() {
-            van_der_corput(
-                self.sample_1d_array_sizes[i] as u32,
-                self.spp as u32,
-                &mut self.sample_array_1d[i][..],
-                &mut self.rng,
-            );
+            van_der_corput(self.sample_1d_array_sizes[i] as u32,
+                           self.spp as u32,
+                           &mut self.sample_array_1d[i][..],
+                           &mut self.rng);
         }
         for i in 0..self.sample_2d_array_sizes.len() {
-            sobol_2d(
-                self.sample_2d_array_sizes[i] as u32,
-                self.spp as u32,
-                &mut self.sample_array_2d[i][..],
-                &mut self.rng,
-            );
+            sobol_2d(self.sample_2d_array_sizes[i] as u32,
+                     self.spp as u32,
+                     &mut self.sample_array_2d[i][..],
+                     &mut self.rng);
         }
 
         self.current_pixel = *p;
@@ -136,8 +128,8 @@ impl Sampler for ZeroTwoSequence {
         }
         assert_eq!(self.sample_1d_array_sizes[self.array_1d_offset], n);
         assert!(self.current_pixel_sample_index < self.spp);
-        let res =
-            &self.sample_array_1d[self.array_1d_offset][(self.current_pixel_sample_index * n)..];
+        let res = &self.sample_array_1d[self.array_1d_offset][(self.current_pixel_sample_index *
+                    n)..];
         self.array_1d_offset += 1;
         Some(res)
     }
@@ -148,8 +140,8 @@ impl Sampler for ZeroTwoSequence {
         }
         assert_eq!(self.sample_2d_array_sizes[self.array_2d_offset], n);
         assert!(self.current_pixel_sample_index < self.spp);
-        let res =
-            &self.sample_array_2d[self.array_2d_offset][(self.current_pixel_sample_index * n)..];
+        let res = &self.sample_array_2d[self.array_2d_offset][(self.current_pixel_sample_index *
+                    n)..];
         self.array_2d_offset += 1;
         Some(res)
     }

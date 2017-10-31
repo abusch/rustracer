@@ -8,69 +8,62 @@ pub struct Matrix4x4 {
 impl Matrix4x4 {
     pub fn new() -> Matrix4x4 {
         Matrix4x4 {
-            m: [
-                [1.0, 0.0, 0.0, 0.0],
+            m: [[1.0, 0.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0, 0.0],
                 [0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0],
-            ],
+                [0.0, 0.0, 0.0, 1.0]],
         }
     }
 
-    pub fn from_elements(
-        t00: f32,
-        t01: f32,
-        t02: f32,
-        t03: f32,
-        t10: f32,
-        t11: f32,
-        t12: f32,
-        t13: f32,
-        t20: f32,
-        t21: f32,
-        t22: f32,
-        t23: f32,
-        t30: f32,
-        t31: f32,
-        t32: f32,
-        t33: f32,
-    ) -> Matrix4x4 {
+    pub fn from_elements(t00: f32,
+                         t01: f32,
+                         t02: f32,
+                         t03: f32,
+                         t10: f32,
+                         t11: f32,
+                         t12: f32,
+                         t13: f32,
+                         t20: f32,
+                         t21: f32,
+                         t22: f32,
+                         t23: f32,
+                         t30: f32,
+                         t31: f32,
+                         t32: f32,
+                         t33: f32)
+                         -> Matrix4x4 {
         Matrix4x4 {
-            m: [
-                [t00, t01, t02, t03],
+            m: [[t00, t01, t02, t03],
                 [t10, t11, t12, t13],
                 [t20, t21, t22, t23],
-                [t30, t31, t32, t33],
-            ],
+                [t30, t31, t32, t33]],
         }
     }
 
     pub fn transpose(&self) -> Matrix4x4 {
-        Matrix4x4::from_elements(
-            self.m[0][0],
-            self.m[1][0],
-            self.m[2][0],
-            self.m[3][0],
-            self.m[0][1],
-            self.m[1][1],
-            self.m[2][1],
-            self.m[3][1],
-            self.m[0][2],
-            self.m[1][2],
-            self.m[2][2],
-            self.m[3][2],
-            self.m[0][3],
-            self.m[1][3],
-            self.m[2][3],
-            self.m[3][3],
-        )
+        Matrix4x4::from_elements(self.m[0][0],
+                                 self.m[1][0],
+                                 self.m[2][0],
+                                 self.m[3][0],
+                                 self.m[0][1],
+                                 self.m[1][1],
+                                 self.m[2][1],
+                                 self.m[3][1],
+                                 self.m[0][2],
+                                 self.m[1][2],
+                                 self.m[2][2],
+                                 self.m[3][2],
+                                 self.m[0][3],
+                                 self.m[1][3],
+                                 self.m[2][3],
+                                 self.m[3][3])
     }
 
     pub fn inverse(&self) -> Matrix4x4 {
         let mut indxc = [0usize; 4];
         let mut indxr = [0usize; 4];
         let mut ipiv = [0usize; 4];
-        let mut minv = self.m.clone();
+        let mut minv = self.m;
 
         for i in 0..4 {
             let mut irow = 0;
@@ -157,9 +150,9 @@ impl<'a, 'b> Mul<&'b Matrix4x4> for &'a Matrix4x4 {
         let mut r = Matrix4x4::new();
         for i in 0..4 {
             for j in 0..4 {
-                r.m[i][j] = self.m[i][0] * m2.m[0][j] + self.m[i][1] * m2.m[1][j]
-                    + self.m[i][2] * m2.m[2][j]
-                    + self.m[i][3] * m2.m[3][j];
+                r.m[i][j] = self.m[i][0] * m2.m[0][j] + self.m[i][1] * m2.m[1][j] +
+                            self.m[i][2] * m2.m[2][j] +
+                            self.m[i][3] * m2.m[3][j];
             }
         }
         r

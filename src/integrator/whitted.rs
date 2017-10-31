@@ -34,8 +34,7 @@ impl SamplerIntegrator for Whitted {
           ray: &mut Ray,
           sampler: &mut Box<Sampler + Send + Sync>,
           arena: &Allocator,
-          depth: u32,
-          )
+          depth: u32)
           -> Spectrum {
         let mut colour = Spectrum::black();
 
@@ -71,9 +70,16 @@ impl SamplerIntegrator for Whitted {
                     }
                 }
 
-                if depth + 1 < self.max_ray_depth as u32 {
-                    colour += self.specular_reflection(ray, &isect, scene, &bsdf, sampler, arena, depth);
-                    colour += self.specular_transmission(ray, &isect, scene, &bsdf, sampler, arena, depth);
+                if depth + 1 < u32::from(self.max_ray_depth) {
+                    colour +=
+                        self.specular_reflection(ray, &isect, scene, &bsdf, sampler, arena, depth);
+                    colour += self.specular_transmission(ray,
+                                                         &isect,
+                                                         scene,
+                                                         &bsdf,
+                                                         sampler,
+                                                         arena,
+                                                         depth);
                 }
             }
             None => {

@@ -15,11 +15,10 @@ pub struct CheckerboardTexture<T> {
 }
 
 impl<T> CheckerboardTexture<T> {
-    pub fn new(
-        tex1: Arc<Texture<T> + Send + Sync>,
-        tex2: Arc<Texture<T> + Send + Sync>,
-        mapping: Box<TextureMapping2D + Send + Sync>,
-    ) -> CheckerboardTexture<T> {
+    pub fn new(tex1: Arc<Texture<T> + Send + Sync>,
+               tex2: Arc<Texture<T> + Send + Sync>,
+               mapping: Box<TextureMapping2D + Send + Sync>)
+               -> CheckerboardTexture<T> {
         CheckerboardTexture {
             tex1: tex1,
             tex2: tex2,
@@ -30,17 +29,14 @@ impl<T> CheckerboardTexture<T> {
 
 impl CheckerboardTexture<Spectrum> {
     pub fn bw() -> CheckerboardTexture<Spectrum> {
-        CheckerboardTexture::new(
-            Arc::new(ConstantTexture::new(Spectrum::black())),
-            Arc::new(ConstantTexture::new(Spectrum::white())),
-            Box::new(UVMapping2D::new(10.0, 10.0, 0.0, 0.0)),
-        )
+        CheckerboardTexture::new(Arc::new(ConstantTexture::new(Spectrum::black())),
+                                 Arc::new(ConstantTexture::new(Spectrum::white())),
+                                 Box::new(UVMapping2D::new(10.0, 10.0, 0.0, 0.0)))
     }
 
-    pub fn create_spectrum(
-        tex2world: &Transform,
-        tp: &mut TextureParams,
-    ) -> CheckerboardTexture<Spectrum> {
+    pub fn create_spectrum(_tex2world: &Transform,
+                           tp: &mut TextureParams)
+                           -> CheckerboardTexture<Spectrum> {
         let dim = tp.find_int("dimension", 2);
         if dim != 2 && dim != 3 {
             panic!("{} dimensional checkerboard texture not supported", dim);
@@ -68,7 +64,7 @@ impl CheckerboardTexture<Spectrum> {
             };
 
             // Compute `aaMethod` for `CheckerboardTexture`
-            let aa = tp.find_string("aamode", "closedform");
+            let _aa = tp.find_string("aamode", "closedform");
             // TODO finish aamode
             CheckerboardTexture::new(tex1, tex2, Box::new(map))
         } else {
