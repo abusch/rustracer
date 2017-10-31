@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_1_PI, PI};
 use std::path::Path;
 use std::cmp::min;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use num::Zero;
 use uuid::Uuid;
@@ -15,6 +15,7 @@ use mipmap::{MIPMap, WrapMode};
 use paramset::ParamSet;
 use ray::Ray;
 use sampling::Distribution2D;
+use scene::Scene;
 use spectrum::Spectrum;
 
 #[derive(Debug)]
@@ -24,8 +25,8 @@ pub struct InfiniteAreaLight {
     world_to_light: Transform,
     n_samples: u32,
     l_map: Box<MIPMap<Spectrum>>,
-    world_center: Point3f,
-    world_radius: f32,
+    world_center: RwLock<Point3f>,
+    world_radius: RwLock<f32>,
     distribution: Box<Distribution2D>,
 }
 
@@ -82,8 +83,8 @@ impl InfiniteAreaLight {
             light_to_world: l2w,
             n_samples: n_samples,
             l_map: l_map,
-            world_center: Point3f::zero(),
-            world_radius: 28.0, // TODO
+            world_center: RwLock::new(Point3f::zero()),
+            world_radius: RwLock::new(0.0), // TODO
             distribution: distribution,
         }
     }
@@ -105,6 +106,14 @@ impl InfiniteAreaLight {
 }
 
 impl Light for InfiniteAreaLight {
+    fn preprocess(&self, scene: &Scene) {
+        let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
+        let mut wc = self.world_center.write().unwrap();
+        *wc = w_center;
+        let mut wr = self.world_radius.write().unwrap();
+        *wr = w_radius;
+    }
+
     fn id(&self) -> Uuid {
         self.id
     }
@@ -143,7 +152,8 @@ impl Light for InfiniteAreaLight {
             map_pdf / (2.0 * PI * PI * sin_theta)
         };
         // Return radiance value for infinite light direction
-        let target = isect.p + wi * (2.0 * self.world_radius);
+        let world_radius = self.world_radius.read().unwrap();
+        let target = isect.p + wi * (2.0 * *world_radius);
         let vis = VisibilityTester::new(isect.into(), Interaction::from_point(&target));
         (self.l_map.lookup(&uv, 0.0), wi, pdf, vis)
     }
@@ -172,7 +182,8 @@ impl Light for InfiniteAreaLight {
     }
 
     fn power(&self) -> Spectrum {
-        PI * self.world_radius * self.world_radius * self.l_map.lookup(&Point2f::new(0.5, 0.5), 0.5)
+        let world_radius = self.world_radius.read().unwrap();
+        PI * *world_radius * *world_radius * self.l_map.lookup(&Point2f::new(0.5, 0.5), 0.5)
     }
 
     fn le(&self, ray: &Ray) -> Spectrum {

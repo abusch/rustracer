@@ -1,5 +1,5 @@
 use std::f32::consts::PI;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use num::Zero;
 use uuid::Uuid;
@@ -16,8 +16,8 @@ pub struct DistantLight {
     pub id: Uuid,
     pub dir: Vector3f,
     pub emission_colour: Spectrum,
-    w_center: Point3f,
-    w_radius: f32,
+    w_center: RwLock<Point3f>,
+    w_radius: RwLock<f32>,
 }
 
 impl DistantLight {
@@ -26,8 +26,8 @@ impl DistantLight {
             id: Uuid::new_v4(),
             dir: dir.normalize(),
             emission_colour: ec,
-            w_center: Point3f::new(0.0, 0.0, 0.0),
-            w_radius: 100.0, // TODO
+            w_center: RwLock::new(Point3f::new(0.0, 0.0, 0.0)),
+            w_radius: RwLock::new(0.0),
         }
     }
 
@@ -46,10 +46,12 @@ impl Light for DistantLight {
         self.id
     }
 
-    fn preprocess(&mut self, scene: &Scene) {
+    fn preprocess(&self, scene: &Scene) {
         let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
-        self.w_center = w_center;
-        self.w_radius = w_radius;
+        let mut wc = self.w_center.write().unwrap();
+        *wc = w_center;
+        let mut wr = self.w_radius.write().unwrap();
+        *wr = w_radius;
     }
 
     fn sample_li(
@@ -57,7 +59,8 @@ impl Light for DistantLight {
         isect: &SurfaceInteraction,
         _u: &Point2f,
     ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
-        let p_outside = isect.p + self.dir * (2.0 * self.w_radius);
+        let wr = self.w_radius.read().unwrap();
+        let p_outside = isect.p + self.dir * (2.0 * *wr);
         (
             self.emission_colour,
             self.dir,
@@ -79,6 +82,7 @@ impl Light for DistantLight {
     }
 
     fn power(&self) -> Spectrum {
-        self.emission_colour * PI * self.w_radius * self.w_radius
+        let wr = self.w_radius.read().unwrap();
+        self.emission_colour * PI * *wr * *wr
     }
 }

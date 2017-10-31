@@ -65,7 +65,7 @@ pub trait Light: Debug {
 
     fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32;
 
-    fn preprocess(&mut self, _scene: &Scene) {}
+    fn preprocess(&self, _scene: &Scene) {}
 
     fn n_samples(&self) -> u32;
 
