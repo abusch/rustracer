@@ -12,7 +12,7 @@ impl Distribution2D {
         let mut p_conditional_v = Vec::with_capacity(nv);
         for v in 0..nv {
             // compute conditional sampling distribution for v_tilde
-            p_conditional_v.push(Distribution1D::new(&func[v * nu..(v + 1) * nu]));
+            p_conditional_v.push(Distribution1D::new(&func[(v * nu)..((v + 1) * nu)]));
         }
         // compute marginal sampling distribution p[v_tilde]
         let mut marginal_func = Vec::with_capacity(nv);
@@ -35,12 +35,12 @@ impl Distribution2D {
 
     pub fn pdf(&self, p: &Point2f) -> f32 {
         let iu = clamp(
-            p[0] as usize * self.p_conditional_v[0].count(),
+            (p[0] * self.p_conditional_v[0].count() as f32) as usize,
             0,
             self.p_conditional_v[0].count() - 1,
         );
         let iv = clamp(
-            p[1] as usize * self.p_marginal.count(),
+            (p[1] * self.p_marginal.count() as f32) as usize,
             0,
             self.p_marginal.count() - 1,
         );

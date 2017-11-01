@@ -42,7 +42,7 @@ pub struct BSDF<'a> {
 
 impl<'a> BSDF<'a> {
     pub fn new<'b>(isect: &'b SurfaceInteraction, eta: f32, bxdfs: &'a [&'a BxDF]) -> BSDF<'a> {
-        let ss = isect.dpdu.normalize();
+        let ss = isect.shading.dpdu.normalize();
         BSDF {
             eta: eta,
             ns: isect.shading.n,
