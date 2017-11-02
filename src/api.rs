@@ -216,7 +216,7 @@ impl RenderOptions {
             } else if self.integrator_name == "directlighting" {
                 DirectLightingIntegrator::create(&mut self.integrator_params)
             } else if self.integrator_name == "path" {
-                Box::new(PathIntegrator::new())
+                PathIntegrator::create(&mut self.integrator_params)
             } else if self.integrator_name == "normal" {
                 Box::new(Normal {})
             } else {

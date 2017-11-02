@@ -4,6 +4,7 @@ use bsdf::BxDFType;
 use integrator::{uniform_sample_one_light, SamplerIntegrator};
 use lightdistrib::{LightDistribution, UniformLightDistribution};
 use material::TransportMode;
+use paramset::ParamSet;
 use ray::Ray;
 use sampler::Sampler;
 use scene::Scene;
@@ -17,13 +18,21 @@ pub struct PathIntegrator {
 }
 
 impl PathIntegrator {
-    pub fn new() -> PathIntegrator {
+    pub fn new(max_ray_depth: i32, rr_threshold: f32, light_sampling_strategy: String) -> PathIntegrator {
         PathIntegrator {
-            max_ray_depth: 5,
-            rr_threshold: 1.0,
-            light_sampling_strategy: "spatial".to_string(),
+            max_ray_depth: max_ray_depth as u8,
+            rr_threshold,
+            light_sampling_strategy,
             light_distribution: None,
         }
+    }
+
+    pub fn create(params: &mut ParamSet) -> Box<SamplerIntegrator + Send + Sync> {
+        let max_depth = params.find_one_int("maxdepth", 5);
+        let rr_threshold = params.find_one_float("rrthreshold", 1.0);
+        let light_strategy = params.find_one_string("lightsamplestrategy", "spatial".into());
+
+        Box::new(PathIntegrator::new(max_depth, rr_threshold, light_strategy))
     }
 }
 
