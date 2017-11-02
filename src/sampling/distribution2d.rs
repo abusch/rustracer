@@ -34,16 +34,12 @@ impl Distribution2D {
     }
 
     pub fn pdf(&self, p: &Point2f) -> f32 {
-        let iu = clamp(
-            (p[0] * self.p_conditional_v[0].count() as f32) as usize,
-            0,
-            self.p_conditional_v[0].count() - 1,
-        );
-        let iv = clamp(
-            (p[1] * self.p_marginal.count() as f32) as usize,
-            0,
-            self.p_marginal.count() - 1,
-        );
+        let iu = clamp((p[0] * self.p_conditional_v[0].count() as f32) as usize,
+                       0,
+                       self.p_conditional_v[0].count() - 1);
+        let iv = clamp((p[1] * self.p_marginal.count() as f32) as usize,
+                       0,
+                       self.p_marginal.count() - 1);
 
         self.p_conditional_v[iv].func[iu] / self.p_marginal.func_int
     }
