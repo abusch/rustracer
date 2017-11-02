@@ -45,8 +45,8 @@ impl Material for SubstrateMaterial {
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
 
-        let d = self.kd.evaluate(si);
-        let s = self.ks.evaluate(si);
+        let d = self.kd.evaluate(si).clamp();
+        let s = self.ks.evaluate(si).clamp();
         let mut roughu = self.nu.evaluate(si);
         let mut roughv = self.nv.evaluate(si);
 
@@ -56,7 +56,7 @@ impl Material for SubstrateMaterial {
                 roughv = TrowbridgeReitzDistribution::roughness_to_alpha(roughv);
             }
             let distrib = arena <- TrowbridgeReitzDistribution::new(roughu, roughv);
-            bxdfs[i] = arena <- FresnelBlend::new(d, s, distrib);
+            bxdfs[i] = arena <- FresnelBlend::new(s, d, distrib);
             i += 1;
         }
 
