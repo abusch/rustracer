@@ -171,7 +171,7 @@ impl<'a> BxDF for SpecularReflection<'a> {
         // There's only one possible wi for a given wo, so we always return it with a pdf of 1.
         let wi = Vector3f::new(-wo.x, -wo.y, wo.z);
         let spectrum = self.fresnel.evaluate(cos_theta(&wi)) * self.r / abs_cos_theta(&wi);
-        (spectrum, wi, 1.0, BxDFType::empty())
+        (spectrum, wi, 1.0, self.get_type())
     }
 
     fn pdf(&self, _wo: &Vector3f, _wi: &Vector3f) -> f32 {
@@ -231,7 +231,7 @@ impl BxDF for SpecularTransmission {
             return (ft / abs_cos_theta(&wi),
                     wi,
                     1.0,
-                    BxDFType::BSDF_SPECULAR | BxDFType::BSDF_TRANSMISSION);
+                    self.get_type());
         } else {
             return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
         }
@@ -393,7 +393,7 @@ impl<'a> BxDF for FresnelBlend<'a> {
             }
         }
 
-        (self.f(wo, &wi), wi, self.pdf(wo, &wi), BxDFType::empty())
+        (self.f(wo, &wi), wi, self.pdf(wo, &wi), self.get_type())
     }
 
     fn get_type(&self) -> BxDFType {
