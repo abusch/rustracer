@@ -18,9 +18,12 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
     path.canonicalize()
         .unwrap()
         .parent()
-        .expect(format!("Failed to get the parent directory of the input file {}",
-                        path.display())
-                        .as_ref())
+        .expect(
+            format!(
+                "Failed to get the parent directory of the input file {}",
+                path.display()
+            ).as_ref(),
+        )
         .to_owned()
 }
 
@@ -39,4 +42,12 @@ pub fn resolve_filename(filename: &str) -> String {
             .expect("Filename contained invalid UTF-8 characters")
             .to_owned()
     }
+}
+
+pub fn has_extension<P: AsRef<Path>>(filename: P, extension: &str) -> bool {
+    filename
+        .as_ref()
+        .extension()
+        .map(|e| e == extension)
+        .unwrap_or(false)
 }

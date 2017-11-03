@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::path::Path;
 
 use Point2i;
+use fileutil;
 use interaction::SurfaceInteraction;
 use imageio::read_image;
 use mipmap::{MIPMap, WrapMode};
@@ -17,14 +18,17 @@ pub struct ImageTexture {
 }
 
 impl ImageTexture {
-    pub fn new(path: &Path,
-               wrap_mode: WrapMode,
-               trilerp: bool,
-               max_aniso: f32,
-               map: Box<TextureMapping2D + Send + Sync>)
-               -> ImageTexture {
+    pub fn new(
+        path: &Path,
+        wrap_mode: WrapMode,
+        trilerp: bool,
+        max_aniso: f32,
+        scale: f32,
+        gamma: bool,
+        map: Box<TextureMapping2D + Send + Sync>,
+    ) -> ImageTexture {
         info!("Loading texture {}", path.display());
-        let (res, pixels) = match read_image(path) {
+        let (res, texels) = match read_image(path) {
             Ok((mut pixels, res)) => {
                 // Flip image in y; texture coordinate space has (0,0) at the lower
                 // left corner.
@@ -39,15 +43,31 @@ impl ImageTexture {
                 (res, pixels)
             }
             Err(e) => {
-                warn!("Could not open texture file. Using grey texture instead: {}",
-                      e);
+                warn!(
+                    "Could not open texture file. Using grey texture instead: {}",
+                    e
+                );
                 (Point2i::new(1, 1), vec![Spectrum::grey(0.18)])
             }
         };
 
+        let converted_texels: Vec<Spectrum> = texels.iter().map(|p|{
+            if gamma {
+                scale * p.inverse_gamma_correct()
+            } else {
+                scale * *p
+            }
+        }).collect();
+
         ImageTexture {
             mapping: map,
-            mipmap: Arc::new(MIPMap::new(&res, &pixels[..], trilerp, max_aniso, wrap_mode)),
+            mipmap: Arc::new(MIPMap::new(
+                &res,
+                &converted_texels[..],
+                trilerp,
+                max_aniso,
+                wrap_mode,
+            )),
         }
     }
 
@@ -73,13 +93,23 @@ impl ImageTexture {
         } else {
             WrapMode::Repeat
         };
+        let scale = tp.find_float("scale", 1.0);
         let filename = tp.find_filename("filename", "");
+        let gamma = tp.find_bool(
+            "gamma",
+            fileutil::has_extension(&filename, "tga")
+                || fileutil::has_extension(&filename, "png"),
+        );
 
-        Self::new(Path::new(&filename),
-                  wrap_mode,
-                  trilerp,
-                  max_aniso,
-                  Box::new(map))
+        Self::new(
+            Path::new(&filename),
+            wrap_mode,
+            trilerp,
+            max_aniso,
+            scale,
+            gamma,
+            Box::new(map),
+        )
     }
 }
 

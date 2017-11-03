@@ -68,17 +68,19 @@ impl Spectrum {
 
     /// Convert a non-linear sRGB value to a linear RGB spectrum.
     pub fn from_srgb(rgb: &[u8; 3]) -> Spectrum {
-        fn convert(v: u8) -> f32 {
-            let value = f32::from(v) / 255.0;
-            if value <= 0.04045 {
-                value / 12.92
-            } else {
-                ((value + 0.055) * 1.0 / 1.055).powf(2.4)
-            }
-        }
+        fn as_float(v: u8) -> f32 { f32::from(v) / 255.0}
 
-        Spectrum::rgb(convert(rgb[0]), convert(rgb[1]), convert(rgb[2]))
+        Spectrum::rgb(inverse_gamma_convert_float(as_float(rgb[0])), inverse_gamma_convert_float(as_float(rgb[1])), inverse_gamma_convert_float(as_float(rgb[2])))
     }
+
+    pub fn inverse_gamma_correct(&self) -> Spectrum {
+        Spectrum::rgb(
+            inverse_gamma_convert_float(self.r),
+            inverse_gamma_convert_float(self.g),
+            inverse_gamma_convert_float(self.b),
+        )
+    }
+
 
     /// Convert a linear spectrum in XYZ format to a linear RGB format.
     pub fn from_xyz(xyz: &[f32; 3]) -> Spectrum {
@@ -327,3 +329,11 @@ impl From<f32> for Spectrum {
         Spectrum::grey(v)
     }
 }
+
+    pub fn inverse_gamma_convert_float(v: f32) -> f32 {
+            if v <= 0.04045 {
+                v / 12.92
+            } else {
+                ((v + 0.055) * 1.0 / 1.055).powf(2.4)
+            }
+        }
