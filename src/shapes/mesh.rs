@@ -3,6 +3,7 @@ extern crate tobj;
 use std::sync::Arc;
 use std::path::Path;
 use std::collections::HashMap;
+use std::fmt;
 
 use num::zero;
 
@@ -18,7 +19,6 @@ use shapes::Shape;
 use stats;
 use texture::Texture;
 
-#[derive(Debug)]
 pub struct TriangleMesh {
     object_to_world: Transform,
     world_to_object: Transform,
@@ -27,6 +27,12 @@ pub struct TriangleMesh {
     n: Option<Vec<Normal3f>>,
     s: Option<Vec<Vector3f>>,
     uv: Option<Vec<Point2f>>, // TODO alpha mask
+}
+
+impl fmt::Debug for TriangleMesh {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "TriangleMesh {{...}}")
+    }
 }
 
 impl TriangleMesh {
