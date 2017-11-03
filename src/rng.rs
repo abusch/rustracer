@@ -1,13 +1,15 @@
+use std::num::Wrapping;
+
 use ONE_MINUS_EPSILON;
 
-const PCG32_DEFAULT_STATE: u64 = 0x853c49e6748fea9b;
-const PCG32_DEFAULT_STREAM: u64 = 0xda3e39cb94b95bdb;
-const PCG32_MULT: u64 = 0x5851f42d4c957f2d;
+const PCG32_DEFAULT_STATE: Wrapping<u64> = Wrapping(0x853c49e6748fea9b);
+const PCG32_DEFAULT_STREAM: Wrapping<u64> = Wrapping(0xda3e39cb94b95bdb);
+const PCG32_MULT: Wrapping<u64> = Wrapping(0x5851f42d4c957f2d);
 
 #[derive(Copy, Clone)]
 pub struct RNG {
-    state: u64,
-    inc: u64,
+    state: Wrapping<u64>,
+    inc: Wrapping<u64>,
 }
 
 impl RNG {
@@ -21,10 +23,10 @@ impl RNG {
     pub fn uniform_u32(&mut self) -> u32 {
         let oldstate = self.state;
         self.state = oldstate * PCG32_MULT + self.inc;
-        let xorshifted = (((oldstate >> 18) ^ oldstate) >> 27) as u32;
-        let rot = (oldstate >> 59) as u32;
+        let xorshifted = Wrapping((((oldstate >> 18) ^ oldstate) >> 27).0 as u32);
+        let rot = (oldstate >> 59).0 as u32;
 
-        (xorshifted >> rot) | (xorshifted << ((!rot + 1) & 31))
+        ((xorshifted.0 >> rot) | (xorshifted.0 << ((!Wrapping(rot) + Wrapping(1)).0 & 31)))
     }
 
     pub fn uniform_u32_bounded(&mut self, b: u32) -> u32 {
@@ -42,8 +44,8 @@ impl RNG {
     }
 
     pub fn set_sequence(&mut self, seed: u64) {
-        self.state = 0;
-        self.inc = (seed << 1) | 1;
+        self.state = Wrapping(0);
+        self.inc = Wrapping((seed << 1) | 1);
         let _ = self.uniform_u32();
         self.state += PCG32_DEFAULT_STATE;
         let _ = self.uniform_u32();
