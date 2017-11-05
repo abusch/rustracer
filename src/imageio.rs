@@ -9,9 +9,11 @@ use img;
 #[cfg(openexr)]
 use openexr::{FrameBufferMut, InputFile};
 
-use Point2i;
+use {Point2i, clamp};
+use bounds::Bounds2i;
 use errors::*;
-use spectrum::Spectrum;
+use fileutil::has_extension;
+use spectrum::{Spectrum, gamma_correct};
 
 pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     info!("Loading image {}", path.as_ref().display());
@@ -24,6 +26,27 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
         read_image_exr(path)
     } else if extension == "pfm" {
         read_image_pfm(path)
+    } else {
+        bail!("Unsupported file format");
+    }
+}
+
+pub fn write_image<P: AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+    let path = name.as_ref();
+    let resolution = output_bounds.diagonal();
+
+    if has_extension(path, "png") {
+        let rgb8: Vec<_> = rgb.iter().map(|v| {
+            clamp(255.0 * gamma_correct(*v) + 0.5, 0.0, 255.0) as u8
+        }).collect();
+
+
+        return img::save_buffer(path,
+                         &rgb8,
+                         resolution.x as u32,
+                         resolution.y as u32,
+                         img::RGB(8))
+                .chain_err(|| format!("Failed to save image file {}", path.display()));
     } else {
         bail!("Unsupported file format");
     }

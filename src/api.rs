@@ -1,7 +1,8 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::Duration;
+
+use indicatif::HumanDuration;
 
 use {Point3f, Transform, Vector3f};
 use bvh::BVH;
@@ -874,13 +875,13 @@ impl Api for RealApi {
         let stats = renderer::render(scene,
                                      &mut integrator,
                                      camera,
-                                     7,
+                                     8,
                                      &mut sampler,
                                      16,
                                      Box::new(NoopDisplayUpdater {}))?;
         let duration = start_time.elapsed();
         println!("{:?}", stats);
-        println!("Render time: {:?}", duration_to_string(&duration));
+        println!("Render time: {}", HumanDuration(duration));
 
         Ok(())
     }
@@ -1013,21 +1014,4 @@ fn make_spectrum_texture(name: &str,
     };
 
     Ok(tex)
-}
-
-
-fn duration_to_string(d: &Duration) -> String {
-    let mut hours = 0;
-    let mut minutes = 0;
-    let mut seconds = d.as_secs();
-    if seconds >= 60 {
-        minutes = seconds / 60;
-        seconds %= 60;
-    }
-    if minutes >= 60 {
-        hours = minutes / 60;
-        minutes %= 60;
-    }
-    let millis = d.subsec_nanos() / 1_000_000;
-    format!("{}:{}:{}.{}", hours, minutes, seconds, millis)
 }

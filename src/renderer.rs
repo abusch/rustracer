@@ -1,9 +1,8 @@
-extern crate pbr;
-
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 
 use crossbeam;
+use indicatif;
 
 use Point2i;
 use bounds::Bounds2i;
@@ -22,7 +21,7 @@ pub fn render(scene: Box<Scene>,
               num_threads: usize,
               sampler: &mut Box<Sampler + Send + Sync>,
               block_size: i32,
-              mut display: Box<DisplayUpdater + Send>)
+              mut _display: Box<DisplayUpdater + Send>)
               -> Result<stats::Stats> {
     integrator.preprocess(&scene, sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
@@ -35,38 +34,24 @@ pub fn render(scene: Box<Scene>,
                                (sample_extent.y + block_size - 1) / block_size);
     info!("n_tiles = {}", n_tiles);
 
-    // let block_queue = BlockQueue::new(sample_bounds, block_size);
     let num_blocks = n_tiles.x * n_tiles.y;
-    // This channel will receive tiles of sampled pixels
-    let (pixel_tx, pixel_rx) = channel();
     // This channel will receive the stats from each worker thread
     let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     let image_bounds = Bounds2i::from_points(&Point2i::new(0, 0),
                                              &Point2i::new(n_tiles.x, n_tiles.y));
     let tiles_iter = Arc::new(Mutex::new(image_bounds.into_iter()));
+    let pb = indicatif::ProgressBar::new(num_blocks as _);
     crossbeam::scope(|scope| {
         // We only want to use references to these in the thread, not move the structs themselves...
         let scene = &scene;
         let integrator = &integrator;
         let camera = &camera;
-
-        // Spawn thread to collect pixels and render image to file
-        scope.spawn(move || {
-            // Write all tiles to the image
-            let mut pb = pbr::ProgressBar::new(num_blocks as _);
-            info!("Receiving tiles...");
-            for _ in 0..num_blocks {
-                let tile = pixel_rx.recv().unwrap();
-                camera.get_film().merge_film_tile(tile);
-                pb.inc();
-                display.update(camera.get_film());
-            }
-        });
+        let pb = &pb;
 
         // Spawn worker threads
         for _ in 0..num_threads {
-            let pixel_tx = pixel_tx.clone();
+            // let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
             let mut sampler = sampler.clone();
             let tiles_iter = Arc::clone(&tiles_iter);
@@ -126,11 +111,8 @@ pub fn render(scene: Box<Scene>,
                             }
                         }
                     }
-                    // Once we've rendered all the samples for the tile, send the tile through the
-                    // channel to the main thread which will add it to the film.
-                    pixel_tx
-                        .send(film_tile)
-                        .unwrap_or_else(|e| error!("Failed to send tile: {}", e));
+                    camera.get_film().merge_film_tile(film_tile);
+                    pb.inc(1);
                 }
                 // Once there are no more tiles to render, send the thread's accumulated stats back
                 // to the main thread
@@ -140,6 +122,7 @@ pub fn render(scene: Box<Scene>,
             });
         }
     });
+    pb.finish();
 
     // Collect all the stats from the threads
     let global_stats = stats_rx
@@ -147,5 +130,5 @@ pub fn render(scene: Box<Scene>,
         .take(num_threads)
         .fold(stats::get_stats(), |a, b| a + b);
 
-    camera.get_film().write_png().map(|_| global_stats)
+    camera.get_film().write_image().map(|_| global_stats)
 }

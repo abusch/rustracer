@@ -1,4 +1,4 @@
-#![feature(placement_in_syntax)]
+#![feature(placement_in_syntax, integer_atomics, vec_resize_default)]
 #![recursion_limit = "1024"]
 #![deny(trivial_casts, unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
@@ -14,6 +14,7 @@ extern crate crossbeam;
 extern crate error_chain;
 extern crate ieee754 as fp;
 extern crate image as img;
+extern crate indicatif;
 extern crate itertools as it;
 #[macro_use]
 extern crate lazy_static;

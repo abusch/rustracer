@@ -1,44 +1,52 @@
 use std::sync::Mutex;
-use std::path::Path;
+use std::sync::atomic::{Ordering, AtomicU32};
 use std::f32;
-
-use img;
 
 use {clamp, Point2f, Point2i, Vector2f};
 use bounds::{Bounds2f, Bounds2i};
 use errors::*;
 use filter::Filter;
+use imageio;
 use paramset::ParamSet;
 use spectrum::Spectrum;
 
 const FILTER_SIZE: usize = 16;
 const FILTER_TABLE_SIZE: usize = FILTER_SIZE * FILTER_SIZE;
 
-#[derive(Copy, Clone, Debug, Default)]
-pub struct PixelSample {
-    pub c: Spectrum,
-    pub weighted_sum: f32,
+#[derive(Default)]
+struct AtomicFloat {
+    bits: AtomicU32,
 }
 
-impl PixelSample {
-    pub fn render(&self) -> Spectrum {
-        if self.weighted_sum == 0.0 {
-            Spectrum::black()
-        } else {
-            self.c / self.weighted_sum
+impl AtomicFloat {
+    pub fn new(v: f32) -> AtomicFloat {
+        AtomicFloat {
+            bits: AtomicU32::new(v.to_bits()),
         }
     }
+
+    pub fn as_float(&self) -> f32 {
+        f32::from_bits(self.bits.load(Ordering::Relaxed))
+    }
+}
+
+#[derive(Default)]
+struct Pixel {
+    xyz: [f32; 3],
+    filter_weight_sum: f32,
+    splat_xyz: [AtomicFloat; 3],
+    _pad: f32,
 }
 
 pub struct Film {
     pub full_resolution: Point2i,
-    samples: Mutex<Vec<PixelSample>>,
+    pub _diagonal: f32,
+    pub filename: String,
+    pub cropped_pixel_bounds: Bounds2i,
+    pixels: Mutex<Vec<Pixel>>,
     filter_table: [f32; FILTER_TABLE_SIZE],
     filter_radius: Vector2f,
-    pub cropped_pixel_bounds: Bounds2i,
-    _scale: f32,
-    _diagonal: f32,
-    filename: String,
+    scale: f32,
 }
 
 impl Film {
@@ -59,8 +67,8 @@ impl Film {
                                                 (resolution.y as f32 * cropwindow.p_max.y).ceil() as
                                                 i32));
 
-        let mut samples = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
-        samples.resize(cropped_pixel_bounds.area() as usize, PixelSample::default());
+        let mut pixels = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
+        pixels.resize_default(cropped_pixel_bounds.area() as usize);
         let mut filter_table = [0f32; FILTER_TABLE_SIZE];
 
         let (xwidth, ywidth) = filter.width();
@@ -75,18 +83,17 @@ impl Film {
 
         Film {
             full_resolution: resolution,
-            samples: Mutex::new(samples),
+            pixels: Mutex::new(pixels),
             filter_table: filter_table,
             filter_radius: Vector2f::new(xwidth, ywidth),
             cropped_pixel_bounds: cropped_pixel_bounds,
-            _scale: scale,
+            scale: scale,
             _diagonal: diagonal * 0.001,
             filename: filename.to_owned(),
         }
     }
 
     pub fn create(ps: &mut ParamSet, filter: Box<Filter + Send + Sync>) -> Box<Film> {
-        // TODO filename
         let mut filename = ps.find_one_string("filename", "".into());
         if filename == "" {
             filename = "image.png".into();
@@ -136,41 +143,61 @@ impl Film {
     }
 
     pub fn merge_film_tile(&self, tile: FilmTile) {
-        let mut samples = self.samples.lock().unwrap();
-        for p in &tile.get_pixel_bounds() {
-            let pixel = tile.get_pixel(&p);
-            let pidx = (p.y * self.full_resolution.x + p.x) as usize;
-            samples[pidx].c += pixel.contrib_sum;
-            samples[pidx].weighted_sum += pixel.filter_weight_sum;
+        let mut pixels = self.pixels.lock().unwrap();
+        for pixel in &tile.get_pixel_bounds() {
+            let tile_pixel = tile.get_pixel(&pixel);
+            let pidx = (pixel.y * self.full_resolution.x + pixel.x) as usize;
+            let xyz = tile_pixel.contrib_sum.to_xyz();
+            for i in 0..3 {
+                pixels[pidx].xyz[i] += xyz[i];
+            }
+            pixels[pidx].filter_weight_sum += tile_pixel.filter_weight_sum;
         }
     }
 
-    pub fn render(&self) -> Vec<Spectrum> {
-        let samples = self.samples.lock().unwrap();
-        samples.iter().map(|s| s.render()).collect()
-    }
+    pub fn write_image(&self) -> Result<()> {
+        info!("Converting image to RGB and computing final weighted pixel values");
+        let splat_scale = 1.0; // TODO
+        let pixels = self.pixels.lock().unwrap();
+        let mut rgb = Vec::with_capacity(3 * self.cropped_pixel_bounds.area() as usize);
+        for p in &self.cropped_pixel_bounds {
+            // Convert pixel XYZ color to RGB
+            let pixel_idx = self.get_pixel_idx(&p);
+            let pixel = &pixels[pixel_idx];
+            let mut rgb_pixel = Spectrum::from_xyz(&pixel.xyz);
 
-    pub fn write_png(&self) -> Result<()> {
-        let mut buffer = Vec::new();
-        let image = self.render();
-        let res = self.cropped_pixel_bounds.diagonal();
+            // Normalize pixel with weight sum
+            let filter_weight_sum = pixel.filter_weight_sum;
+            if filter_weight_sum != 0.0 {
+                let inv_wt = 1.0 / filter_weight_sum;
+                rgb_pixel[0] = f32::max(0.0, rgb_pixel[0] * inv_wt);
+                rgb_pixel[1] = f32::max(0.0, rgb_pixel[1] * inv_wt);
+                rgb_pixel[2] = f32::max(0.0, rgb_pixel[2] * inv_wt);
+            }
 
-        info!("Converting image to sRGB");
-        for i in 0..self.cropped_pixel_bounds.area() {
-            let bytes = image[i as usize].to_srgb();
-            buffer.push(bytes[0]);
-            buffer.push(bytes[1]);
-            buffer.push(bytes[2]);
+            let splat_xyz = [
+                pixel.splat_xyz[0].as_float(),
+                pixel.splat_xyz[1].as_float(),
+                pixel.splat_xyz[2].as_float(),
+            ];
+            let mut splat_rgb = Spectrum::from_xyz(&splat_xyz);
+            rgb_pixel[0] += splat_scale * splat_rgb[0];
+            rgb_pixel[1] += splat_scale * splat_rgb[1];
+            rgb_pixel[2] += splat_scale * splat_rgb[2];
+
+            // Scale pixel value by scale
+            rgb_pixel[0] *= self.scale;
+            rgb_pixel[1] *= self.scale;
+            rgb_pixel[2] *= self.scale;
+
+            rgb.push(rgb_pixel[0]);
+            rgb.push(rgb_pixel[1]);
+            rgb.push(rgb_pixel[2]);
         }
 
-        // Save the buffer
-        info!("Writing image to file {}", self.filename);
-        img::save_buffer(&Path::new(self.filename.as_str()),
-                         &buffer,
-                         res.x as u32,
-                         res.y as u32,
-                         img::RGB(8))
-                .chain_err(|| format!("Failed to save image file {}", self.filename))
+        // Write RGB image
+        info!("Writing image {} with bounds {}", self.filename, self.cropped_pixel_bounds);
+        imageio::write_image(&self.filename, &rgb[..], &self.cropped_pixel_bounds, &self.full_resolution)
     }
 
     pub fn get_sample_bounds(&self) -> Bounds2i {
@@ -182,6 +209,13 @@ impl Film {
                                         self.filter_radius));
 
         float_bounds.into()
+    }
+
+    fn get_pixel_idx(&self, p: &Point2i) -> usize {
+        assert!(self.cropped_pixel_bounds.inside_exclusive(p));
+        let width = self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x;
+        let offset = (p.x - self.cropped_pixel_bounds.p_min.x) + (p.y - self.cropped_pixel_bounds.p_min.y) * width;
+        offset as usize
     }
 }
 

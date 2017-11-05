@@ -31,24 +31,24 @@ impl MinifbDisplayUpdater {
     }
 }
 
-impl DisplayUpdater for MinifbDisplayUpdater {
-    #[cfg(feature = "minifb")]
-    fn update(&mut self, film: &Film) {
-        let buffer: Vec<u32> = film.render()
-            .iter()
-            .map(|p| {
-                     let rgb = p.to_srgb();
-                     (u32::from(rgb[0])) << 16 | (u32::from(rgb[1])) << 8 | (u32::from(rgb[2]))
-                 })
-            .collect();
+// impl DisplayUpdater for MinifbDisplayUpdater {
+//     #[cfg(feature = "minifb")]
+//     fn update(&mut self, film: &Film) {
+//         let buffer: Vec<u32> = film.render()
+//             .iter()
+//             .map(|p| {
+//                      let rgb = p.to_srgb();
+//                      (u32::from(rgb[0])) << 16 | (u32::from(rgb[1])) << 8 | (u32::from(rgb[2]))
+//                  })
+//             .collect();
 
-        self.window
-            .update_with_buffer(&buffer[..])
-            .expect("Could not update window");
-    }
-    #[cfg(not(feature = "minifb"))]
-    fn update(&mut self, film: &Film) {}
-}
+//         self.window
+//             .update_with_buffer(&buffer[..])
+//             .expect("Could not update window");
+//     }
+//     #[cfg(not(feature = "minifb"))]
+//     fn update(&mut self, film: &Film) {}
+// }
 
 // minifb::Window is not Send because of some callback it holds, but we need MinifbDisplayUpdater
 // to be so we can send it to the thread collecting the tiles. This is a bit naughty but since it

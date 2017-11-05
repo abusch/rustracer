@@ -61,7 +61,7 @@ impl Spectrum {
             } else {
                 (1.0 + a) * f32::powf(self[i], b) - a
             };
-            srgb[i] = clamp(v * 255.0, 0.0, 255.0) as u8;
+            srgb[i] = clamp(v * 255.0 + 0.5, 0.0, 255.0) as u8;
         }
         srgb
     }
@@ -88,6 +88,16 @@ impl Spectrum {
         let g = -0.969256 * xyz[0] + 1.875991 * xyz[1] + 0.041556 * xyz[2];
         let b = 0.055648 * xyz[0] - 0.204043 * xyz[1] + 1.057311 * xyz[2];
         Spectrum::rgb(r, g, b)
+    }
+
+    pub fn to_xyz(&self) -> [f32; 3] {
+        let mut xyz = [0.0, 0.0, 0.0];
+
+        xyz[0] = 0.412453 * self.r + 0.357580 * self.g + 0.180423 * self.b;
+        xyz[1] = 0.212671 * self.r + 0.715160 * self.g + 0.072169 * self.b;
+        xyz[2] = 0.019334 * self.r + 0.119193 * self.g + 0.950227 * self.b;
+
+        xyz
     }
 
     /// Create a spectrum from a series of (wavelength, value) samples from an SPD (Spectral Power
@@ -330,10 +340,18 @@ impl From<f32> for Spectrum {
     }
 }
 
-    pub fn inverse_gamma_convert_float(v: f32) -> f32 {
-            if v <= 0.04045 {
-                v / 12.92
-            } else {
-                ((v + 0.055) * 1.0 / 1.055).powf(2.4)
-            }
-        }
+pub fn inverse_gamma_convert_float(v: f32) -> f32 {
+    if v <= 0.04045 {
+        v / 12.92
+    } else {
+        ((v + 0.055) * 1.0 / 1.055).powf(2.4)
+    }
+}
+
+pub fn gamma_correct(v: f32) -> f32 {
+    if v <= 0.0031308 {
+        12.92 * v
+    } else {
+        1.055 * f32::powf(v, 1.0 / 2.4) - 0.055
+    }
+}
