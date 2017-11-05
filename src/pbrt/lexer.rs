@@ -123,7 +123,7 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>
 {
 
     (optional(char('-').or(char('+'))),
-     many1::<Vec<_>, _>(digit()),
+     optional(many::<Vec<_>, _>(digit())),
      optional(char('.').with(many::<Vec<_>, _>(digit()))),
      optional(char('e')
                   .or(char('E'))
@@ -134,8 +134,12 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>
                 if let Some(s) = sign {
                     buf.push(s);
                 }
-                for c in int_part {
-                    buf.push(c);
+                if let Some(intpart) = int_part {
+                    for c in intpart {
+                        buf.push(c);
+                    }
+                } else {
+                    buf.push('0');
                 }
                 if let Some(frac) = frac_part {
                     buf.push('.');
