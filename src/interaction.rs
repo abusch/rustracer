@@ -125,6 +125,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                wo: Vector3f,
                dpdu: Vector3f,
                dpdv: Vector3f,
+               dndu: Normal3f,
+               dndv: Normal3f,
                shape: &Shape)
                -> SurfaceInteraction {
         let mut n = Normal3f::from(dpdu.cross(&dpdv).normalize());
@@ -132,15 +134,15 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             n *= -1.0;
         }
         SurfaceInteraction {
-            p: p,
-            p_error: p_error,
-            n: n,
-            uv: uv,
+            p,
+            p_error,
+            n,
+            uv,
             wo: wo.normalize(),
-            dpdu: dpdu,
-            dpdv: dpdv,
-            dndu: zero(),
-            dndv: zero(),
+            dpdu,
+            dpdv,
+            dndu,
+            dndv,
             dpdx: zero(),
             dpdy: zero(),
             dudx: 0.0,
@@ -154,8 +156,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 n: n,
                 dpdu: dpdu,
                 dpdv: dpdv,
-                dndu: zero(),
-                dndv: zero(),
+                dndu: dndu,
+                dndv: dndv,
             },
             bsdf: None,
         }

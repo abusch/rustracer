@@ -98,10 +98,10 @@ impl Shape for Sphere {
             // Compute sphere hit position and phi
             let mut p_hit = r.at(t_shape_hit.into());
             // Refine sphere intersection point
+            p_hit *= self.radius / Vector3f::from(p_hit).length();
             if p_hit.x == 0.0 && p_hit.y == 0.0 {
                 p_hit.x = 1e-5 * self.radius;
             }
-            p_hit *= self.radius / Vector3f::from(p_hit).length();
             let mut phi = f32::atan2(p_hit.x, p_hit.y);
             if phi < 0.0 {
                 phi += 2.0 * consts::PI;
@@ -113,16 +113,19 @@ impl Shape for Sphere {
                 if t_shape_hit == t1 {
                     return None;
                 }
+                if t1.upper_bound() > ray.t_max {
+                    return None;
+                }
 
                 // Try again with t1
                 t_shape_hit = t1;
                 // Compute sphere hit position and phi
                 p_hit = r.at(t_shape_hit.into());
                 // Refine sphere intersection point
+                p_hit *= self.radius / Vector3f::from(p_hit).length();
                 if p_hit.x == 0.0 && p_hit.y == 0.0 {
                     p_hit.x = 1e-5 * self.radius;
                 }
-                p_hit *= self.radius / Vector3f::from(p_hit).length();
                 phi = f32::atan2(p_hit.x, p_hit.y);
                 if phi < 0.0 {
                     phi += 2.0 * consts::PI;
@@ -137,9 +140,8 @@ impl Shape for Sphere {
             let u = phi / self.phi_max;
             let theta = clamp(p_hit.z / self.radius, -1.0, 1.0).acos();
             let v = (theta - self.theta_min) / (self.theta_max - self.theta_min);
-            // Compute error bound for sphere intersection
-            let p_error = gamma(5) * Vector3f::from(p_hit).abs();
-            // Compute dp/du and dp/dv
+
+            // Compute dpdu and dpdv
             let z_radius = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
             let inv_z_radius = 1.0 / z_radius;
             let cos_phi = p_hit.x * inv_z_radius;
@@ -149,9 +151,30 @@ impl Shape for Sphere {
                        Vector3f::new(p_hit.z * cos_phi,
                                      p_hit.z * sin_phi,
                                      -self.radius * theta.sin());
-            // TODO Compute dn/du and dn/dv
+            // Compute dndu and dndv
+            let d2Pduu = -self.phi_max * self.phi_max * Vector3f::new(p_hit.x, p_hit.y, 0.0);
+            let d2Pduv = (self.theta_max - self.theta_min) * p_hit.z * self.phi_max * Vector3f::new(-sin_phi, cos_phi, 0.0);
+            let d2Pdvv = -(self.theta_max - self.theta_min) * (self.theta_max - self.theta_min) * Vector3f::new(p_hit.x, p_hit.y, p_hit.z);
+
+            // Compute coefficients for fundamental forms
+            let E = dpdu.dot(&dpdu);
+            let F = dpdu.dot(&dpdv);
+            let G = dpdv.dot(&dpdv);
+            let N = dpdu.cross(&dpdv).normalize();
+            let e = N.dot(&d2Pduu);
+            let f = N.dot(&d2Pduv);
+            let g = N.dot(&d2Pdvv);
+
+            // Compute dndu and dndv from fundamental from coefficients
+            let invEGF2 = 1.0 / (E * G - F * F);
+            let dndu = Normal3f::from((f * F - e * G) * invEGF2 * dpdu + (e * F - f * E) * invEGF2 * dpdv);
+            let dndv = Normal3f::from((g * F - f * G) * invEGF2 * dpdu + (f * F - g * E) * invEGF2 * dpdv);
+
+            // Compute error bound for sphere intersection
+            let p_error = gamma(5) * Vector3f::from(p_hit).abs();
+
             let isect =
-                SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, self);
+                SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, dndu, dndv, self);
             Some((isect.transform(&self.object_to_world), t_shape_hit.into()))
         })
     }

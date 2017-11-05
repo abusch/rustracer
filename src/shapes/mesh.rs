@@ -308,7 +308,7 @@ impl Shape for Triangle {
         // TODO
 
         // Fill in SurfaceInteraction from triangle hit
-        let mut isect = SurfaceInteraction::new(p_hit, p_error, uv_hit, -ray.d, dpdu, dpdv, self);
+        let mut isect = SurfaceInteraction::new(p_hit, p_error, uv_hit, -ray.d, dpdu, dpdv, zero(), zero(), self);
         // - Override surface normal
         let n = Normal3f::from(dp02.cross(&dp12).normalize());
         isect.n = n;

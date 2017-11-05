@@ -25,6 +25,7 @@ pub struct UberMaterial {
     roughnessv: Option<Arc<TextureFloat>>,
     eta: Arc<TextureFloat>,
     // TODO bumpmap
+    bumpmap: Option<Arc<TextureFloat>>,
     remap_roughness: bool,
 }
 
@@ -40,7 +41,7 @@ impl UberMaterial {
         let eta = mp.get_float_texture_or_none("eta")
             .unwrap_or_else(|| mp.get_float_texture("index", 1.5));
         let opacity = mp.get_spectrum_texture("opacity", &Spectrum::from(1.0));
-        // TODO bumpmap
+        let bumpmap = mp.get_float_texture_or_none("bumpmap");
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(UberMaterial {
@@ -53,6 +54,7 @@ impl UberMaterial {
                      roughnessu: uroughness,
                      roughnessv: vroughness,
                      eta,
+                     bumpmap,
                      remap_roughness,
                  })
     }
@@ -66,6 +68,10 @@ impl Material for UberMaterial {
                                             arena: &'b Allocator) {
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
+
+        if let Some(ref bump_map) = self.bumpmap {
+            super::bump(bump_map, si);
+        } 
 
         let e = self.eta.evaluate(si);
         let op = self.opacity.evaluate(si).clamp();

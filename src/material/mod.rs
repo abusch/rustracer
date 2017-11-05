@@ -40,9 +40,15 @@ pub trait Material: Debug {
 
 
 pub fn bump(d: &Arc<Texture<f32> + Send + Sync>, si: &mut SurfaceInteraction) {
+    // Compute offset positions and evaluate displacement texture
     let mut si_eval = si.clone();
-    // Shift si du in the du direction
+
+    // Shift si_eval du in the u direction
     let mut du = 0.5 * (si.dudx.abs() + si.dudy.abs());
+    // The most common reason for du to be zero is for ray that start from
+    // light sources, where no differentials are available. In this case,
+    // we try to choose a small enough du so that we still get a decently
+    // accurate bump value.
     if du == 0.0 {
         du = 0.0005;
     }
@@ -52,13 +58,13 @@ pub fn bump(d: &Arc<Texture<f32> + Send + Sync>, si: &mut SurfaceInteraction) {
         .normalize();
     let u_displace = d.evaluate(&si_eval);
 
-    // Shift si dv in the dv direction
+    // Shift si_eval dv in the v direction
     let mut dv = 0.5 * (si.dvdx.abs() + si.dvdy.abs());
     if dv == 0.0 {
         dv = 0.0005;
     }
     si_eval.p = si.p + dv * si.shading.dpdv;
-    si_eval.uv = si.uv + Vector2f::new(dv, 0.0);
+    si_eval.uv = si.uv + Vector2f::new(0.0, dv);
     si_eval.n = (Normal3f::from(si.shading.dpdu.cross(&si.shading.dpdv)) + dv * si.dndv)
         .normalize();
     let v_displace = d.evaluate(&si_eval);
