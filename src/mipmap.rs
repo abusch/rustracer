@@ -5,10 +5,9 @@ use std::fmt::Debug;
 
 use num::{zero, Zero};
 
-use {Point2f, Point2i};
+use {Point2f, Point2i, Clampable};
 use {clamp, lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
-use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub enum WrapMode {
@@ -268,24 +267,6 @@ impl<T> MIPMap<T>
 struct ResampleWeight {
     pub first_texel: i32,
     pub weights: [f32; 4],
-}
-
-pub trait Clampable {
-    fn clamp(self, min: f32, max: f32) -> Self;
-}
-
-impl Clampable for f32 {
-    fn clamp(self, min: f32, max: f32) -> f32 {
-        clamp(self, min, max)
-    }
-}
-
-impl Clampable for Spectrum {
-    fn clamp(self, min: f32, max: f32) -> Spectrum {
-        Spectrum::rgb(self.r.clamp(min, max),
-                      self.g.clamp(min, max),
-                      self.b.clamp(min, max))
-    }
 }
 
 fn modulo(a: isize, b: isize) -> usize {

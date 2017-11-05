@@ -364,7 +364,7 @@ impl<'a> TextureParams<'a> {
             if let Some(tex) = self.float_textures.get(&name) {
                 return Arc::clone(tex);
             } else {
-                error!("Couldn't find spectrum texture {} for parameter {}",
+                error!("Couldn't find float texture {} for parameter {}",
                        name,
                        n);
             }
@@ -386,7 +386,7 @@ impl<'a> TextureParams<'a> {
             if let Some(tex) = self.float_textures.get(&name) {
                 return Some(Arc::clone(tex));
             } else {
-                error!("Couldn't find spectrum texture {} for parameter {}",
+                error!("Couldn't find float texture {} for parameter {}",
                        name,
                        n);
                 return None;

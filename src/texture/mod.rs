@@ -9,11 +9,13 @@ mod constant;
 mod checkerboard;
 mod imagemap;
 mod fbm;
+mod scale;
 
 pub use self::constant::ConstantTexture;
 pub use self::checkerboard::CheckerboardTexture;
 pub use self::imagemap::ImageTexture;
 pub use self::fbm::FbmTexture;
+pub use self::scale::ScaleTexture;
 
 pub trait Texture<T>: Debug {
     fn evaluate(&self, si: &SurfaceInteraction) -> T;

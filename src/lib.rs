@@ -84,6 +84,7 @@ pub mod errors {
     }
 }
 use geometry::{Normal3, Point2, Point3, Vector2, Vector3};
+use spectrum::Spectrum;
 
 pub type Vector2f = Vector2<f32>;
 pub type Vector3f = Vector3<f32>;
@@ -229,6 +230,25 @@ pub fn clamp<T>(val: T, low: T, high: T) -> T
         val
     }
 }
+
+pub trait Clampable {
+    fn clamp(self, min: f32, max: f32) -> Self;
+}
+
+impl Clampable for f32 {
+    fn clamp(self, min: f32, max: f32) -> f32 {
+        clamp(self, min, max)
+    }
+}
+
+impl Clampable for Spectrum {
+    fn clamp(self, min: f32, max: f32) -> Spectrum {
+        Spectrum::rgb(self.r.clamp(min, max),
+                      self.g.clamp(min, max),
+                      self.b.clamp(min, max))
+    }
+}
+
 
 #[test]
 fn test_gamma() {

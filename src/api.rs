@@ -33,7 +33,7 @@ use shapes::disk::Disk;
 use shapes::mesh::TriangleMesh;
 use shapes::plymesh;
 use spectrum::Spectrum;
-use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, Texture, UVTexture};
+use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, Texture, UVTexture, ScaleTexture};
 
 #[derive(Debug, Copy, Clone)]
 pub enum ApiState {
@@ -972,6 +972,10 @@ fn make_float_texture(name: &str,
                       -> Result<Arc<Texture<f32> + Send + Sync>> {
     let tex: Arc<Texture<f32> + Send + Sync> = if name == "constant" {
         Arc::new(ConstantTexture::create_float(transform, tp))
+    } else if name == "scale" {
+        Arc::new(ScaleTexture::<f32>::create(tp))
+    } else if name == "imagemap" {
+        Arc::new(ImageTexture::<f32>::create(transform, tp))
     } else {
         bail!("Unkown texture");
     };
@@ -986,13 +990,13 @@ fn make_spectrum_texture(name: &str,
     let tex: Arc<Texture<Spectrum> + Send + Sync> = if name == "constant" {
         Arc::new(ConstantTexture::create_spectrum(transform, tp))
     } else if name == "scale" {
-        unimplemented!()
+        Arc::new(ScaleTexture::<Spectrum>::create(tp))
     } else if name == "mix" {
         unimplemented!()
     } else if name == "bilerp" {
         unimplemented!()
     } else if name == "imagemap" {
-        Arc::new(ImageTexture::create(transform, tp))
+        Arc::new(ImageTexture::<Spectrum>::create(transform, tp))
     } else if name == "uv" {
         Arc::new(UVTexture::create_spectrum(transform, tp))
     } else if name == "checkerboard" {
