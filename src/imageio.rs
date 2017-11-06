@@ -1,12 +1,9 @@
-#[cfg(openexr)]
-extern crate openexr;
-
 use std::path::Path;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 
 use img;
-#[cfg(openexr)]
+#[cfg(feature="openexr")]
 use openexr::{FrameBufferMut, InputFile};
 
 use {Point2i, clamp};
@@ -71,12 +68,12 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
 }
 
 
-#[cfg(not(openexr))]
+#[cfg(not(feature="openexr"))]
 fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     panic!("EXR support is not compiled in. Please recompile with the \"openexr\" feature.")
 }
 
-#[cfg(openexr)]
+#[cfg(feature="openexr")]
 fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     info!("Loading EXR texture {}", path.as_ref().display());
     let mut file = File::open(path.as_ref())?;

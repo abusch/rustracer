@@ -19,8 +19,9 @@ extern crate itertools as it;
 #[macro_use]
 extern crate lazy_static;
 extern crate light_arena;
-// extern crate nalgebra as na;
 extern crate num;
+#[cfg(feature="openexr")]
+extern crate openexr;
 extern crate ply_rs;
 #[macro_use(slog_error, slog_warn, slog_info, slog_debug, slog_trace, slog_log, slog_record,
             slog_record_static, slog_b, slog_kv)]
@@ -91,16 +92,6 @@ pub type Point2f = Point2<f32>;
 pub type Point2i = Point2<i32>;
 pub type Point3f = Point3<f32>;
 pub type Normal3f = Normal3<f32>;
-// `Normal` is just a newtype of a `Vector`
-// pub struct Normal3<T: Copy + Debug + PartialEq + 'static>(Vector3<T>);
-// impl<T: Copy + Debug + PartialEq + 'static> Deref for Normal3<T> {
-//     type Target = Vector3<T>;
-
-//     fn deref(&self) -> &Vector3<T> {
-//         &self.0
-//     }
-// }
-// pub type Normal3f = Normal3<f32>;
 
 pub use transform::Transform;
 
