@@ -24,7 +24,6 @@ pub struct UberMaterial {
     roughnessu: Option<Arc<TextureFloat>>,
     roughnessv: Option<Arc<TextureFloat>>,
     eta: Arc<TextureFloat>,
-    // TODO bumpmap
     bumpmap: Option<Arc<TextureFloat>>,
     remap_roughness: bool,
 }

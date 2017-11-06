@@ -12,15 +12,16 @@ use spectrum::Spectrum;
 #[derive(Debug)]
 pub struct MirrorMaterial {
     kr: Arc<Texture<Spectrum> + Send + Sync>,
+    bump_map: Option<Arc<Texture<f32> + Send + Sync>>,
 }
 
 impl MirrorMaterial {
     pub fn create(mp: &mut TextureParams) -> Arc<Material + Sync + Send> {
         info!("Creating Mirror material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::grey(0.9));
-        // TODO bumpmap
+        let bump_map = mp.get_float_texture_or_none("bumpmap");
 
-        Arc::new(MirrorMaterial { kr: Kr })
+        Arc::new(MirrorMaterial { kr: Kr, bump_map })
     }
 }
 
@@ -30,7 +31,9 @@ impl Material for MirrorMaterial {
                                             _mode: TransportMode,
                                             _allow_multiple_lobes: bool,
                                             arena: &'b Allocator) {
-        // TODO bumpmap
+        if let Some(ref bump) = self.bump_map {
+            super::bump(bump, si);
+        }
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
         let R = self.kr.evaluate(si); // TODO clamp

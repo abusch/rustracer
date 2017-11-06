@@ -16,7 +16,8 @@ pub struct Plastic {
     kd: Arc<Texture<Spectrum> + Send + Sync>,
     ks: Arc<Texture<Spectrum> + Send + Sync>,
     roughness: Arc<Texture<f32> + Send + Sync>,
-    remap_roughness: bool, // TODO bump
+    bump_map: Option<Arc<Texture<f32> + Send + Sync>>,
+    remap_roughness: bool,
 }
 
 impl Plastic {
@@ -25,13 +26,15 @@ impl Plastic {
         let Kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.25));
         let Ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.25));
         let roughness = mp.get_float_texture("roughness", 0.1);
+        let bump_map = mp.get_float_texture_or_none("bumpmap");
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(Plastic {
                      kd: Kd,
                      ks: Ks,
-                     roughness: roughness,
-                     remap_roughness: remap_roughness,
+                     roughness,
+                     bump_map,
+                     remap_roughness,
                  })
     }
 }
@@ -42,6 +45,9 @@ impl Material for Plastic {
                                             _mode: TransportMode,
                                             _allow_multiple_lobes: bool,
                                             arena: &'b Allocator) {
+        if let Some(ref bump) = self.bump_map {
+            super::bump(bump, si);
+        }
         let kd = self.kd.evaluate(si);
         let ks = self.ks.evaluate(si);
 

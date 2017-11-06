@@ -15,6 +15,7 @@ pub struct SubstrateMaterial {
     ks: Arc<Texture<Spectrum> + Send + Sync>,
     nu: Arc<Texture<f32> + Send + Sync>,
     nv: Arc<Texture<f32> + Send + Sync>,
+    bump_map: Option<Arc<Texture<f32> + Send + Sync>>,
     remap_roughness: bool,
 }
 
@@ -24,6 +25,7 @@ impl SubstrateMaterial {
         let ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.5));
         let urough = mp.get_float_texture("uroughness", 0.1);
         let vrough = mp.get_float_texture("vroughness", 0.1);
+        let bump_map = mp.get_float_texture_or_none("bumpmap");
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(SubstrateMaterial {
@@ -31,6 +33,7 @@ impl SubstrateMaterial {
                      ks,
                      nu: urough,
                      nv: vrough,
+                     bump_map,
                      remap_roughness,
                  })
     }
@@ -42,6 +45,9 @@ impl Material for SubstrateMaterial {
                                             _mode: TransportMode,
                                             _allow_multiple_lobes: bool,
                                             arena: &'b Allocator) {
+        if let Some(ref bump) = self.bump_map {
+            super::bump(bump, si);
+        }
         let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
         let mut i = 0;
 

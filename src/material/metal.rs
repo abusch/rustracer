@@ -31,7 +31,6 @@ impl Metal {
         let rough = mp.get_float_texture("roughness", 0.01);
         let urough = mp.get_float_texture_or_none("uroughness");
         let vrough = mp.get_float_texture_or_none("vroughness");
-        // TODO uroughness and vroughness
         let bump = mp.get_float_texture_or_none("bumpmap");
         let remap_roughness = mp.find_bool("remaproughness", true);
 
