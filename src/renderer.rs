@@ -42,6 +42,10 @@ pub fn render(scene: Box<Scene>,
                                              &Point2i::new(n_tiles.x, n_tiles.y));
     let tiles_iter = Arc::new(Mutex::new(image_bounds.into_iter()));
     let pb = indicatif::ProgressBar::new(num_blocks as _);
+    pb.set_style(indicatif::ProgressStyle::default_bar()
+        .progress_chars("=>-")
+        .template("[{elapsed_precise}] [{wide_bar}] {percent}% [{pos}/{len}] {eta}")
+    );
     crossbeam::scope(|scope| {
         // We only want to use references to these in the thread, not move the structs themselves...
         let scene = &scene;
@@ -51,7 +55,6 @@ pub fn render(scene: Box<Scene>,
 
         // Spawn worker threads
         for _ in 0..num_threads {
-            // let pixel_tx = pixel_tx.clone();
             let stats_tx = stats_tx.clone();
             let mut sampler = sampler.clone();
             let tiles_iter = Arc::clone(&tiles_iter);
