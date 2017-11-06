@@ -2,7 +2,6 @@ use std::f32::consts::PI;
 use std::sync::{Arc, RwLock};
 
 use num::Zero;
-use uuid::Uuid;
 
 use {Point2f, Point3f, Transform, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
@@ -13,7 +12,6 @@ use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct DistantLight {
-    pub id: Uuid,
     pub dir: Vector3f,
     pub emission_colour: Spectrum,
     w_center: RwLock<Point3f>,
@@ -23,7 +21,6 @@ pub struct DistantLight {
 impl DistantLight {
     pub fn new(dir: Vector3f, ec: Spectrum) -> DistantLight {
         DistantLight {
-            id: Uuid::new_v4(),
             dir: dir.normalize(),
             emission_colour: ec,
             w_center: RwLock::new(Point3f::new(0.0, 0.0, 0.0)),
@@ -42,10 +39,6 @@ impl DistantLight {
 }
 
 impl Light for DistantLight {
-    fn id(&self) -> Uuid {
-        self.id
-    }
-
     fn preprocess(&self, scene: &Scene) {
         let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
         let mut wc = self.w_center.write().unwrap();

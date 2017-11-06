@@ -1,6 +1,6 @@
 #![feature(placement_in_syntax, integer_atomics, vec_resize_default)]
 #![recursion_limit = "1024"]
-#![deny(trivial_casts, unused_qualifications, unused_must_use)]
+#![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
 #[cfg(test)]
 #[macro_use]
@@ -27,7 +27,6 @@ extern crate ply_rs;
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
-extern crate uuid;
 
 use std::f32;
 use std::ops::{Add, Mul, Sub};

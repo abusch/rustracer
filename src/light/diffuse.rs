@@ -1,8 +1,6 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
 
-use uuid::Uuid;
-
 use {Point2f, Transform, Vector3f};
 use light::{AreaLight, Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
@@ -13,7 +11,6 @@ use interaction::{Interaction, SurfaceInteraction};
 
 #[derive(Debug)]
 pub struct DiffuseAreaLight {
-    id: Uuid,
     l_emit: Spectrum,
     shape: Arc<Shape + Send + Sync>,
     n_samples: u32,
@@ -29,7 +26,6 @@ impl DiffuseAreaLight {
                -> DiffuseAreaLight {
         let area = shape.area();
         DiffuseAreaLight {
-            id: Uuid::new_v4(),
             l_emit: l_emit,
             shape: shape,
             n_samples: n_samples,
@@ -53,10 +49,6 @@ impl DiffuseAreaLight {
 }
 
 impl Light for DiffuseAreaLight {
-    fn id(&self) -> Uuid {
-        self.id
-    }
-
     fn sample_li(&self,
                  si: &SurfaceInteraction,
                  u: &Point2f)

@@ -2,7 +2,6 @@ use std::sync::Arc;
 use std::f32::consts::PI;
 
 use num::Zero;
-use uuid::Uuid;
 
 use {Point2f, Point3f, Transform, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
@@ -12,7 +11,6 @@ use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct PointLight {
-    pub id: Uuid,
     pub pos: Point3f,
     pub emission_colour: Spectrum,
 }
@@ -20,7 +18,6 @@ pub struct PointLight {
 impl PointLight {
     pub fn new(p: Point3f, ec: Spectrum) -> PointLight {
         PointLight {
-            id: Uuid::new_v4(),
             pos: p,
             emission_colour: ec,
         }
@@ -37,10 +34,6 @@ impl PointLight {
 }
 
 impl Light for PointLight {
-    fn id(&self) -> Uuid {
-        self.id
-    }
-
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  _u: &Point2f)

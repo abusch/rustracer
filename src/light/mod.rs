@@ -1,8 +1,6 @@
 use std::f32;
 use std::fmt::Debug;
 
-use uuid::Uuid;
-
 use {Point2f, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
 use ray::Ray;
@@ -50,7 +48,6 @@ impl VisibilityTester {
 }
 
 pub trait Light: Debug {
-    fn id(&self) -> Uuid;
     /// Sample the light source
     /// Return a tuple of:
     ///  * emitted light in the sampled direction

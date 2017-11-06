@@ -4,7 +4,6 @@ use std::cmp::min;
 use std::sync::{Arc, RwLock};
 
 use num::Zero;
-use uuid::Uuid;
 
 use {Point2f, Point2i, Point3f, Transform, Vector3f};
 use geometry::{spherical_phi, spherical_theta};
@@ -20,7 +19,6 @@ use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct InfiniteAreaLight {
-    id: Uuid,
     light_to_world: Transform,
     world_to_light: Transform,
     n_samples: u32,
@@ -68,7 +66,6 @@ impl InfiniteAreaLight {
         let distribution = Box::new(Distribution2D::new(&img[..], width, height));
 
         InfiniteAreaLight {
-            id: Uuid::new_v4(),
             world_to_light: l2w.inverse(),
             light_to_world: l2w,
             n_samples: n_samples,
@@ -97,10 +94,6 @@ impl Light for InfiniteAreaLight {
         *wc = w_center;
         let mut wr = self.world_radius.write().unwrap();
         *wr = w_radius;
-    }
-
-    fn id(&self) -> Uuid {
-        self.id
     }
 
     fn sample_li(&self,
