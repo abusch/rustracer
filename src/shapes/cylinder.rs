@@ -75,6 +75,7 @@ impl Shape for Cylinder {
 
         // Solve quadratic equation for t values
         if let Some((t0, t1)) = solve_quadratic(&a, &b, &c) {
+            // Check quadric shape t0 and t1 for nearest intersection
             if t0.upper_bound() > ray.t_max || t1.lower_bound() <= 0.0 {
                 return None;
             }
@@ -93,7 +94,7 @@ impl Shape for Cylinder {
             let hit_rad = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
             p_hit.x *= self.radius / hit_rad;
             p_hit.y *= self.radius / hit_rad;
-            let mut phi = p_hit.y.atan2(p_hit.x);
+            let mut phi = f32::atan2(p_hit.y, p_hit.x);
             if phi < 0.0 {
                 phi += 2.0 * ::std::f32::consts::PI;
             }
@@ -114,7 +115,7 @@ impl Shape for Cylinder {
                 let hit_rad = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
                 p_hit.x *= self.radius / hit_rad;
                 p_hit.y *= self.radius / hit_rad;
-                phi = p_hit.y.atan2(p_hit.x);
+                phi = f32::atan2(p_hit.y, p_hit.x);
                 if phi < 0.0 {
                     phi += 2.0 * ::std::f32::consts::PI;
                 }
@@ -164,13 +165,85 @@ impl Shape for Cylinder {
                                                 dndv,
                                                 self);
 
-            Some((isect, t_shape_hit.into()))
+            Some((isect.transform(&self.object_to_world), t_shape_hit.into()))
         } else {
             None
         }
     }
 
-    // TODO specialize intersect_p()
+    fn intersect_p(&self, r: &Ray) -> bool {
+        // Transform ray to object space
+        let (ray, o_err, d_err) = r.transform(&self.world_to_object);
+
+        // Compute quadratic cylinder coefficients
+
+        // Initialize EFloat ray coordinate values
+        let ox = EFloat::new(ray.o.x, o_err.x);
+        let oy = EFloat::new(ray.o.y, o_err.y);
+        let _oz = EFloat::new(ray.o.z, o_err.z);
+        let dx = EFloat::new(ray.d.x, d_err.x);
+        let dy = EFloat::new(ray.d.y, d_err.y);
+        let _dz = EFloat::new(ray.d.z, d_err.z);
+        let a = dx * dx + dy * dy;
+        let b = 2.0 * (dx * ox + dy * oy);
+        let c = ox * ox + oy * oy - EFloat::from(self.radius) * EFloat::from(self.radius);
+
+        // Solve quadratic equation for t values
+        if let Some((t0, t1)) = solve_quadratic(&a, &b, &c) {
+            // Check quadric shape t0 and t1 for nearest intersection
+            if t0.upper_bound() > ray.t_max || t1.lower_bound() <= 0.0 {
+                return false;
+            }
+            let mut t_shape_hit = t0;
+            if t_shape_hit.lower_bound() <= 0.0 {
+                t_shape_hit = t1;
+                if t_shape_hit.upper_bound() > ray.t_max {
+                    return false;
+                }
+            }
+    
+            // Compute cylinder hit point and phi
+            let mut p_hit = ray.at(t_shape_hit.into());
+
+            // Refine cylinder intersection point
+            let hit_rad = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
+            p_hit.x *= self.radius / hit_rad;
+            p_hit.y *= self.radius / hit_rad;
+            let mut phi = f32::atan2(p_hit.y, p_hit.x);
+            if phi < 0.0 {
+                phi += 2.0 * ::std::f32::consts::PI;
+            }
+
+            // Test cylinder intersection against clipping parameters
+            if p_hit.z < self.z_min || p_hit.z > self.z_max || phi > self.phi_max {
+                if t_shape_hit == t1 {
+                    return false;
+                }
+                t_shape_hit = t1;
+                if t1.upper_bound() > ray.t_max {
+                    return false;
+                }
+                // Compute cylinder hit point and phi
+                p_hit = ray.at(t_shape_hit.into());
+
+                // Refine cylinder intersection point
+                let hit_rad = (p_hit.x * p_hit.x + p_hit.y * p_hit.y).sqrt();
+                p_hit.x *= self.radius / hit_rad;
+                p_hit.y *= self.radius / hit_rad;
+                phi = f32::atan2(p_hit.y, p_hit.x);
+                if phi < 0.0 {
+                    phi += 2.0 * ::std::f32::consts::PI;
+                }
+                if p_hit.z < self.z_min || p_hit.z > self.z_max || phi > self.phi_max {
+                    return false;
+                }
+            }
+
+            true
+        } else {
+            false
+        }
+    }
 
     fn area(&self) -> f32 {
         (self.z_max - self.z_min) * self.radius * self.phi_max

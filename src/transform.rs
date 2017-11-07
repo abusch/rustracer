@@ -58,11 +58,11 @@ impl Transform {
     }
 
     pub fn rot_y(angle: f32) -> Transform {
-        Transform::rotate(angle, Vector3f::x())
+        Transform::rotate(angle, Vector3f::y())
     }
 
     pub fn rot_z(angle: f32) -> Transform {
-        Transform::rotate(angle, Vector3f::x())
+        Transform::rotate(angle, Vector3f::z())
     }
 
     pub fn translate(delta: &Vector3f) -> Transform {
