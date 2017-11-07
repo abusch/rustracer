@@ -67,6 +67,7 @@ impl Film {
                                                 (resolution.y as f32 * cropwindow.p_max.y).ceil() as
                                                 i32));
 
+        info!("Created film with full resolution {}. Crop window of {} -> cropped_pixel_bounds {}", resolution, cropwindow, cropped_pixel_bounds);
         let mut pixels = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
         pixels.resize_default(cropped_pixel_bounds.area() as usize);
         let mut filter_table = [0f32; FILTER_TABLE_SIZE];
@@ -146,7 +147,10 @@ impl Film {
         let mut pixels = self.pixels.lock().unwrap();
         for pixel in &tile.get_pixel_bounds() {
             let tile_pixel = tile.get_pixel(&pixel);
-            let pidx = (pixel.y * self.full_resolution.x + pixel.x) as usize;
+            let pidx = {
+                let width = self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x;
+                ((pixel.y - self.cropped_pixel_bounds.p_min.y) * width + (pixel.x - self.cropped_pixel_bounds.p_min.x)) as usize
+            };
             let xyz = tile_pixel.contrib_sum.to_xyz();
             for i in 0..3 {
                 pixels[pidx].xyz[i] += xyz[i];
