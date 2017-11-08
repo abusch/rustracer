@@ -48,6 +48,10 @@ pub fn uniform_sample_triangle(u: &Point2f) -> Point2f {
     Point2f::new(1.0 - su0, u[1] * su0)
 }
 
+pub fn uniform_cone_pdf(cos_theta_max: f32) -> f32 {
+    1.0 / (2.0 * consts::PI * (1.0 - cos_theta_max))
+}
+
 #[inline]
 pub fn power_heuristic(nf: u32, f_pdf: f32, ng: u32, g_pdf: f32) -> f32 {
     let f = nf as f32 * f_pdf;

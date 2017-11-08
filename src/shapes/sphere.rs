@@ -9,7 +9,7 @@ use geometry::{distance, distance_squared, offset_ray_origin, spherical_directio
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
 use ray::Ray;
-use sampling::uniform_sample_sphere;
+use sampling::{uniform_sample_sphere, uniform_cone_pdf};
 use shapes::Shape;
 
 #[derive(Debug)]
@@ -207,7 +207,7 @@ impl Shape for Sphere {
         it.n = self.object_to_world
             .transform_normal(&Normal3f::new(p_obj.x, p_obj.y, p_obj.z))
             .normalize();
-        p_obj = p_obj * self.radius / Vector3f::from(p_obj).length();
+        p_obj = p_obj * self.radius / distance(&p_obj, &Point3f::new(0.0, 0.0, 0.0));
         let p_obj_error = gamma(5) * Vector3f::from(p_obj).abs();
         let (p, p_err) = self.object_to_world
             .transform_point_with_error(&p_obj, &p_obj_error);
@@ -231,6 +231,9 @@ impl Shape for Sphere {
                 // Convert from area measure returned by sample() call above to solid angle measure.
                 wi = wi.normalize();
                 pdf *= distance_squared(&si.p, &intr.p) / intr.n.dot(&(-wi)).abs();
+            }
+            if pdf.is_infinite() {
+                pdf = 0.0;
             }
 
             return (intr, pdf);
@@ -260,7 +263,7 @@ impl Shape for Sphere {
         // Compute surface normal and sampled point on sphere
         let n_world =
             spherical_direction_vec(sin_alpha, cos_alpha, phi, &(-wc_x), &(-wc_y), &(-wc));
-        let p_world = p_center + self.radius * n_world;
+        let p_world = p_center + self.radius * Point3f::new(n_world.x, n_world.y, n_world.z);
 
         // Return `Interaction` for sampled point on sphere
         let mut it = Interaction::empty();
@@ -275,6 +278,21 @@ impl Shape for Sphere {
         let pdf = 1.0 / (2.0 * consts::PI * (1.0 - cos_theta_max));
 
         (it, pdf)
+    }
+
+    fn pdf_wi(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32 {
+        let p_center = &self.object_to_world * &Point3f::new(0.0, 0.0, 0.0);
+        // Return uniform PDF if point is inside the sphere
+        let p_origin = offset_ray_origin(&si.p, &si.p_error, &si.n, &(p_center - si.p));
+        if distance_squared(&p_origin, &p_center) <= self.radius * self.radius {
+            return Shape::pdf_wi(self, si, wi);
+        }
+
+        // Compute general sphere PDF
+        let sin_theta_max_2 = self.radius * self.radius / distance_squared(&si.p, &p_center);
+        let cos_theta_max = f32::sqrt(f32::max(0.0, 1.0 - sin_theta_max_2));
+
+        uniform_cone_pdf(cos_theta_max)
     }
 
     fn area(&self) -> f32 {
