@@ -66,10 +66,10 @@ impl Interaction {
     }
 
     pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
+        let o = offset_origin(&self.p, &self.p_error, &self.n, &(*p - self.p));
         let d = *p - self.p;
         assert!(d.x != 0.0 && d.y != 0.0 && d.z != 0.0);
         stats::inc_secondary_ray();
-        let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
 
@@ -263,9 +263,19 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             let d = self.n.dot(&Vector3f::new(self.p.x, self.p.y, self.p.z));
             let tx = -(self.n.dot(&Vector3f::from(diff.rx_origin)) - d) /
                      self.n.dot(&diff.rx_direction);
-            let px = diff.rx_origin + tx * diff.rx_direction;
             let ty = -(self.n.dot(&Vector3f::from(diff.ry_origin)) - d) /
                      self.n.dot(&diff.ry_direction);
+            if tx.is_infinite() || tx.is_nan() || ty.is_infinite() || ty.is_nan() {
+                self.dudx = 0.0;
+                self.dudy = 0.0;
+                self.dvdx = 0.0;
+                self.dvdy = 0.0;
+                self.dpdx = zero();
+                self.dpdy = zero();
+                return;
+            }
+            
+            let px = diff.rx_origin + tx * diff.rx_direction;
             let py = diff.ry_origin + ty * diff.ry_direction;
             self.dpdx = px - self.p;
             self.dpdy = py - self.p;
