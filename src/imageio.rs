@@ -23,6 +23,8 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
         read_image_exr(path)
     } else if extension == "pfm" {
         read_image_pfm(path)
+    } else if extension == "hdr" {
+        read_image_hdr(path)
     } else {
         bail!("Unsupported file format");
     }
@@ -67,6 +69,20 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
     Ok((pixels, res))
 }
 
+fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+    info!("Loading HDR image {}", path.as_ref().display());
+    let file = File::open(path.as_ref())?;
+    let reader = BufReader::new(file);
+    let hdr = img::hdr::HDRDecoder::new(reader)?;
+
+    let meta = hdr.metadata();
+    let data = hdr.read_image_transform(|p| {
+        let rgb = p.to_hdr();
+        Spectrum::rgb(rgb[0], rgb[1], rgb[2])
+    })?;
+
+    Ok((data, Point2i::new(meta.width as i32, meta.height as i32)))
+}
 
 #[cfg(not(feature="openexr"))]
 fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i)> {
