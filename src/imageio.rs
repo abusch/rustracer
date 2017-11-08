@@ -73,7 +73,7 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     info!("Loading HDR image {}", path.as_ref().display());
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
-    let hdr = img::hdr::HDRDecoder::new(reader)?;
+    let hdr = img::hdr::HDRDecoder::with_strictness(reader, false)?;
 
     let meta = hdr.metadata();
     let data = hdr.read_image_transform(|p| {
