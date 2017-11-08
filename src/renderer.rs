@@ -13,6 +13,7 @@ use integrator::SamplerIntegrator;
 use light_arena::MemoryArena;
 use sampler::Sampler;
 use scene::Scene;
+use spectrum::Spectrum;
 use stats;
 
 pub fn render(scene: Box<Scene>,
@@ -107,8 +108,20 @@ pub fn render(scene: Box<Scene>,
                             let mut ray = camera.generate_ray_differential(&s);
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
                             stats::inc_camera_ray();
-                            let sample_colour =
+                            let mut sample_colour =
                                 integrator.li(scene, &mut ray, &mut sampler, &alloc, 0);
+                            if sample_colour.has_nan() {
+                                error!("Not-a-number radiance value returned for pixel {}, sample {}. Setting to black.", p, sampler.current_sample_number());
+                                sample_colour = Spectrum::black();
+                            }
+                            if sample_colour.y() < -1e-5 {
+                                error!("Negative luminance value, {}, returned for pixel {}, sample {}. Setting to black.", sample_colour.y(), p, sampler.current_sample_number());
+                                sample_colour = Spectrum::black();
+                            }
+                            if sample_colour.y().is_infinite() {
+                                error!("Infinite luminance value returned for pixel {}, sample {}. Setting to black.", p, sampler.current_sample_number());
+                                sample_colour = Spectrum::black();
+                            }
                             film_tile.add_sample(&s.p_film, sample_colour);
                             if !sampler.start_next_sample() {
                                 break;

@@ -79,7 +79,6 @@ impl InfiniteAreaLight {
     pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light + Send + Sync> {
         let L = params.find_one_spectrum("L", Spectrum::white());
         let scale = params.find_one_spectrum("scale", Spectrum::white());
-        // TODO filename
         let mapname = params.find_one_filename("mapname", "".to_owned());
         let n_samples = params.find_one_int("samples", 1);
         // TODO quickrender

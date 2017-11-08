@@ -193,4 +193,8 @@ impl Sampler for ZeroTwoSequence {
     fn box_clone(&self) -> Box<Sampler + Send + Sync> {
         Box::new(self.clone())
     }
+
+    fn current_sample_number(&self) -> usize {
+        self.current_pixel_sample_index
+    }
 }
