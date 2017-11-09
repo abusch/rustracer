@@ -273,7 +273,7 @@ pub fn estimate_direct(it: &SurfaceInteraction,
                         // let pl = &*light as *const _ as *const usize;
                         // if pa == pl {
                         if area_light.id() == light.id() {
-                            info!("  Lights are equal");
+                            // info!("  Lights are equal");
                             light_isect.le(&(-wi))
                         } else {
                             Spectrum::black()

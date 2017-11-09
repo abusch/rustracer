@@ -875,7 +875,7 @@ impl Api for RealApi {
         let stats = renderer::render(scene,
                                      &mut integrator,
                                      camera,
-                                     1,
+                                     8,
                                      &mut sampler,
                                      16,
                                      Box::new(NoopDisplayUpdater {}))?;
