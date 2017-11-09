@@ -13,6 +13,8 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
      api: &A)
      -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
     // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
+    let accelerator = (token(Tokens::ACCELERATOR), string_(), param_list())
+        .and_then(|(_, typ, mut params)| api.accelerator(typ, &mut params).map_err(|e| Error::Message(e.description().to_owned().into())));
     let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
     let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
     let transform_begin = token(Tokens::TRANSFORMBEGIN).and_then(|_| api.transform_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
@@ -128,7 +130,8 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                           .map_err(|e| Error::Message(e.description().to_owned().into()))
                   });
 
-    let parsers = many1::<Vec<_>, _>(choice!(try(attribute_begin),
+    let parsers = many1::<Vec<_>, _>(choice!(try(accelerator),
+                                             try(attribute_begin),
                                              try(attribute_end),
                                              try(transform_begin),
                                              try(transform_end),
