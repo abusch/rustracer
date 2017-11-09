@@ -154,7 +154,7 @@ pub fn coordinate_system(v1: &Vector3f) -> (Vector3f, Vector3f) {
     let v2 = if v1.x.abs() > v1.y.abs() {
         Vector3::new(-v1.z, 0.0, v1.x) / (v1.x * v1.x + v1.z * v1.z).sqrt()
     } else {
-        Vector3::new(0.0, v1.z, v1.y) / (v1.y * v1.y + v1.z * v1.z).sqrt()
+        Vector3::new(0.0, v1.z, -v1.y) / (v1.y * v1.y + v1.z * v1.z).sqrt()
     };
 
     let v3 = v1.cross(&v2);
