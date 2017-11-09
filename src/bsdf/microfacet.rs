@@ -57,17 +57,17 @@ impl<'a> BxDF for MicrofacetReflection<'a> {
     /// on the microface distribution
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         if wo.z == 0.0 {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, self.get_type());
         }
 
         let wh = self.distribution.sample_wh(wo, u);
         let wi = reflect(wo, &wh);
         if !same_hemisphere(wo, &wi) {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, self.get_type());
         }
         let pdf = self.distribution.pdf(wo, &wh) / (4.0 * wo.dot(&wh));
 
-        (self.f(wo, &wi), wi, pdf, BxDFType::empty())
+        (self.f(wo, &wi), wi, pdf, self.get_type())
     }
 
     fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
@@ -156,7 +156,7 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
     /// on the microface distribution
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         if wo.z == 0.0 {
-            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
+            return (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, self.get_type());
         }
 
         let wh = self.distribution.sample_wh(wo, u);
@@ -168,9 +168,9 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
 
         if let Some(wi) = refract(wo, &wh, eta) {
             let pdf = self.pdf(wo, &wi);
-            (self.f(wo, &wi), wi, pdf, BxDFType::empty())
+            (self.f(wo, &wi), wi, pdf, self.get_type())
         } else {
-            (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty())
+            (Spectrum::black(), Vector3f::new(0.0, 0.0, 0.0), 0.0, self.get_type())
         }
     }
 
@@ -485,7 +485,7 @@ impl TrowbridgeReitzDistribution {
         let sin_theta = (1.0 - cos_theta * cos_theta).max(0.0).sqrt();
         let tan_theta = sin_theta / cos_theta;
         let a = 1.0 / tan_theta;
-        let G1 = 2.0 / (1.0 + (1.0 + 1.0 / (a * a)).sqrt());
+        let G1 = 2.0 / (1.0 + f32::sqrt(1.0 + 1.0 / (a * a)));
 
         // sample slope_x
         let A = 2.0 * u1 / G1 - 1.0;
