@@ -1,5 +1,6 @@
 use std::f32::INFINITY;
 use std::ops::Mul;
+use std::fmt;
 
 use num::zero;
 
@@ -96,6 +97,12 @@ impl Mul<Ray> for Transform {
         new_ray
     }
 }
+
+impl fmt::Display for Ray {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error>{
+        write!(f, "[o={}, d={}, t_max={}]", self.o, self.d, self.t_max)
+    }
+} 
 
 #[derive(Copy, Clone, Debug)]
 pub struct RayDifferential {
