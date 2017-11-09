@@ -164,8 +164,8 @@ impl RenderOptions {
         let filter = match self.filter_name.as_ref() {
             "box" => BoxFilter::create(&mut self.filter_params),
             "mitchell" => MitchellNetravali::create(&mut self.filter_params),
-            "gaussian" => GaussianFilter::create(&mut self.film_params),
-            "triangle" => TriangleFilter::create(&mut self.film_params),
+            "gaussian" => GaussianFilter::create(&mut self.filter_params),
+            "triangle" => TriangleFilter::create(&mut self.filter_params),
             _ => bail!(format!("Filter \"{}\" unknown.", self.filter_name)),
         };
 
@@ -875,7 +875,7 @@ impl Api for RealApi {
         let stats = renderer::render(scene,
                                      &mut integrator,
                                      camera,
-                                     8,
+                                     1,
                                      &mut sampler,
                                      16,
                                      Box::new(NoopDisplayUpdater {}))?;
