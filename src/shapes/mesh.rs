@@ -353,6 +353,112 @@ impl Shape for Triangle {
         Some((isect, t))
     }
 
+    fn intersect_p(&self, ray: &Ray) -> bool {
+        let p0 = &self.mesh.p[self.v(0)];
+        let p1 = &self.mesh.p[self.v(1)];
+        let p2 = &self.mesh.p[self.v(2)];
+
+        // Perform ray-triangle intersection test
+        // - transform triangle vertices to ray coordinate space
+        // -- translate vertices based on ray origin
+        let mut p0t = *p0 - Vector3f::from(ray.o);
+        let mut p1t = *p1 - Vector3f::from(ray.o);
+        let mut p2t = *p2 - Vector3f::from(ray.o);
+
+        // -- permute components of triangle vertices and ray direction
+        let kz = max_dimension(&ray.d.abs());
+        let mut kx = kz + 1;
+        if kx == 3 {
+            kx = 0;
+        }
+        let mut ky = kx + 1;
+        if ky == 3 {
+            ky = 0;
+        }
+        let d = permute_v(&ray.d, kx, ky, kz);
+        p0t = permute_p(&p0t, kx, ky, kz);
+        p1t = permute_p(&p1t, kx, ky, kz);
+        p2t = permute_p(&p2t, kx, ky, kz);
+
+        // -- apply shear transformation to translated vertex positions
+        let sx = -d.x / d.z;
+        let sy = -d.y / d.z;
+        let sz = 1.0 / d.z;
+        p0t.x += sx * p0t.z;
+        p0t.y += sy * p0t.z;
+        p1t.x += sx * p1t.z;
+        p1t.y += sy * p1t.z;
+        p2t.x += sx * p2t.z;
+        p2t.y += sy * p2t.z;
+
+        // - compute edge function coefficients
+        let mut e0 = p1t.x * p2t.y - p1t.y * p2t.x;
+        let mut e1 = p2t.x * p0t.y - p2t.y * p0t.x;
+        let mut e2 = p0t.x * p1t.y - p0t.y * p1t.x;
+        // - fall back to double precision at edges
+        if e0 == 0.0 || e1 == 0.0 || e2 == 0.0 {
+            let p2txp1ty = f64::from(p2t.x) * f64::from(p1t.y);
+            let p2typ1tx = f64::from(p2t.y) * f64::from(p1t.x);
+            e0 = (p2typ1tx - p2txp1ty) as f32;
+            let p0txp2ty = f64::from(p0t.x) * f64::from(p2t.y);
+            let p0typ2tx = f64::from(p0t.y) * f64::from(p2t.x);
+            e1 = (p0typ2tx - p0txp2ty) as f32;
+            let p1txp0ty = f64::from(p1t.x) * f64::from(p0t.y);
+            let p1typ0tx = f64::from(p1t.y) * f64::from(p0t.x);
+            e2 = (p1typ0tx - p1txp0ty) as f32;
+        }
+
+        // - perform triangle edge and determinant test
+        if (e0 < 0.0 || e1 < 0.0 || e2 < 0.0) && (e0 > 0.0 || e1 > 0.0 || e2 > 0.0) {
+            return false;
+        }
+        let det = e0 + e1 + e2;
+        if det == 0.0 {
+            return false;
+        }
+
+        // - compute scaled hit distance to triangle and test against ray t range
+        p0t.z *= sz;
+        p1t.z *= sz;
+        p2t.z *= sz;
+        let t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
+        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det)) ||
+           (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det)) {
+            return false;
+        }
+        // - compute barycentric coordinates and t value for triangle intersection
+        let inv_det = 1.0 / det;
+        let b0 = e0 * inv_det;
+        let b1 = e1 * inv_det;
+        let b2 = e2 * inv_det;
+        let t = t_scaled * inv_det;
+
+        // - ensure that computed triangle t is conservatively greater than zero
+
+        // Compute `delta_z` term for triangle t error bounds
+        let maxzt = max_component(&Vector3f::new(p0t.z, p1t.z, p2t.z).abs());
+        let delta_z = gamma(3) * maxzt;
+
+        // Compute `delta_x` and `delta_y` terms for triangle t error bounds
+        let maxxt = max_component(&Vector3f::new(p0t.x, p1t.x, p2t.x).abs());
+        let maxyt = max_component(&Vector3f::new(p0t.y, p1t.y, p2t.y).abs());
+        let delta_x = gamma(5) * (maxxt + maxzt);
+        let delta_y = gamma(5) * (maxyt + maxzt);
+
+        // Compute `delta_e` term for triangle t error bounds
+        let delta_e = 2.0 * (gamma(2) * maxxt * maxyt + delta_y * maxxt + delta_x * maxyt);
+
+        // Compute `delta_t` term for triangle t error bounds and check `t`
+        let max_e = max_component(&Vector3f::new(e0, e1, e2).abs());
+        let delta_t = 3.0 * (gamma(3) * max_e * maxzt + delta_e * maxzt + delta_z * max_e) *
+                      inv_det.abs();
+        if t <= delta_t {
+            return false;
+        }
+        
+        true
+    }
+
     fn area(&self) -> f32 {
         let p0 = self.mesh.p[self.v(0)];
         let p1 = self.mesh.p[self.v(1)];
