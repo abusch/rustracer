@@ -11,6 +11,7 @@ use interaction::{Interaction, SurfaceInteraction};
 
 #[derive(Debug)]
 pub struct DiffuseAreaLight {
+    id: u32,
     l_emit: Spectrum,
     shape: Arc<Shape + Send + Sync>,
     n_samples: u32,
@@ -26,6 +27,7 @@ impl DiffuseAreaLight {
                -> DiffuseAreaLight {
         let area = shape.area();
         DiffuseAreaLight {
+            id: super::get_next_id(),
             l_emit: l_emit,
             shape: shape,
             n_samples: n_samples,
@@ -49,6 +51,10 @@ impl DiffuseAreaLight {
 }
 
 impl Light for DiffuseAreaLight {
+    fn id(&self) -> u32 {
+        self.id
+    }
+
     fn sample_li(&self,
                  si: &SurfaceInteraction,
                  u: &Point2f)
@@ -81,7 +87,7 @@ impl Light for DiffuseAreaLight {
 
 impl AreaLight for DiffuseAreaLight {
     fn l(&self, si: &Interaction, w: &Vector3f) -> Spectrum {
-        if si.n.dot(w) > 0.0 {
+        if self.two_sided || si.n.dot(w) > 0.0 {
             self.l_emit
         } else {
             Spectrum::black()

@@ -269,9 +269,11 @@ pub fn estimate_direct(it: &SurfaceInteraction,
                 Some(light_isect) => {
                     // Add light contribution from material sampling
                     if let Some(area_light) = light_isect.primitive.and_then(|p| p.area_light()) {
-                        let pa = &*area_light as *const _ as *const usize;
-                        let pl = &*light as *const _ as *const usize;
-                        if pa == pl {
+                        // let pa = &*area_light as *const _ as *const usize;
+                        // let pl = &*light as *const _ as *const usize;
+                        // if pa == pl {
+                        if area_light.id() == light.id() {
+                            info!("  Lights are equal");
                             light_isect.le(&(-wi))
                         } else {
                             Spectrum::black()

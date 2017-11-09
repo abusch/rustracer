@@ -19,6 +19,7 @@ use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct InfiniteAreaLight {
+    id: u32,
     light_to_world: Transform,
     world_to_light: Transform,
     n_samples: u32,
@@ -66,6 +67,7 @@ impl InfiniteAreaLight {
         let distribution = Box::new(Distribution2D::new(&img[..], width, height));
 
         InfiniteAreaLight {
+            id: super::get_next_id(),
             world_to_light: l2w.inverse(),
             light_to_world: l2w,
             n_samples: n_samples,
@@ -87,6 +89,10 @@ impl InfiniteAreaLight {
 }
 
 impl Light for InfiniteAreaLight {
+    fn id(&self) -> u32 {
+        self.id
+    }
+
     fn preprocess(&self, scene: &Scene) {
         let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
         let mut wc = self.world_center.write().unwrap();

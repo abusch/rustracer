@@ -12,8 +12,9 @@ use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct DistantLight {
-    pub dir: Vector3f,
-    pub emission_colour: Spectrum,
+    id: u32,
+    dir: Vector3f,
+    emission_colour: Spectrum,
     w_center: RwLock<Point3f>,
     w_radius: RwLock<f32>,
 }
@@ -21,6 +22,7 @@ pub struct DistantLight {
 impl DistantLight {
     pub fn new(dir: Vector3f, ec: Spectrum) -> DistantLight {
         DistantLight {
+            id: super::get_next_id(),
             dir: dir.normalize(),
             emission_colour: ec,
             w_center: RwLock::new(Point3f::new(0.0, 0.0, 0.0)),
@@ -39,6 +41,10 @@ impl DistantLight {
 }
 
 impl Light for DistantLight {
+    fn id(&self) -> u32 {
+        self.id
+    }
+
     fn preprocess(&self, scene: &Scene) {
         let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
         let mut wc = self.w_center.write().unwrap();

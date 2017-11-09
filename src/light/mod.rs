@@ -1,5 +1,6 @@
 use std::f32;
 use std::fmt::Debug;
+use std::sync::Mutex;
 
 use {Point2f, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
@@ -26,6 +27,10 @@ bitflags! {
     }
 }
 
+lazy_static! {
+    static ref COUNTER: Mutex<u32> = Mutex::new(0);
+}
+
 #[inline]
 pub fn is_delta_light(flags: LightFlags) -> bool {
     flags.contains(LightFlags::DELTA_POSITION) || flags.contains(LightFlags::DELTA_DIRECTION)
@@ -47,7 +52,16 @@ impl VisibilityTester {
     }
 }
 
+pub fn get_next_id() -> u32 {
+    let mut counter = COUNTER.lock().unwrap();
+    let id = *counter;
+    *counter += 1;
+
+    id 
+}
+
 pub trait Light: Debug {
+    fn id(&self) -> u32;
     /// Sample the light source
     /// Return a tuple of:
     ///  * emitted light in the sampled direction

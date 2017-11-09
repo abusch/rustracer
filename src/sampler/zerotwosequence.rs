@@ -167,14 +167,14 @@ impl Sampler for ZeroTwoSequence {
     }
 
     fn get_camera_sample(&mut self, p_raster: &Point2i) -> CameraSample {
-        let s = self.get_2d();
-        let p_film = Point2f::new(p_raster.x as f32 + s.x, p_raster.y as f32 + s.y);
+        let p_film = Point2f::from(*p_raster) + self.get_2d();
+        let time = self.get_1d();
         let p_lens = self.get_2d();
 
         CameraSample {
             p_film: p_film,
             p_lens: p_lens,
-            time: self.get_1d(),
+            time: time,
         }
     }
 

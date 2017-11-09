@@ -11,13 +11,15 @@ use spectrum::Spectrum;
 
 #[derive(Debug)]
 pub struct PointLight {
-    pub pos: Point3f,
-    pub emission_colour: Spectrum,
+    id: u32,
+    pos: Point3f,
+    emission_colour: Spectrum,
 }
 
 impl PointLight {
     pub fn new(p: Point3f, ec: Spectrum) -> PointLight {
         PointLight {
+            id: super::get_next_id(),
             pos: p,
             emission_colour: ec,
         }
@@ -34,6 +36,10 @@ impl PointLight {
 }
 
 impl Light for PointLight {
+    fn id(&self) -> u32 {
+        self.id
+    }
+
     fn sample_li(&self,
                  isect: &SurfaceInteraction,
                  _u: &Point2f)
