@@ -33,7 +33,6 @@ pub fn render(scene: Box<Scene>,
           pixel_bounds);
     let n_tiles = Point2i::new((sample_extent.x + block_size - 1) / block_size,
                                (sample_extent.y + block_size - 1) / block_size);
-    info!("n_tiles = {}", n_tiles);
 
     let num_blocks = n_tiles.x * n_tiles.y;
     // This channel will receive the stats from each worker thread
@@ -73,7 +72,6 @@ pub fn render(scene: Box<Scene>,
                         break;
                     };
                     // Render section of image corresponding to `tile`
-                    info!("Tile number: {}", tile);
 
                     // Allocate MemoryArena for tile
                     let mut arena = MemoryArena::new(1);
