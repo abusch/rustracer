@@ -51,6 +51,7 @@ impl Material for MatteMaterial {
             i += 1;
         } else {
             bxdfs[i] = arena <- OrenNayar::new(r, sigma);
+            i += 1;
         }
 
         unsafe {
