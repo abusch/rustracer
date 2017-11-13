@@ -1,6 +1,7 @@
-use std::sync::Mutex;
 use std::sync::atomic::{Ordering, AtomicU32};
 use std::f32;
+
+use parking_lot::Mutex;
 
 use {clamp, Point2f, Point2i, Vector2f};
 use bounds::{Bounds2f, Bounds2i};
@@ -144,7 +145,7 @@ impl Film {
     }
 
     pub fn merge_film_tile(&self, tile: FilmTile) {
-        let mut pixels = self.pixels.lock().unwrap();
+        let mut pixels = self.pixels.lock();
         for pixel in &tile.get_pixel_bounds() {
             let tile_pixel = tile.get_pixel(&pixel);
             let pidx = {
@@ -162,7 +163,7 @@ impl Film {
     pub fn write_image(&self) -> Result<()> {
         info!("Converting image to RGB and computing final weighted pixel values");
         let splat_scale = 1.0; // TODO
-        let pixels = self.pixels.lock().unwrap();
+        let pixels = self.pixels.lock();
         let mut rgb = Vec::with_capacity(3 * self.cropped_pixel_bounds.area() as usize);
         for p in &self.cropped_pixel_bounds {
             // Convert pixel XYZ color to RGB

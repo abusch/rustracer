@@ -1,7 +1,8 @@
 use std::f32::consts::PI;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use num::Zero;
+use parking_lot::RwLock;
 
 use {Point2f, Point3f, Transform, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
@@ -47,9 +48,9 @@ impl Light for DistantLight {
 
     fn preprocess(&self, scene: &Scene) {
         let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
-        let mut wc = self.w_center.write().unwrap();
+        let mut wc = self.w_center.write();
         *wc = w_center;
-        let mut wr = self.w_radius.write().unwrap();
+        let mut wr = self.w_radius.write();
         *wr = w_radius;
     }
 
@@ -57,7 +58,7 @@ impl Light for DistantLight {
                  isect: &SurfaceInteraction,
                  _u: &Point2f)
                  -> (Spectrum, Vector3f, f32, VisibilityTester) {
-        let wr = self.w_radius.read().unwrap();
+        let wr = self.w_radius.read();
         let p_outside = isect.p + self.dir * (2.0 * *wr);
         (self.emission_colour,
          self.dir,
@@ -78,7 +79,7 @@ impl Light for DistantLight {
     }
 
     fn power(&self) -> Spectrum {
-        let wr = self.w_radius.read().unwrap();
+        let wr = self.w_radius.read();
         self.emission_colour * PI * *wr * *wr
     }
 }

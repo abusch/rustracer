@@ -1,13 +1,12 @@
-use std::sync::Mutex;
 use std::path::{Path, PathBuf};
 
-lazy_static!{
-    static ref SEARCH_DIR: Mutex<Option<PathBuf>> = Mutex::new(None);
-}
+use parking_lot::Mutex;
+
+static SEARCH_DIR: Mutex<Option<PathBuf>> = Mutex::new(None);
 
 pub fn set_search_directory<P: AsRef<Path>>(d: P) {
     let d = d.as_ref();
-    let mut dir = SEARCH_DIR.lock().unwrap();
+    let mut dir = SEARCH_DIR.lock();
     dir.get_or_insert(PathBuf::from(d));
     info!("Set search directory to {}", d.display());
 }
@@ -29,7 +28,7 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
 
 pub fn resolve_filename(filename: &str) -> String {
     info!("Resolving filename {}", filename);
-    let search_directory = SEARCH_DIR.lock().unwrap();
+    let search_directory = SEARCH_DIR.lock();
     if search_directory.is_none() || filename == "" || Path::new(filename).is_absolute() {
         filename.to_owned()
     } else {

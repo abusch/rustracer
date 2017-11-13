@@ -1,9 +1,10 @@
 use std::f32::consts::{FRAC_1_PI, PI};
 use std::path::Path;
 use std::cmp::min;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use num::Zero;
+use parking_lot::RwLock;
 
 use {Point2f, Point2i, Point3f, Transform, Vector3f};
 use geometry::{spherical_phi, spherical_theta};
@@ -95,9 +96,9 @@ impl Light for InfiniteAreaLight {
 
     fn preprocess(&self, scene: &Scene) {
         let (w_center, w_radius) = scene.world_bounds().bounding_sphere();
-        let mut wc = self.world_center.write().unwrap();
+        let mut wc = self.world_center.write();
         *wc = w_center;
-        let mut wr = self.world_radius.write().unwrap();
+        let mut wr = self.world_radius.write();
         *wr = w_radius;
     }
 
@@ -130,7 +131,7 @@ impl Light for InfiniteAreaLight {
             map_pdf / (2.0 * PI * PI * sin_theta)
         };
         // Return radiance value for infinite light direction
-        let world_radius = self.world_radius.read().unwrap();
+        let world_radius = self.world_radius.read();
         let target = isect.p + wi * (2.0 * *world_radius);
         let vis = VisibilityTester::new(isect.into(), Interaction::from_point(&target));
         (self.l_map.lookup(&uv, 0.0), wi, pdf, vis)
@@ -160,7 +161,7 @@ impl Light for InfiniteAreaLight {
     }
 
     fn power(&self) -> Spectrum {
-        let world_radius = self.world_radius.read().unwrap();
+        let world_radius = self.world_radius.read();
         PI * *world_radius * *world_radius * self.l_map.lookup(&Point2f::new(0.5, 0.5), 0.5)
     }
 

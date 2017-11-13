@@ -690,6 +690,7 @@ dependencies = [
  "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "num_cpus 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "openexr 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parking_lot 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "ply-rs 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog 2.0.12 (registry+https://github.com/rust-lang/crates.io-index)",

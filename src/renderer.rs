@@ -1,8 +1,9 @@
 use std::sync::mpsc::channel;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 
 use crossbeam;
 use indicatif;
+use parking_lot::Mutex;
 
 use Point2i;
 use bounds::Bounds2i;
@@ -63,7 +64,7 @@ pub fn render(scene: Box<Scene>,
             scope.spawn(move || {
                 loop {
                     let maybe_tile = {
-                        let mut iter = tiles_iter.lock().unwrap();
+                        let mut iter = tiles_iter.lock();
                         iter.next()
                     };
                     let tile = if let Some(t) = maybe_tile {

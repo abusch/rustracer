@@ -23,6 +23,7 @@ extern crate num;
 #[cfg(feature="openexr")]
 extern crate openexr;
 extern crate ply_rs;
+extern crate parking_lot;
 #[macro_use(slog_error, slog_warn, slog_info, slog_debug, slog_trace, slog_log, slog_record,
             slog_record_static, slog_b, slog_kv)]
 extern crate slog;

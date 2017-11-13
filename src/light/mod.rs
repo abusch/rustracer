@@ -1,6 +1,7 @@
 use std::f32;
 use std::fmt::Debug;
-use std::sync::Mutex;
+
+use parking_lot::Mutex;
 
 use {Point2f, Vector3f};
 use interaction::{Interaction, SurfaceInteraction};
@@ -27,9 +28,7 @@ bitflags! {
     }
 }
 
-lazy_static! {
-    static ref COUNTER: Mutex<u32> = Mutex::new(0);
-}
+static COUNTER: Mutex<u32> = Mutex::new(0);
 
 #[inline]
 pub fn is_delta_light(flags: LightFlags) -> bool {
@@ -53,7 +52,7 @@ impl VisibilityTester {
 }
 
 pub fn get_next_id() -> u32 {
-    let mut counter = COUNTER.lock().unwrap();
+    let mut counter = COUNTER.lock();
     let id = *counter;
     *counter += 1;
 
