@@ -47,6 +47,7 @@ pub fn render(scene: Box<Scene>,
         .progress_chars("=>-")
         .template("[{elapsed_precise}] [{wide_bar}] {percent}% [{pos}/{len}] {eta}")
     );
+    pb.tick();
 
     crossbeam::scope(|scope| {
         // We only want to use references to these in the thread, not move the structs themselves...

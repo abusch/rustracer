@@ -398,6 +398,14 @@ impl<T> fmt::Display for Bounds2<T>
     }
 }
 
+impl<T> fmt::Display for Bounds3<T>
+    where T: fmt::Display + Num
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} → {}", self.p_min, self.p_max)
+    }
+}
+
 #[test]
 fn test_bounds2_iterator() {
     let bounds = Bounds2i::from_points(&Point2i::new(0, 1), &Point2i::new(2, 3));

@@ -155,7 +155,7 @@ pub struct RenderOptions {
     camera_params: ParamSet,
     camera_to_world: Transform,
     lights: Vec<Arc<Light + Send + Sync>>,
-    primitives: Vec<Box<Primitive + Send + Sync>>,
+    primitives: Vec<Arc<Primitive + Send + Sync>>,
 }
 
 impl RenderOptions {
@@ -804,7 +804,7 @@ impl Api for RealApi {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
 
-        let mut prims: Vec<Box<Primitive + Send + Sync>> = Vec::new();
+        let mut prims: Vec<Arc<Primitive + Send + Sync>> = Vec::new();
         let mut area_lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
         let shapes = make_shapes(&name,
                                  &state.cur_transform,
@@ -829,7 +829,7 @@ impl Api for RealApi {
             } else {
                 None
             };
-            let prim: Box<Primitive + Send + Sync> = Box::new(GeometricPrimitive {
+            let prim: Arc<Primitive + Send + Sync> = Arc::new(GeometricPrimitive {
                                                                   shape: s,
                                                                   area_light: area,
                                                                   material: mat.clone(),

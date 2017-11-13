@@ -1,12 +1,11 @@
 use std::cmp::min;
 use std::mem::replace;
 use std::sync::Arc;
-use std::path::Path;
 
 use it;
 use light_arena::Allocator;
 
-use {Point3f, Vector3f, Transform};
+use {Point3f, Vector3f};
 use bounds::{Axis, Bounds3f};
 use interaction::SurfaceInteraction;
 use light::AreaLight;
@@ -14,36 +13,26 @@ use material::{Material, TransportMode};
 use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
 use shapes::Shape;
-use shapes::mesh;
 
 #[derive(Debug)]
 pub struct BVH {
     max_prims_per_node: usize,
-    primitives: Vec<Box<Primitive + Send + Sync>>,
+    primitives: Vec<Arc<Primitive + Send + Sync>>,
     nodes: Vec<LinearBVHNode>,
 }
 
 impl BVH {
-    pub fn from_mesh_file(file: &Path,
-                          model: &str,
-                          material: Arc<Material + Send + Sync>,
-                          transform: &Transform)
-                          -> BVH {
-        let shapes = mesh::load_triangle_mesh(file, model, transform);
-        BVH::from_triangles(shapes, material)
-    }
-
     pub fn from_triangles(mut tris: Vec<Arc<Shape + Send + Sync>>,
                           material: Arc<Material + Send + Sync>)
                           -> BVH {
-        let mut prims: Vec<Box<Primitive + Send + Sync>> = tris.drain(..)
+        let mut prims: Vec<Arc<Primitive + Send + Sync>> = tris.drain(..)
             .map(|t| {
                      let prim = GeometricPrimitive {
                          shape: Arc::clone(&t),
                          area_light: None,
                          material: Some(Arc::clone(&material)),
                      };
-                     let b: Box<Primitive + Send + Sync> = Box::new(prim);// as Box<Primitive + Send + Sync>
+                     let b: Arc<Primitive + Send + Sync> = Arc::new(prim);// as Box<Primitive + Send + Sync>
                      b
                  })
             .collect();
@@ -51,7 +40,7 @@ impl BVH {
         BVH::new(1, &mut prims)
     }
 
-    pub fn new(max_prims_per_node: usize, prims: &mut Vec<Box<Primitive + Send + Sync>>) -> BVH {
+    pub fn new(max_prims_per_node: usize, prims: &mut Vec<Arc<Primitive + Send + Sync>>) -> BVH {
         info!("Generating BVH:");
 
         // 1. Get bounds info
@@ -65,28 +54,14 @@ impl BVH {
         // 2. Build tree
         info!("\tBuilding tree for {} primitives", prims.len());
         let mut total_nodes = 0;
-        let mut ordered_prims_idx = Vec::with_capacity(prims.len());
-        let root: BVHBuildNode = BVH::recursive_build(&mut primitive_info,
+        let mut ordered_prims = Vec::with_capacity(prims.len());
+        let root: BVHBuildNode = BVH::recursive_build(prims,
+                                                      &mut primitive_info,
                                                       0usize,
                                                       prims.len(),
                                                       max_prims_per_node,
                                                       &mut total_nodes,
-                                                      &mut ordered_prims_idx);
-
-        // Sort the primitives according to the indices in ordered_prims_idx. This is made tricky
-        // due to the fact that a vector owns its elements, which means we can't easily move
-        // elements from one vector to another. We have to use drain() instead. Also, zip() and
-        // enumerate() are defined on Iterator, and sort_by_key() is defined on Vector, causing a
-        // lot of iter()/collect() shennanigans...
-        let mut sorted_idx: Vec<(usize, &usize)> = ordered_prims_idx.iter().enumerate().collect();
-        sorted_idx.sort_by_key(|i| i.1);
-
-        let mut prims_with_idx: Vec<(Box<Primitive + Send + Sync>, usize)> = prims
-            .drain(..)
-            .zip(sorted_idx.iter().map(|i| i.0))
-            .collect();
-        prims_with_idx.sort_by_key(|i| i.1);
-        let ordered_prims: Vec<_> = prims_with_idx.drain(..).map(|i| i.0).collect();
+                                                      &mut ordered_prims);
 
         info!("\tCreated {} nodes", total_nodes);
         info!("\tOrdered {} primitives", ordered_prims.len());
@@ -104,12 +79,13 @@ impl BVH {
         }
     }
 
-    fn recursive_build(build_data: &mut Vec<BVHPrimitiveInfo>,
+    fn recursive_build(primitives: &Vec<Arc<Primitive + Send + Sync>>,
+                       build_data: &mut Vec<BVHPrimitiveInfo>,
                        start: usize,
                        end: usize,
                        max_prims_per_node: usize,
                        total_nodes: &mut usize,
-                       ordered_prims: &mut Vec<usize>)
+                       ordered_prims: &mut Vec<Arc<Primitive + Send + Sync>>)
                        -> BVHBuildNode {
         *total_nodes += 1;
         let n_primitives = end - start;
@@ -122,7 +98,8 @@ impl BVH {
             // Create leaf
             let first_prim_offset = ordered_prims.len();
             for pi in build_data[start..end].iter() {
-                ordered_prims.push(pi.prim_number);
+                let prim_num = pi.prim_number;
+                ordered_prims.push(primitives[prim_num].clone());
             }
             BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox)
         } else {
@@ -137,7 +114,8 @@ impl BVH {
             if centroids_bounds[0][dimension] == centroids_bounds[1][dimension] {
                 let first_prim_offset = ordered_prims.len();
                 for pi in build_data[start..end].iter() {
-                    ordered_prims.push(pi.prim_number);
+                    let prim_num = pi.prim_number;
+                    ordered_prims.push(primitives[prim_num].clone());
                 }
                 return BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox);
             }
@@ -156,21 +134,21 @@ impl BVH {
                 mid = (start + end) / 2;
             }
 
-            BVHBuildNode::interior(dimension,
-                                   Box::new(BVH::recursive_build(build_data,
-                                                                 start,
-                                                                 mid,
-                                                                 max_prims_per_node,
-                                                                 total_nodes,
-                                                                 ordered_prims)),
-                                   Box::new(BVH::recursive_build(build_data,
-                                                                 mid,
-                                                                 end,
-                                                                 max_prims_per_node,
-                                                                 total_nodes,
-                                                                 ordered_prims)))
-
-
+            let right = Box::new(BVH::recursive_build(primitives,
+                                                      build_data,
+                                                      mid,
+                                                      end,
+                                                      max_prims_per_node,
+                                                      total_nodes,
+                                                      ordered_prims));
+            let left = Box::new(BVH::recursive_build(primitives,
+                                                     build_data,
+                                                     start,
+                                                     mid,
+                                                     max_prims_per_node,
+                                                     total_nodes,
+                                                     ordered_prims));
+            BVHBuildNode::interior(dimension, left, right)
         }
     }
 
@@ -221,7 +199,7 @@ impl BVH {
 
 impl Primitive for BVH {
     fn world_bounds(&self) -> Bounds3f {
-        self.primitives[0].world_bounds()
+        self.nodes[0].bounds
     }
 
     fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
@@ -444,6 +422,6 @@ enum LinearBVHNodeData {
 
 #[derive(Debug)]
 struct LinearBVHNode {
-    bounds: Bounds3f,
+    pub bounds: Bounds3f,
     data: LinearBVHNodeData,
 }
