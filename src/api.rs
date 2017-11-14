@@ -231,8 +231,19 @@ impl RenderOptions {
         info!("Making scene with {} primitives and {} lights",
               self.primitives.len(),
               self.lights.len());
-        let accelerator = Arc::new(BVH::new(1, &mut self.primitives));
+        let accelerator = self.make_accelerator();
         Ok(Box::new(Scene::new(accelerator, self.lights.clone())))
+    }
+
+    pub fn make_accelerator(&mut self) -> Arc<Primitive + Send + Sync> {
+        if self.accelerator_name == "kdtree" {
+            unimplemented!()
+        } else if self.accelerator_name == "bvh" {
+            Arc::new(BVH::create(&mut self.primitives, &mut self.accelerator_params))
+        } else {
+            warn!("Accelerator \"{}\" unknown.", self.accelerator_name);
+            Arc::new(BVH::create(&mut self.primitives, &mut self.accelerator_params))
+        }
     }
 }
 

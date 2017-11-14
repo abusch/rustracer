@@ -10,11 +10,12 @@ use bounds::{Axis, Bounds3f};
 use interaction::SurfaceInteraction;
 use light::AreaLight;
 use material::{Material, TransportMode};
+use paramset::ParamSet;
 use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
 use shapes::Shape;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum SplitMethod {
     Middle,
     EqualCounts,
@@ -44,11 +45,25 @@ impl BVH {
                  })
             .collect();
 
-        BVH::new(1, &mut prims)
+        BVH::new(1, &mut prims, SplitMethod::SAH)
     }
 
-    pub fn new(max_prims_per_node: usize, prims: &mut Vec<Arc<Primitive + Send + Sync>>) -> BVH {
-        info!("Generating BVH:");
+    pub fn create(prims: &mut Vec<Arc<Primitive + Send + Sync>>, ps: &mut ParamSet) -> BVH {
+        let split_method_name = ps.find_one_string("splitmethod", "sah".into());
+        let split_method = if split_method_name == "sah" {
+            SplitMethod::SAH
+        } else if split_method_name == "middle" {
+            SplitMethod::Middle
+        } else {
+            warn!("Unknown (or unimplemented) BVH split method {}.  Using \"sah\"", split_method_name);
+            SplitMethod::SAH
+        };
+        let max_prims_per_node = ps.find_one_int("maxnodeprims", 4);
+        BVH::new(max_prims_per_node as usize, prims, split_method)
+    }
+
+    pub fn new(max_prims_per_node: usize, prims: &mut Vec<Arc<Primitive + Send + Sync>>, split_method: SplitMethod) -> BVH {
+        info!("Generating BVH with method {:?}:", split_method);
 
         // 1. Get bounds info
         info!("\tGenerating primitive info");
@@ -69,7 +84,7 @@ impl BVH {
                                                       max_prims_per_node,
                                                       &mut total_nodes,
                                                       &mut ordered_prims,
-                                                      SplitMethod::SAH);
+                                                      split_method);
 
         info!("\tCreated {} nodes", total_nodes);
         info!("\tOrdered {} primitives", ordered_prims.len());
@@ -133,7 +148,7 @@ impl BVH {
             match split_method {
                 SplitMethod::Middle => {
                     let pmid = 0.5 * (centroids_bounds[0][dimension] + centroids_bounds[1][dimension]);
-                    mid = it::partition(build_data[start..end].iter_mut(),
+                    mid = start + it::partition(build_data[start..end].iter_mut(),
                                                 |pi| pi.centroid[dimension] < pmid) + start;
                     if mid == start || mid == end {
                         // If partition failed, used Split Equal method
@@ -169,7 +184,6 @@ impl BVH {
                             if b == n_buckets {
                                 b = n_buckets - 1;
                             }
-                            assert!(b >= 0);
                             assert!(b < n_buckets);
                             buckets[b].count += 1;
                             buckets[b].bounds = Bounds3f::union(&buckets[b].bounds, &build_data[i].bounds);
@@ -206,7 +220,7 @@ impl BVH {
                         // Either create leaf of split primitives at selected SAH bucket
                         let leaf_cost = n_primitives as f32;
                         if n_primitives > max_prims_per_node || min_cost < leaf_cost {
-                            mid = it::partition(build_data[start..end].iter_mut(), |pi| {
+                            mid = start + it::partition(build_data[start..end].iter_mut(), |pi| {
                                 let mut b = (n_buckets as f32 * centroids_bounds.offset(&pi.centroid)[dimension]) as usize;
                                 if b == n_buckets {
                                     b = n_buckets - 1;
@@ -227,7 +241,6 @@ impl BVH {
                     }
                 }
             }
-            info!("mid = {}", mid);
 
             let right = Box::new(BVH::recursive_build(primitives,
                                                       build_data,
