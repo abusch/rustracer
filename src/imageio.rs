@@ -4,7 +4,7 @@ use std::io::{BufRead, BufReader, Read};
 
 use img;
 #[cfg(feature="openexr")]
-use openexr::{FrameBufferMut, InputFile};
+use openexr::{FrameBuffer, FrameBufferMut, InputFile, ScanlineOutputFile, Header, PixelType};
 
 use {Point2i, clamp};
 use bounds::Bounds2i;
@@ -32,9 +32,19 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
 
 pub fn write_image<P: AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
     let path = name.as_ref();
-    let resolution = output_bounds.diagonal();
 
     if has_extension(path, "png") {
+        write_image_png(path, rgb, output_bounds, total_resolution)
+    } else if has_extension(path, "exr") {
+        write_image_exr(path, rgb, output_bounds, total_resolution)
+    } else {
+        bail!("Unsupported file format");
+    }
+}
+
+fn write_image_png<P:AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+    let path = name.as_ref();
+    let resolution = output_bounds.diagonal();
         let rgb8: Vec<_> = rgb.iter().map(|v| {
             clamp(255.0 * gamma_correct(*v) + 0.5, 0.0, 255.0) as u8
         }).collect();
@@ -46,9 +56,38 @@ pub fn write_image<P: AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2
                          resolution.y as u32,
                          img::RGB(8))
                 .chain_err(|| format!("Failed to save image file {}", path.display()));
-    } else {
-        bail!("Unsupported file format");
+}
+
+#[cfg(not(feature="openexr"))]
+fn write_image_exr<P:AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+    panic!("EXR support is not compiled in. Please recompile with the \"openexr\" feature.")
+}
+
+#[cfg(feature="openexr")]
+fn write_image_exr<P:AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+    let path = name.as_ref();
+    let resolution = output_bounds.diagonal();
+    let mut file = File::create(path)?;
+    let mut output_file = ScanlineOutputFile::new(
+        &mut file,
+        Header::new()
+            .set_resolution(resolution.x as u32, resolution.y as u32)
+            .add_channel("R", PixelType::FLOAT)
+            .add_channel("G", PixelType::FLOAT)
+            .add_channel("B", PixelType::FLOAT))?;
+
+    // Create a `FrameBuffer` that points at our pixel data and describes it as
+    // RGB data.
+    let data: Vec<_> = rgb.chunks(3).map(|p| (p[0], p[1], p[2])).collect();
+    {
+        let mut fb = FrameBuffer::new(resolution.x as usize, resolution.y as usize);
+        fb.insert_channels(&["R", "G", "B"], &data[..]);
+
+        // Write pixel data to the file.
+        output_file.write_pixels(&fb)?;
     }
+
+    Ok(())
 }
 
 fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {

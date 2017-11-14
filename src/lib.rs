@@ -16,8 +16,6 @@ extern crate ieee754 as fp;
 extern crate image as img;
 extern crate indicatif;
 extern crate itertools as it;
-#[macro_use]
-extern crate lazy_static;
 extern crate light_arena;
 extern crate num;
 #[cfg(feature="openexr")]
@@ -73,14 +71,14 @@ pub mod transform;
 
 pub mod errors {
     use img;
-    #[cfg(openexr)]
+    #[cfg(feature="openexr")]
     use openexr;
 
     error_chain!{
         foreign_links {
             Io(::std::io::Error);
             ImgTga(img::ImageError);
-            ImgExr(openexr::Error) #[cfg(openexr)];
+            ImgExr(openexr::Error) #[cfg(feature="openexr")];
         }
     }
 }
