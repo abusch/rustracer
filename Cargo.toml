@@ -46,3 +46,6 @@ opt-level = 3
 debug = true
 rpath = false
 lto = false
+
+[patch.crates-io]
+skeptic = { git = "https://github.com/budziq/rust-skeptic"}
