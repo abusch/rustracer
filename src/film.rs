@@ -21,9 +21,7 @@ struct AtomicFloat {
 
 impl AtomicFloat {
     pub fn new(v: f32) -> AtomicFloat {
-        AtomicFloat {
-            bits: AtomicU32::new(v.to_bits()),
-        }
+        AtomicFloat { bits: AtomicU32::new(v.to_bits()) }
     }
 
     pub fn as_float(&self) -> f32 {
@@ -68,7 +66,10 @@ impl Film {
                                                 (resolution.y as f32 * cropwindow.p_max.y).ceil() as
                                                 i32));
 
-        info!("Created film with full resolution {}. Crop window of {} -> cropped_pixel_bounds {}", resolution, cropwindow, cropped_pixel_bounds);
+        info!("Created film with full resolution {}. Crop window of {} -> cropped_pixel_bounds {}",
+              resolution,
+              cropwindow,
+              cropped_pixel_bounds);
         let mut pixels = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
         pixels.resize_default(cropped_pixel_bounds.area() as usize);
         let mut filter_table = [0f32; FILTER_TABLE_SIZE];
@@ -150,7 +151,8 @@ impl Film {
             let tile_pixel = tile.get_pixel(&pixel);
             let pidx = {
                 let width = self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x;
-                ((pixel.y - self.cropped_pixel_bounds.p_min.y) * width + (pixel.x - self.cropped_pixel_bounds.p_min.x)) as usize
+                ((pixel.y - self.cropped_pixel_bounds.p_min.y) * width +
+                 (pixel.x - self.cropped_pixel_bounds.p_min.x)) as usize
             };
             let xyz = tile_pixel.contrib_sum.to_xyz();
             for i in 0..3 {
@@ -180,11 +182,9 @@ impl Film {
                 rgb_pixel[2] = f32::max(0.0, rgb_pixel[2] * inv_wt);
             }
 
-            let splat_xyz = [
-                pixel.splat_xyz[0].as_float(),
-                pixel.splat_xyz[1].as_float(),
-                pixel.splat_xyz[2].as_float(),
-            ];
+            let splat_xyz = [pixel.splat_xyz[0].as_float(),
+                             pixel.splat_xyz[1].as_float(),
+                             pixel.splat_xyz[2].as_float()];
             let mut splat_rgb = Spectrum::from_xyz(&splat_xyz);
             rgb_pixel[0] += splat_scale * splat_rgb[0];
             rgb_pixel[1] += splat_scale * splat_rgb[1];
@@ -201,8 +201,13 @@ impl Film {
         }
 
         // Write RGB image
-        info!("Writing image {} with bounds {}", self.filename, self.cropped_pixel_bounds);
-        imageio::write_image(&self.filename, &rgb[..], &self.cropped_pixel_bounds, &self.full_resolution)
+        info!("Writing image {} with bounds {}",
+              self.filename,
+              self.cropped_pixel_bounds);
+        imageio::write_image(&self.filename,
+                             &rgb[..],
+                             &self.cropped_pixel_bounds,
+                             &self.full_resolution)
     }
 
     pub fn get_sample_bounds(&self) -> Bounds2i {
@@ -219,7 +224,8 @@ impl Film {
     fn get_pixel_idx(&self, p: &Point2i) -> usize {
         assert!(self.cropped_pixel_bounds.inside_exclusive(p));
         let width = self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x;
-        let offset = (p.x - self.cropped_pixel_bounds.p_min.x) + (p.y - self.cropped_pixel_bounds.p_min.y) * width;
+        let offset = (p.x - self.cropped_pixel_bounds.p_min.x) +
+                     (p.y - self.cropped_pixel_bounds.p_min.y) * width;
         offset as usize
     }
 }

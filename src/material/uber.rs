@@ -70,7 +70,7 @@ impl Material for UberMaterial {
 
         if let Some(ref bump_map) = self.bumpmap {
             super::bump(bump_map, si);
-        } 
+        }
 
         let e = self.eta.evaluate(si);
         let op = self.opacity.evaluate(si).clamp();

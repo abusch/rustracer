@@ -56,7 +56,7 @@ pub fn get_next_id() -> u32 {
     let id = *counter;
     *counter += 1;
 
-    id 
+    id
 }
 
 pub trait Light: Debug {

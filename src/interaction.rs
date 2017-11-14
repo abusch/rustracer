@@ -274,7 +274,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 self.dpdy = zero();
                 return;
             }
-            
+
             let px = diff.rx_origin + tx * diff.rx_direction;
             let py = diff.ry_origin + ty * diff.ry_direction;
             self.dpdx = px - self.p;

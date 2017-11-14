@@ -30,7 +30,11 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     }
 }
 
-pub fn write_image<P: AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+pub fn write_image<P: AsRef<Path>>(name: P,
+                                   rgb: &[f32],
+                                   output_bounds: &Bounds2i,
+                                   total_resolution: &Point2i)
+                                   -> Result<()> {
     let path = name.as_ref();
 
     if has_extension(path, "png") {
@@ -42,39 +46,51 @@ pub fn write_image<P: AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2
     }
 }
 
-fn write_image_png<P:AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+fn write_image_png<P: AsRef<Path>>(name: P,
+                                   rgb: &[f32],
+                                   output_bounds: &Bounds2i,
+                                   total_resolution: &Point2i)
+                                   -> Result<()> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
-        let rgb8: Vec<_> = rgb.iter().map(|v| {
-            clamp(255.0 * gamma_correct(*v) + 0.5, 0.0, 255.0) as u8
-        }).collect();
+    let rgb8: Vec<_> = rgb.iter()
+        .map(|v| clamp(255.0 * gamma_correct(*v) + 0.5, 0.0, 255.0) as u8)
+        .collect();
 
 
-        return img::save_buffer(path,
-                         &rgb8,
-                         resolution.x as u32,
-                         resolution.y as u32,
-                         img::RGB(8))
-                .chain_err(|| format!("Failed to save image file {}", path.display()));
+    return img::save_buffer(path,
+                            &rgb8,
+                            resolution.x as u32,
+                            resolution.y as u32,
+                            img::RGB(8))
+                   .chain_err(|| format!("Failed to save image file {}", path.display()));
 }
 
 #[cfg(not(feature="openexr"))]
-fn write_image_exr<P:AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+fn write_image_exr<P: AsRef<Path>>(name: P,
+                                   rgb: &[f32],
+                                   output_bounds: &Bounds2i,
+                                   total_resolution: &Point2i)
+                                   -> Result<()> {
     panic!("EXR support is not compiled in. Please recompile with the \"openexr\" feature.")
 }
 
 #[cfg(feature="openexr")]
-fn write_image_exr<P:AsRef<Path>>(name: P, rgb: &[f32], output_bounds: &Bounds2i, total_resolution: &Point2i) -> Result<()> {
+fn write_image_exr<P: AsRef<Path>>(name: P,
+                                   rgb: &[f32],
+                                   output_bounds: &Bounds2i,
+                                   total_resolution: &Point2i)
+                                   -> Result<()> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
     let mut file = File::create(path)?;
-    let mut output_file = ScanlineOutputFile::new(
-        &mut file,
-        Header::new()
-            .set_resolution(resolution.x as u32, resolution.y as u32)
-            .add_channel("R", PixelType::FLOAT)
-            .add_channel("G", PixelType::FLOAT)
-            .add_channel("B", PixelType::FLOAT))?;
+    let mut output_file = ScanlineOutputFile::new(&mut file,
+                                                  Header::new()
+                                                      .set_resolution(resolution.x as u32,
+                                                                      resolution.y as u32)
+                                                      .add_channel("R", PixelType::FLOAT)
+                                                      .add_channel("G", PixelType::FLOAT)
+                                                      .add_channel("B", PixelType::FLOAT))?;
 
     // Create a `FrameBuffer` that points at our pixel data and describes it as
     // RGB data.
@@ -116,9 +132,9 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
 
     let meta = hdr.metadata();
     let data = hdr.read_image_transform(|p| {
-        let rgb = p.to_hdr();
-        Spectrum::rgb(rgb[0], rgb[1], rgb[2])
-    })?;
+                                            let rgb = p.to_hdr();
+                                            Spectrum::rgb(rgb[0], rgb[1], rgb[2])
+                                        })?;
 
     Ok((data, Point2i::new(meta.width as i32, meta.height as i32)))
 }

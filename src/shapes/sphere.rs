@@ -153,8 +153,10 @@ impl Shape for Sphere {
                                      -self.radius * theta.sin());
             // Compute dndu and dndv
             let d2Pduu = -self.phi_max * self.phi_max * Vector3f::new(p_hit.x, p_hit.y, 0.0);
-            let d2Pduv = (self.theta_max - self.theta_min) * p_hit.z * self.phi_max * Vector3f::new(-sin_phi, cos_phi, 0.0);
-            let d2Pdvv = -(self.theta_max - self.theta_min) * (self.theta_max - self.theta_min) * Vector3f::new(p_hit.x, p_hit.y, p_hit.z);
+            let d2Pduv = (self.theta_max - self.theta_min) * p_hit.z * self.phi_max *
+                         Vector3f::new(-sin_phi, cos_phi, 0.0);
+            let d2Pdvv = -(self.theta_max - self.theta_min) * (self.theta_max - self.theta_min) *
+                         Vector3f::new(p_hit.x, p_hit.y, p_hit.z);
 
             // Compute coefficients for fundamental forms
             let E = dpdu.dot(&dpdu);
@@ -167,14 +169,23 @@ impl Shape for Sphere {
 
             // Compute dndu and dndv from fundamental from coefficients
             let invEGF2 = 1.0 / (E * G - F * F);
-            let dndu = Normal3f::from((f * F - e * G) * invEGF2 * dpdu + (e * F - f * E) * invEGF2 * dpdv);
-            let dndv = Normal3f::from((g * F - f * G) * invEGF2 * dpdu + (f * F - g * E) * invEGF2 * dpdv);
+            let dndu = Normal3f::from((f * F - e * G) * invEGF2 * dpdu +
+                                      (e * F - f * E) * invEGF2 * dpdv);
+            let dndv = Normal3f::from((g * F - f * G) * invEGF2 * dpdu +
+                                      (f * F - g * E) * invEGF2 * dpdv);
 
             // Compute error bound for sphere intersection
             let p_error = gamma(5) * Vector3f::from(p_hit).abs();
 
-            let isect =
-                SurfaceInteraction::new(p_hit, p_error, Point2f::new(u, v), -r.d, dpdu, dpdv, dndu, dndv, self);
+            let isect = SurfaceInteraction::new(p_hit,
+                                                p_error,
+                                                Point2f::new(u, v),
+                                                -r.d,
+                                                dpdu,
+                                                dpdv,
+                                                dndu,
+                                                dndv,
+                                                self);
             Some((isect.transform(&self.object_to_world), t_shape_hit.into()))
         })
     }

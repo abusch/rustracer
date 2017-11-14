@@ -96,15 +96,22 @@ impl Shape for Disk {
         let dpdv = Vector3f::new(p_hit.x, p_hit.y, 0.0) * (self.inner_radius - self.radius) / r_hit;
         let dndu = Normal3f::new(0.0, 0.0, 0.0);
         let dndv = Normal3f::new(0.0, 0.0, 0.0);
-        
+
         // Refine disk intersection point
         p_hit.z = self.height;
 
         // Compute error bounds for intersection point
         let p_err = Vector3f::new(0.0, 0.0, 0.0);
         // Initialize SurfaceInteraction from parametric information
-        let isect =
-            SurfaceInteraction::new(p_hit, p_err, Point2f::new(u, v), -ray.d, dpdu, dpdv, dndu, dndv, self);
+        let isect = SurfaceInteraction::new(p_hit,
+                                            p_err,
+                                            Point2f::new(u, v),
+                                            -ray.d,
+                                            dpdu,
+                                            dpdv,
+                                            dndu,
+                                            dndv,
+                                            self);
         // Update t_hit for quadric intersection
 
         Some((isect.transform(&self.object_to_world), t_shape_hit))

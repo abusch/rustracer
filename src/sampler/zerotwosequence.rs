@@ -162,11 +162,11 @@ impl Sampler for ZeroTwoSequence {
             self.current_2d_dimension += 1;
             res
         } else {
-            let x = self.rng.uniform_f32();                                                  
-            let y = self.rng.uniform_f32();                                                  
-            // For some reason, the C++ version evaluates its second argument first...       
-            // Replicating the same behaviour helps with debuggability.                      
-            Point2f::new(y, x)  
+            let x = self.rng.uniform_f32();
+            let y = self.rng.uniform_f32();
+            // For some reason, the C++ version evaluates its second argument first...
+            // Replicating the same behaviour helps with debuggability.
+            Point2f::new(y, x)
         }
     }
 

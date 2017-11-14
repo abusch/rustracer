@@ -18,7 +18,10 @@ pub struct PathIntegrator {
 }
 
 impl PathIntegrator {
-    pub fn new(max_ray_depth: i32, rr_threshold: f32, light_sampling_strategy: String) -> PathIntegrator {
+    pub fn new(max_ray_depth: i32,
+               rr_threshold: f32,
+               light_sampling_strategy: String)
+               -> PathIntegrator {
         PathIntegrator {
             max_ray_depth: max_ray_depth as u8,
             rr_threshold,

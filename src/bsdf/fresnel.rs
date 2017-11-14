@@ -228,10 +228,7 @@ impl BxDF for SpecularTransmission {
                 ft = ft * (eta_i * eta_i) / (eta_t * eta_t);
             }
 
-            return (ft / abs_cos_theta(&wi),
-                    wi,
-                    1.0,
-                    self.get_type());
+            return (ft / abs_cos_theta(&wi), wi, 1.0, self.get_type());
         } else {
             return (Spectrum::white(), Vector3f::new(0.0, 0.0, 0.0), 0.0, BxDFType::empty());
         }

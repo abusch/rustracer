@@ -1,5 +1,5 @@
 use std::sync::mpsc::channel;
-use std::sync::{Arc};
+use std::sync::Arc;
 
 use crossbeam;
 use indicatif;
@@ -44,9 +44,8 @@ pub fn render(scene: Box<Scene>,
     let tiles_iter = Arc::new(Mutex::new(image_bounds.into_iter()));
     let pb = indicatif::ProgressBar::new(num_blocks as _);
     pb.set_style(indicatif::ProgressStyle::default_bar()
-        .progress_chars("=>-")
-        .template("[{elapsed_precise}] [{wide_bar}] {percent}% [{pos}/{len}] {eta}")
-    );
+                     .progress_chars("=>-")
+                     .template("[{elapsed_precise}] [{wide_bar}] {percent}% [{pos}/{len}] {eta}"));
     pb.tick();
 
     crossbeam::scope(|scope| {
