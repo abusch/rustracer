@@ -31,8 +31,10 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * BVH (only with MIDDLE splitting strategy)
  * multi-threaded rendering
  * Support for PBRT scene file format (still incomplete)
- * Read textures in PNG, TGA, PFM or EXR (thanks to [openexr-rs](https://github.com/cessen/openexr-rs))
+ * Read textures in PNG, TGA, PFM, HDR or EXR (thanks to [openexr-rs](https://github.com/cessen/openexr-rs))
+ * Write images in PNG or EXR
  * Support for PLY meshes (thanks to [ply-rs](https://github.com/Fluci/ply-rs))
+ * Bump mapping
 
 ## TODO
  * More camera types (orthographic, realistic, environment)
@@ -40,12 +42,10 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * More samplers (Halton, Sobol...)
  * More BxDFs and materials
  * Implement subsurface scattering
- * Bump mapping
  * Volumetric rendering
  * More integrators: bidirectional path tracing
  * More light sampling strategies (e.g. spatial)
  * Animations
- * Support for writing EXR files
  * more light types
  * Finish ray-differential support
  * Add support for EWA filtering for MIPMap
