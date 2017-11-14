@@ -153,8 +153,11 @@ impl BVH {
                     if n_primitives <= 2 {
                         // Partition primitives into equally-sized subsets
                         mid = (start + end) / 2;
-                        // TODO
-                        unimplemented!();
+                        if start != end - 1 {
+                            if build_data[end - 1].centroid[dimension] < build_data[start].centroid[dimension] {
+                                build_data.swap(start, end - 1);
+                            }
+                        }
                     } else {
                         const n_buckets: usize = 12;
                         // Allocate `BucketInfo for SAH partition buckets
