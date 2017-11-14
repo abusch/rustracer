@@ -684,7 +684,6 @@ dependencies = [
  "image 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "indicatif 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "light_arena 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.10.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.40 (registry+https://github.com/rust-lang/crates.io-index)",
