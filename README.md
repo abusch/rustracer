@@ -28,7 +28,7 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * BxDF for lambertian, perfect specular reflection / transmission, microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
  * Matte, Plastic, Metal / RoughMetal, Glass / RoughGlass, Substrate (thin-coated), Uber materials
  * Textures (imagemaps with MIPMapping, UV, CheckerBoard)
- * BVH (only with MIDDLE splitting strategy)
+ * BVH (MIDDLE or SAH splitting strategy)
  * multi-threaded rendering
  * Support for PBRT scene file format (still incomplete)
  * Read textures in PNG, TGA, PFM, HDR or EXR (thanks to [openexr-rs](https://github.com/cessen/openexr-rs))
@@ -49,7 +49,6 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * more light types
  * Finish ray-differential support
  * Add support for EWA filtering for MIPMap
- * SAH strategy for BVH
  * k-d trees?
  * Spectral rendering?
  * ...
