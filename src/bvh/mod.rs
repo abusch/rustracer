@@ -14,6 +14,13 @@ use primitive::{Primitive, GeometricPrimitive};
 use ray::Ray;
 use shapes::Shape;
 
+#[derive(Copy, Clone)]
+pub enum SplitMethod {
+    Middle,
+    EqualCounts,
+    SAH,
+}
+
 #[derive(Debug)]
 pub struct BVH {
     max_prims_per_node: usize,
@@ -32,7 +39,7 @@ impl BVH {
                          area_light: None,
                          material: Some(Arc::clone(&material)),
                      };
-                     let b: Arc<Primitive + Send + Sync> = Arc::new(prim);// as Box<Primitive + Send + Sync>
+                     let b: Arc<Primitive + Send + Sync> = Arc::new(prim);
                      b
                  })
             .collect();
@@ -61,7 +68,8 @@ impl BVH {
                                                       prims.len(),
                                                       max_prims_per_node,
                                                       &mut total_nodes,
-                                                      &mut ordered_prims);
+                                                      &mut ordered_prims,
+                                                      SplitMethod::SAH);
 
         info!("\tCreated {} nodes", total_nodes);
         info!("\tOrdered {} primitives", ordered_prims.len());
@@ -85,7 +93,8 @@ impl BVH {
                        end: usize,
                        max_prims_per_node: usize,
                        total_nodes: &mut usize,
-                       ordered_prims: &mut Vec<Arc<Primitive + Send + Sync>>)
+                       ordered_prims: &mut Vec<Arc<Primitive + Send + Sync>>,
+                       split_method: SplitMethod)
                        -> BVHBuildNode {
         *total_nodes += 1;
         let n_primitives = end - start;
@@ -111,6 +120,7 @@ impl BVH {
             // Choose split dimension
             let dimension = centroids_bounds.maximum_extent();
             // Partition primitives into 2 sets and build children
+            let mut mid = (start + end) / 2;
             if centroids_bounds[0][dimension] == centroids_bounds[1][dimension] {
                 let first_prim_offset = ordered_prims.len();
                 for pi in build_data[start..end].iter() {
@@ -120,19 +130,101 @@ impl BVH {
                 return BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox);
             }
             // Partition primitives based on split method (here split middle)
-            let pmid = 0.5 * (centroids_bounds[0][dimension] + centroids_bounds[1][dimension]);
-            let mut mid = it::partition(build_data[start..end].iter_mut(),
-                                        |pi| pi.centroid[dimension] < pmid) +
-                          start;
-            if mid == start || mid == end {
-                // If partition failed, used Split Equal method
-                build_data[start..end].sort_by(|p1, p2| {
-                                                   p1.centroid[dimension]
-                                                       .partial_cmp(&p2.centroid[dimension])
-                                                       .unwrap()
-                                               });
-                mid = (start + end) / 2;
+            match split_method {
+                SplitMethod::Middle => {
+                    let pmid = 0.5 * (centroids_bounds[0][dimension] + centroids_bounds[1][dimension]);
+                    mid = it::partition(build_data[start..end].iter_mut(),
+                                                |pi| pi.centroid[dimension] < pmid) + start;
+                    if mid == start || mid == end {
+                        // If partition failed, used Split Equal method
+                        build_data[start..end].sort_by(|p1, p2| {
+                                                        p1.centroid[dimension]
+                                                            .partial_cmp(&p2.centroid[dimension])
+                                                            .unwrap()
+                                                    });
+                        mid = (start + end) / 2;
+                    }
+                }
+                SplitMethod::EqualCounts => {
+                    unimplemented!()
+                }
+                SplitMethod::SAH => {
+                    // Partition primitives using approximate SAH
+                    if n_primitives <= 2 {
+                        // Partition primitives into equally-sized subsets
+                        mid = (start + end) / 2;
+                        // TODO
+                        unimplemented!();
+                    } else {
+                        const n_buckets: usize = 12;
+                        // Allocate `BucketInfo for SAH partition buckets
+                        let mut buckets = [BucketInfo::default(); 12];
+
+                        // Initialize `BucketInfo` for SAH partition buckets
+                        for i in start..end {
+                            let mut b = (n_buckets as f32 * centroids_bounds.offset(&build_data[i].centroid)[dimension]) as usize;
+                            if b == n_buckets {
+                                b = n_buckets - 1;
+                            }
+                            assert!(b >= 0);
+                            assert!(b < n_buckets);
+                            buckets[b].count += 1;
+                            buckets[b].bounds = Bounds3f::union(&buckets[b].bounds, &build_data[i].bounds);
+                        }
+
+                        // Compute costs for splitting after each bucket
+                        let mut cost = [0.0; n_buckets - 1];
+                        for i in 0..(n_buckets - 1) {
+                            let mut b0 = Bounds3f::new();
+                            let mut b1 = Bounds3f::new();
+                            let mut count0 = 0;
+                            let mut count1 = 0;
+                            for j in 0..(i+1) {
+                                b0 = Bounds3f::union(&b0, &buckets[j].bounds);
+                                count0 += buckets[j].count;
+                            }
+                            for j in (i+1)..n_buckets {
+                                b1 = Bounds3f::union(&b1, &buckets[j].bounds);
+                                count1 += buckets[j].count;
+                            }
+                            cost[i] = 1.0 + (count0 as f32 * b0.surface_area() + count1 as f32 * b1.surface_area()) / bbox.surface_area();
+                        }
+
+                        // Find bucket to split at that minimizes SAH metric
+                        let mut min_cost = cost[0];
+                        let mut min_cost_split_bucket = 0;
+                        for i in 1..(n_buckets - 1) {
+                            if cost[i] < min_cost {
+                                min_cost = cost[i];
+                                min_cost_split_bucket = i;
+                            }
+                        }
+                        
+                        // Either create leaf of split primitives at selected SAH bucket
+                        let leaf_cost = n_primitives as f32;
+                        if n_primitives > max_prims_per_node || min_cost < leaf_cost {
+                            mid = it::partition(build_data[start..end].iter_mut(), |pi| {
+                                let mut b = (n_buckets as f32 * centroids_bounds.offset(&pi.centroid)[dimension]) as usize;
+                                if b == n_buckets {
+                                    b = n_buckets - 1;
+                                }
+                                assert!(b < n_buckets);
+                                b <= min_cost_split_bucket
+                            });
+                        } else {
+                            // Create leaf `BVHBuildNode`
+                            let first_prim_offset = ordered_prims.len();
+                            for i in start..end {
+                                let prim_num = build_data[i].prim_number;
+                                ordered_prims.push(Arc::clone(&primitives[prim_num]));
+                            }
+                            return BVHBuildNode::leaf(first_prim_offset, n_primitives, bbox);
+                        }
+
+                    }
+                }
             }
+            info!("mid = {}", mid);
 
             let right = Box::new(BVH::recursive_build(primitives,
                                                       build_data,
@@ -140,14 +232,15 @@ impl BVH {
                                                       end,
                                                       max_prims_per_node,
                                                       total_nodes,
-                                                      ordered_prims));
+                                                      ordered_prims,
+                                                      split_method));
             let left = Box::new(BVH::recursive_build(primitives,
                                                      build_data,
                                                      start,
                                                      mid,
                                                      max_prims_per_node,
                                                      total_nodes,
-                                                     ordered_prims));
+                                                     ordered_prims, split_method));
             BVHBuildNode::interior(dimension, left, right)
         }
     }
@@ -424,4 +517,10 @@ enum LinearBVHNodeData {
 struct LinearBVHNode {
     pub bounds: Bounds3f,
     data: LinearBVHNodeData,
+}
+
+#[derive(Debug, Default, Copy, Clone)]
+struct BucketInfo {
+    pub count: usize,
+    pub bounds: Bounds3f,
 }

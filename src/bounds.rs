@@ -1,12 +1,12 @@
 use std::f32;
-use std::ops::{Index, SubAssign};
+use std::ops::{Index, SubAssign, DivAssign};
 use std::cmp::PartialOrd;
 use std::fmt;
 
 use num::{Bounded, Num, Signed};
 
 use {lerp, max, min, Point2f, Point2i, Point3f, Vector3f};
-use geometry::{Point2, Point3, Vector2};
+use geometry::{Point2, Point3, Vector2, Vector3};
 use ray::Ray;
 // use stats;
 
@@ -20,7 +20,7 @@ pub struct Bounds3<T: Num> {
 }
 
 impl<T> Bounds3<T>
-    where T: Bounded + PartialOrd + Into<f32> + Num + Signed + SubAssign + Copy
+    where T: Bounded + PartialOrd + Into<f32> + Num + Signed + SubAssign + DivAssign + Copy
 {
     pub fn new() -> Bounds3<T> {
         let min = T::min_value();
@@ -155,6 +155,25 @@ impl<T> Bounds3<T>
         p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y &&
         p.y <= self.p_max.y && p.z >= self.p_min.z && p.z <= self.p_max.z
     }
+
+    pub fn offset(&self, p: &Point3<T>) -> Vector3<T> {
+        let mut o = *p - self.p_min;
+        if self.p_max.x > self.p_min.x {
+            o.x /= self.p_max.x - self.p_min.x;
+        }
+        if self.p_max.y > self.p_min.y {
+            o.y /= self.p_max.y - self.p_min.y;
+        }
+        if self.p_max.z > self.p_min.z {
+            o.z /= self.p_max.z - self.p_min.z;
+        }
+
+        o
+    }
+
+    pub fn diagonal(&self) -> Vector3<T> {
+        self.p_max - self.p_min
+    }
 }
 
 impl Bounds3<f32> {
@@ -171,10 +190,15 @@ impl Bounds3<f32> {
 
         (center, radius)
     }
+
+    pub fn surface_area(&self) -> f32 {
+        let d = self.diagonal();
+        2.0 * (d.x * d.y + d.x * d.z + d.y * d.z)
+    }
 }
 
 impl<T> Default for Bounds3<T>
-    where T: Bounded + PartialOrd + Into<f32> + Num + Signed + Copy + SubAssign
+    where T: Bounded + PartialOrd + Into<f32> + Num + Signed + Copy + SubAssign + DivAssign
 {
     fn default() -> Self {
         Self::new()
@@ -379,6 +403,18 @@ pub enum Axis {
 }
 
 impl Index<Axis> for Point3<f32> {
+    type Output = f32;
+
+    fn index(&self, axis: Axis) -> &f32 {
+        match axis {
+            Axis::X => &self.x,
+            Axis::Y => &self.y,
+            Axis::Z => &self.z,
+        }
+    }
+}
+
+impl Index<Axis> for Vector3<f32> {
     type Output = f32;
 
     fn index(&self, axis: Axis) -> &f32 {
