@@ -19,7 +19,7 @@ use geometry::Matrix4x4;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
 use material::{GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial, Plastic,
-               SubstrateMaterial, UberMaterial};
+               SubstrateMaterial, TranslucentMaterial, UberMaterial};
 use paramset::{ParamSet, TextureParams};
 use primitive::{GeometricPrimitive, Primitive};
 use renderer;
@@ -33,7 +33,7 @@ use shapes::disk::Disk;
 use shapes::mesh::TriangleMesh;
 use shapes::plymesh;
 use spectrum::Spectrum;
-use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, Texture, UVTexture, ScaleTexture};
+use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, ScaleTexture, Texture, UVTexture};
 
 #[derive(Debug, Copy, Clone)]
 pub enum ApiState {
@@ -184,8 +184,8 @@ impl RenderOptions {
     }
 
     pub fn make_sampler(&mut self) -> Result<Box<Sampler + Send + Sync>> {
-        let sampler = if self.sampler_name == "lowdiscrepancy" ||
-                         self.sampler_name == "02sequence" {
+        let sampler = if self.sampler_name == "lowdiscrepancy" || self.sampler_name == "02sequence"
+        {
             ZeroTwoSequence::create(&mut self.sampler_params)
         } else {
             bail!(format!("Sampler \"{}\" unknown.", self.sampler_name));
@@ -210,27 +210,29 @@ impl RenderOptions {
 
     pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator + Send + Sync>> {
         info!("Making integrator");
-        let integrator: Box<SamplerIntegrator + Send + Sync> =
-            if self.integrator_name == "whitted" {
-                Whitted::create(&mut self.integrator_params)
-                // Box::new(Normal {})
-            } else if self.integrator_name == "directlighting" {
-                DirectLightingIntegrator::create(&mut self.integrator_params)
-            } else if self.integrator_name == "path" {
-                PathIntegrator::create(&mut self.integrator_params)
-            } else if self.integrator_name == "normal" {
-                Box::new(Normal {})
-            } else {
-                bail!(format!("Integrator \"{}\" unknown.", self.integrator_name));
-            };
+        let integrator: Box<SamplerIntegrator + Send + Sync> = if self.integrator_name == "whitted"
+        {
+            Whitted::create(&mut self.integrator_params)
+        // Box::new(Normal {})
+        } else if self.integrator_name == "directlighting" {
+            DirectLightingIntegrator::create(&mut self.integrator_params)
+        } else if self.integrator_name == "path" {
+            PathIntegrator::create(&mut self.integrator_params)
+        } else if self.integrator_name == "normal" {
+            Box::new(Normal {})
+        } else {
+            bail!(format!("Integrator \"{}\" unknown.", self.integrator_name));
+        };
 
         Ok(integrator)
     }
 
     pub fn make_scene(&mut self) -> Result<Box<Scene>> {
-        info!("Making scene with {} primitives and {} lights",
-              self.primitives.len(),
-              self.lights.len());
+        info!(
+            "Making scene with {} primitives and {} lights",
+            self.primitives.len(),
+            self.lights.len()
+        );
         let accelerator = self.make_accelerator();
         Ok(Box::new(Scene::new(accelerator, self.lights.clone())))
     }
@@ -239,10 +241,16 @@ impl RenderOptions {
         if self.accelerator_name == "kdtree" {
             unimplemented!()
         } else if self.accelerator_name == "bvh" {
-            Arc::new(BVH::create(&mut self.primitives, &mut self.accelerator_params))
+            Arc::new(BVH::create(
+                &mut self.primitives,
+                &mut self.accelerator_params,
+            ))
         } else {
             warn!("Accelerator \"{}\" unknown.", self.accelerator_name);
-            Arc::new(BVH::create(&mut self.primitives, &mut self.accelerator_params))
+            Arc::new(BVH::create(
+                &mut self.primitives,
+                &mut self.accelerator_params,
+            ))
         }
     }
 }
@@ -286,10 +294,12 @@ pub struct GraphicsState {
 
 impl GraphicsState {
     pub fn create_material(&mut self, params: &mut ParamSet) -> Arc<Material + Send + Sync> {
-        let mut mp = TextureParams::new(params,
-                                        &mut self.material_param,
-                                        &self.float_textures,
-                                        &self.spectrum_textures);
+        let mut mp = TextureParams::new(
+            params,
+            &mut self.material_param,
+            &self.float_textures,
+            &self.spectrum_textures,
+        );
         if !self.current_named_material.is_empty() {
             self.named_material
                 .get(&self.current_named_material)
@@ -355,36 +365,38 @@ pub trait Api {
     fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<()>;
     fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()>;
     fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<()>;
-    fn look_at(&self,
-               ex: f32,
-               ey: f32,
-               ez: f32,
-               lx: f32,
-               ly: f32,
-               lz: f32,
-               ux: f32,
-               uy: f32,
-               uz: f32)
-               -> Result<()>;
+    fn look_at(
+        &self,
+        ex: f32,
+        ey: f32,
+        ez: f32,
+        lx: f32,
+        ly: f32,
+        lz: f32,
+        ux: f32,
+        uy: f32,
+        uz: f32,
+    ) -> Result<()>;
     // TODO concat_Transform
-    fn transform(&self,
-                 tr00: f32,
-                 tr01: f32,
-                 tr02: f32,
-                 tr03: f32,
-                 tr04: f32,
-                 tr05: f32,
-                 tr06: f32,
-                 tr07: f32,
-                 tr08: f32,
-                 tr09: f32,
-                 tr10: f32,
-                 tr11: f32,
-                 tr12: f32,
-                 tr13: f32,
-                 tr14: f32,
-                 tr15: f32)
-                 -> Result<()>;
+    fn transform(
+        &self,
+        tr00: f32,
+        tr01: f32,
+        tr02: f32,
+        tr03: f32,
+        tr04: f32,
+        tr05: f32,
+        tr06: f32,
+        tr07: f32,
+        tr08: f32,
+        tr09: f32,
+        tr10: f32,
+        tr11: f32,
+        tr12: f32,
+        tr13: f32,
+        tr14: f32,
+        tr15: f32,
+    ) -> Result<()>;
     // TODO coordinate_system
     // TODO coordinate_sys_transform
     fn coord_sys_transform(&self, name: String) -> Result<()>;
@@ -405,12 +417,13 @@ pub trait Api {
     fn attribute_end(&self) -> Result<()>;
     fn transform_begin(&self) -> Result<()>;
     fn transform_end(&self) -> Result<()>;
-    fn texture(&self,
-               name: String,
-               typ: String,
-               texname: String,
-               params: &mut ParamSet)
-               -> Result<()>;
+    fn texture(
+        &self,
+        name: String,
+        typ: String,
+        texname: String,
+        params: &mut ParamSet,
+    ) -> Result<()>;
     fn material(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()>;
     fn named_material(&self, name: String) -> Result<()>;
@@ -430,11 +443,12 @@ pub struct RealApi {
 }
 
 impl RealApi {
-    fn make_light(&self,
-                  name: &str,
-                  param_set: &mut ParamSet,
-                  light_2_world: &Transform)
-                  -> Result<Arc<Light + Send + Sync>> {
+    fn make_light(
+        &self,
+        name: &str,
+        param_set: &mut ParamSet,
+        light_2_world: &Transform,
+    ) -> Result<Arc<Light + Send + Sync>> {
         if name == "point" {
             let light = PointLight::create(light_2_world, param_set);
             Ok(light)
@@ -496,42 +510,45 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn transform(&self,
-                 tr00: f32,
-                 tr01: f32,
-                 tr02: f32,
-                 tr03: f32,
-                 tr04: f32,
-                 tr05: f32,
-                 tr06: f32,
-                 tr07: f32,
-                 tr08: f32,
-                 tr09: f32,
-                 tr10: f32,
-                 tr11: f32,
-                 tr12: f32,
-                 tr13: f32,
-                 tr14: f32,
-                 tr15: f32)
-                 -> Result<()> {
+    fn transform(
+        &self,
+        tr00: f32,
+        tr01: f32,
+        tr02: f32,
+        tr03: f32,
+        tr04: f32,
+        tr05: f32,
+        tr06: f32,
+        tr07: f32,
+        tr08: f32,
+        tr09: f32,
+        tr10: f32,
+        tr11: f32,
+        tr12: f32,
+        tr13: f32,
+        tr14: f32,
+        tr15: f32,
+    ) -> Result<()> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
-        let mat = Matrix4x4::from_elements(tr00,
-                                           tr04,
-                                           tr08,
-                                           tr12,
-                                           tr01,
-                                           tr05,
-                                           tr09,
-                                           tr13,
-                                           tr02,
-                                           tr06,
-                                           tr10,
-                                           tr14,
-                                           tr03,
-                                           tr07,
-                                           tr11,
-                                           tr15);
+        let mat = Matrix4x4::from_elements(
+            tr00,
+            tr04,
+            tr08,
+            tr12,
+            tr01,
+            tr05,
+            tr09,
+            tr13,
+            tr02,
+            tr06,
+            tr10,
+            tr14,
+            tr03,
+            tr07,
+            tr11,
+            tr15,
+        );
         state.cur_transform = Transform {
             m: mat,
             m_inv: mat.inverse(),
@@ -539,23 +556,26 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn look_at(&self,
-               ex: f32,
-               ey: f32,
-               ez: f32,
-               lx: f32,
-               ly: f32,
-               lz: f32,
-               ux: f32,
-               uy: f32,
-               uz: f32)
-               -> Result<()> {
+    fn look_at(
+        &self,
+        ex: f32,
+        ey: f32,
+        ez: f32,
+        lx: f32,
+        ly: f32,
+        lz: f32,
+        ux: f32,
+        uy: f32,
+        uz: f32,
+    ) -> Result<()> {
         info!("look_at called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
-        let look_at = Transform::look_at(&Point3f::new(ex, ey, ez),
-                                         &Point3f::new(lx, ly, lz),
-                                         &Vector3f::new(ux, uy, uz));
+        let look_at = Transform::look_at(
+            &Point3f::new(ex, ey, ez),
+            &Point3f::new(lx, ly, lz),
+            &Vector3f::new(ux, uy, uz),
+        );
         state.cur_transform = &state.cur_transform * &look_at;
         Ok(())
     }
@@ -627,9 +647,7 @@ impl Api for RealApi {
         state.render_options.camera_params = params.clone();
         state.render_options.camera_to_world = state.cur_transform.inverse();
         let c2w = state.render_options.camera_to_world.clone();
-        state
-            .named_coordinate_systems
-            .insert("camera".into(), c2w);
+        state.named_coordinate_systems.insert("camera".into(), c2w);
         Ok(())
     }
 
@@ -692,12 +710,13 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn texture(&self,
-               name: String,
-               typ: String,
-               texname: String,
-               params: &mut ParamSet)
-               -> Result<()> {
+    fn texture(
+        &self,
+        name: String,
+        typ: String,
+        texname: String,
+        params: &mut ParamSet,
+    ) -> Result<()> {
         info!("texture() called with {} and {} and {}", name, typ, texname);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -705,39 +724,43 @@ impl Api for RealApi {
 
         if typ == "float" {
             let ft = {
-                let mut tp = TextureParams::new(params,
-                                                &mut empty_params, // was `params`
-                                                &state.graphics_state.float_textures,
-                                                &state.graphics_state.spectrum_textures);
+                let mut tp = TextureParams::new(
+                    params,
+                    &mut empty_params, // was `params`
+                    &state.graphics_state.float_textures,
+                    &state.graphics_state.spectrum_textures,
+                );
                 make_float_texture(&texname, &state.cur_transform, &mut tp)
             };
             if let Ok(ft) = ft {
                 if state
-                       .graphics_state
-                       .float_textures
-                       .insert(name.clone(), ft)
-                       .is_some() {
+                    .graphics_state
+                    .float_textures
+                    .insert(name.clone(), ft)
+                    .is_some()
+                {
                     warn!("Texture \"{}\" being redefined.", name);
                 }
             }
         } else if typ == "color" || typ == "spectrum" {
             let ft = {
-                let mut tp = TextureParams::new(params,
-                                                &mut empty_params, // was `params`
-                                                &state.graphics_state.float_textures,
-                                                &state.graphics_state.spectrum_textures);
+                let mut tp = TextureParams::new(
+                    params,
+                    &mut empty_params, // was `params`
+                    &state.graphics_state.float_textures,
+                    &state.graphics_state.spectrum_textures,
+                );
                 make_spectrum_texture(&texname, &state.cur_transform, &mut tp)
             };
             match ft {
-                Ok(ft) => {
-                    if state
-                           .graphics_state
-                           .spectrum_textures
-                           .insert(name.clone(), ft)
-                           .is_some() {
-                        warn!("Texture \"{}\" being redefined.", name);
-                    }
-                }
+                Ok(ft) => if state
+                    .graphics_state
+                    .spectrum_textures
+                    .insert(name.clone(), ft)
+                    .is_some()
+                {
+                    warn!("Texture \"{}\" being redefined.", name);
+                },
                 Err(e) => {
                     error!("Failed to create texture {}: {}", name, e);
                 }
@@ -755,10 +778,12 @@ impl Api for RealApi {
 
         let mtl = {
             let mut empty_params = ParamSet::default();
-            let mut mp = TextureParams::new(params,
-                                            &mut empty_params,
-                                            &state.graphics_state.float_textures,
-                                            &state.graphics_state.spectrum_textures);
+            let mut mp = TextureParams::new(
+                params,
+                &mut empty_params,
+                &state.graphics_state.float_textures,
+                &state.graphics_state.spectrum_textures,
+            );
 
             let mat_name = mp.find_string("type", "");
             if mat_name == "" {
@@ -767,10 +792,11 @@ impl Api for RealApi {
             make_material(&mat_name, &mut mp)
         };
         if state
-               .graphics_state
-               .named_material
-               .insert(name.clone(), mtl)
-               .is_some() {
+            .graphics_state
+            .named_material
+            .insert(name.clone(), mtl)
+            .is_some()
+        {
             warn!("Named material {} redefined", name);
         }
         Ok(())
@@ -817,12 +843,14 @@ impl Api for RealApi {
 
         let mut prims: Vec<Arc<Primitive + Send + Sync>> = Vec::new();
         let mut area_lights: Vec<Arc<Light + Send + Sync>> = Vec::new();
-        let shapes = make_shapes(&name,
-                                 &state.cur_transform,
-                                 &state.cur_transform.inverse(),
-                                 state.graphics_state.reverse_orientation,
-                                 params,
-                                 &state.graphics_state);
+        let shapes = make_shapes(
+            &name,
+            &state.cur_transform,
+            &state.cur_transform.inverse(),
+            state.graphics_state.reverse_orientation,
+            params,
+            &state.graphics_state,
+        );
         let mat = if !shapes.is_empty() {
             Some(state.graphics_state.create_material(params))
         } else {
@@ -831,20 +859,22 @@ impl Api for RealApi {
         for s in shapes {
             let area = if state.graphics_state.area_light != "" {
                 let mut ps = state.graphics_state.area_light_params.clone();
-                let (area_light, light) = make_area_light(&state.graphics_state.area_light,
-                                                          &state.cur_transform,
-                                                          &mut ps,
-                                                          Arc::clone(&s))?;
+                let (area_light, light) = make_area_light(
+                    &state.graphics_state.area_light,
+                    &state.cur_transform,
+                    &mut ps,
+                    Arc::clone(&s),
+                )?;
                 area_lights.push(light);
                 Some(area_light)
             } else {
                 None
             };
             let prim: Arc<Primitive + Send + Sync> = Arc::new(GeometricPrimitive {
-                                                                  shape: s,
-                                                                  area_light: area,
-                                                                  material: mat.clone(),
-                                                              });
+                shape: s,
+                area_light: area,
+                material: mat.clone(),
+            });
             prims.push(prim);
         }
         state.render_options.primitives.append(&mut prims);
@@ -883,13 +913,15 @@ impl Api for RealApi {
 
         // TODO finish
         let start_time = ::std::time::Instant::now();
-        let stats = renderer::render(scene,
-                                     &mut integrator,
-                                     camera,
-                                     8,
-                                     &mut sampler,
-                                     16,
-                                     Box::new(NoopDisplayUpdater {}))?;
+        let stats = renderer::render(
+            scene,
+            &mut integrator,
+            camera,
+            8,
+            &mut sampler,
+            16,
+            Box::new(NoopDisplayUpdater {}),
+        )?;
         let duration = start_time.elapsed();
         println!("{:?}", stats);
         println!("Render time: {}", HumanDuration(duration));
@@ -898,13 +930,14 @@ impl Api for RealApi {
     }
 }
 
-fn make_shapes(name: &str,
-               object2world: &Transform,
-               world2object: &Transform,
-               reverse_orientation: bool,
-               ps: &mut ParamSet,
-               graphics_state: &GraphicsState)
-               -> Vec<Arc<Shape + Send + Sync>> {
+fn make_shapes(
+    name: &str,
+    object2world: &Transform,
+    world2object: &Transform,
+    reverse_orientation: bool,
+    ps: &mut ParamSet,
+    graphics_state: &GraphicsState,
+) -> Vec<Arc<Shape + Send + Sync>> {
     let mut shapes: Vec<Arc<Shape + Send + Sync>> = Vec::new();
     if name == "sphere" {
         shapes.push(Sphere::create(object2world, reverse_orientation, ps));
@@ -921,18 +954,22 @@ fn make_shapes(name: &str,
     } else if name == "curve" {
         unimplemented!();
     } else if name == "trianglemesh" {
-        let mut tris = TriangleMesh::create(object2world,
-                                            world2object,
-                                            reverse_orientation,
-                                            ps,
-                                            &graphics_state.float_textures);
+        let mut tris = TriangleMesh::create(
+            object2world,
+            world2object,
+            reverse_orientation,
+            ps,
+            &graphics_state.float_textures,
+        );
         shapes.append(&mut tris);
     } else if name == "plymesh" {
-        let mut tris = plymesh::create(object2world,
-                                       world2object,
-                                       reverse_orientation,
-                                       ps,
-                                       &graphics_state.float_textures);
+        let mut tris = plymesh::create(
+            object2world,
+            world2object,
+            reverse_orientation,
+            ps,
+            &graphics_state.float_textures,
+        );
         shapes.append(&mut tris);
     } else {
         warn!("Unknown shape {}", name);
@@ -954,6 +991,8 @@ fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material + Send + Sy
         Metal::create(mp)
     } else if name == "substrate" {
         SubstrateMaterial::create(mp)
+    } else if name == "translucent" {
+        TranslucentMaterial::create(mp)
     } else if name == "uber" {
         UberMaterial::create(mp)
     } else {
@@ -962,11 +1001,12 @@ fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material + Send + Sy
     }
 }
 
-fn make_area_light(name: &str,
-                   light2world: &Transform,
-                   params: &mut ParamSet,
-                   shape: Arc<Shape + Send + Sync>)
-                   -> Result<(Arc<AreaLight + Send + Sync>, Arc<Light + Send + Sync>)> {
+fn make_area_light(
+    name: &str,
+    light2world: &Transform,
+    params: &mut ParamSet,
+    shape: Arc<Shape + Send + Sync>,
+) -> Result<(Arc<AreaLight + Send + Sync>, Arc<Light + Send + Sync>)> {
     if name == "area" || name == "diffuse" {
         let l = DiffuseAreaLight::create(light2world, params, shape);
         let light: Arc<Light + Send + Sync> = l.clone();
@@ -977,10 +1017,11 @@ fn make_area_light(name: &str,
     }
 }
 
-fn make_float_texture(name: &str,
-                      transform: &Transform,
-                      tp: &mut TextureParams)
-                      -> Result<Arc<Texture<f32> + Send + Sync>> {
+fn make_float_texture(
+    name: &str,
+    transform: &Transform,
+    tp: &mut TextureParams,
+) -> Result<Arc<Texture<f32> + Send + Sync>> {
     let tex: Arc<Texture<f32> + Send + Sync> = if name == "constant" {
         Arc::new(ConstantTexture::create_float(transform, tp))
     } else if name == "scale" {
@@ -994,10 +1035,11 @@ fn make_float_texture(name: &str,
     Ok(tex)
 }
 
-fn make_spectrum_texture(name: &str,
-                         transform: &Transform,
-                         tp: &mut TextureParams)
-                         -> Result<Arc<Texture<Spectrum> + Send + Sync>> {
+fn make_spectrum_texture(
+    name: &str,
+    transform: &Transform,
+    tp: &mut TextureParams,
+) -> Result<Arc<Texture<Spectrum> + Send + Sync>> {
     let tex: Arc<Texture<Spectrum> + Send + Sync> = if name == "constant" {
         Arc::new(ConstantTexture::create_spectrum(transform, tp))
     } else if name == "scale" {

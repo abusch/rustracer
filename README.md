@@ -26,7 +26,7 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * Point lights, distant lights
  * diffuse area lights, infinite area light
  * BxDF for lambertian, perfect specular reflection / transmission, microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
- * Matte, Plastic, Metal / RoughMetal, Glass / RoughGlass, Substrate (thin-coated), Uber materials
+ * Matte, Plastic, Metal / RoughMetal, Glass / RoughGlass, Substrate (thin-coated), Translucent, Uber materials
  * Textures (imagemaps with MIPMapping, UV, CheckerBoard)
  * BVH (MIDDLE or SAH splitting strategy)
  * multi-threaded rendering
