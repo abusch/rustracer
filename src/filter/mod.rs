@@ -1,7 +1,12 @@
-pub mod boxfilter;
-pub mod mitchell;
-pub mod gaussian;
-pub mod triangle;
+mod boxfilter;
+mod mitchell;
+mod gaussian;
+mod triangle;
+
+pub use self::boxfilter::BoxFilter;
+pub use self::mitchell::MitchellNetravali;
+pub use self::gaussian::GaussianFilter;
+pub use self::triangle::TriangleFilter;
 
 pub trait Filter {
     fn evaluate(&self, x: f32, y: f32) -> f32;

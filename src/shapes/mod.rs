@@ -5,11 +5,16 @@ use ray::Ray;
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 
-pub mod cylinder;
-pub mod disk;
-pub mod mesh;
+mod cylinder;
+mod disk;
+mod mesh;
 pub mod plymesh;
-pub mod sphere;
+mod sphere;
+
+pub use self::cylinder::Cylinder;
+pub use self::disk::Disk;
+pub use self::mesh::{Triangle, TriangleMesh};
+pub use self::sphere::Sphere;
 
 pub trait Shape: Debug {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
@@ -50,8 +55,8 @@ pub trait Shape: Debug {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            ::geometry::distance_squared(&si.p, &isect_light.p) /
-            (isect_light.n.dot(&(-(*wi))).abs() * self.area())
+            ::geometry::distance_squared(&si.p, &isect_light.p)
+                / (isect_light.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0
         }
