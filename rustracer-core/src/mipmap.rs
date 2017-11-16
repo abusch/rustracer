@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 use num::{zero, Zero};
 
-use {Point2f, Point2i, Clampable};
+use {Clampable, Point2f, Point2i};
 use {clamp, lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
 
@@ -41,7 +41,7 @@ impl<T> MIPMap<T>
                max_anisotropy: f32,
                wrap_mode: WrapMode)
                -> MIPMap<T> {
-        info!("Creating MIPMap for texture");
+        debug!("Creating MIPMap for texture");
         let mut resolution = *res;
         let mut resampled_image = Vec::new();
         if !is_power_of_2(res.x) || !is_power_of_2(res.y) {
@@ -114,7 +114,7 @@ impl<T> MIPMap<T>
 
         // initialize levels of MIPMap for image
         let n_levels = 1 + (cmp::max(resolution.x, resolution.y) as f32).log2() as usize;
-        info!("mipmap will have {} levels", n_levels);
+        debug!("mipmap will have {} levels", n_levels);
         // Initialize most detailed level of the pyramid
         let img_data = if resampled_image.is_empty() {
             img

@@ -55,8 +55,8 @@ pub trait Shape: Debug {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            ::geometry::distance_squared(&si.p, &isect_light.p)
-                / (isect_light.n.dot(&(-(*wi))).abs() * self.area())
+            ::geometry::distance_squared(&si.p, &isect_light.p) /
+            (isect_light.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0
         }

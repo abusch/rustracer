@@ -39,7 +39,7 @@ impl<T> ImageTexture<T>
                                       map: Box<TextureMapping2D + Send + Sync>,
                                       convert: F)
                                       -> ImageTexture<T> {
-        info!("Loading texture {}", path.display());
+        debug!("Loading texture {}", path.display());
         let (res, texels) = match read_image(path) {
             Ok((mut pixels, res)) => {
                 // Flip image in y; texture coordinate space has (0,0) at the lower
