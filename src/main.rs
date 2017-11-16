@@ -1,11 +1,10 @@
 extern crate clap;
 extern crate error_chain;
-extern crate rustracer as rt;
+extern crate rustracer_core as rt;
 #[macro_use]
 extern crate slog;
 extern crate slog_scope;
 extern crate slog_term;
-extern crate thread_id;
 
 mod logging;
 mod argparse;
