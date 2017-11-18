@@ -15,6 +15,8 @@ chrono = "0.4"
 combine = "2"
 crossbeam = "0.3"
 error-chain = "0.11"
+failure = "0.1"
+failure-derive = "0.1"
 # ieee754 = "0.2"
 ieee754 = { git = "https://github.com/abusch/ieee754.git" }
 image = "0.17"
