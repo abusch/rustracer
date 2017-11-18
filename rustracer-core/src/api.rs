@@ -219,12 +219,12 @@ impl RenderOptions {
         Ok(integrator)
     }
 
-    pub fn make_scene(&mut self) -> Result<Box<Scene>> {
+    pub fn make_scene(&mut self) -> Result<Arc<Scene>> {
         info!("Making scene with {} primitives and {} lights",
               self.primitives.len(),
               self.lights.len());
         let accelerator = self.make_accelerator();
-        Ok(Box::new(Scene::new(accelerator, self.lights.clone())))
+        Ok(Arc::new(Scene::new(accelerator, self.lights.clone())))
     }
 
     pub fn make_accelerator(&mut self) -> Arc<Primitive + Send + Sync> {

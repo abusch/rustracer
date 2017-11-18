@@ -25,7 +25,7 @@ pub use self::ao::AmbientOcclusion;
 pub use self::normal::Normal;
 
 pub trait SamplerIntegrator {
-    fn preprocess(&mut self, _scene: &Scene, _sampler: &mut Box<Sampler + Send + Sync>) {}
+    fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut Box<Sampler + Send + Sync>) {}
 
     fn li(&self,
           scene: &Scene,

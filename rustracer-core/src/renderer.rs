@@ -17,7 +17,7 @@ use scene::Scene;
 use spectrum::Spectrum;
 use stats;
 
-pub fn render(scene: Box<Scene>,
+pub fn render(scene: Arc<Scene>,
               integrator: &mut Box<SamplerIntegrator + Send + Sync>,
               camera: Box<Camera + Send + Sync>,
               num_threads: usize,
@@ -25,7 +25,7 @@ pub fn render(scene: Box<Scene>,
               block_size: i32,
               mut _display: Box<DisplayUpdater + Send>)
               -> Result<stats::Stats> {
-    integrator.preprocess(&scene, sampler);
+    integrator.preprocess(Arc::clone(&scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
     let sample_extent = sample_bounds.diagonal();
     let pixel_bounds = &sample_bounds; // FIXME

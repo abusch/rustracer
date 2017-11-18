@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use light_arena::Allocator;
 use integrator::{uniform_sample_all_light, uniform_sample_one_light, SamplerIntegrator};
 use material::TransportMode;
@@ -54,7 +56,7 @@ impl DirectLightingIntegrator {
 }
 
 impl SamplerIntegrator for DirectLightingIntegrator {
-    fn preprocess(&mut self, scene: &Scene, sampler: &mut Box<Sampler + Send + Sync>) {
+    fn preprocess(&mut self, scene: Arc<Scene>, sampler: &mut Box<Sampler + Send + Sync>) {
         info!("Preprocessing DirectLighting integrator");
         if self.light_strategy == LightStrategy::UniformSampleAll {
             // Compute number of samples to use for each light

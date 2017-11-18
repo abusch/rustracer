@@ -47,6 +47,50 @@ pub fn sobol_2d(n_samples_per_pixel_sample: u32,
 
 }
 
+pub fn radical_inverse(base: u32, a: u64) -> f32 {
+    match base {
+        0 => reverse_bits_64(a) as f32 * 5.4210108624275222e-20,
+        1 => radical_inverse_specialized(3, a),
+        2 => radical_inverse_specialized(5, a),
+        3 => radical_inverse_specialized(7, a),
+        4 => radical_inverse_specialized(11, a),
+        5 => radical_inverse_specialized(13, a),
+        _ => unimplemented!(),
+    }
+}
+
+fn reverse_bits_32(n: u32) -> u32 {
+    let mut n = n;
+    n = (n << 16) | (n >> 16);
+    n = ((n & 0x00ff00ff) << 8) | ((n & 0xff00ff00) >> 8);
+    n = ((n & 0x0f0f0f0f) << 4) | ((n & 0xf0f0f0f0) >> 4);
+    n = ((n & 0x33333333) << 2) | ((n & 0xcccccccc) >> 2);
+    n = ((n & 0x55555555) << 1) | ((n & 0xaaaaaaaa) >> 1);
+    n
+}
+
+fn reverse_bits_64(n: u64) -> u64 {
+    let n0 = reverse_bits_32(n as u32);
+    let n1 = reverse_bits_32((n >> 32) as u32);
+    ((n0 as u64) << 32) | (n1 as u64)
+}
+
+fn radical_inverse_specialized(base: u32, a: u64) -> f32 {
+    let mut a = a;
+    let inv_base: f32 = 1.0 / base as f32;
+    let mut reversed_digits: u64 = 0;
+    let mut inv_base_n = 1.0;
+    while a != 0 {
+        let next = a / base as u64;
+        let digit = a - next * base as u64;
+        reversed_digits = reversed_digits * base as u64 + digit;
+        inv_base_n *= inv_base;
+        a = next;
+    }
+    assert!(reversed_digits as f32 * inv_base_n < 1.00001);
+    return f32::min(reversed_digits as f32 * inv_base_n, ONE_MINUS_EPSILON);
+}
+
 fn gray_code_sample(c: &[u32], n: u32, scramble: u32, p: &mut [f32]) {
     let mut v = scramble;
     for i in 0..n {

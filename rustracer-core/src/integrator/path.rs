@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use light_arena::Allocator;
 
 use bsdf::BxDFType;
 use integrator::{uniform_sample_one_light, SamplerIntegrator};
-use lightdistrib::{LightDistribution, UniformLightDistribution};
+use lightdistrib::{LightDistribution, UniformLightDistribution, SpatialLightDistribution};
 use material::TransportMode;
 use paramset::ParamSet;
 use ray::Ray;
@@ -40,9 +42,14 @@ impl PathIntegrator {
 }
 
 impl SamplerIntegrator for PathIntegrator {
-    fn preprocess(&mut self, scene: &Scene, _sampler: &mut Box<Sampler + Send + Sync>) {
+    fn preprocess(&mut self, scene: Arc<Scene>, _sampler: &mut Box<Sampler + Send + Sync>) {
         // TODO create correct distribution based on strategy
-        self.light_distribution = Some(Box::new(UniformLightDistribution::new(scene)));
+        self.light_distribution = if self.light_sampling_strategy == "uniform" ||
+                                     scene.lights.len() == 1 {
+            Some(Box::new(UniformLightDistribution::new(&scene)))
+        } else {
+            Some(Box::new(SpatialLightDistribution::new(scene, 64)))
+        }
     }
 
     fn li(&self,
