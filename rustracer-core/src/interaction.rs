@@ -59,7 +59,7 @@ impl Interaction {
     }
 
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
-        assert!(dir.x != 0.0 && dir.y != 0.0 && dir.z != 0.0);
+        assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
         stats::inc_secondary_ray();
         let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
@@ -68,7 +68,7 @@ impl Interaction {
     pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
         let o = offset_origin(&self.p, &self.p_error, &self.n, &(*p - self.p));
         let d = *p - self.p;
-        assert!(d.x != 0.0 && d.y != 0.0 && d.z != 0.0);
+        assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
         stats::inc_secondary_ray();
         Ray::segment(o, d, 1.0 - 1e-4)
     }
