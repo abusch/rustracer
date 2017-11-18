@@ -20,15 +20,35 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
 ![example1](example1.png)
 
 ## Currently supported
- * Whitted, Direct Lighting and Path Tracing integrators
- * Basic shapes (disc, sphere, cylinder) + triangle meshes
+ * Integrators:
+ ** Whitted
+ ** Direct Lighting (with "all" or "one" sampling strategies)
+ ** Path Tracing (with "uniform" or "spatial" sampling strategies)
+ ** Normal (for debuging)
+ ** Ambient Occlusion
+ * Shapes:
+ ** Basic shapes: disc, sphere, cylinder
+ ** triangle meshes
  * Perspective camera with thin-lens depth-of-field
- * Point lights, distant lights
- * diffuse area lights, infinite area light
- * BxDF for lambertian, perfect specular reflection / transmission, microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
- * Matte, Plastic, Metal / RoughMetal, Glass / RoughGlass, Substrate (thin-coated), Translucent, Uber materials
+ * Lights:
+ ** Point lights
+ ** distant lights
+ ** diffuse area lights
+ ** infinite area light
+ * BxDFs:
+ ** Lambertian
+ ** perfect specular reflection / transmission
+ ** microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
+ * Materials:
+ ** Matte
+ ** Plastic
+ ** Metal / RoughMetal
+ ** Glass / RoughGlass
+ ** Substrate (thin-coated)
+ ** Translucent
+ ** Uber
  * Textures (imagemaps with MIPMapping, UV, CheckerBoard)
- * BVH (MIDDLE or SAH splitting strategy)
+ * BVH acceleration structure (MIDDLE or SAH splitting strategy)
  * multi-threaded rendering
  * Support for PBRT scene file format (still incomplete)
  * Read textures in PNG, TGA, PFM, HDR or EXR (thanks to [openexr-rs](https://github.com/cessen/openexr-rs))
@@ -40,14 +60,12 @@ The dragon model is from [The Stanford Scanning Repository](http://graphics.stan
  * More camera types (orthographic, realistic, environment)
  * More shapes (cone, paraboloid, hyperboloid, NURBs...)
  * More samplers (Halton, Sobol...)
- * More BxDFs and materials
+ * More BxDFs and materials (Disney?)
  * Implement subsurface scattering
  * Volumetric rendering
- * More integrators: bidirectional path tracing
- * More light sampling strategies (e.g. spatial)
+ * More integrators: bidirectional path tracing, MTL, SPPM
  * Animations
  * more light types
- * Finish ray-differential support
  * Add support for EWA filtering for MIPMap
  * k-d trees?
  * Spectral rendering?
