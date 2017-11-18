@@ -84,14 +84,7 @@ impl Interaction {
 
 #[derive(Clone)]
 pub struct SurfaceInteraction<'a, 'b> {
-    /// The point where the ray hit the primitive
-    pub p: Point3f,
-    /// Error bound for the intersection point
-    pub p_error: Vector3f,
-    /// Outgoing direction of the light at the intersection point (usually `-ray.d`)
-    pub wo: Vector3f,
-    /// Normal
-    pub n: Normal3f,
+    pub hit: Interaction,
     /// Texture coordinates
     pub uv: Point2f,
     /// Partial derivatives at the intersection point
@@ -134,11 +127,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             n *= -1.0;
         }
         SurfaceInteraction {
-            p,
-            p_error,
-            n,
+            hit: Interaction::new(p, p_error, wo.normalize(), n),
             uv,
-            wo: wo.normalize(),
             dpdu,
             dpdv,
             dndu,
@@ -166,18 +156,18 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     pub fn le(&self, w: &Vector3f) -> Spectrum {
         self.primitive
             .and_then(|p| p.area_light())
-            .map(|light| light.l(&self.into(), w))
+            .map(|light| light.l(self.into(), w))
             .unwrap_or_else(Spectrum::black)
     }
 
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a, 'b> {
-        let (p, p_err) = t.transform_point_with_error(&self.p, &self.p_error);
+        let (p, p_err) = t.transform_point_with_error(&self.hit.p, &self.hit.p_error);
         let mut si = SurfaceInteraction {
-            p: p,
-            p_error: p_err,
-            n: t.transform_normal(&self.n).normalize(),
+            hit: Interaction::new(p,
+                                  p_err,
+                                  (t * &self.hit.wo).normalize(),
+                                  t.transform_normal(&self.hit.n).normalize()),
             uv: self.uv,
-            wo: (t * &self.wo).normalize(),
             dpdu: t * &self.dpdu,
             dpdv: t * &self.dpdv,
             dndu: zero(),
@@ -199,7 +189,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             },
             bsdf: self.bsdf.clone(),
         };
-        si.shading.n = face_forward_n(&si.shading.n, &si.n);
+        si.shading.n = face_forward_n(&si.shading.n, &si.hit.n);
 
         si
     }
@@ -218,15 +208,15 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
         stats::inc_secondary_ray();
-        let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
+        let o = offset_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, dir);
         Ray::new(o, *dir)
     }
 
     pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
-        let d = *p - self.p;
+        let d = *p - self.hit.p;
         assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
         stats::inc_secondary_ray();
-        let o = offset_origin(&self.p, &self.p_error, &self.n, &d);
+        let o = offset_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
 
@@ -242,9 +232,9 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             self.shading.n *= -1.0;
         }
         if is_orientation_authoritative {
-            self.n = face_forward_n(&self.n, &self.shading.n);
+            self.hit.n = face_forward_n(&self.hit.n, &self.shading.n);
         } else {
-            self.shading.n = face_forward_n(&self.shading.n, &self.n);
+            self.shading.n = face_forward_n(&self.shading.n, &self.hit.n);
         }
 
         // Initialize shading partial derivative values
@@ -260,11 +250,13 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             // Estimate screen space change in p and (u,v)
 
             // Compute auxiliary intersection points with plane
-            let d = self.n.dot(&Vector3f::new(self.p.x, self.p.y, self.p.z));
-            let tx = -(self.n.dot(&Vector3f::from(diff.rx_origin)) - d) /
-                     self.n.dot(&diff.rx_direction);
-            let ty = -(self.n.dot(&Vector3f::from(diff.ry_origin)) - d) /
-                     self.n.dot(&diff.ry_direction);
+            let d = self.hit
+                .n
+                .dot(&Vector3f::new(self.hit.p.x, self.hit.p.y, self.hit.p.z));
+            let tx = -(self.hit.n.dot(&Vector3f::from(diff.rx_origin)) - d) /
+                     self.hit.n.dot(&diff.rx_direction);
+            let ty = -(self.hit.n.dot(&Vector3f::from(diff.ry_origin)) - d) /
+                     self.hit.n.dot(&diff.ry_direction);
             if tx.is_infinite() || tx.is_nan() || ty.is_infinite() || ty.is_nan() {
                 self.dudx = 0.0;
                 self.dudy = 0.0;
@@ -277,16 +269,16 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
 
             let px = diff.rx_origin + tx * diff.rx_direction;
             let py = diff.ry_origin + ty * diff.ry_direction;
-            self.dpdx = px - self.p;
-            self.dpdy = py - self.p;
+            self.dpdx = px - self.hit.p;
+            self.dpdy = py - self.hit.p;
             // Compute (u,v) offsets at auxiliary points
 
             // Choose two dimensions to use for ray offset computation
             let mut dim: [usize; 2] = [0; 2];
-            if self.n.x.abs() > self.n.y.abs() && self.n.x.abs() > self.n.z.abs() {
+            if self.hit.n.x.abs() > self.hit.n.y.abs() && self.hit.n.x.abs() > self.hit.n.z.abs() {
                 dim[0] = 1;
                 dim[1] = 2;
-            } else if self.n.y.abs() > self.n.z.abs() {
+            } else if self.hit.n.y.abs() > self.hit.n.z.abs() {
                 dim[0] = 0;
                 dim[1] = 2;
             } else {
@@ -296,8 +288,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             // Initialize A, Bx, and By matrices for offset computation
             let A = [[self.dpdu[dim[0]], self.dpdv[dim[0]]],
                      [self.dpdu[dim[1]], self.dpdv[dim[1]]]];
-            let Bx = Vector2f::new(px[dim[0]] - self.p[dim[0]], px[dim[1]] - self.p[dim[1]]);
-            let By = Vector2f::new(py[dim[0]] - self.p[dim[0]], py[dim[1]] - self.p[dim[1]]);
+            let Bx = Vector2f::new(px[dim[0]] - self.hit.p[dim[0]],
+                                   px[dim[1]] - self.hit.p[dim[1]]);
+            let By = Vector2f::new(py[dim[0]] - self.hit.p[dim[0]],
+                                   py[dim[1]] - self.hit.p[dim[1]]);
 
 
             let (dudx, dvdx) = transform::solve_linear_system2x2(&A, &Bx).unwrap_or((0.0, 0.0));
@@ -336,13 +330,13 @@ fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Normal3f, w: &Vector3f) -> P
 
 impl<'a, 'b> From<SurfaceInteraction<'a, 'b>> for Interaction {
     fn from(si: SurfaceInteraction) -> Interaction {
-        Interaction::new(si.p, si.p_error, si.wo, si.n)
+        si.hit
     }
 }
 
-impl<'a, 'b> From<&'a SurfaceInteraction<'a, 'b>> for Interaction {
-    fn from(si: &SurfaceInteraction) -> Interaction {
-        Interaction::new(si.p, si.p_error, si.wo, si.n)
+impl<'a, 'b> From<&'a SurfaceInteraction<'a, 'b>> for &'a Interaction {
+    fn from(si: &'a SurfaceInteraction<'a, 'b>) -> &'a Interaction {
+        &si.hit
     }
 }
 

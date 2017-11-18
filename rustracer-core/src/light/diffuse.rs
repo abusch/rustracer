@@ -2,11 +2,11 @@ use std::f32::consts::PI;
 use std::sync::Arc;
 
 use {Point2f, Transform, Vector3f};
+use interaction::Interaction;
 use light::{AreaLight, Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use shapes::Shape;
 use spectrum::Spectrum;
-use interaction::{Interaction, SurfaceInteraction};
 
 
 #[derive(Debug)]
@@ -56,18 +56,18 @@ impl Light for DiffuseAreaLight {
     }
 
     fn sample_li(&self,
-                 si: &SurfaceInteraction,
+                 si: &Interaction,
                  u: &Point2f)
                  -> (Spectrum, Vector3f, f32, VisibilityTester) {
-        let (p_shape, pdf) = self.shape.sample_si(&si.into(), u);
+        let (p_shape, pdf) = self.shape.sample_si(si, u);
         assert!(!p_shape.p.x.is_nan() && !p_shape.p.y.is_nan() && !p_shape.p.z.is_nan());
         let wi = (p_shape.p - si.p).normalize();
-        let vis = VisibilityTester::new(si.into(), p_shape);
+        let vis = VisibilityTester::new(*si, p_shape);
 
         (self.l(&p_shape, &(-wi)), wi, pdf, vis)
     }
 
-    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32 {
+    fn pdf_li(&self, si: &Interaction, wi: &Vector3f) -> f32 {
         self.shape.pdf_wi(si, wi)
     }
 

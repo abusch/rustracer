@@ -47,16 +47,16 @@ pub trait Shape: Debug {
         (intr, pdf)
     }
 
-    fn pdf(&self, _si: &SurfaceInteraction) -> f32 {
+    fn pdf(&self, _si: &Interaction) -> f32 {
         1.0 / self.area()
     }
 
-    fn pdf_wi(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32 {
+    fn pdf_wi(&self, si: &Interaction, wi: &Vector3f) -> f32 {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            ::geometry::distance_squared(&si.p, &isect_light.p) /
-            (isect_light.n.dot(&(-(*wi))).abs() * self.area())
+            ::geometry::distance_squared(&si.p, &isect_light.hit.p) /
+            (isect_light.hit.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0
         }

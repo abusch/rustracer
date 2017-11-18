@@ -9,7 +9,7 @@ use parking_lot::RwLock;
 use {Point2f, Point2i, Point3f, Transform, Vector3f};
 use geometry::{spherical_phi, spherical_theta};
 use imageio::read_image;
-use interaction::{Interaction, SurfaceInteraction};
+use interaction::Interaction;
 use light::{Light, LightFlags, VisibilityTester};
 use mipmap::{MIPMap, WrapMode};
 use paramset::ParamSet;
@@ -103,7 +103,7 @@ impl Light for InfiniteAreaLight {
     }
 
     fn sample_li(&self,
-                 isect: &SurfaceInteraction,
+                 isect: &Interaction,
                  u: &Point2f)
                  -> (Spectrum, Vector3f, f32, VisibilityTester) {
         // Find (u, v) sample coordinates in infinite light texture
@@ -133,11 +133,11 @@ impl Light for InfiniteAreaLight {
         // Return radiance value for infinite light direction
         let world_radius = self.world_radius.read();
         let target = isect.p + wi * (2.0 * *world_radius);
-        let vis = VisibilityTester::new(isect.into(), Interaction::from_point(&target));
+        let vis = VisibilityTester::new(*isect, Interaction::from_point(&target));
         (self.l_map.lookup(&uv, 0.0), wi, pdf, vis)
     }
 
-    fn pdf_li(&self, _si: &SurfaceInteraction, w: &Vector3f) -> f32 {
+    fn pdf_li(&self, _si: &Interaction, w: &Vector3f) -> f32 {
         let wi = &self.world_to_light * w;
         let theta = spherical_theta(&wi);
         let phi = spherical_phi(&wi);

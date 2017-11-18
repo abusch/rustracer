@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use parking_lot::Mutex;
 
 use {Point2f, Vector3f};
-use interaction::{Interaction, SurfaceInteraction};
+use interaction::Interaction;
 use ray::Ray;
 use scene::Scene;
 use spectrum::Spectrum;
@@ -68,11 +68,11 @@ pub trait Light: Debug {
     ///  * the pdf for that direction
     ///  * A VisibilityTester
     fn sample_li(&self,
-                 isect: &SurfaceInteraction,
+                 isect: &Interaction,
                  u: &Point2f)
                  -> (Spectrum, Vector3f, f32, VisibilityTester);
 
-    fn pdf_li(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32;
+    fn pdf_li(&self, si: &Interaction, wi: &Vector3f) -> f32;
 
     fn preprocess(&self, _scene: &Scene) {}
 

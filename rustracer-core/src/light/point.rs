@@ -4,7 +4,7 @@ use std::f32::consts::PI;
 use num::Zero;
 
 use {Point2f, Point3f, Transform, Vector3f};
-use interaction::{Interaction, SurfaceInteraction};
+use interaction::Interaction;
 use light::{Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use spectrum::Spectrum;
@@ -41,18 +41,18 @@ impl Light for PointLight {
     }
 
     fn sample_li(&self,
-                 isect: &SurfaceInteraction,
+                 isect: &Interaction,
                  _u: &Point2f)
                  -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let wi = self.pos - isect.p;
         let r2 = wi.length_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);
-        let vt = VisibilityTester::new(isect.into(), Interaction::from_point(&self.pos));
+        let vt = VisibilityTester::new(*isect, Interaction::from_point(&self.pos));
 
         (l_i, wi.normalize(), 1.0, vt)
     }
 
-    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector3f) -> f32 {
+    fn pdf_li(&self, _si: &Interaction, _wi: &Vector3f) -> f32 {
         0.0
     }
 

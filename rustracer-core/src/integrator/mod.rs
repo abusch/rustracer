@@ -46,25 +46,25 @@ pub trait SamplerIntegrator {
                            depth: u32)
                            -> Spectrum {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
-        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
+        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.hit.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
                 let mut rddiff = RayDifferential::default();
-                rddiff.rx_origin = isect.p + isect.dpdx;
-                rddiff.ry_origin = isect.p + isect.dpdy;
+                rddiff.rx_origin = isect.hit.p + isect.dpdx;
+                rddiff.ry_origin = isect.hit.p + isect.dpdy;
                 // Compute differential reflected direction
                 let dndx = isect.shading.dndu * isect.dudx + isect.dndv * isect.dvdx;
                 let dndy = isect.shading.dndu * isect.dudy + isect.dndv * isect.dvdy;
-                let dwodx = -diff.rx_direction - isect.wo;
-                let dwody = -diff.ry_direction - isect.wo;
-                let dDNdx = dwodx.dotn(ns) + isect.wo.dotn(&dndx);
-                let dDNdy = dwody.dotn(ns) + isect.wo.dotn(&dndy);
-                rddiff.rx_direction = wi - dwodx +
-                                      2.0 * Vector3f::from(isect.wo.dotn(ns) * dndx + dDNdx * *ns);
-                rddiff.ry_direction = wi - dwody +
-                                      2.0 * Vector3f::from(isect.wo.dotn(ns) * dndy + dDNdy * *ns);
+                let dwodx = -diff.rx_direction - isect.hit.wo;
+                let dwody = -diff.ry_direction - isect.hit.wo;
+                let dDNdx = dwodx.dotn(ns) + isect.hit.wo.dotn(&dndx);
+                let dDNdy = dwody.dotn(ns) + isect.hit.wo.dotn(&dndy);
+                rddiff.rx_direction =
+                    wi - dwodx + 2.0 * Vector3f::from(isect.hit.wo.dotn(ns) * dndx + dDNdx * *ns);
+                rddiff.ry_direction =
+                    wi - dwody + 2.0 * Vector3f::from(isect.hit.wo.dotn(ns) * dndy + dDNdy * *ns);
 
                 r.differential = Some(rddiff);
             }
@@ -86,28 +86,28 @@ pub trait SamplerIntegrator {
                              depth: u32)
                              -> Spectrum {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
-        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.wo, &sampler.get_2d(), flags);
+        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.hit.wo, &sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
                 let mut rddiff = RayDifferential::default();
-                rddiff.rx_origin = isect.p + isect.dpdx;
-                rddiff.ry_origin = isect.p + isect.dpdy;
+                rddiff.rx_origin = isect.hit.p + isect.dpdx;
+                rddiff.ry_origin = isect.hit.p + isect.dpdy;
 
                 let mut eta = bsdf.eta;
-                let w = -isect.wo;
-                if isect.wo.dotn(ns) < 0.0 {
+                let w = -isect.hit.wo;
+                if isect.hit.wo.dotn(ns) < 0.0 {
                     eta = 1.0 / eta;
                 }
 
                 // Compute differential reflected direction
                 let dndx = isect.shading.dndu * isect.dudx + isect.dndv * isect.dvdx;
                 let dndy = isect.shading.dndu * isect.dudy + isect.dndv * isect.dvdy;
-                let dwodx = -diff.rx_direction - isect.wo;
-                let dwody = -diff.ry_direction - isect.wo;
-                let dDNdx = dwodx.dotn(ns) + isect.wo.dotn(&dndx);
-                let dDNdy = dwody.dotn(ns) + isect.wo.dotn(&dndy);
+                let dwodx = -diff.rx_direction - isect.hit.wo;
+                let dwody = -diff.ry_direction - isect.hit.wo;
+                let dDNdx = dwodx.dotn(ns) + isect.hit.wo.dotn(&dndx);
+                let dDNdy = dwody.dotn(ns) + isect.hit.wo.dotn(&dndy);
 
                 let mu = eta * w.dotn(ns) - wi.dotn(ns);
                 let _dmudx = (eta - (eta * eta * w.dotn(ns)) / wi.dotn(ns)) * dDNdx;
@@ -216,7 +216,7 @@ pub fn estimate_direct(it: &SurfaceInteraction,
     let bsdf = it.bsdf
         .as_ref()
         .expect("There should be a BSDF set at this point!");
-    let (mut li, wi, light_pdf, vis) = light.sample_li(it, u_light);
+    let (mut li, wi, light_pdf, vis) = light.sample_li(it.into(), u_light);
     // info!(
     //     "EstimateDirect u_light: {} -> Li: {}, wi: {}, pdf: {}",
     //     u_light,
@@ -226,8 +226,8 @@ pub fn estimate_direct(it: &SurfaceInteraction,
     // );
     if light_pdf > 0.0 && !li.is_black() {
         // Compute BSDF for light sample
-        let f = bsdf.f(&it.wo, &wi, bsdf_flags) * wi.dotn(&it.shading.n).abs();
-        let scattering_pdf = bsdf.pdf(&it.wo, &wi, bsdf_flags);
+        let f = bsdf.f(&it.hit.wo, &wi, bsdf_flags) * wi.dotn(&it.shading.n).abs();
+        let scattering_pdf = bsdf.pdf(&it.hit.wo, &wi, bsdf_flags);
         if !f.is_black() {
             if !vis.unoccluded(scene) {
                 li = Spectrum::black();
@@ -247,14 +247,14 @@ pub fn estimate_direct(it: &SurfaceInteraction,
     // Sample BSDF with multiple importance sampling
     if !is_delta_light(light.flags()) {
         let (mut f, wi, scattering_pdf, sampled_type) =
-            bsdf.sample_f(&it.wo, u_scattering, bsdf_flags);
+            bsdf.sample_f(&it.hit.wo, u_scattering, bsdf_flags);
         f *= wi.dotn(&it.shading.n).abs();
         let sampled_specular = sampled_type.contains(BxDFType::BSDF_SPECULAR);
         // TODO compute medium interaction when supported
         if !f.is_black() && scattering_pdf > 0.0 {
             // Account for light contribution along sampled direction wi
             let weight = if !sampled_specular {
-                let light_pdf = light.pdf_li(it, &wi);
+                let light_pdf = light.pdf_li(it.into(), &wi);
                 if light_pdf == 0.0 {
                     return ld;
                 }

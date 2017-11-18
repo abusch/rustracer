@@ -105,7 +105,7 @@ impl SamplerIntegrator for PathIntegrator {
             let distrib = self.light_distribution
                 .as_ref()
                 .unwrap()
-                .lookup(&isect.p);
+                .lookup(&isect.hit.p);
 
             // Sample illumination from lights to find path contribution.
             if bsdf.num_components(BxDFType::all() & !BxDFType::BSDF_SPECULAR) > 0 {
@@ -133,7 +133,7 @@ impl SamplerIntegrator for PathIntegrator {
                 // Update the term that tracks radiance scaling for refraction
                 // depending on whether the ray is entering or leaving the
                 // medium.
-                eta_scale *= if wo.dotn(&isect.n) > 0.0 {
+                eta_scale *= if wo.dotn(&isect.hit.n) > 0.0 {
                     eta * eta
                 } else {
                     1.0 / (eta * eta)

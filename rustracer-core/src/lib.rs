@@ -90,6 +90,7 @@ pub type Vector3f = Vector3<f32>;
 pub type Point2f = Point2<f32>;
 pub type Point2i = Point2<i32>;
 pub type Point3f = Point3<f32>;
+pub type Point3i = Point3<i32>;
 pub type Normal3f = Normal3<f32>;
 
 pub use transform::Transform;

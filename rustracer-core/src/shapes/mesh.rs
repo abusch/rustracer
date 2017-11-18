@@ -319,14 +319,14 @@ impl Shape for Triangle {
                                                 self);
         // - Override surface normal
         let n = Normal3f::from(dp02.cross(&dp12).normalize());
-        isect.n = n;
+        isect.hit.n = n;
         isect.shading.n = n;
         // Initialize triangle shading geometry
         // - shading normal
         let ns = if let Some(ref n) = self.mesh.n {
             (n[self.v(0)] * b0 + n[self.v(1)] * b1 + n[self.v(2)] * b2).normalize()
         } else {
-            isect.n
+            isect.hit.n
         };
         // - shading tangent
         let mut ss = if let Some(ref s) = self.mesh.s {
@@ -351,10 +351,10 @@ impl Shape for Triangle {
 
         // Ensure correct orientation of the geometric normal
         if self.mesh.n.is_some() {
-            isect.n = geometry::face_forward_n(&isect.n, &isect.shading.n);
+            isect.hit.n = geometry::face_forward_n(&isect.hit.n, &isect.shading.n);
         } else if self.reverse_orientation ^ self.swaps_handedness {
-            isect.n = -isect.n;
-            isect.shading.n = isect.n;
+            isect.hit.n = -isect.hit.n;
+            isect.shading.n = isect.hit.n;
         }
 
         stats::inc_triangle_isect();

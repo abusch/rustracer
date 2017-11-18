@@ -46,7 +46,7 @@ impl<'a> BSDF<'a> {
         BSDF {
             eta: eta,
             ns: isect.shading.n,
-            ng: isect.n,
+            ng: isect.hit.n,
             ss: ss,
             ts: Vector3f::from(isect.shading.n).cross(&ss),
             bxdfs: bxdfs,

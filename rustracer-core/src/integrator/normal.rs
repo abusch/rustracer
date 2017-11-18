@@ -17,7 +17,7 @@ impl SamplerIntegrator for Normal {
           _depth: u32)
           -> Spectrum {
         if let Some(intersection) = scene.intersect(ray) {
-            let n = intersection.n;
+            let n = intersection.hit.n;
             Spectrum::grey(ray.d.dotn(&n).abs())
         } else {
             Spectrum::black()

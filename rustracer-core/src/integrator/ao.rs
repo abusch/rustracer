@@ -29,7 +29,7 @@ impl SamplerIntegrator for AmbientOcclusion {
         let mut n_clear: usize = 0;
 
         if let Some(intersection) = scene.intersect(ray) {
-            let n = intersection.n;
+            let n = intersection.hit.n;
             for _ in 0..self.n_samples {
                 let s = sampler.get_2d();
                 let mut w = uniform_sample_sphere(&s);

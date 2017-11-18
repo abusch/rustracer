@@ -111,7 +111,7 @@ impl TextureMapping3D for TransformMapping3D {
     fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f) {
         let dpdx = &self.world_to_texture * &si.dpdx;
         let dpdy = &self.world_to_texture * &si.dpdy;
-        let p = &self.world_to_texture * &si.p;
+        let p = &self.world_to_texture * &si.hit.p;
 
         (p, dpdx, dpdy)
     }

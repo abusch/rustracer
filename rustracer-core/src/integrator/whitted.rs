@@ -41,7 +41,7 @@ impl SamplerIntegrator for Whitted {
         match scene.intersect(ray) {
             Some(mut isect) => {
                 let n = isect.shading.n;
-                let wo = isect.wo;
+                let wo = isect.hit.wo;
 
                 // Compute scattering functions for surface interaction
                 isect.compute_scattering_functions(ray, TransportMode::RADIANCE, false, arena);
@@ -59,7 +59,7 @@ impl SamplerIntegrator for Whitted {
                 // Add contribution of each light source
                 for light in &scene.lights {
                     let (li, wi, pdf, visibility_tester) =
-                        light.sample_li(&isect, &sampler.get_2d());
+                        light.sample_li(&isect.hit, &sampler.get_2d());
                     if li.is_black() || pdf == 0.0 {
                         continue;
                     }

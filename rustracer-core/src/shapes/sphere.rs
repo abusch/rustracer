@@ -291,7 +291,7 @@ impl Shape for Sphere {
         (it, pdf)
     }
 
-    fn pdf_wi(&self, si: &SurfaceInteraction, wi: &Vector3f) -> f32 {
+    fn pdf_wi(&self, si: &Interaction, wi: &Vector3f) -> f32 {
         let p_center = &self.object_to_world * &Point3f::new(0.0, 0.0, 0.0);
         // Return uniform PDF if point is inside the sphere
         let p_origin = offset_ray_origin(&si.p, &si.p_error, &si.n, &(p_center - si.p));

@@ -5,7 +5,7 @@ use num::Zero;
 use parking_lot::RwLock;
 
 use {Point2f, Point3f, Transform, Vector3f};
-use interaction::{Interaction, SurfaceInteraction};
+use interaction::Interaction;
 use light::{Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use scene::Scene;
@@ -55,7 +55,7 @@ impl Light for DistantLight {
     }
 
     fn sample_li(&self,
-                 isect: &SurfaceInteraction,
+                 isect: &Interaction,
                  _u: &Point2f)
                  -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let wr = self.w_radius.read();
@@ -63,10 +63,10 @@ impl Light for DistantLight {
         (self.emission_colour,
          self.dir,
          1.0,
-         VisibilityTester::new(isect.into(), Interaction::from_point(&p_outside)))
+         VisibilityTester::new(*isect, Interaction::from_point(&p_outside)))
     }
 
-    fn pdf_li(&self, _si: &SurfaceInteraction, _wi: &Vector3f) -> f32 {
+    fn pdf_li(&self, _si: &Interaction, _wi: &Vector3f) -> f32 {
         0.0
     }
 
