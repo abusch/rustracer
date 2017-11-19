@@ -5,6 +5,8 @@ authors = ["Antoine Büsch <antoine.busch@gmail.com>"]
 
 [features]
 default = ["minifb", "openexr"]
+minifb = ["minifb"]
+openexr = ["openexr"]
 
 [dependencies]
 approx = "0.1"
