@@ -1,4 +1,4 @@
-#[cfg(feature = "minifb")]
+#[cfg(feature = "display")]
 extern crate minifb;
 
 use Point2i;
@@ -9,12 +9,12 @@ pub trait DisplayUpdater {
 }
 
 pub struct MinifbDisplayUpdater {
-    #[cfg(feature = "minifb")]
+    #[cfg(feature = "display")]
     window: minifb::Window,
 }
 
 impl MinifbDisplayUpdater {
-    #[cfg(feature = "minifb")]
+    #[cfg(feature = "display")]
     pub fn new(res: Point2i) -> MinifbDisplayUpdater {
         MinifbDisplayUpdater {
             window: minifb::Window::new("Rustracer",
@@ -25,7 +25,7 @@ impl MinifbDisplayUpdater {
         }
     }
 
-    #[cfg(not(feature = "minifb"))]
+    #[cfg(not(feature = "display"))]
     pub fn new(_res: Point2i) -> MinifbDisplayUpdater {
         panic!("minifb support not compiled in!");
     }

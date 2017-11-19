@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 
 use img;
-#[cfg(feature="openexr")]
+#[cfg(feature="exr")]
 use openexr::{FrameBuffer, FrameBufferMut, InputFile, ScanlineOutputFile, Header, PixelType};
 
 use {Point2i, clamp};
@@ -66,16 +66,16 @@ fn write_image_png<P: AsRef<Path>>(name: P,
                    .chain_err(|| format!("Failed to save image file {}", path.display()));
 }
 
-#[cfg(not(feature="openexr"))]
+#[cfg(not(feature="exr"))]
 fn write_image_exr<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
                                    total_resolution: &Point2i)
                                    -> Result<()> {
-    panic!("EXR support is not compiled in. Please recompile with the \"openexr\" feature.")
+    panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
 }
 
-#[cfg(feature="openexr")]
+#[cfg(feature="exr")]
 fn write_image_exr<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
@@ -139,12 +139,12 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     Ok((data, Point2i::new(meta.width as i32, meta.height as i32)))
 }
 
-#[cfg(not(feature="openexr"))]
+#[cfg(not(feature="exr"))]
 fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i)> {
-    panic!("EXR support is not compiled in. Please recompile with the \"openexr\" feature.")
+    panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
 }
 
-#[cfg(feature="openexr")]
+#[cfg(feature="exr")]
 fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     info!("Loading EXR texture {}", path.as_ref().display());
     let mut file = File::open(path.as_ref())?;

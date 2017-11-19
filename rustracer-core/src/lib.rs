@@ -18,7 +18,7 @@ extern crate indicatif;
 extern crate itertools as it;
 extern crate light_arena;
 extern crate num;
-#[cfg(feature="openexr")]
+#[cfg(feature="exr")]
 extern crate openexr;
 extern crate ply_rs;
 extern crate parking_lot;
@@ -71,14 +71,14 @@ pub mod transform;
 
 pub mod errors {
     use img;
-    #[cfg(feature="openexr")]
+    #[cfg(feature="exr")]
     use openexr;
 
     error_chain!{
         foreign_links {
             Io(::std::io::Error);
             ImgTga(img::ImageError);
-            ImgExr(openexr::Error) #[cfg(feature="openexr")];
+            ImgExr(openexr::Error) #[cfg(feature="exr")];
         }
     }
 }
