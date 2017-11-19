@@ -8,6 +8,8 @@ It started as a little playground to play with raytracing concepts that I found 
 
 **Note**: I am very much a beginner in Rust as well as in raytracing and this project is a way for me to learn about both. If the code is ugly or broken, it is very much my fault :) This is not helped by the fact that the C++ implementation is _very_ object-oriented, and doesn't always translate cleanly or idiomatically to Rust... I haven't really paid attention to performance yet, or number of allocations, so both are probably pretty bad :) That being said, feedback is more than welcome! 
 
+The code is on [Bitbucket](https://bitbucket.org/abusch/rustracer) and mirrored on [Github](https://github.com/abusch/rustracer) for convenience.
+
 ## Related projects
  * [tray_rust](http://github.com/TwinkleBear/tray_rust): if you want to see a good physically-based raytracer in Rust written by someone who knows what they're talking about, you should check this project instead of mine :) It's got some nice features, like distributed rendering, and the code is beautifully written and documented.
 
