@@ -21,32 +21,32 @@ More examples can be found in the [renders/](renders/) directory.
 
 ## Currently supported
  * Integrators:
-   * Whitted
-   * Direct Lighting (with "all" or "one" sampling strategies)
-   * Path Tracing (with "uniform" or "spatial" sampling strategies)
-   * Normal (for debuging)
-   * Ambient Occlusion
+     * Whitted
+     * Direct Lighting (with "all" or "one" sampling strategies)
+     * Path Tracing (with "uniform" or "spatial" sampling strategies)
+     * Normal (for debuging)
+     * Ambient Occlusion
  * Shapes:
-   * Basic shapes: disc, sphere, cylinder
-   * triangle meshes
+     * Basic shapes: disc, sphere, cylinder
+     * triangle meshes
  * Perspective camera with thin-lens depth-of-field
  * Lights:
-   * Point lights
-   * distant lights
-   * diffuse area lights
-   * infinite area light
+     * Point lights
+     * distant lights
+     * diffuse area lights
+     * infinite area light
  * BxDFs:
-   * Lambertian
-   * perfect specular reflection / transmission
-   * microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
+     * Lambertian
+     * perfect specular reflection / transmission
+     * microfacet (Oren-Nayar and Torrance-Sparrow models, Beckmann and Trowbridge-Heitz distributions, Smith masking-shadowing function)
  * Materials:
-   * Matte
-   * Plastic
-   * Metal / RoughMetal
-   * Glass / RoughGlass
-   * Substrate (thin-coated)
-   * Translucent
-   * Uber
+     * Matte
+     * Plastic
+     * Metal / RoughMetal
+     * Glass / RoughGlass
+     * Substrate (thin-coated)
+     * Translucent
+     * Uber
  * Textures (imagemaps with MIPMapping, UV, CheckerBoard)
  * BVH acceleration structure (MIDDLE or SAH splitting strategy)
  * multi-threaded rendering
