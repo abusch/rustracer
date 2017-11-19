@@ -15,9 +15,9 @@ It started as a little playground to play with raytracing concepts that I found 
 
 ## Examples
 
-The dragon model is from [The Stanford Scanning Repository](http://graphics.stanford.edu/data/3Dscanrep/).
+More examples can be found in the [renders/](renders/) directory.
 
-![example1](example1.png)
+![balls](balls.png)
 
 ## Currently supported
  * Integrators:
