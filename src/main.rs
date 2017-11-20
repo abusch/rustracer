@@ -1,5 +1,4 @@
 extern crate clap;
-#[macro_use]
 extern crate failure;
 extern crate rustracer_core as rt;
 #[macro_use]
