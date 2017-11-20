@@ -1,7 +1,4 @@
-extern crate tobj;
-
 use std::sync::Arc;
-use std::path::Path;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -436,9 +433,9 @@ impl Shape for Triangle {
         }
         // - compute barycentric coordinates and t value for triangle intersection
         let inv_det = 1.0 / det;
-        let b0 = e0 * inv_det;
-        let b1 = e1 * inv_det;
-        let b2 = e2 * inv_det;
+        let _b0 = e0 * inv_det;
+        let _b1 = e1 * inv_det;
+        let _b2 = e2 * inv_det;
         let t = t_scaled * inv_det;
 
         // - ensure that computed triangle t is conservatively greater than zero
@@ -524,28 +521,6 @@ impl Shape for Triangle {
     }
 }
 
-pub fn create_square(object_to_world: &Transform,
-                     reverse_orientation: bool)
-                     -> Vec<Arc<Shape + Send + Sync>> {
-    let vertices = vec![Point3f::new(-0.5, -0.5, 0.0),
-                        Point3f::new(-0.5, 0.5, 0.0),
-                        Point3f::new(0.5, 0.5, 0.0),
-                        Point3f::new(0.5, -0.5, 0.0)];
-    let indices = vec![0, 1, 2, 0, 2, 3];
-    let uv = vec![Point2f::new(0.0, 0.0),
-                  Point2f::new(0.0, 1.0),
-                  Point2f::new(1.0, 1.0),
-                  Point2f::new(1.0, 0.0)];
-
-    create_triangle_mesh(object_to_world,
-                         reverse_orientation,
-                         &indices[..],
-                         &vertices[..],
-                         None,
-                         None,
-                         Some(&uv[..]))
-}
-
 pub fn create_triangle_mesh(object_to_world: &Transform,
                             reverse_orientation: bool,
                             vertex_indices: &[usize],
@@ -565,57 +540,4 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
     }
 
     tris
-}
-
-pub fn load_triangle_mesh(file: &Path,
-                          model_name: &str,
-                          transform: &Transform)
-                          -> Vec<Arc<Shape + Send + Sync>> {
-    info!("Loading {} model from OBJ file:", model_name);
-    let (models, _) = tobj::load_obj(file).unwrap();
-    let model = models.iter().find(|m| m.name == model_name).unwrap();
-
-    info!("\tProcessing indices");
-    let indices: Vec<usize> = model
-        .mesh
-        .indices
-        .iter()
-        .map(|i| *i as usize)
-        .collect();
-
-    info!("\tProcessing vertices");
-    let positions: Vec<Point3f> = model
-        .mesh
-        .positions
-        .chunks(3)
-        .map(|p| Point3f::new(p[0], p[1], p[2]))
-        .collect();
-
-    info!("\tProcessing normals");
-    let normals: Vec<Normal3f> = model
-        .mesh
-        .normals
-        .chunks(3)
-        .map(|n| Normal3f::new(n[0], n[1], n[2]))
-        .collect();
-
-    info!("\tProcessing UV coordinates");
-    let uv: Vec<Point2f> = model
-        .mesh
-        .texcoords
-        .chunks(2)
-        .map(|t| Point2f::new(t[0], t[1]))
-        .collect();
-
-    create_triangle_mesh(transform,
-                         false,
-                         &indices[..],
-                         &positions[..],
-                         None,
-                         if normals.is_empty() {
-                             None
-                         } else {
-                             Some(&normals[..])
-                         },
-                         if uv.is_empty() { None } else { Some(&uv[..]) })
 }

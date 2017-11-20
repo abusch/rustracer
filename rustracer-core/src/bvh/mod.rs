@@ -148,7 +148,6 @@ impl BVH {
             // Choose split dimension
             let dimension = centroids_bounds.maximum_extent();
             // Partition primitives into 2 sets and build children
-            let mut mid = (start + end) / 2;
             if centroids_bounds[0][dimension] == centroids_bounds[1][dimension] {
                 let first_prim_offset = ordered_prims.len();
                 for pi in primitive_info[start..end].iter() {
@@ -158,6 +157,7 @@ impl BVH {
                 return BVHBuildNode::leaf(first_prim_offset, n_primitives, bounds);
             }
             // Partition primitives based on split method (here split middle)
+            let mut mid;
             match split_method {
                 SplitMethod::Middle => {
                     let pmid = 0.5 *

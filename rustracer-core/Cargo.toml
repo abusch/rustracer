@@ -31,7 +31,6 @@ slog = { version = "2", features = ["max_level_debug", "release_max_level_info"]
 slog-scope = "4"
 slog-term = "2"
 thread-id = "3"
-tobj = "0.1"
 
 [dev-dependencies]
 rand = "0.3"

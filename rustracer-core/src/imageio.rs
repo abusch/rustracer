@@ -49,7 +49,7 @@ pub fn write_image<P: AsRef<Path>>(name: P,
 fn write_image_png<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
-                                   total_resolution: &Point2i)
+                                   _total_resolution: &Point2i)
                                    -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
@@ -80,7 +80,7 @@ fn write_image_exr<P: AsRef<Path>>(name: P,
 fn write_image_exr<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
-                                   total_resolution: &Point2i)
+                                   _total_resolution: &Point2i)
                                    -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();

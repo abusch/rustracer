@@ -56,7 +56,7 @@ impl SpatialLightDistribution {
         }
         let hash_table_size = (4 * n_voxels[0] * n_voxels[1] * n_voxels[2]) as usize;
         let mut hash_table: Vec<HashEntry> = Vec::with_capacity(hash_table_size);
-        for i in 0..hash_table_size {
+        for _ in 0..hash_table_size {
             hash_table.push(HashEntry {
                                 packed_pos: AtomicU64::new(INVALID_PACKED_POS),
                                 distribution: AtomicPtr::default(),
@@ -108,7 +108,7 @@ impl SpatialLightDistribution {
             // light source.
             let u = Point2f::new(radical_inverse(3, i), radical_inverse(4, i));
             for j in 0..self.scene.lights.len() {
-                let (li, wi, pdf, vis) = self.scene.lights[j].sample_li(&intr, &u);
+                let (li, _wi, pdf, _vis) = self.scene.lights[j].sample_li(&intr, &u);
                 if pdf > 0.0 {
                     // TODO: look at tracing shadow rays / computing beam
                     // transmittance.  Probably shouldn't give those full weight
@@ -180,9 +180,7 @@ impl LightDistribution for SpatialLightDistribution {
         // use quadratic probing when the hash table entry is already used for
         // another value; step stores the square root of the probe step.
         let mut step = 1;
-        let mut n_probes = 0;
         loop {
-            n_probes += 1;
             let entry = &self.hash_table[hash as usize];
             // Does the hash table entry at offset |hash| match the current point?
             let entry_packed_pos = entry.packed_pos.load(Ordering::Acquire);

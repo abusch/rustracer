@@ -2,7 +2,6 @@ use combine::{eof, value, satisfy_map, token, between, many, many1, try, Parser,
               ParseError};
 use combine::char::{string, spaces};
 use combine::primitives::Error;
-use failure::*;
 
 use api::{Api, ParamType, ParamListEntry, Array};
 use paramset::ParamSet;
@@ -14,10 +13,10 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
      -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
     // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
     let accelerator = (token(Tokens::ACCELERATOR), string_(), param_list())
-        .and_then(|(_, typ, mut params)| {
-                      api.accelerator(typ, &mut params)
-                          .map_err(|e| e.compat())
-                  });
+            .and_then(|(_, typ, mut params)| {
+                api.accelerator(typ, &mut params)
+                    .map_err(|e| e.compat())
+            });
     let attribute_begin =
         token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| e.compat()));
     let attribute_end =
@@ -84,13 +83,14 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                                                api.named_material(name)
                                                                    .map_err(|e| e.compat())
                                                            });
-    let sampler = (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_,
-                                                                               name,
-                                                                               mut params)| {
-                                                                                 api.sampler(name,
+    let sampler =
+        (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                       api.sampler(name,
                                                                                    &mut params)
-            .map_err(|e| e.compat())
-                                                                             });
+                                                                           .map_err(|e| {
+                                                                                        e.compat()
+                                                                                    })
+                                                                   });
     let shape =
         (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, mut params)| {
                                                                      api.shape(name, &mut params)
@@ -100,15 +100,15 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                                                  });
 
     let reverse_orientation =
-        token(Tokens::REVERSEORIENTATION).and_then(|_| {
-                                                       api.reverse_orientation()
-            .map_err(|e| e.compat())
-                                                   });
+            token(Tokens::REVERSEORIENTATION).and_then(|_| {
+                api.reverse_orientation().map_err(|e| e.compat())
+            });
     let filter =
         (token(Tokens::PIXELFILTER), string_(), param_list())
-            .and_then(|(_, name, mut params)| api.pixel_filter(name, &mut params)
-            .map_err(|e| e.compat())
-                      );
+            .and_then(|(_, name, mut params)| {
+                          api.pixel_filter(name, &mut params)
+                              .map_err(|e| e.compat())
+                      });
     let scale =
         (token(Tokens::SCALE), num(), num(), num()).and_then(|(_, sx, sy, sz)| {
                                                                  api.scale(sx, sy, sz)
