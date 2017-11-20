@@ -9,16 +9,16 @@ use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use material::{Material, TransportMode};
 use spectrum::Spectrum;
-use texture::Texture;
+use texture::{TextureSpectrum, TextureFloat};
 
 #[derive(Debug)]
 pub struct GlassMaterial {
-    kr: Arc<Texture<Spectrum> + Send + Sync>,
-    kt: Arc<Texture<Spectrum> + Send + Sync>,
-    u_roughness: Arc<Texture<f32> + Send + Sync>,
-    v_roughness: Arc<Texture<f32> + Send + Sync>,
-    index: Arc<Texture<f32> + Send + Sync>,
-    bump_map: Option<Arc<Texture<f32> + Send + Sync>>,
+    kr: Arc<TextureSpectrum>,
+    kt: Arc<TextureSpectrum>,
+    u_roughness: Arc<TextureFloat>,
+    v_roughness: Arc<TextureFloat>,
+    index: Arc<TextureFloat>,
+    bump_map: Option<Arc<TextureFloat>>,
     remap_roughness: bool,
 }
 

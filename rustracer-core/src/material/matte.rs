@@ -7,13 +7,13 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::Texture;
+use texture::{TextureSpectrum, TextureFloat};
 
 #[derive(Debug)]
 pub struct MatteMaterial {
-    kd: Arc<Texture<Spectrum> + Sync + Send>,
-    sigma: Arc<Texture<f32> + Sync + Send>,
-    bump_map: Option<Arc<Texture<f32> + Sync + Send>>,
+    kd: Arc<TextureSpectrum>,
+    sigma: Arc<TextureFloat>,
+    bump_map: Option<Arc<TextureFloat>>,
 }
 
 impl MatteMaterial {

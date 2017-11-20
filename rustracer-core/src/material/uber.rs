@@ -8,10 +8,7 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::Texture;
-
-type TextureSpectrum = Texture<Spectrum> + Send + Sync;
-type TextureFloat = Texture<f32> + Send + Sync;
+use texture::{TextureSpectrum, TextureFloat};
 
 #[derive(Debug)]
 pub struct UberMaterial {

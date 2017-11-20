@@ -8,16 +8,16 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::Texture;
+use texture::{TextureSpectrum, TextureFloat};
 
 #[derive(Debug)]
 pub struct TranslucentMaterial {
-    kd: Arc<Texture<Spectrum> + Send + Sync>,
-    ks: Arc<Texture<Spectrum> + Send + Sync>,
-    roughness: Arc<Texture<f32> + Send + Sync>,
-    reflect: Arc<Texture<Spectrum> + Send + Sync>,
-    transmit: Arc<Texture<Spectrum> + Send + Sync>,
-    bumpmap: Option<Arc<Texture<f32> + Send + Sync>>,
+    kd: Arc<TextureSpectrum>,
+    ks: Arc<TextureSpectrum>,
+    roughness: Arc<TextureFloat>,
+    reflect: Arc<TextureSpectrum>,
+    transmit: Arc<TextureSpectrum>,
+    bumpmap: Option<Arc<TextureFloat>>,
     remap_roughness: bool,
 }
 

@@ -7,15 +7,15 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::Texture;
+use texture::{TextureSpectrum, TextureFloat};
 
 #[derive(Debug)]
 pub struct SubstrateMaterial {
-    kd: Arc<Texture<Spectrum> + Send + Sync>,
-    ks: Arc<Texture<Spectrum> + Send + Sync>,
-    nu: Arc<Texture<f32> + Send + Sync>,
-    nv: Arc<Texture<f32> + Send + Sync>,
-    bump_map: Option<Arc<Texture<f32> + Send + Sync>>,
+    kd: Arc<TextureSpectrum>,
+    ks: Arc<TextureSpectrum>,
+    nu: Arc<TextureFloat>,
+    nv: Arc<TextureFloat>,
+    bump_map: Option<Arc<TextureFloat>>,
     remap_roughness: bool,
 }
 

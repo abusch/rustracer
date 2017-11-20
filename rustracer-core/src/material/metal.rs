@@ -7,16 +7,16 @@ use interaction::SurfaceInteraction;
 use material::{self, Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::Texture;
+use texture::{TextureSpectrum, TextureFloat};
 
 #[derive(Debug)]
 pub struct Metal {
-    eta: Arc<Texture<Spectrum> + Send + Sync>,
-    k: Arc<Texture<Spectrum> + Send + Sync>,
-    rough: Arc<Texture<f32> + Send + Sync>,
-    bump: Option<Arc<Texture<f32> + Send + Sync>>,
-    urough: Option<Arc<Texture<f32> + Send + Sync>>,
-    vrough: Option<Arc<Texture<f32> + Send + Sync>>,
+    eta: Arc<TextureSpectrum>,
+    k: Arc<TextureSpectrum>,
+    rough: Arc<TextureFloat>,
+    bump: Option<Arc<TextureFloat>>,
+    urough: Option<Arc<TextureFloat>>,
+    vrough: Option<Arc<TextureFloat>>,
     remap_roughness: bool,
 }
 

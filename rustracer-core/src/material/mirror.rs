@@ -6,13 +6,13 @@ use bsdf::{BxDFHolder, Fresnel, SpecularReflection, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
-use texture::Texture;
 use spectrum::Spectrum;
+use texture::{TextureSpectrum, TextureFloat};
 
 #[derive(Debug)]
 pub struct MirrorMaterial {
-    kr: Arc<Texture<Spectrum> + Send + Sync>,
-    bump_map: Option<Arc<Texture<f32> + Send + Sync>>,
+    kr: Arc<TextureSpectrum>,
+    bump_map: Option<Arc<TextureFloat>>,
 }
 
 impl MirrorMaterial {

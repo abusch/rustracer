@@ -21,6 +21,10 @@ pub trait Texture<T>: Debug {
     fn evaluate(&self, si: &SurfaceInteraction) -> T;
 }
 
+// Some convenient aliases
+pub type TextureSpectrum = Texture<Spectrum> + Send + Sync;
+pub type TextureFloat = Texture<f32> + Send + Sync;
+
 #[derive(Debug)]
 pub struct UVTexture {
     mapping: Box<TextureMapping2D + Send + Sync>,
