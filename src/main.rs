@@ -1,5 +1,6 @@
 extern crate clap;
-extern crate error_chain;
+#[macro_use]
+extern crate failure;
 extern crate rustracer_core as rt;
 #[macro_use]
 extern crate slog;
@@ -10,8 +11,8 @@ mod logging;
 mod argparse;
 
 use clap::ArgMatches;
+use failure::Error;
 
-use rt::errors::*;
 use rt::pbrt;
 
 fn main() {
@@ -32,7 +33,7 @@ fn main() {
     }
 }
 
-fn run(matches: &ArgMatches) -> Result<()> {
+fn run(matches: &ArgMatches) -> Result<(), Error> {
     let filename = matches.value_of("INPUT").unwrap();
     pbrt::parse_scene(filename)?;
 

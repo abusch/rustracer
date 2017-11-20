@@ -11,7 +11,7 @@ extern crate bitflags;
 extern crate combine;
 extern crate crossbeam;
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 extern crate ieee754 as fp;
 extern crate image as img;
 extern crate indicatif;
@@ -69,19 +69,6 @@ mod stats;
 pub mod texture;
 pub mod transform;
 
-pub mod errors {
-    use img;
-    #[cfg(feature="exr")]
-    use openexr;
-
-    error_chain!{
-        foreign_links {
-            Io(::std::io::Error);
-            ImgTga(img::ImageError);
-            ImgExr(openexr::Error) #[cfg(feature="exr")];
-        }
-    }
-}
 use geometry::{Normal3, Point2, Point3, Vector2, Vector3};
 use spectrum::Spectrum;
 

@@ -1,11 +1,11 @@
 use std::sync::atomic::{Ordering, AtomicU32};
 use std::f32;
 
+use failure::Error;
 use parking_lot::Mutex;
 
 use {clamp, Point2f, Point2i, Vector2f};
 use bounds::{Bounds2f, Bounds2i};
-use errors::*;
 use filter::Filter;
 use imageio;
 use paramset::ParamSet;
@@ -162,7 +162,7 @@ impl Film {
         }
     }
 
-    pub fn write_image(&self) -> Result<()> {
+    pub fn write_image(&self) -> Result<(), Error> {
         info!("Converting image to RGB and computing final weighted pixel values");
         let splat_scale = 1.0; // TODO
         let pixels = self.pixels.lock();

@@ -2,13 +2,13 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use failure::Error;
 use indicatif::HumanDuration;
 
 use {Point3f, Transform, Vector3f};
 use bvh::BVH;
 use camera::{Camera, PerspectiveCamera};
 use display::NoopDisplayUpdater;
-use errors::*;
 use filter::{BoxFilter, Filter, GaussianFilter, MitchellNetravali, TriangleFilter};
 use film::Film;
 use geometry::Matrix4x4;
@@ -35,32 +35,32 @@ pub enum ApiState {
 }
 
 impl ApiState {
-    pub fn verify_uninitialized(&self) -> Result<()> {
+    pub fn verify_uninitialized(&self) -> Result<(), Error> {
         match *self {
             ApiState::Uninitialized => Ok(()),
-            _ => bail!("Api::init() has already been called!"),
+            _ => return Err(format_err!("Api::init() has already been called!")),
         }
     }
 
-    pub fn verify_initialized(&self) -> Result<()> {
+    pub fn verify_initialized(&self) -> Result<(), Error> {
         match *self {
-            ApiState::Uninitialized => bail!("Api::init() has not been called!"),
+            ApiState::Uninitialized => return Err(format_err!("Api::init() has not been called!")),
             _ => Ok(()),
         }
     }
 
-    pub fn verify_options(&self) -> Result<()> {
+    pub fn verify_options(&self) -> Result<(), Error> {
         self.verify_initialized()?;
         match *self {
-            ApiState::WorldBlock => bail!("Options cannot be set inside world block."),
+            ApiState::WorldBlock => return Err(format_err!("Options cannot be set inside world block.")),
             _ => Ok(()),
         }
     }
 
-    pub fn verify_world(&self) -> Result<()> {
+    pub fn verify_world(&self) -> Result<(), Error> {
         self.verify_initialized()?;
         match *self {
-            ApiState::OptionsBlock => bail!("Scene description must be inside world block."),
+            ApiState::OptionsBlock => return Err(format_err!("Scene description must be inside world block.")),
             _ => Ok(()),
         }
     }
@@ -151,42 +151,42 @@ pub struct RenderOptions {
 }
 
 impl RenderOptions {
-    pub fn make_filter(&mut self) -> Result<Box<Filter + Send + Sync>> {
+    pub fn make_filter(&mut self) -> Result<Box<Filter + Send + Sync>, Error> {
         debug!("Making filter");
         let filter = match self.filter_name.as_ref() {
             "box" => BoxFilter::create(&mut self.filter_params),
             "mitchell" => MitchellNetravali::create(&mut self.filter_params),
             "gaussian" => GaussianFilter::create(&mut self.filter_params),
             "triangle" => TriangleFilter::create(&mut self.filter_params),
-            _ => bail!(format!("Filter \"{}\" unknown.", self.filter_name)),
+            _ => return Err(format_err!("Filter \"{}\" unknown.", self.filter_name)),
         };
 
         Ok(filter)
     }
 
-    pub fn make_film(&mut self, filter: Box<Filter + Send + Sync>) -> Result<Box<Film>> {
+    pub fn make_film(&mut self, filter: Box<Filter + Send + Sync>) -> Result<Box<Film>, Error> {
         debug!("Making film");
         let film = if self.film_name == "image" {
             Film::create(&mut self.film_params, filter)
         } else {
-            bail!(format!("Film \"{}\" unknown.", self.film_name));
+            return Err(format_err!("Film \"{}\" unknown.", self.film_name));
         };
 
         Ok(film)
     }
 
-    pub fn make_sampler(&mut self) -> Result<Box<Sampler + Send + Sync>> {
+    pub fn make_sampler(&mut self) -> Result<Box<Sampler + Send + Sync>, Error> {
         let sampler = if self.sampler_name == "lowdiscrepancy" ||
                          self.sampler_name == "02sequence" {
             ZeroTwoSequence::create(&mut self.sampler_params)
         } else {
-            bail!(format!("Sampler \"{}\" unknown.", self.sampler_name));
+            return Err(format_err!("Sampler \"{}\" unknown.", self.sampler_name));
         };
 
         Ok(sampler)
     }
 
-    pub fn make_camera(&mut self) -> Result<Box<Camera + Send + Sync>> {
+    pub fn make_camera(&mut self) -> Result<Box<Camera + Send + Sync>, Error> {
         debug!("Making camera");
         let filter = self.make_filter()?;
         let film = self.make_film(filter)?;
@@ -194,13 +194,13 @@ impl RenderOptions {
         let camera = if self.camera_name == "perspective" {
             PerspectiveCamera::create(&mut self.camera_params, &self.camera_to_world, film)
         } else {
-            bail!("Camera \"{}\" unknown.", self.camera_name);
+            return Err(format_err!("Camera \"{}\" unknown.", self.camera_name));
         };
 
         Ok(camera)
     }
 
-    pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator + Send + Sync>> {
+    pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator + Send + Sync>, Error> {
         debug!("Making integrator");
         let integrator: Box<SamplerIntegrator + Send + Sync> =
             if self.integrator_name == "whitted" {
@@ -213,13 +213,13 @@ impl RenderOptions {
             } else if self.integrator_name == "normal" {
                 Box::new(Normal {})
             } else {
-                bail!(format!("Integrator \"{}\" unknown.", self.integrator_name));
+                return Err(format_err!("Integrator \"{}\" unknown.", self.integrator_name));
             };
 
         Ok(integrator)
     }
 
-    pub fn make_scene(&mut self) -> Result<Arc<Scene>> {
+    pub fn make_scene(&mut self) -> Result<Arc<Scene>, Error> {
         info!("Making scene with {} primitives and {} lights",
               self.primitives.len(),
               self.lights.len());
@@ -341,12 +341,12 @@ impl State {
 }
 
 pub trait Api {
-    fn init(&self) -> Result<()>;
+    fn init(&self) -> Result<(), Error>;
     // TODO cleanup
-    fn identity(&self) -> Result<()>;
-    fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<()>;
-    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()>;
-    fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<()>;
+    fn identity(&self) -> Result<(), Error>;
+    fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<(), Error>;
+    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<(), Error>;
+    fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<(), Error>;
     fn look_at(&self,
                ex: f32,
                ey: f32,
@@ -357,7 +357,7 @@ pub trait Api {
                ux: f32,
                uy: f32,
                uz: f32)
-               -> Result<()>;
+               -> Result<(), Error>;
     // TODO concat_Transform
     fn transform(&self,
                  tr00: f32,
@@ -376,44 +376,44 @@ pub trait Api {
                  tr13: f32,
                  tr14: f32,
                  tr15: f32)
-                 -> Result<()>;
+                 -> Result<(), Error>;
     // TODO coordinate_system
     // TODO coordinate_sys_transform
-    fn coord_sys_transform(&self, name: String) -> Result<()>;
+    fn coord_sys_transform(&self, name: String) -> Result<(), Error>;
     // TODO active_transform_all
     // TODO active_transform_end_time
     // TODO active_transform_start_time
     // TODO transform_times
-    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn film(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn camera(&self, name: String, params: &mut ParamSet) -> Result<()>;
+    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn film(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn camera(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
     // TODO make_named_medium
     // TODO medium_interface
-    fn world_begin(&self) -> Result<()>;
-    fn attribute_begin(&self) -> Result<()>;
-    fn attribute_end(&self) -> Result<()>;
-    fn transform_begin(&self) -> Result<()>;
-    fn transform_end(&self) -> Result<()>;
+    fn world_begin(&self) -> Result<(), Error>;
+    fn attribute_begin(&self) -> Result<(), Error>;
+    fn attribute_end(&self) -> Result<(), Error>;
+    fn transform_begin(&self) -> Result<(), Error>;
+    fn transform_end(&self) -> Result<(), Error>;
     fn texture(&self,
                name: String,
                typ: String,
                texname: String,
                params: &mut ParamSet)
-               -> Result<()>;
-    fn material(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn named_material(&self, name: String) -> Result<()>;
-    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn shape(&self, name: String, params: &mut ParamSet) -> Result<()>;
-    fn reverse_orientation(&self) -> Result<()>;
+               -> Result<(), Error>;
+    fn material(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn named_material(&self, name: String) -> Result<(), Error>;
+    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn shape(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn reverse_orientation(&self) -> Result<(), Error>;
     // TODO object_begin
     // TODO object_end
     // TODO object_instance
-    fn world_end(&self) -> Result<()>;
+    fn world_end(&self) -> Result<(), Error>;
 }
 
 #[derive(Default)]
@@ -426,7 +426,7 @@ impl RealApi {
                   name: &str,
                   param_set: &mut ParamSet,
                   light_2_world: &Transform)
-                  -> Result<Arc<Light + Send + Sync>> {
+                  -> Result<Arc<Light + Send + Sync>, Error> {
         if name == "point" {
             let light = PointLight::create(light_2_world, param_set);
             Ok(light)
@@ -438,13 +438,13 @@ impl RealApi {
             Ok(light)
         } else {
             warn!("Light {} unknown", name);
-            bail!("Unsupported light type");
+            return Err(format_err!("Unsupported light type"));
         }
     }
 }
 
 impl Api for RealApi {
-    fn init(&self) -> Result<()> {
+    fn init(&self) -> Result<(), Error> {
         debug!("API initialized!");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_uninitialized()?;
@@ -453,7 +453,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn identity(&self) -> Result<()> {
+    fn identity(&self) -> Result<(), Error> {
         debug!("Identity called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
@@ -461,7 +461,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<()> {
+    fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<(), Error> {
         debug!("Translate called with {} {} {}", dx, dy, dz);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
@@ -470,7 +470,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<()> {
+    fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<(), Error> {
         debug!("Rotate called with {} {} {} {}", angle, dx, dy, dz);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
@@ -479,7 +479,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<()> {
+    fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<(), Error> {
         debug!("Scale called with {} {} {}", sx, sy, sz);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
@@ -505,7 +505,7 @@ impl Api for RealApi {
                  tr13: f32,
                  tr14: f32,
                  tr15: f32)
-                 -> Result<()> {
+                 -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let mat = Matrix4x4::from_elements(tr00,
@@ -541,7 +541,7 @@ impl Api for RealApi {
                ux: f32,
                uy: f32,
                uz: f32)
-               -> Result<()> {
+               -> Result<(), Error> {
         debug!("look_at called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
@@ -552,7 +552,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn coord_sys_transform(&self, name: String) -> Result<()> {
+    fn coord_sys_transform(&self, name: String) -> Result<(), Error> {
         debug!("coord_sys_transform called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_initialized()?;
@@ -566,7 +566,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("pixel_filter called");
@@ -575,7 +575,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn film(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn film(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         debug!("Film called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -584,7 +584,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("sampler called");
@@ -593,7 +593,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("accelerator called");
@@ -602,7 +602,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         debug!("Integrator called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -611,7 +611,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn camera(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn camera(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("Camera called with {}", name);
@@ -625,7 +625,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn world_begin(&self) -> Result<()> {
+    fn world_begin(&self) -> Result<(), Error> {
         debug!("world_begin called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -638,7 +638,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn attribute_begin(&self) -> Result<()> {
+    fn attribute_begin(&self) -> Result<(), Error> {
         debug!("attribute_begin called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -648,7 +648,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn attribute_end(&self) -> Result<()> {
+    fn attribute_end(&self) -> Result<(), Error> {
         debug!("attribute_end called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -662,7 +662,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn transform_begin(&self) -> Result<()> {
+    fn transform_begin(&self) -> Result<(), Error> {
         debug!("transform_begin called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -671,7 +671,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn transform_end(&self) -> Result<()> {
+    fn transform_end(&self) -> Result<(), Error> {
         debug!("transform_end called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -689,7 +689,7 @@ impl Api for RealApi {
                typ: String,
                texname: String,
                params: &mut ParamSet)
-               -> Result<()> {
+               -> Result<(), Error> {
         debug!("texture() called with {} and {} and {}", name, typ, texname);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -741,7 +741,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         debug!("MakeNamedMaterial called with {}", name);
         let mut state = self.state.borrow_mut();
 
@@ -754,7 +754,7 @@ impl Api for RealApi {
 
             let mat_name = mp.find_string("type", "");
             if mat_name == "" {
-                bail!("No parameter string \"type\" found in named_material");
+                return Err(format_err!("No parameter string \"type\" found in named_material"));
             }
             make_material(&mat_name, &mut mp)
         };
@@ -768,7 +768,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn material(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn material(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         debug!("Material called with {}", name);
         let mut state = self.state.borrow_mut();
         state.graphics_state.material = name;
@@ -777,7 +777,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn named_material(&self, name: String) -> Result<()> {
+    fn named_material(&self, name: String) -> Result<(), Error> {
         debug!("NamedMaterial called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -785,7 +785,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         debug!("Lightsource called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -794,7 +794,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         debug!("Arealightsource called with {}", name);
         let mut state = self.state.borrow_mut();
         state.graphics_state.area_light = name;
@@ -802,7 +802,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn shape(&self, name: String, params: &mut ParamSet) -> Result<()> {
+    fn shape(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
         debug!("Shape called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -844,7 +844,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn reverse_orientation(&self) -> Result<()> {
+    fn reverse_orientation(&self) -> Result<(), Error> {
         debug!("ReverseOrientation called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -853,7 +853,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn world_end(&self) -> Result<()> {
+    fn world_end(&self) -> Result<(), Error> {
         debug!("world_end called");
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -960,21 +960,21 @@ fn make_area_light(name: &str,
                    light2world: &Transform,
                    params: &mut ParamSet,
                    shape: Arc<Shape + Send + Sync>)
-                   -> Result<(Arc<AreaLight + Send + Sync>, Arc<Light + Send + Sync>)> {
+                   -> Result<(Arc<AreaLight + Send + Sync>, Arc<Light + Send + Sync>), Error> {
     if name == "area" || name == "diffuse" {
         let l = DiffuseAreaLight::create(light2world, params, shape);
         let light: Arc<Light + Send + Sync> = l.clone();
         let area_light: Arc<AreaLight + Send + Sync> = l.clone();
         Ok((area_light, light))
     } else {
-        bail!("Area light {} unknown", name);
+        return Err(format_err!("Area light {} unknown", name));
     }
 }
 
 fn make_float_texture(name: &str,
                       transform: &Transform,
                       tp: &mut TextureParams)
-                      -> Result<Arc<Texture<f32> + Send + Sync>> {
+                      -> Result<Arc<Texture<f32> + Send + Sync>, Error> {
     let tex: Arc<Texture<f32> + Send + Sync> = if name == "constant" {
         Arc::new(ConstantTexture::create_float(transform, tp))
     } else if name == "scale" {
@@ -982,7 +982,7 @@ fn make_float_texture(name: &str,
     } else if name == "imagemap" {
         Arc::new(ImageTexture::<f32>::create(transform, tp))
     } else {
-        bail!("Unkown texture");
+        return Err(format_err!("Unkown texture"));
     };
 
     Ok(tex)
@@ -991,7 +991,7 @@ fn make_float_texture(name: &str,
 fn make_spectrum_texture(name: &str,
                          transform: &Transform,
                          tp: &mut TextureParams)
-                         -> Result<Arc<Texture<Spectrum> + Send + Sync>> {
+                         -> Result<Arc<Texture<Spectrum> + Send + Sync>, Error> {
     let tex: Arc<Texture<Spectrum> + Send + Sync> = if name == "constant" {
         Arc::new(ConstantTexture::create_spectrum(transform, tp))
     } else if name == "scale" {
@@ -1019,7 +1019,7 @@ fn make_spectrum_texture(name: &str,
     } else if name == "ptex" {
         unimplemented!()
     } else {
-        bail!("Unkown texture");
+        return Err(format_err!("Unkown texture"));
     };
 
     Ok(tex)

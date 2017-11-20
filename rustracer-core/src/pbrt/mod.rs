@@ -5,21 +5,22 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
+use failure::*;
+
 use api::{Api, RealApi};
-use errors::*;
 use fileutil;
 
-pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<()> {
+pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<(), Error> {
     let filename = filename.as_ref();
     let mut file = File::open(filename)
-        .chain_err(|| "Failed to open scene file")?;
+        .context("Failed to open scene file")?;
     let mut file_content = String::new();
     file.read_to_string(&mut file_content)
-        .chain_err(|| "Failed to read content of scene file")?;
+        .context("Failed to read content of scene file")?;
 
     // TODO handle errors
     let tokens = lexer::tokenize(&file_content)
-        .map_err(|e| format!("Failed to tokenize scene file: {:?}", e))?;
+        .map_err(|e| format_err!("Failed to tokenize scene file: {:?}", e))?;
     // strip comments
     let filtered_tokens = tokens
         .0
@@ -30,7 +31,7 @@ pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<()> {
     let api = RealApi::default();
     api.init()?;
     parser::parse(&filtered_tokens[..], &api)
-        .map_err(|e| format!("Failed to parse scene file: {:?}", e))?;
+        .map_err(|e| format_err!("Failed to parse scene file: {:?}", e))?;
 
     Ok(())
 }

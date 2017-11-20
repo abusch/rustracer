@@ -2,6 +2,7 @@ use std::sync::mpsc::channel;
 use std::sync::Arc;
 
 use crossbeam;
+use failure::Error;
 use indicatif;
 use parking_lot::Mutex;
 
@@ -9,7 +10,6 @@ use Point2i;
 use bounds::Bounds2i;
 use camera::Camera;
 use display::DisplayUpdater;
-use errors::*;
 use integrator::SamplerIntegrator;
 use light_arena::MemoryArena;
 use sampler::Sampler;
@@ -24,7 +24,7 @@ pub fn render(scene: Arc<Scene>,
               sampler: &mut Box<Sampler + Send + Sync>,
               block_size: i32,
               mut _display: Box<DisplayUpdater + Send>)
-              -> Result<stats::Stats> {
+              -> Result<stats::Stats, Error> {
     integrator.preprocess(Arc::clone(&scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
     let sample_extent = sample_bounds.diagonal();

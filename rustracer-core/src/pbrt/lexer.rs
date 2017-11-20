@@ -1,3 +1,5 @@
+use std::fmt;
+
 use combine::{eof, satisfy, skip_many, none_of, token, between, optional, many, many1, choice,
               try, Parser, Stream, ParseError};
 use combine::char::{string, spaces, digit, char};
@@ -50,6 +52,13 @@ pub enum Tokens {
     RBRACK,
     COMMENT,
 }
+
+impl fmt::Display for Tokens {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 
 pub fn tokenize(input: &str) -> Result<(Vec<Tokens>, &str), ParseError<&str>> {
 

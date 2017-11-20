@@ -2,9 +2,9 @@ use combine::{eof, value, satisfy_map, token, between, many, many1, try, Parser,
               ParseError};
 use combine::char::{string, spaces};
 use combine::primitives::Error;
+use failure::*;
 
 use api::{Api, ParamType, ParamListEntry, Array};
-// use errors::*;
 use paramset::ParamSet;
 use super::lexer::Tokens;
 
@@ -16,122 +16,141 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
     let accelerator = (token(Tokens::ACCELERATOR), string_(), param_list())
         .and_then(|(_, typ, mut params)| {
                       api.accelerator(typ, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                          .map_err(|e| e.compat())
                   });
-    let attribute_begin = token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
-    let attribute_end = token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| Error::Message(e.description().to_owned().into())));
-    let transform_begin = token(Tokens::TRANSFORMBEGIN).and_then(|_| api.transform_begin().map_err(|e| Error::Message(e.description().to_owned().into())));
-    let transform_end = token(Tokens::TRANSFORMEND).and_then(|_| api.transform_end().map_err(|e| Error::Message(e.description().to_owned().into())));
-    let world_begin = token(Tokens::WORLDBEGIN).and_then(|_| {
-                                                             api.world_begin()
-                                                   .map_err(|e| {
-                                                                Error::Message(e.description()
-                                                                                   .to_owned()
-                                                                                   .into())
-                                                            })
-                                                         });
-    let world_end = token(Tokens::WORLDEND).and_then(|_| {
-                                                         api.world_end()
-                                                 .map_err(|e| {
-                                                              Error::Message(e.description()
-                                                                                 .to_owned()
-                                                                                 .into())
-                                                          })
-                                                     });
+    let attribute_begin =
+        token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| e.compat()));
+    let attribute_end =
+        token(Tokens::ATTRIBUTEEND).and_then(|_| api.attribute_end().map_err(|e| e.compat()));
+    let transform_begin =
+        token(Tokens::TRANSFORMBEGIN).and_then(|_| api.transform_begin().map_err(|e| e.compat()));
+    let transform_end =
+        token(Tokens::TRANSFORMEND).and_then(|_| api.transform_end().map_err(|e| e.compat()));
+    let world_begin =
+        token(Tokens::WORLDBEGIN).and_then(|_| api.world_begin().map_err(|e| e.compat()));
+    let world_end = token(Tokens::WORLDEND).and_then(|_| api.world_end().map_err(|e| e.compat()));
     let look_at =
         (token(Tokens::LOOKAT), num(), num(), num(), num(), num(), num(), num(), num(), num())
             .and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
                           api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
-                              .map_err(|e| Error::Message(e.description().to_owned().into()))
+                              .map_err(|e| e.compat())
                       });
     let coord_sys_transform =
         (token(Tokens::COORDSYSTRANSFORM), string_()).and_then(|(_, name)| {
-            api.coord_sys_transform(name).map_err(|e| Error::Message(e.description().to_owned().into()))
-        });
+                                                                   api.coord_sys_transform(name)
+                                                                       .map_err(|e| e.compat())
+                                                               });
     let camera =
         (token(Tokens::CAMERA), string_(), param_list()).and_then(|(_, name, mut params)| {
                                                                       api.camera(name, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                                                                          .map_err(|e| {
+                                                                                       e.compat()
+                                                                                   })
                                                                   });
-    let film = (token(Tokens::FILM), string_(), param_list())
-        .and_then(|(_, name, mut params)| {
-                      api.film(name, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
-                  });
+    let film =
+        (token(Tokens::FILM), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                    api.film(name, &mut params)
+                                                                        .map_err(|e| e.compat())
+                                                                });
     let integrator = (token(Tokens::INTEGRATOR), string_(), param_list())
         .and_then(|(_, name, mut params)| {
-                      api.integrator(name, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                      api.integrator(name, &mut params).map_err(|e| e.compat())
                   });
     let arealightsource = (token(Tokens::AREALIGHTSOURCE), string_(), param_list())
         .and_then(|(_, name, mut params)| {
                       api.arealightsource(name, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                          .map_err(|e| e.compat())
                   });
     let lightsource = (token(Tokens::LIGHTSOURCE), string_(), param_list())
         .and_then(|(_, name, mut params)| {
                       api.lightsource(name, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                          .map_err(|e| e.compat())
                   });
-    let material = (token(Tokens::MATERIAL), string_(), param_list()).and_then(|(_, name, mut params)| {
-                                                                              api.material(name,
-                                                                                           &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                          });
+    let material =
+        (token(Tokens::MATERIAL), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                        api.material(name,
+                                                                                     &mut params)
+                                                                            .map_err(|e| {
+                                                                                         e.compat()
+                                                                                     })
+                                                                    });
     let make_named_material = (token(Tokens::MAKENAMEDMATERIAL), string_(), param_list())
         .and_then(|(_, name, mut params)| {
                       api.make_named_material(name, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                          .map_err(|e| e.compat())
                   });
-    let named_material = (token(Tokens::NAMEDMATERIAL), string_()).and_then(|(_, name)| {
-                                                                              api.named_material(name).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                          });
-    let sampler = (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_, name, mut params)| {
-                                                                        api.sampler(name, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                    });
-    let shape = (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, mut params)| {
-                                                                        api.shape(name, &mut params).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                    });
+    let named_material =
+        (token(Tokens::NAMEDMATERIAL), string_()).and_then(|(_, name)| {
+                                                               api.named_material(name)
+                                                                   .map_err(|e| e.compat())
+                                                           });
+    let sampler = (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_,
+                                                                               name,
+                                                                               mut params)| {
+                                                                                 api.sampler(name,
+                                                                                   &mut params)
+            .map_err(|e| e.compat())
+                                                                             });
+    let shape =
+        (token(Tokens::SHAPE), string_(), param_list()).and_then(|(_, name, mut params)| {
+                                                                     api.shape(name, &mut params)
+                                                                         .map_err(|e| {
+                                                                                      e.compat()
+                                                                                  })
+                                                                 });
 
     let reverse_orientation =
         token(Tokens::REVERSEORIENTATION).and_then(|_| {
                                                        api.reverse_orientation()
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+            .map_err(|e| e.compat())
                                                    });
     let filter =
         (token(Tokens::PIXELFILTER), string_(), param_list())
-            .and_then(|(_, name, mut params)| {
-                          api.pixel_filter(name, &mut params)
-                              .map_err(|e| Error::Message(e.description().to_owned().into()))
-                      });
-    let scale = (token(Tokens::SCALE), num(), num(), num()).and_then(|(_, sx, sy, sz)| {
-                                                                         api.scale(sx, sy, sz)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                     });
+            .and_then(|(_, name, mut params)| api.pixel_filter(name, &mut params)
+            .map_err(|e| e.compat())
+                      );
+    let scale =
+        (token(Tokens::SCALE), num(), num(), num()).and_then(|(_, sx, sy, sz)| {
+                                                                 api.scale(sx, sy, sz)
+                                                                     .map_err(|e| e.compat())
+                                                             });
     let rotate =
         (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
-                                                                    api.rotate(angle, dx, dy, dz).map_err(|e| Error::Message(e.description().to_owned().into()))
-                                                                });
+            api.rotate(angle, dx, dy, dz).map_err(|e| e.compat())
+        });
 
     let texture = (token(Tokens::TEXTURE), string_(), string_(), string_(), param_list())
         .and_then(|(_, name, typ, texname, mut params)| {
                       api.texture(name, typ, texname, &mut params)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
+                          .map_err(|e| e.compat())
                   });
-    let transform = (token::<I>(Tokens::TRANSFORM), num_array())
-        .and_then(|(_, nums)| {
-                        api.transform(nums[0], nums[1], nums[2], nums[3],
-                                      nums[4], nums[5], nums[6], nums[7],
-                                      nums[8], nums[9], nums[10], nums[11],
-                                      nums[12], nums[13], nums[14], nums[15],
-                                    )
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
-                  });
+    let transform = (token::<I>(Tokens::TRANSFORM), num_array()).and_then(|(_, nums)| {
+        api.transform(nums[0],
+                       nums[1],
+                       nums[2],
+                       nums[3],
+                       nums[4],
+                       nums[5],
+                       nums[6],
+                       nums[7],
+                       nums[8],
+                       nums[9],
+                       nums[10],
+                       nums[11],
+                       nums[12],
+                       nums[13],
+                       nums[14],
+                       nums[15])
+            .map_err(|e| e.compat())
+    });
 
-    let translate = (token(Tokens::TRANSLATE), num(), num(), num())
-        .and_then(|(_, dx, dy, dz)| {
-                      api.translate(dx, dy, dz)
-                          .map_err(|e| Error::Message(e.description().to_owned().into()))
-                  });
+    let translate =
+        (token(Tokens::TRANSLATE), num(), num(), num()).and_then(|(_, dx, dy, dz)| {
+                                                                     api.translate(dx, dy, dz)
+                                                                         .map_err(|e| {
+                                                                                      e.compat()
+                                                                                  })
+                                                                 });
 
     let parsers = many1::<Vec<_>, _>(choice!(try(accelerator),
                                              try(attribute_begin),

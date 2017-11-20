@@ -2,21 +2,21 @@ use std::path::Path;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 
+use failure::{Error, ResultExt};
 use img;
 #[cfg(feature="exr")]
 use openexr::{FrameBuffer, FrameBufferMut, InputFile, ScanlineOutputFile, Header, PixelType};
 
 use {Point2i, clamp};
 use bounds::Bounds2i;
-use errors::*;
 use fileutil::has_extension;
 use spectrum::{Spectrum, gamma_correct};
 
-pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading image {}", path.as_ref().display());
     let path = path.as_ref();
     let extension = path.extension()
-        .ok_or("Texture filename doesn't have an extension")?;
+        .ok_or(format_err!("Texture filename doesn't have an extension"))?;
     if extension == "tga" || extension == "TGA" || extension == "png" || extension == "PNG" {
         read_image_tga_png(path)
     } else if extension == "exr" || extension == "EXR" {
@@ -26,7 +26,7 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     } else if extension == "hdr" {
         read_image_hdr(path)
     } else {
-        bail!("Unsupported file format");
+        return Err(format_err!("Unsupported file format"));
     }
 }
 
@@ -34,7 +34,7 @@ pub fn write_image<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
                                    total_resolution: &Point2i)
-                                   -> Result<()> {
+                                   -> Result<(), Error> {
     let path = name.as_ref();
 
     if has_extension(path, "png") {
@@ -42,7 +42,7 @@ pub fn write_image<P: AsRef<Path>>(name: P,
     } else if has_extension(path, "exr") {
         write_image_exr(path, rgb, output_bounds, total_resolution)
     } else {
-        bail!("Unsupported file format");
+        return Err(format_err!("Unsupported file format"));
     }
 }
 
@@ -50,7 +50,7 @@ fn write_image_png<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
                                    total_resolution: &Point2i)
-                                   -> Result<()> {
+                                   -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
     let rgb8: Vec<_> = rgb.iter()
@@ -58,12 +58,13 @@ fn write_image_png<P: AsRef<Path>>(name: P,
         .collect();
 
 
-    return img::save_buffer(path,
-                            &rgb8,
-                            resolution.x as u32,
-                            resolution.y as u32,
-                            img::RGB(8))
-                   .chain_err(|| format!("Failed to save image file {}", path.display()));
+    img::save_buffer(path,
+                     &rgb8,
+                     resolution.x as u32,
+                     resolution.y as u32,
+                     img::RGB(8))
+            .context(format!("Failed to save image file {}", path.display()))?;
+    Ok(())
 }
 
 #[cfg(not(feature="exr"))]
@@ -71,7 +72,7 @@ fn write_image_exr<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
                                    total_resolution: &Point2i)
-                                   -> Result<()> {
+                                   -> Result<(), Error> {
     panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
 }
 
@@ -80,7 +81,7 @@ fn write_image_exr<P: AsRef<Path>>(name: P,
                                    rgb: &[f32],
                                    output_bounds: &Bounds2i,
                                    total_resolution: &Point2i)
-                                   -> Result<()> {
+                                   -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
     let mut file = File::create(path)?;
@@ -106,7 +107,7 @@ fn write_image_exr<P: AsRef<Path>>(name: P,
     Ok(())
 }
 
-fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading texture {}", path.as_ref().display());
     let buf = img::open(path)?;
 
@@ -124,7 +125,7 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
     Ok((pixels, res))
 }
 
-fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading HDR image {}", path.as_ref().display());
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
@@ -140,12 +141,12 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
 }
 
 #[cfg(not(feature="exr"))]
-fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
 }
 
 #[cfg(feature="exr")]
-fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading EXR texture {}", path.as_ref().display());
     let mut file = File::open(path.as_ref())?;
     let mut exr_file = InputFile::new(&mut file).unwrap();
@@ -193,7 +194,7 @@ fn read_word<R: BufRead>(f: &mut R) -> String {
     buf
 }
 
-fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
+fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading PFM file {}", path.as_ref().display());
     let file = File::open(path.as_ref())?;
     let mut reader = BufReader::new(file);
@@ -205,21 +206,21 @@ fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i)> {
     } else if &word == "PF" {
         3
     } else {
-        bail!("Error reading PFM file \"{}\"", path.as_ref().display());
+        return Err(format_err!("Error reading PFM file \"{}\"", path.as_ref().display()));
     };
 
     // Read the rest of the header
     // Read width
     word = read_word(&mut reader);
-    let width: usize = word.parse().chain_err(|| "Failed to parse width")?;
+    let width: usize = word.parse::<usize>().context("Failed to parse width")?;
 
     // Read height
     word = read_word(&mut reader);
-    let height: usize = word.parse().chain_err(|| "Failed to parse height")?;
+    let height: usize = word.parse::<usize>().context("Failed to parse height")?;
 
     // Read scale
     word = read_word(&mut reader);
-    let scale: f32 = word.parse().chain_err(|| "Failed to parse scale")?;
+    let scale: f32 = word.parse::<f32>().context("Failed to parse scale")?;
     let file_little_endian = scale < 0.0;
     let host_little_endian = true;
 
