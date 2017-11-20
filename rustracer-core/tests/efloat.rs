@@ -1,6 +1,6 @@
 extern crate ieee754;
 extern crate rand;
-extern crate rustracer as rt;
+extern crate rustracer_core as rt;
 
 use rand::{Rng, SeedableRng, StdRng};
 use ieee754::Ieee754;

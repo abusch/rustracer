@@ -1,5 +1,5 @@
 extern crate rand;
-extern crate rustracer as rt;
+extern crate rustracer_core as rt;
 
 use std::f32;
 use rand::{Rng, SeedableRng, StdRng};
@@ -8,8 +8,7 @@ use rand::distributions::{IndependentSample, Range};
 use rt::{Point2f, Point3f, Transform};
 use rt::ray::Ray;
 use rt::sampling;
-use rt::shapes::Shape;
-use rt::shapes::sphere::Sphere;
+use rt::shapes::{Shape, Sphere};
 
 fn pexp<T: Rng>(rng: &mut T, exp: f32) -> f32 {
     let range = Range::new(-exp, exp);
@@ -49,7 +48,7 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
             // Random direction leaving the intersection point
             let u = Point2f::new(rng.next_f32(), rng.next_f32());
             let mut w = sampling::uniform_sample_sphere(&u);
-            if w.dotn(&isect.n) < 0.0 {
+            if w.dotn(&isect.hit.n) < 0.0 {
                 w = -w;
             }
             let ray_out = isect.spawn_ray(&w);
