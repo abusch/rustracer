@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, Fresnel, LambertianReflection, MicrofacetReflection, SpecularReflection,
+use bsdf::{BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection, SpecularReflection,
            SpecularTransmission, TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
@@ -65,8 +65,7 @@ impl Material for UberMaterial {
                                             mode: TransportMode,
                                             _allow_multiple_lobes: bool,
                                             arena: &'b Allocator) {
-        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
-        let mut i = 0;
+        let mut bxdfs = BxDFHolder::new(arena);
 
         if let Some(ref bump_map) = self.bumpmap {
             super::bump(bump_map, si);
@@ -79,14 +78,12 @@ impl Material for UberMaterial {
         let mut eta = e;
         if !t.is_black() {
             eta = 1.0;
-            bxdfs[i] = arena <- SpecularTransmission::new(t, 1.0, 1.0, mode);
-            i += 1;
+            bxdfs.add(arena <- SpecularTransmission::new(t, 1.0, 1.0, mode));
         }
 
         let kd = op * self.kd.evaluate(si).clamp();
         if !kd.is_black() {
-            bxdfs[i] = arena <- LambertianReflection::new(kd);
-            i += 1;
+            bxdfs.add(arena <- LambertianReflection::new(kd));
         }
 
         let ks = op * self.ks.evaluate(si).clamp();
@@ -105,29 +102,21 @@ impl Material for UberMaterial {
                 roughv = TrowbridgeReitzDistribution::roughness_to_alpha(roughv);
             }
             let distrib = arena <- TrowbridgeReitzDistribution::new(roughu, roughv);
-            bxdfs[i] = arena <- MicrofacetReflection::new(ks, distrib, fresnel);
-            i += 1;
+            bxdfs.add(arena <- MicrofacetReflection::new(ks, distrib, fresnel));
         }
 
         let kr = op * self.kr.evaluate(si).clamp();
         if !kr.is_black() {
             let fresnel = arena <- Fresnel::dielectric(1.0, e);
-            bxdfs[i] = arena <-SpecularReflection::new(kr, fresnel);
-            i += 1;
+            bxdfs.add(arena <-SpecularReflection::new(kr, fresnel));
         }
 
         let kt = op * self.kt.evaluate(si).clamp();
         if !kt.is_black() {
-            bxdfs[i] = arena <- SpecularTransmission::new(kt, 1.0, e, mode);
-            i += 1;
+            bxdfs.add(arena <- SpecularTransmission::new(kt, 1.0, e, mode));
         }
 
-        unsafe {
-            let ptr = bxdfs.as_mut_ptr();
-            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
-        }
-
-        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs);
+        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.to_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

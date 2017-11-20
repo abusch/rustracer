@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, Fresnel, LambertianReflection, MicrofacetReflection, TrowbridgeReitzDistribution,
-           BSDF};
+use bsdf::{BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection,
+           TrowbridgeReitzDistribution, BSDF};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
@@ -51,11 +51,9 @@ impl Material for Plastic {
         let kd = self.kd.evaluate(si);
         let ks = self.ks.evaluate(si);
 
-        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
-        let mut i = 0;
+        let mut bxdfs = BxDFHolder::new(arena);
         if !kd.is_black() {
-            bxdfs[i] = arena <- LambertianReflection::new(kd);
-            i += 1;
+            bxdfs.add(arena <- LambertianReflection::new(kd));
         }
         if !ks.is_black() {
             let fresnel = arena <- Fresnel::dielectric(1.5, 1.0);
@@ -64,16 +62,10 @@ impl Material for Plastic {
                 roughness = TrowbridgeReitzDistribution::roughness_to_alpha(roughness);
             }
             let distrib = arena <- TrowbridgeReitzDistribution::new(roughness, roughness);
-            bxdfs[i] = arena <- MicrofacetReflection::new(ks, distrib, fresnel);
-            i += 1;
+            bxdfs.add(arena <- MicrofacetReflection::new(ks, distrib, fresnel));
         }
 
-        unsafe {
-            let ptr = bxdfs.as_mut_ptr();
-            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
-        }
-
-        let bsdf: BSDF<'b> = BSDF::new(si, 1.0, bxdfs);
+        let bsdf: BSDF<'b> = BSDF::new(si, 1.0, bxdfs.to_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

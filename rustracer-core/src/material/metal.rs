@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, Fresnel, MicrofacetReflection, TrowbridgeReitzDistribution, BSDF};
+use bsdf::{BxDFHolder, Fresnel, MicrofacetReflection, TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
 use material::{self, Material, TransportMode};
 use paramset::TextureParams;
@@ -55,8 +55,7 @@ impl Material for Metal {
         if let Some(ref bump) = self.bump {
             material::bump(bump, si);
         }
-        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
-        let mut i = 0;
+        let mut bxdfs = BxDFHolder::new(arena);
         let mut urough = self.urough
             .as_ref()
             .unwrap_or(&self.rough)
@@ -73,15 +72,9 @@ impl Material for Metal {
                                                   self.eta.evaluate(si),
                                                   self.k.evaluate(si));
         let distrib = arena <- TrowbridgeReitzDistribution::new(urough, vrough);
-        bxdfs[i] = arena <- MicrofacetReflection::new(Spectrum::white(), distrib, fresnel);
-        i += 1;
+        bxdfs.add(arena <- MicrofacetReflection::new(Spectrum::white(), distrib, fresnel));
 
-        unsafe {
-            let ptr = bxdfs.as_mut_ptr();
-            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
-        }
-
-        let bsdf = BSDF::new(si, 1.0, bxdfs);
+        let bsdf = BSDF::new(si, 1.0, bxdfs.to_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

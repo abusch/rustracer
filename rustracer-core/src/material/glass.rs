@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, Fresnel, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission,
-           SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, BSDF};
+use bsdf::{BxDF, BxDFHolder, Fresnel, FresnelSpecular, MicrofacetReflection,
+           MicrofacetTransmission, SpecularReflection, SpecularTransmission,
+           TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use material::{Material, TransportMode};
@@ -61,14 +62,12 @@ impl Material for GlassMaterial {
         let r = self.kr.evaluate(si);
         let t = self.kt.evaluate(si);
 
-        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
-        let mut i = 0;
+        let mut bxdfs = BxDFHolder::new(arena);
 
         if !r.is_black() || !t.is_black() {
             let is_specular = u_rough == 0.0 && v_rough == 0.0;
             if is_specular && allow_multiple_lobes {
-                bxdfs[i] = arena <- FresnelSpecular::new(r, t, 1.0, eta, mode);
-                i += 1;
+                bxdfs.add(arena <- FresnelSpecular::new(r, t, 1.0, eta, mode));
             } else {
                 if self.remap_roughness {
                     u_rough = TrowbridgeReitzDistribution::roughness_to_alpha(u_rough);
@@ -82,8 +81,7 @@ impl Material for GlassMaterial {
                         let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
                         arena <- MicrofacetReflection::new(r, distrib, fresnel)
                     };
-                    bxdfs[i] = bxdf;
-                    i += 1;
+                    bxdfs.add(bxdf);
                 }
                 if !t.is_black() {
                     let bxdf: &'b BxDF = if is_specular {
@@ -92,18 +90,12 @@ impl Material for GlassMaterial {
                         let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
                         arena <- MicrofacetTransmission::new(r, distrib, 1.0, eta, mode)
                     };
-                    bxdfs[i] = bxdf;
-                    i += 1;
+                    bxdfs.add(bxdf);
                 }
             }
         }
 
-        unsafe {
-            let ptr = bxdfs.as_mut_ptr();
-            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
-        }
-
-        let bsdf = BSDF::new(si, eta, bxdfs);
+        let bsdf = BSDF::new(si, eta, bxdfs.to_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

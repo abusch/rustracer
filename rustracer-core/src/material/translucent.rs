@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, Fresnel, LambertianReflection, LambertianTransmission, MicrofacetReflection,
-           MicrofacetTransmission, TrowbridgeReitzDistribution, BSDF};
+use bsdf::{BxDFHolder, Fresnel, LambertianReflection, LambertianTransmission,
+           MicrofacetReflection, MicrofacetTransmission, TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
@@ -49,8 +49,7 @@ impl Material for TranslucentMaterial {
                                             mode: TransportMode,
                                             _allow_multiple_lobes: bool,
                                             arena: &'b Allocator) {
-        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
-        let mut i = 0;
+        let mut bxdfs = BxDFHolder::new(arena);
         let eta = 1.5;
 
         if let Some(ref bump_map) = self.bumpmap {
@@ -64,12 +63,10 @@ impl Material for TranslucentMaterial {
             let kd = self.kd.evaluate(si).clamp();
             if !kd.is_black() {
                 if !r.is_black() {
-                    bxdfs[i] = arena <- LambertianReflection::new(r * kd);
-                    i += 1;
+                    bxdfs.add(arena <- LambertianReflection::new(r * kd));
                 }
                 if !t.is_black() {
-                    bxdfs[i] = arena <- LambertianTransmission::new(t * kd);
-                    i += 1;
+                    bxdfs.add(arena <- LambertianTransmission::new(t * kd));
                 }
             }
             let ks = self.ks.evaluate(si).clamp();
@@ -81,23 +78,16 @@ impl Material for TranslucentMaterial {
                 let distrib = arena <- TrowbridgeReitzDistribution::new(rough, rough);
                 if !r.is_black() {
                     let fresnel = arena <- Fresnel::dielectric(1.0, eta);
-                    bxdfs[i] = arena <- MicrofacetReflection::new(r * ks, distrib, fresnel);
-                    i += 1;
+                    bxdfs.add(arena <- MicrofacetReflection::new(r * ks, distrib, fresnel));
                 }
                 if !t.is_black() {
-                    bxdfs[i] =
-                        arena <- MicrofacetTransmission::new(t * ks, distrib, 1.0, eta, mode);
-                    i += 1;
+                    bxdfs
+                        .add(arena <- MicrofacetTransmission::new(t * ks, distrib, 1.0, eta, mode));
                 }
             }
         }
 
-        unsafe {
-            let ptr = bxdfs.as_mut_ptr();
-            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
-        }
-
-        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs);
+        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.to_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

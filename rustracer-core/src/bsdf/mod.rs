@@ -12,6 +12,8 @@ pub use self::microfacet::*;
 
 use std::cmp;
 
+use light_arena::Allocator;
+
 use {Normal3f, Point2f, Vector3f, ONE_MINUS_EPSILON};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
@@ -23,6 +25,35 @@ bitflags! {
         const BSDF_DIFFUSE      = 0b_00000100;
         const BSDF_GLOSSY       = 0b_00001000;
         const BSDF_SPECULAR     = 0b_00010000;
+    }
+}
+
+/// Little helper class to facilitate a stack of BxDFs.
+pub struct BxDFHolder<'a> {
+    b: &'a mut [&'a BxDF],
+    n: usize,
+}
+
+impl<'a> BxDFHolder<'a> {
+    pub fn new(arena: &'a Allocator) -> BxDFHolder<'a> {
+        BxDFHolder {
+            b: arena.alloc_slice::<&BxDF>(8),
+            n: 0,
+        }
+    }
+
+    pub fn add(&mut self, bxdf: &'a BxDF) {
+        let n = self.n;
+        self.b[n] = bxdf;
+        self.n += 1;
+    }
+
+    pub fn to_slice(self) -> &'a [&'a BxDF] {
+        unsafe {
+            let ptr = self.b.as_mut_ptr();
+            let bxdfs = ::std::slice::from_raw_parts_mut(ptr, self.n);
+            bxdfs
+        }
     }
 }
 

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, LambertianReflection, OrenNayar, BSDF};
+use bsdf::{BxDFHolder, LambertianReflection, OrenNayar, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
@@ -37,8 +37,7 @@ impl Material for MatteMaterial {
                                             _mode: TransportMode,
                                             _allow_multiple_lobes: bool,
                                             arena: &'b Allocator) {
-        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
-        let mut i = 0;
+        let mut bxdfs = BxDFHolder::new(arena);
 
         if let Some(ref bump_map) = self.bump_map {
             super::bump(bump_map, si);
@@ -47,19 +46,12 @@ impl Material for MatteMaterial {
         let r = self.kd.evaluate(si);
         let sigma = self.sigma.evaluate(si);
         if sigma == 0.0 {
-            bxdfs[i] = arena <- LambertianReflection::new(r);
-            i += 1;
+            bxdfs.add(arena <- LambertianReflection::new(r));
         } else {
-            bxdfs[i] = arena <- OrenNayar::new(r, sigma);
-            i += 1;
+            bxdfs.add(arena <- OrenNayar::new(r, sigma));
         }
 
-        unsafe {
-            let ptr = bxdfs.as_mut_ptr();
-            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
-        }
-
-        let bsdf = BSDF::new(si, 1.0, bxdfs);
+        let bsdf = BSDF::new(si, 1.0, bxdfs.to_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

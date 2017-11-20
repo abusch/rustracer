@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, Fresnel, SpecularReflection, BSDF};
+use bsdf::{BxDFHolder, Fresnel, SpecularReflection, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
@@ -34,20 +34,13 @@ impl Material for MirrorMaterial {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);
         }
-        let mut bxdfs = arena.alloc_slice::<&BxDF>(8);
-        let mut i = 0;
+        let mut bxdfs = BxDFHolder::new(arena);
         let R = self.kr.evaluate(si); // TODO clamp
         if !R.is_black() {
             let fresnel = arena <- Fresnel::no_op();
-            bxdfs[i] = arena <- SpecularReflection::new(R, fresnel);
-            i += 1;
+            bxdfs.add(arena <- SpecularReflection::new(R, fresnel));
         }
 
-        unsafe {
-            let ptr = bxdfs.as_mut_ptr();
-            bxdfs = ::std::slice::from_raw_parts_mut(ptr, i);
-        }
-
-        si.bsdf = Some(Arc::new(BSDF::new(si, 1.0, bxdfs)));
+        si.bsdf = Some(Arc::new(BSDF::new(si, 1.0, bxdfs.to_slice())));
     }
 }
