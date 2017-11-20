@@ -5,6 +5,7 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
+use combine::State;
 use failure::*;
 
 use api::{Api, RealApi};
@@ -19,7 +20,7 @@ pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<(), Error> {
         .context("Failed to read content of scene file")?;
 
     // TODO handle errors
-    let tokens = lexer::tokenize(&file_content)
+    let tokens = lexer::tokenize(State::new(&file_content[..]))
         .map_err(|e| format_err!("Failed to tokenize scene file: {:?}", e))?;
     // strip comments
     let filtered_tokens = tokens

@@ -60,7 +60,7 @@ impl fmt::Display for Tokens {
 }
 
 
-pub fn tokenize(input: &str) -> Result<(Vec<Tokens>, &str), ParseError<&str>> {
+pub fn tokenize<I: Stream<Item = char>>(input: I) -> Result<(Vec<Tokens>, I), ParseError<I>> {
 
     // parsers for keywords
     let mut parsers = vec![token_parser("Accelerator", Tokens::ACCELERATOR),
