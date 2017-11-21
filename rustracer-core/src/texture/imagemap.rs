@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::path::Path;
 use std::fmt::Debug;
 use num::Zero;
-use std::ops::{AddAssign, Mul};
+use std::ops::{AddAssign, Mul, Div};
 
 use {Clampable, Point2i};
 use fileutil;
@@ -28,6 +28,7 @@ impl<T> ImageTexture<T>
           T: Debug,
           T: AddAssign<T>,
           T: Mul<f32, Output = T>,
+          T: Div<f32, Output = T>,
           T: Sized
 {
     pub fn new<F: Fn(&Spectrum) -> T>(path: &Path,
@@ -179,11 +180,11 @@ impl<T> Texture<T> for ImageTexture<T>
           T: Debug,
           T: AddAssign<T>,
           T: Mul<f32, Output = T>,
+          T: Div<f32, Output = T>,
           T: Sized
 {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {
-        let st = self.mapping.map(si);
-        // TODO Call correct lookup method once we have ray differentials
-        self.mipmap.lookup(&st, 0.0)
+        let (st, dstdx, dstdy) = self.mapping.map(si);
+        self.mipmap.lookup_diff(&st, &dstdx, &dstdy)
     }
 }

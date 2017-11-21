@@ -16,6 +16,8 @@ extern crate ieee754 as fp;
 extern crate image as img;
 extern crate indicatif;
 extern crate itertools as it;
+#[macro_use]
+extern crate lazy_static;
 extern crate light_arena;
 extern crate num;
 #[cfg(feature="exr")]

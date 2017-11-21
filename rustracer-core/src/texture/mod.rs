@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 
-use {Point2f, Point3f, Transform, Vector3f};
+use num::Zero;
+
+use {Point2f, Point3f, Transform, Vector2f, Vector3f};
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use spectrum::Spectrum;
@@ -60,7 +62,7 @@ impl UVTexture {
 
 impl Texture<Spectrum> for UVTexture {
     fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum {
-        let st = self.mapping.map(si);
+        let (st, _dstdx, _dstdy) = self.mapping.map(si);
         Spectrum::rgb(st[0] - st[0].floor(), st[1] - st[1].floor(), 0.0)
     }
 }
@@ -68,7 +70,7 @@ impl Texture<Spectrum> for UVTexture {
 // Texture mappings
 
 pub trait TextureMapping2D: Debug {
-    fn map(&self, si: &SurfaceInteraction) -> Point2f;
+    fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f);
 }
 
 #[derive(Debug)]
@@ -91,8 +93,10 @@ impl UVMapping2D {
 }
 
 impl TextureMapping2D for UVMapping2D {
-    fn map(&self, si: &SurfaceInteraction) -> Point2f {
-        Point2f::new(self.su * si.uv.x + self.du, self.sv * si.uv.y + self.dv)
+    fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f) {
+        (Point2f::new(self.su * si.uv.x + self.du, self.sv * si.uv.y + self.dv),
+         Vector2f::zero(),
+         Vector2f::zero())
     }
 }
 

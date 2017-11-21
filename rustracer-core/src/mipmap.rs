@@ -1,11 +1,11 @@
-use std::ops::{AddAssign, Mul};
+use std::ops::{AddAssign, Div, Mul};
 use std::cmp;
 use std::f32;
 use std::fmt::Debug;
 
 use num::{zero, Zero};
 
-use {Clampable, Point2f, Point2i};
+use {Clampable, Point2f, Point2i, Vector2f};
 use {clamp, lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
 
@@ -14,6 +14,19 @@ pub enum WrapMode {
     Repeat,
     Black,
     Clamp,
+}
+
+const WEIGHT_LUT_SIZE: usize = 128;
+lazy_static! {
+    static ref WEIGHT_LUT: [f32; WEIGHT_LUT_SIZE] = {
+        let mut w: [f32; WEIGHT_LUT_SIZE] = [0.0; WEIGHT_LUT_SIZE];
+        for i in 0..WEIGHT_LUT_SIZE {
+            let alpha = 2.0;
+            let r2 = i as f32 / (WEIGHT_LUT_SIZE as f32 - 1.0);
+            w[i] = f32::exp(-alpha * r2) - f32::exp(-alpha);
+        }
+        w
+    };
 }
 
 #[derive(Debug)]
@@ -33,7 +46,8 @@ impl<T> MIPMap<T>
           T: Clampable,
           T: Debug,
           T: AddAssign<T>,
-          T: Mul<f32, Output = T>
+          T: Mul<f32, Output = T>,
+          T: Div<f32, Output = T>
 {
     pub fn new(res: &Point2i,
                img: &[T],
@@ -144,7 +158,6 @@ impl<T> MIPMap<T>
             }
             mipmap.pyramid.push(ba);
         }
-        // TODO initialize EWA filter weights if needed
 
         mipmap
     }
@@ -194,6 +207,40 @@ impl<T> MIPMap<T>
         }
     }
 
+    pub fn lookup_diff(&self, st: &Point2f, dst0: &Vector2f, dst1: &Vector2f) -> T {
+        let mut dst0 = *dst0;
+        let mut dst1 = *dst1;
+        if self.do_trilinear {
+            let width = f32::max(f32::max(f32::abs(dst0[0]), f32::abs(dst0[1])),
+                                 f32::max(f32::abs(dst1[0]), f32::abs(dst1[1])));
+            return self.lookup(st, 2.0 * width);
+        }
+
+        // Compute ellipse minor and major axes
+        if dst0.length_squared() < dst1.length_squared() {
+            ::std::mem::swap(&mut dst0, &mut dst1);
+        }
+        let major_length = dst0.length();
+        let minor_length = dst1.length();
+
+        // Clamp ellipse eccentricity if too large
+        if (minor_length * self.max_anisotropy) < major_length && minor_length > 0.0 {
+            let scale = major_length / (minor_length * self.max_anisotropy);
+            dst1 *= scale;
+        }
+        if minor_length == 0.0 {
+            return self.triangle(0, st);
+        }
+
+        // Choose level of detail for EWA lookup and perform EWA filtering
+        let lod = f32::max(0.0, self.levels() as f32 - 1.0 + f32::log2(minor_length));
+        let ilod = f32::floor(lod) as usize;
+
+        lerp(lod - ilod as f32,
+             self.EWA(ilod, st, &dst0, &dst1),
+             self.EWA(ilod + 1, st, &dst0, &dst1))
+    }
+
     pub fn triangle(&self, level: usize, st: &Point2f) -> T {
         let level = clamp(level, 0, self.levels() - 1);
         let s = st.x * self.pyramid[level].u_size() as f32 - 0.5;
@@ -215,6 +262,61 @@ impl<T> MIPMap<T>
         *self.texel(level, s0, t0 + 1) * (1.0 - ds) * dt +
         *self.texel(level, s0 + 1, t0) * ds * (1.0 - dt) +
         *self.texel(level, s0 + 1, t0 + 1) * ds * dt
+    }
+
+    fn EWA(&self, level: usize, st: &Point2f, dst0: &Vector2f, dst1: &Vector2f) -> T {
+        let mut st = *st;
+        let mut dst0 = *dst0;
+        let mut dst1 = *dst1;
+
+        if level > self.levels() {
+            return *self.texel(self.levels() - 1, 0, 0);
+        }
+        // Convert EWA coordinates to appropriate scale for level
+        st[0] = st[0] * self.pyramid[level].u_size() as f32 - 0.5;
+        st[1] = st[1] * self.pyramid[level].v_size() as f32 - 0.5;
+        dst0[0] *= self.pyramid[level].u_size() as f32;
+        dst0[1] *= self.pyramid[level].v_size() as f32;
+        dst1[0] *= self.pyramid[level].u_size() as f32;
+        dst1[1] *= self.pyramid[level].v_size() as f32;
+
+        // Compute ellipse coefficients to bound EWA filter region
+        let mut A = dst0[1] * dst0[1] + dst1[1] * dst1[1] + 1.0;
+        let mut B = -2.0 * (dst0[0] * dst0[1] + dst1[0] * dst1[1]);
+        let mut C = dst0[0] * dst0[0] + dst1[0] * dst1[0] + 1.0;
+        let invF = 1.0 / (A * C - B * B * 0.25);
+        A *= invF;
+        B *= invF;
+        C *= invF;
+
+        // Compute the ellipse's $(s,t)$ bounding box in texture space
+        let det = -B * B + 4.0 * A * C;
+        let invDet = 1.0 / det;
+        let uSqrt = f32::sqrt(det * C);
+        let vSqrt = f32::sqrt(A * det);
+        let s0 = f32::ceil(st[0] - 2.0 * invDet * uSqrt) as isize;
+        let s1 = f32::floor(st[0] + 2.0 * invDet * uSqrt) as isize;
+        let t0 = f32::ceil(st[1] - 2.0 * invDet * vSqrt) as isize;
+        let t1 = f32::floor(st[1] + 2.0 * invDet * vSqrt) as isize;
+
+        // Scan over ellipse bound and compute quadratic equation
+        let mut sum: T = zero();
+        let mut sumWts = 0.0;
+        for it in t0..(t1 + 1) {
+            let tt = it as f32 - st[1];
+            for is in s0..(s1 + 1) {
+                let ss = is as f32 - st[0];
+                // Compute squared radius and filter texel if inside ellipse
+                let r2 = A * ss * ss + B * ss * tt + C * tt * tt;
+                if r2 < 1.0 {
+                    let index = usize::min((r2 as usize * WEIGHT_LUT_SIZE), WEIGHT_LUT_SIZE - 1);
+                    let weight = WEIGHT_LUT[index];
+                    sum += *self.texel(level, is, it) * weight;
+                    sumWts += weight;
+                }
+            }
+        }
+        return sum / sumWts;
     }
 
     fn resample_weights(old_res: usize, new_res: usize) -> Vec<ResampleWeight> {

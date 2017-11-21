@@ -75,11 +75,12 @@ impl CheckerboardTexture<Spectrum> {
 
 impl<T: Debug> Texture<T> for CheckerboardTexture<T> {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {
-        let st = self.mapping.map(si);
+        let (st, _dstdx, _dstdy) = self.mapping.map(si);
         if (st.x.floor() as u32 + st.y.floor() as u32) % 2 == 0 {
             self.tex1.evaluate(si)
         } else {
             self.tex2.evaluate(si)
         }
+        // TODO implement closeform antialiasing
     }
 }
