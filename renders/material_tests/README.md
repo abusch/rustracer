@@ -1,5 +1,6 @@
 # Material tests
 
+![Matte](rt-material-testball-matte.png)
 ![Glass](rt-material-testball-glass.png)
 ![Metal](rt-material-testball-metal.png)
 ![Mirror](rt-material-testball-mirror.png)
