@@ -28,7 +28,7 @@ bitflags! {
     }
 }
 
-/// Little helper class to facilitate a stack of BxDFs.
+/// Little helper class to facilitate a stack of `BxDF`s.
 pub struct BxDFHolder<'a> {
     b: &'a mut [&'a BxDF],
     n: usize,
@@ -48,11 +48,10 @@ impl<'a> BxDFHolder<'a> {
         self.n += 1;
     }
 
-    pub fn to_slice(self) -> &'a [&'a BxDF] {
+    pub fn into_slice(self) -> &'a [&'a BxDF] {
         unsafe {
             let ptr = self.b.as_mut_ptr();
-            let bxdfs = ::std::slice::from_raw_parts_mut(ptr, self.n);
-            bxdfs
+            ::std::slice::from_raw_parts_mut(ptr, self.n)
         }
     }
 }
@@ -185,9 +184,13 @@ impl<'a> BSDF<'a> {
 
         // Compute overall PDF with all matching BxDF
         if !bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps.len() > 1 {
-            for i in 0..matching_comps.len() {
+            for (i, c) in matching_comps.iter().enumerate() {
                 if i != comp {
-                    pdf += matching_comps[i].pdf(&wo, &wi);
+                    let comp_pdf = c.pdf(&wo, &wi);
+                    pdf += comp_pdf;
+                    if pdf < 0.0 {
+                        panic!("pdf < 0.0 after bxdf {:?}. wi = {}, wo = {}", c, wi, wo);
+                    }
                 }
             }
         }

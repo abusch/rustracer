@@ -88,7 +88,7 @@ fn radical_inverse_specialized(base: u32, a: u64) -> f32 {
         a = next;
     }
     assert!(reversed_digits as f32 * inv_base_n < 1.00001);
-    return f32::min(reversed_digits as f32 * inv_base_n, ONE_MINUS_EPSILON);
+    f32::min(reversed_digits as f32 * inv_base_n, ONE_MINUS_EPSILON)
 }
 
 fn gray_code_sample(c: &[u32], n: u32, scramble: u32, p: &mut [f32]) {

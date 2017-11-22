@@ -20,10 +20,6 @@ struct AtomicFloat {
 }
 
 impl AtomicFloat {
-    pub fn new(v: f32) -> AtomicFloat {
-        AtomicFloat { bits: AtomicU32::new(v.to_bits()) }
-    }
-
     pub fn as_float(&self) -> f32 {
         f32::from_bits(self.bits.load(Ordering::Relaxed))
     }

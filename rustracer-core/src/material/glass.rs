@@ -95,7 +95,7 @@ impl Material for GlassMaterial {
             }
         }
 
-        let bsdf = BSDF::new(si, eta, bxdfs.to_slice());
+        let bsdf = BSDF::new(si, eta, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

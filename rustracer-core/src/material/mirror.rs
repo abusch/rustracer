@@ -41,6 +41,6 @@ impl Material for MirrorMaterial {
             bxdfs.add(arena <- SpecularReflection::new(R, fresnel));
         }
 
-        si.bsdf = Some(Arc::new(BSDF::new(si, 1.0, bxdfs.to_slice())));
+        si.bsdf = Some(Arc::new(BSDF::new(si, 1.0, bxdfs.into_slice())));
     }
 }

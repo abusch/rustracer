@@ -65,7 +65,7 @@ impl Material for Plastic {
             bxdfs.add(arena <- MicrofacetReflection::new(ks, distrib, fresnel));
         }
 
-        let bsdf: BSDF<'b> = BSDF::new(si, 1.0, bxdfs.to_slice());
+        let bsdf: BSDF<'b> = BSDF::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

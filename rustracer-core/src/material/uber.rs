@@ -113,7 +113,7 @@ impl Material for UberMaterial {
             bxdfs.add(arena <- SpecularTransmission::new(kt, 1.0, e, mode));
         }
 
-        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.to_slice());
+        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
+use clamp;
 use bsdf::{BxDFHolder, LambertianReflection, OrenNayar, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
@@ -43,15 +44,15 @@ impl Material for MatteMaterial {
             super::bump(bump_map, si);
         }
 
-        let r = self.kd.evaluate(si);
-        let sigma = self.sigma.evaluate(si);
+        let r = self.kd.evaluate(si).clamp();
+        let sigma = clamp(self.sigma.evaluate(si), 0.0, 1.0);
         if sigma == 0.0 {
             bxdfs.add(arena <- LambertianReflection::new(r));
         } else {
             bxdfs.add(arena <- OrenNayar::new(r, sigma));
         }
 
-        let bsdf = BSDF::new(si, 1.0, bxdfs.to_slice());
+        let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

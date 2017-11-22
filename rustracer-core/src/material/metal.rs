@@ -74,7 +74,7 @@ impl Material for Metal {
         let distrib = arena <- TrowbridgeReitzDistribution::new(urough, vrough);
         bxdfs.add(arena <- MicrofacetReflection::new(Spectrum::white(), distrib, fresnel));
 
-        let bsdf = BSDF::new(si, 1.0, bxdfs.to_slice());
+        let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

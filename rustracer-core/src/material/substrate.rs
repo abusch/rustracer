@@ -64,7 +64,7 @@ impl Material for SubstrateMaterial {
             bxdfs.add(arena <- FresnelBlend::new(s, d, distrib));
         }
 
-        let bsdf = BSDF::new(si, 1.0, bxdfs.to_slice());
+        let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

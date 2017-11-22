@@ -87,7 +87,7 @@ impl Material for TranslucentMaterial {
             }
         }
 
-        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.to_slice());
+        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

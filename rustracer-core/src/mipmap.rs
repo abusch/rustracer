@@ -316,7 +316,7 @@ impl<T> MIPMap<T>
                 }
             }
         }
-        return sum / sumWts;
+        sum / sumWts
     }
 
     fn resample_weights(old_res: usize, new_res: usize) -> Vec<ResampleWeight> {

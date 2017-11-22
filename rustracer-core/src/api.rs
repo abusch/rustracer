@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use failure::Error;
+use failure::{err_msg, Error};
 use indicatif::HumanDuration;
 
 use {Point3f, Transform, Vector3f};
@@ -38,13 +38,13 @@ impl ApiState {
     pub fn verify_uninitialized(&self) -> Result<(), Error> {
         match *self {
             ApiState::Uninitialized => Ok(()),
-            _ => return Err(format_err!("Api::init() has already been called!")),
+            _ => Err(err_msg("Api::init() has already been called!")),
         }
     }
 
     pub fn verify_initialized(&self) -> Result<(), Error> {
         match *self {
-            ApiState::Uninitialized => return Err(format_err!("Api::init() has not been called!")),
+            ApiState::Uninitialized => Err(err_msg("Api::init() has not been called!")),
             _ => Ok(()),
         }
     }
@@ -52,7 +52,7 @@ impl ApiState {
     pub fn verify_options(&self) -> Result<(), Error> {
         self.verify_initialized()?;
         match *self {
-            ApiState::WorldBlock => return Err(format_err!("Options cannot be set inside world block.")),
+            ApiState::WorldBlock => Err(err_msg("Options cannot be set inside world block.")),
             _ => Ok(()),
         }
     }
@@ -60,7 +60,7 @@ impl ApiState {
     pub fn verify_world(&self) -> Result<(), Error> {
         self.verify_initialized()?;
         match *self {
-            ApiState::OptionsBlock => return Err(format_err!("Scene description must be inside world block.")),
+            ApiState::OptionsBlock => Err(err_msg("Scene description must be inside world block.")),
             _ => Ok(()),
         }
     }
@@ -283,10 +283,15 @@ impl GraphicsState {
                                         &self.float_textures,
                                         &self.spectrum_textures);
         if !self.current_named_material.is_empty() {
+            let cur_mat_name = &self.current_named_material;
             self.named_material
-                .get(&self.current_named_material)
+                .get(cur_mat_name)
                 .cloned()
-                .unwrap_or_else(|| make_material("matte", &mut mp))
+                .unwrap_or_else(|| {
+                                    warn!("No material named \"{}\". Using matte material instead.",
+                                          cur_mat_name);
+                                    make_material("matte", &mut mp)
+                                })
         } else {
             make_material(&self.material, &mut mp)
         }
@@ -438,7 +443,7 @@ impl RealApi {
             Ok(light)
         } else {
             warn!("Light {} unknown", name);
-            return Err(format_err!("Unsupported light type"));
+            Err(err_msg("Unsupported light type"))
         }
     }
 }
@@ -754,7 +759,7 @@ impl Api for RealApi {
 
             let mat_name = mp.find_string("type", "");
             if mat_name == "" {
-                return Err(format_err!("No parameter string \"type\" found in named_material"));
+                return Err(err_msg("No parameter string \"type\" found in named_material"));
             }
             make_material(&mat_name, &mut mp)
         };
@@ -878,7 +883,7 @@ impl Api for RealApi {
         let stats = renderer::render(scene,
                                      &mut integrator,
                                      camera,
-                                     8,
+                                     1,
                                      &mut sampler,
                                      16,
                                      Box::new(NoopDisplayUpdater {}))?;
@@ -967,7 +972,7 @@ fn make_area_light(name: &str,
         let area_light: Arc<AreaLight + Send + Sync> = l.clone();
         Ok((area_light, light))
     } else {
-        return Err(format_err!("Area light {} unknown", name));
+        Err(format_err!("Area light {} unknown", name))
     }
 }
 
@@ -982,7 +987,7 @@ fn make_float_texture(name: &str,
     } else if name == "imagemap" {
         Arc::new(ImageTexture::<f32>::create(transform, tp))
     } else {
-        return Err(format_err!("Unkown texture"));
+        return Err(err_msg("Unkown texture"));
     };
 
     Ok(tex)
@@ -1019,7 +1024,7 @@ fn make_spectrum_texture(name: &str,
     } else if name == "ptex" {
         unimplemented!()
     } else {
-        return Err(format_err!("Unkown texture"));
+        return Err(err_msg("Unkown texture"));
     };
 
     Ok(tex)

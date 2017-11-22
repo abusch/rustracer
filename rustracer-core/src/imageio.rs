@@ -26,7 +26,7 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     } else if extension == "hdr" {
         read_image_hdr(path)
     } else {
-        return Err(format_err!("Unsupported file format"));
+        Err(format_err!("Unsupported file format"))
     }
 }
 
@@ -42,7 +42,7 @@ pub fn write_image<P: AsRef<Path>>(name: P,
     } else if has_extension(path, "exr") {
         write_image_exr(path, rgb, output_bounds, total_resolution)
     } else {
-        return Err(format_err!("Unsupported file format"));
+        Err(format_err!("Unsupported file format"))
     }
 }
 

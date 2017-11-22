@@ -165,7 +165,7 @@ pub fn erf_inv(x: f32) -> f32 {
 
 /// Polynomial approximation of the Gauss error function.
 ///
-/// See [https://en.wikipedia.org/wiki/Error_function]
+/// See [this link](https://en.wikipedia.org/wiki/Error_function)
 pub fn erf(x: f32) -> f32 {
     // constants
     let a1: f32 = 0.254829592;

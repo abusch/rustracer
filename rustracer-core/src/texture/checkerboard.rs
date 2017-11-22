@@ -121,9 +121,9 @@ impl<T> Texture<T> for CheckerboardTexture<T>
 
                 // Apply box filter to checkerboard region
                 fn bump_int(x: f32) -> i32 {
-                    return (f32::floor(x / 2.0) +
-                            2.0 * f32::max(x / 2.0 - f32::floor(x / 2.0) - 0.5, 0.0)) as
-                           i32;
+                    (f32::floor(x / 2.0) +
+                     2.0 * f32::max(x / 2.0 - f32::floor(x / 2.0) - 0.5, 0.0)) as
+                    i32
                 }
                 let sint = (bump_int(s1) - bump_int(s0)) as f32 / (2.0 * ds);
                 let tint = (bump_int(t1) - bump_int(t0)) as f32 / (2.0 * dt);
@@ -131,7 +131,7 @@ impl<T> Texture<T> for CheckerboardTexture<T>
                 if ds > 1.0 || dt > 1.0 {
                     area2 = 0.5
                 };
-                return self.tex1.evaluate(si) * (1.0 - area2) + self.tex2.evaluate(si) * area2;
+                self.tex1.evaluate(si) * (1.0 - area2) + self.tex2.evaluate(si) * area2
             }
         }
     }

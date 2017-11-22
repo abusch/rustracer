@@ -31,14 +31,14 @@ pub struct BVH {
 
 impl BVH {
     pub fn from_triangles(mut tris: Vec<Arc<Shape + Send + Sync>>,
-                          material: Arc<Material + Send + Sync>)
+                          material: &Arc<Material + Send + Sync>)
                           -> BVH {
         let mut prims: Vec<Arc<Primitive + Send + Sync>> = tris.drain(..)
             .map(|t| {
                 let prim = GeometricPrimitive {
                     shape: Arc::clone(&t),
                     area_light: None,
-                    material: Some(Arc::clone(&material)),
+                    material: Some(Arc::clone(material)),
                 };
                 let b: Arc<Primitive + Send + Sync> = Arc::new(prim);
                 b
@@ -115,7 +115,7 @@ impl BVH {
         bvh
     }
 
-    fn recursive_build(primitives: &Vec<Arc<Primitive + Send + Sync>>,
+    fn recursive_build(primitives: &[Arc<Primitive + Send + Sync>],
                        primitive_info: &mut Vec<BVHPrimitiveInfo>,
                        start: usize,
                        end: usize,
@@ -136,7 +136,7 @@ impl BVH {
             let first_prim_offset = ordered_prims.len();
             for pi in primitive_info[start..end].iter() {
                 let prim_num = pi.prim_number;
-                ordered_prims.push(primitives[prim_num].clone());
+                ordered_prims.push(Arc::clone(&primitives[prim_num]));
             }
             BVHBuildNode::leaf(first_prim_offset, n_primitives, bounds)
         } else {
@@ -152,7 +152,7 @@ impl BVH {
                 let first_prim_offset = ordered_prims.len();
                 for pi in primitive_info[start..end].iter() {
                     let prim_num = pi.prim_number;
-                    ordered_prims.push(primitives[prim_num].clone());
+                    ordered_prims.push(Arc::clone(&primitives[prim_num]));
                 }
                 return BVHBuildNode::leaf(first_prim_offset, n_primitives, bounds);
             }
@@ -183,11 +183,10 @@ impl BVH {
                     if n_primitives <= 2 {
                         // Partition primitives into equally-sized subsets
                         mid = (start + end) / 2;
-                        if start != end - 1 {
-                            if primitive_info[end - 1].centroid[dimension] <
-                               primitive_info[start].centroid[dimension] {
-                                primitive_info.swap(start, end - 1);
-                            }
+                        if start != end - 1 &&
+                           primitive_info[end - 1].centroid[dimension] <
+                           primitive_info[start].centroid[dimension] {
+                            primitive_info.swap(start, end - 1);
                         }
                     } else {
                         const N_BUCKETS: usize = 12;
