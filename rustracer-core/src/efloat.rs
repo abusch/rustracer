@@ -1,8 +1,8 @@
 use std::ops::{Add, Div, Mul, Sub};
 use std::f32;
 use std::mem;
-use fp::Ieee754;
 
+use {next_float_down, next_float_up};
 use super::MACHINE_EPSILON;
 
 #[derive(Debug, Clone, Copy)]
@@ -17,7 +17,7 @@ impl EFloat {
         let (low, high) = if err == 0.0 {
             (v, v)
         } else {
-            ((v - err).prev(), (v + err).next())
+            (next_float_down(v - err), next_float_up(v + err))
         };
 
         let r = EFloat {
@@ -44,8 +44,8 @@ impl EFloat {
     pub fn sqrt(&self) -> EFloat {
         let r = EFloat {
             v: self.v.sqrt(),
-            low: self.lower_bound().sqrt().prev(),
-            high: self.upper_bound().sqrt().next(),
+            low: next_float_down(self.lower_bound().sqrt()),
+            high: next_float_up(self.upper_bound().sqrt()),
         };
         r.check();
         r
@@ -133,8 +133,8 @@ impl Add<EFloat> for EFloat {
     fn add(self, f: EFloat) -> EFloat {
         let r = EFloat {
             v: self.v + f.v,
-            low: (self.lower_bound() + f.lower_bound()).prev(),
-            high: (self.upper_bound() + f.upper_bound()).next(),
+            low: next_float_down(self.lower_bound() + f.lower_bound()),
+            high: next_float_up(self.upper_bound() + f.upper_bound()),
         };
         r.check();
         r
@@ -147,8 +147,8 @@ impl Sub<EFloat> for EFloat {
     fn sub(self, f: EFloat) -> EFloat {
         let r = EFloat {
             v: self.v - f.v,
-            low: (self.lower_bound() - f.upper_bound()).prev(),
-            high: (self.upper_bound() - f.lower_bound()).next(),
+            low: next_float_down(self.lower_bound() - f.upper_bound()),
+            high: next_float_up(self.upper_bound() - f.lower_bound()),
         };
         r.check();
         r
@@ -166,8 +166,8 @@ impl Mul<EFloat> for EFloat {
 
         let r = EFloat {
             v: self.v * f.v,
-            low: f32::min(f32::min(prod[0], prod[1]), f32::min(prod[2], prod[3])).prev(),
-            high: f32::max(f32::max(prod[0], prod[1]), f32::max(prod[2], prod[3])).next(),
+            low: next_float_down(f32::min(f32::min(prod[0], prod[1]), f32::min(prod[2], prod[3]))),
+            high: next_float_up(f32::max(f32::max(prod[0], prod[1]), f32::max(prod[2], prod[3]))),
         };
         r.check();
         r
@@ -185,8 +185,8 @@ impl Div<EFloat> for EFloat {
                                  self.upper_bound() / f.lower_bound(),
                                  self.lower_bound() / f.upper_bound(),
                                  self.upper_bound() / f.upper_bound()];
-            (f32::min(f32::min(div[0], div[1]), f32::min(div[2], div[3])).prev(),
-             f32::max(f32::max(div[0], div[1]), f32::max(div[2], div[3])).next())
+            (next_float_down(f32::min(f32::min(div[0], div[1]), f32::min(div[2], div[3]))),
+             next_float_up(f32::max(f32::max(div[0], div[1]), f32::max(div[2], div[3]))))
         };
         let r = EFloat {
             v: self.v / f.v,

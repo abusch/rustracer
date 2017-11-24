@@ -1,10 +1,9 @@
-extern crate ieee754;
 extern crate rand;
 extern crate rustracer_core as rt;
 
 use rand::{Rng, SeedableRng, StdRng};
-use ieee754::Ieee754;
 
+use rt::{next_float_up, next_float_down};
 use rt::efloat::EFloat;
 
 const NUM_ITER: usize = 10_000;
@@ -19,12 +18,12 @@ fn get_float<T: Rng>(rng: &mut T, min_exp: f32, max_exp: f32) -> EFloat {
         0 => 0.0,
         1 => {
             let ulp_err: u32 = rng.gen_range(0, 1024);
-            let offset: f32 = Ieee754::from_bits(val.bits() + ulp_err);
+            let offset: f32 = f32::from_bits(val.to_bits() + ulp_err);
             (offset - val).abs()
         }
         2 => {
             let ulp_err: u32 = rng.gen_range(0, 1024 * 1024);
-            let offset: f32 = Ieee754::from_bits(val.bits() + ulp_err);
+            let offset: f32 = f32::from_bits(val.to_bits() + ulp_err);
             (offset - val).abs()
         }
         3 => (4.0 * rng.next_f32()) * val.abs(),
@@ -161,6 +160,6 @@ fn test_efloat_div() {
 #[test]
 fn test_ieee754_next() {
     let neg_zero = -0.0f32;
-    assert!(!neg_zero.prev().is_nan());
-    assert!(!neg_zero.next().is_nan());
+    assert!(!next_float_down(neg_zero).is_nan());
+    assert!(!next_float_up(neg_zero).is_nan());
 }

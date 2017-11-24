@@ -15,8 +15,6 @@ chrono = "0.4"
 combine = "2"
 crossbeam = "0.3"
 failure = "0.1"
-# ieee754 = "0.2"
-ieee754 = { git = "https://github.com/abusch/ieee754.git" }
 image = "0.17"
 indicatif = "0.8"
 itertools = "0.7"
@@ -35,7 +33,7 @@ thread-id = "3"
 
 [dev-dependencies]
 rand = "0.3"
-quickcheck = "0.4"
+quickcheck = "0.4.1"
 
 [patch.crates-io]
 skeptic = { git = "https://github.com/budziq/rust-skeptic"}

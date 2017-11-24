@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
-use fp::Ieee754;
 use light_arena::Allocator;
 use num::zero;
 
-use {Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
+use {next_float_up, next_float_down, Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
 use bsdf::BSDF;
 use geometry::face_forward_n;
 use material::TransportMode;
@@ -320,9 +319,9 @@ fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Normal3f, w: &Vector3f) -> P
     let mut po = *p + offset;
     for i in 0..3 {
         if offset[i] > 0.0 {
-            po[i] = po[i].next();
+            po[i] = next_float_up(po[i]);
         } else if offset[i] < 0.0 {
-            po[i] = po[i].prev();
+            po[i] = next_float_down(po[i]);
         }
     }
     po

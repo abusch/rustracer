@@ -9,7 +9,6 @@ extern crate combine;
 extern crate crossbeam;
 #[macro_use]
 extern crate failure;
-extern crate ieee754 as fp;
 extern crate image as img;
 extern crate indicatif;
 extern crate itertools as it;
@@ -200,6 +199,44 @@ pub fn round_up_pow_2(v: i32) -> i32 {
     v |= v >> 8;
     v |= v >> 16;
     v + 1
+}
+
+#[inline]
+pub fn next_float_up(v: f32) -> f32 {
+    let mut v = v;
+    if v.is_infinite() && v > 0.0 {
+        return v;
+    }
+
+    if v == -0.0 {
+        v = 0.0;
+    }
+    let mut ui = v.to_bits();
+    if v >= 0.0 {
+        ui += 1;
+    } else {
+        ui -= 1;
+    }
+    f32::from_bits(ui)
+}
+
+#[inline]
+pub fn next_float_down(v: f32) -> f32 {
+    let mut v = v;
+    if v.is_infinite() && v < 0.0 {
+        return v;
+    }
+
+    if v == 0.0 {
+        v = -0.0;
+    }
+    let mut ui = v.to_bits();
+    if v > 0.0 {
+        ui -= 1;
+    } else {
+        ui += 1;
+    }
+    f32::from_bits(ui)
 }
 
 pub fn clamp<T>(val: T, low: T, high: T) -> T

@@ -1,8 +1,6 @@
 use std::f32::consts::PI;
 
-use fp::Ieee754;
-
-use {clamp, Normal3f, Point3f, Vector3f};
+use {next_float_up, next_float_down, clamp, Normal3f, Point3f, Vector3f};
 
 mod matrix;
 pub use self::matrix::*;
@@ -197,9 +195,9 @@ pub fn offset_ray_origin(p: &Point3f, p_error: &Vector3f, n: &Normal3f, w: &Vect
     // Round offset point `po` away from `p`
     for i in 0..3 {
         if offset[i] > 0.0 {
-            po[i] = po[i].next();
+            po[i] = next_float_up(po[i]);
         } else if offset[i] < 0.0 {
-            po[i] = po[i].prev();
+            po[i] = next_float_down(po[i]);
         }
     }
 
