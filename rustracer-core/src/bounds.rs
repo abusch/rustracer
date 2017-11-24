@@ -226,6 +226,13 @@ impl<T> Bounds2<T>
         }
     }
 
+    pub fn from_elements(x1: T, y1: T, x2: T, y2: T) -> Bounds2<T> {
+        Bounds2 {
+            p_min: Point2::new(x1, y1),
+            p_max: Point2::new(x2, y2),
+        }
+    }
+
     pub fn from_point(point: &Point2<T>) -> Bounds2<T> {
         Bounds2 {
             p_min: *point,

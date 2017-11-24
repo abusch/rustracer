@@ -1,5 +1,6 @@
 use std::f32;
 
+use bounds::Bounds2i;
 use spectrum::Spectrum;
 use light_arena::Allocator;
 use integrator::SamplerIntegrator;
@@ -9,16 +10,24 @@ use sampling::uniform_sample_sphere;
 use scene::Scene;
 
 pub struct AmbientOcclusion {
+    pixel_bounds: Bounds2i,
     n_samples: usize,
 }
 
 impl AmbientOcclusion {
     pub fn new(n_samples: usize) -> AmbientOcclusion {
-        AmbientOcclusion { n_samples: n_samples }
+        AmbientOcclusion {
+            n_samples: n_samples,
+            pixel_bounds: Bounds2i::new(),
+        }
     }
 }
 
 impl SamplerIntegrator for AmbientOcclusion {
+    fn pixel_bounds(&self) -> &Bounds2i {
+        &self.pixel_bounds
+    }
+
     fn li(&self,
           scene: &Scene,
           ray: &mut Ray,

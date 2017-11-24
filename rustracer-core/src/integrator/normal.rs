@@ -1,14 +1,22 @@
 use light_arena::Allocator;
 
+use bounds::Bounds2i;
 use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampler::Sampler;
 use scene::Scene;
 
-pub struct Normal {}
+#[derive(Default)]
+pub struct Normal {
+    pixel_bounds: Bounds2i,
+}
 
 impl SamplerIntegrator for Normal {
+    fn pixel_bounds(&self) -> &Bounds2i {
+        &self.pixel_bounds
+    }
+
     fn li(&self,
           scene: &Scene,
           ray: &mut Ray,

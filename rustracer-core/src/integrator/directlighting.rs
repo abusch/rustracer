@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use bounds::Bounds2i;
 use light_arena::Allocator;
 use integrator::{uniform_sample_all_light, uniform_sample_one_light, SamplerIntegrator};
 use material::TransportMode;
@@ -21,10 +22,11 @@ pub enum LightStrategy {
 /// Integrator that only takes into account direct lighting i.e no global illumination. It is very
 /// similar to the Whitted integrator but has a better light sampling strategy.
 pub struct DirectLightingIntegrator {
+    pixel_bounds: Bounds2i,
     /// The strategy to use to sample lights
-    pub light_strategy: LightStrategy,
+    light_strategy: LightStrategy,
     /// Maximum number of times a ray can bounce before terminating
-    pub max_depth: u8,
+    max_depth: u8,
     //
     n_light_samples: Vec<usize>,
 }
@@ -32,6 +34,7 @@ pub struct DirectLightingIntegrator {
 impl DirectLightingIntegrator {
     pub fn new(n: u8, strategy: LightStrategy) -> DirectLightingIntegrator {
         DirectLightingIntegrator {
+            pixel_bounds: Bounds2i::new(),
             max_depth: n,
             light_strategy: strategy,
             n_light_samples: Vec::new(),
@@ -56,6 +59,10 @@ impl DirectLightingIntegrator {
 }
 
 impl SamplerIntegrator for DirectLightingIntegrator {
+    fn pixel_bounds(&self) -> &Bounds2i {
+        &self.pixel_bounds
+    }
+
     fn preprocess(&mut self, scene: Arc<Scene>, sampler: &mut Box<Sampler + Send + Sync>) {
         info!("Preprocessing DirectLighting integrator");
         if self.light_strategy == LightStrategy::UniformSampleAll {

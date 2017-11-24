@@ -1,6 +1,7 @@
 use light_arena::Allocator;
 
 use bsdf;
+use bounds::Bounds2i;
 use integrator::SamplerIntegrator;
 use material::TransportMode;
 use paramset::ParamSet;
@@ -12,13 +13,17 @@ use spectrum::Spectrum;
 /// Simple integrator using the original Whitted recursive algorithm. Only handles direct illumination. See
 /// ```DirectLightingIntegrator``` for a slighly better integrator that uses better light sampling.
 pub struct Whitted {
+    pixel_bounds: Bounds2i,
     /// Maximum number of times a ray can bounce before being terminated.
     pub max_ray_depth: u8,
 }
 
 impl Whitted {
     pub fn new(n: u8) -> Whitted {
-        Whitted { max_ray_depth: n }
+        Whitted {
+            max_ray_depth: n,
+            pixel_bounds: Bounds2i::new(),
+        }
     }
 
     pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator + Send + Sync> {
@@ -29,6 +34,10 @@ impl Whitted {
 }
 
 impl SamplerIntegrator for Whitted {
+    fn pixel_bounds(&self) -> &Bounds2i {
+        &self.pixel_bounds
+    }
+
     fn li(&self,
           scene: &Scene,
           ray: &mut Ray,

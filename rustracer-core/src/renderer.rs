@@ -28,7 +28,7 @@ pub fn render(scene: Arc<Scene>,
     integrator.preprocess(Arc::clone(&scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
     let sample_extent = sample_bounds.diagonal();
-    let pixel_bounds = &sample_bounds; // FIXME
+    let pixel_bounds = integrator.pixel_bounds();
     info!("Rendering with sample_bounds = {}, pixel_bounds = {}",
           sample_bounds,
           pixel_bounds);

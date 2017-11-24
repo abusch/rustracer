@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::cmp;
 
 use {Point2f, Vector3f};
+use bounds::Bounds2i;
 use bsdf::{self, BxDFType};
 use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
@@ -25,6 +26,8 @@ pub use self::ao::AmbientOcclusion;
 pub use self::normal::Normal;
 
 pub trait SamplerIntegrator {
+    fn pixel_bounds(&self) -> &Bounds2i;
+
     fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut Box<Sampler + Send + Sync>) {}
 
     fn li(&self,

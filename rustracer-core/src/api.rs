@@ -200,7 +200,9 @@ impl RenderOptions {
         Ok(camera)
     }
 
-    pub fn make_integrator(&mut self) -> Result<Box<SamplerIntegrator + Send + Sync>, Error> {
+    pub fn make_integrator(&mut self,
+                           camera: &mut Box<Camera + Send + Sync>)
+                           -> Result<Box<SamplerIntegrator + Send + Sync>, Error> {
         debug!("Making integrator");
         let integrator: Box<SamplerIntegrator + Send + Sync> =
             if self.integrator_name == "whitted" {
@@ -209,9 +211,9 @@ impl RenderOptions {
             } else if self.integrator_name == "directlighting" {
                 DirectLightingIntegrator::create(&mut self.integrator_params)
             } else if self.integrator_name == "path" {
-                PathIntegrator::create(&mut self.integrator_params)
+                PathIntegrator::create(&mut self.integrator_params, camera)
             } else if self.integrator_name == "normal" {
-                Box::new(Normal {})
+                Box::new(Normal::default())
             } else {
                 return Err(format_err!("Integrator \"{}\" unknown.", self.integrator_name));
             };
@@ -873,10 +875,10 @@ impl Api for RealApi {
             let _ = state.pushed_transforms.pop();
         }
 
-        let mut integrator = state.render_options.make_integrator()?;
+        let mut camera = state.render_options.make_camera()?;
+        let mut integrator = state.render_options.make_integrator(&mut camera)?;
         let mut sampler = state.render_options.make_sampler()?;
         let scene = state.render_options.make_scene()?;
-        let camera = state.render_options.make_camera()?;
 
         // TODO finish
         let start_time = ::std::time::Instant::now();
