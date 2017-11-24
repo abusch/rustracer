@@ -150,15 +150,13 @@ impl SamplerIntegrator for PathIntegrator {
             // Sample BSDF to get new path direction
             let wo = -ray.d;
             let (f, wi, pdf, flags) = bsdf.sample_f(&wo, &sampler.get_2d(), BxDFType::all());
-            assert!(f.y() >= 0.0);
-            assert!(pdf >= 0.0);
-            if f.is_black() || pdf == 0.0 {
+            if f.is_black() || pdf <= 0.0 {
                 break;
             }
             debug!("Update beta. beta={}, f={}, pdf={}", beta, f, pdf);
             beta = beta * f * wi.dotn(&isect.shading.n).abs() / pdf;
             assert!(beta.y() >= 0.0);
-            assert!(!beta.y().is_infinite());
+            // assert!(!beta.y().is_infinite());
             specular_bounce = flags.contains(BxDFType::BSDF_SPECULAR);
             if flags.contains(BxDFType::BSDF_SPECULAR) &&
                flags.contains(BxDFType::BSDF_TRANSMISSION) {
