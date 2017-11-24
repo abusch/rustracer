@@ -386,7 +386,7 @@ impl<'a> BxDF for FresnelBlend<'a> {
             let wh = self.distrib.sample_wh(wo, &u);
             wi = reflect(wo, &wh);
             if !same_hemisphere(wo, &wi) {
-                return (0.0.into(), wi, 0.0, BxDFType::empty());
+                return (0.0.into(), wi, 0.0, self.get_type());
             }
         }
 
@@ -401,4 +401,23 @@ impl<'a> BxDF for FresnelBlend<'a> {
 #[inline]
 fn pow5(v: f32) -> f32 {
     (v * v) * (v * v) * v
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use Vector3f;
+    use bsdf::TrowbridgeReitzDistribution;
+    use spectrum::Spectrum;
+
+    quickcheck! {
+        fn pdf_should_be_positive(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32) -> bool {
+            let v1 = Vector3f::new(x1, y1, z1).normalize();
+            let v2 = Vector3f::new(x2, y2, z2).normalize();
+            let distrib = TrowbridgeReitzDistribution::new(0.001, 0.001);
+            let fresnel = FresnelBlend::new(Spectrum::white(), Spectrum::white(), &distrib);
+            let pdf = fresnel.pdf(&v1, &v2);
+            pdf >= 0.0
+        }
+    }
 }

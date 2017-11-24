@@ -35,6 +35,7 @@ thread-id = "3"
 
 [dev-dependencies]
 rand = "0.3"
+quickcheck = "0.4"
 
 [patch.crates-io]
 skeptic = { git = "https://github.com/budziq/rust-skeptic"}

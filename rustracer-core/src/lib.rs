@@ -2,9 +2,6 @@
 #![recursion_limit = "1024"]
 #![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
-#[cfg(test)]
-#[macro_use]
-extern crate approx;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
@@ -29,6 +26,13 @@ extern crate parking_lot;
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
+
+#[cfg(test)]
+#[macro_use]
+extern crate approx;
+#[cfg(test)]
+#[macro_use]
+extern crate quickcheck;
 
 use std::f32;
 use std::ops::{Add, Mul, Sub};
