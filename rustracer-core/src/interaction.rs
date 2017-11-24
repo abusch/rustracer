@@ -3,9 +3,9 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use num::zero;
 
-use {next_float_up, next_float_down, Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
+use {Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
 use bsdf::BSDF;
-use geometry::face_forward_n;
+use geometry::{face_forward_n, offset_ray_origin};
 use material::TransportMode;
 use primitive::Primitive;
 use ray::Ray;
@@ -60,12 +60,12 @@ impl Interaction {
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
         stats::inc_secondary_ray();
-        let o = offset_origin(&self.p, &self.p_error, &self.n, dir);
+        let o = offset_ray_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
     }
 
     pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
-        let o = offset_origin(&self.p, &self.p_error, &self.n, &(*p - self.p));
+        let o = offset_ray_origin(&self.p, &self.p_error, &self.n, &(*p - self.p));
         let d = *p - self.p;
         assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
         stats::inc_secondary_ray();
@@ -74,8 +74,8 @@ impl Interaction {
 
     pub fn spawn_ray_to_interaction(&self, it: &Interaction) -> Ray {
         stats::inc_secondary_ray();
-        let origin = offset_origin(&self.p, &self.p_error, &self.n, &(it.p - self.p));
-        let target = offset_origin(&it.p, &it.p_error, &it.n, &(origin - it.p));
+        let origin = offset_ray_origin(&self.p, &self.p_error, &self.n, &(it.p - self.p));
+        let target = offset_ray_origin(&it.p, &it.p_error, &it.n, &(origin - it.p));
         let d = target - origin;
         Ray::segment(origin, d, 1.0 - 1e-4)
     }
@@ -207,7 +207,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
         stats::inc_secondary_ray();
-        let o = offset_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, dir);
+        let o = offset_ray_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, dir);
         Ray::new(o, *dir)
     }
 
@@ -215,7 +215,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         let d = *p - self.hit.p;
         assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
         stats::inc_secondary_ray();
-        let o = offset_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, &d);
+        let o = offset_ray_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }
 
@@ -308,23 +308,6 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             self.dpdy = zero();
         }
     }
-}
-
-fn offset_origin(p: &Point3f, p_err: &Vector3f, n: &Normal3f, w: &Vector3f) -> Point3f {
-    let d = n.abs().dot(p_err);
-    let mut offset = d * Vector3f::from(*n);
-    if w.dotn(n) < 0.0 {
-        offset = -offset;
-    }
-    let mut po = *p + offset;
-    for i in 0..3 {
-        if offset[i] > 0.0 {
-            po[i] = next_float_up(po[i]);
-        } else if offset[i] < 0.0 {
-            po[i] = next_float_down(po[i]);
-        }
-    }
-    po
 }
 
 impl<'a, 'b> From<SurfaceInteraction<'a, 'b>> for Interaction {
