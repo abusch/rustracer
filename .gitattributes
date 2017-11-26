@@ -2,3 +2,7 @@ models/* filter=lfs diff=lfs merge=lfs -text
 renders/material_tests filter=lfs diff=lfs merge=lfs -text
 renders/rt-car2.png filter=lfs diff=lfs merge=lfs -text
 renders/rt-dragon.png filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
+*.tga filter=lfs diff=lfs merge=lfs -text
+*.exr filter=lfs diff=lfs merge=lfs -text
+*.hdr filter=lfs diff=lfs merge=lfs -text
