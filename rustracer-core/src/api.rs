@@ -14,8 +14,8 @@ use film::Film;
 use geometry::Matrix4x4;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
-use material::{GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial, Plastic,
-               SubstrateMaterial, TranslucentMaterial, UberMaterial};
+use material::{DisneyMaterial, GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial,
+               Plastic, SubstrateMaterial, TranslucentMaterial, UberMaterial};
 use paramset::{ParamSet, TextureParams};
 use primitive::{GeometricPrimitive, Primitive};
 use renderer;
@@ -957,6 +957,8 @@ fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material + Send + Sy
         TranslucentMaterial::create(mp)
     } else if name == "uber" {
         UberMaterial::create(mp)
+    } else if name == "disney" {
+        DisneyMaterial::create(mp)
     } else {
         warn!("Unknown material {}. Using matte.", name);
         MatteMaterial::create(mp)

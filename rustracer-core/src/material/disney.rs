@@ -5,13 +5,14 @@ use light_arena::Allocator;
 use num::zero;
 
 use {lerp, clamp, Vector3f, Point2f};
-use bsdf::{BxDFHolder, BxDF, BxDFType, TrowbridgeReitzDistribution, MicrofacetDistribution,
+use bsdf::{BSDF, BxDFHolder, BxDF, BxDFType, TrowbridgeReitzDistribution, MicrofacetDistribution,
            SpecularTransmission, MicrofacetReflection, MicrofacetTransmission,
            LambertianTransmission};
 use bsdf::{fr_dielectric, reflect, Fresnel};
 use geometry::{spherical_direction, same_hemisphere, abs_cos_theta};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
+use paramset::TextureParams;
 use texture::{TextureSpectrum, TextureFloat};
 use spectrum::Spectrum;
 
@@ -19,7 +20,7 @@ use spectrum::Spectrum;
 #[derive(Debug)]
 pub struct DisneyMaterial {
     color: Arc<TextureSpectrum>,
-    base_color: Arc<TextureFloat>,
+    // base_color: Arc<TextureFloat>,
     metallic: Arc<TextureFloat>,
     eta: Arc<TextureFloat>,
     roughness: Arc<TextureFloat>,
@@ -35,6 +36,46 @@ pub struct DisneyMaterial {
     diff_trans: Arc<TextureFloat>,
     bumpmap: Option<Arc<TextureFloat>>,
     thin: bool,
+}
+
+impl DisneyMaterial {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+        let color = mp.get_spectrum_texture("color", &Spectrum::from(0.5));
+        let metallic = mp.get_float_texture("metallic", 0.0);
+        let eta = mp.get_float_texture("eta", 1.5);
+        let roughness = mp.get_float_texture("roughness", 0.5);
+        let specular_tint = mp.get_float_texture("speculartint", 0.0);
+        let anisotropic = mp.get_float_texture("anisotropic", 0.0);
+        let sheen = mp.get_float_texture("sheen", 0.0);
+        let sheen_tint = mp.get_float_texture("sheentint", 0.5);
+        let clearcoat = mp.get_float_texture("clearcoat", 0.0);
+        let clearcoat_gloss = mp.get_float_texture("clearcoatgloss", 1.0);
+        let spec_trans = mp.get_float_texture("spectrans", 0.0);
+        let scatter_distance = mp.get_spectrum_texture("scatterdistance", &Spectrum::from(0.0));
+        let thin = mp.find_bool("thin", false);
+        let flatness = mp.get_float_texture("flatness", 0.0);
+        let diff_trans = mp.get_float_texture("difftrans", 1.0);
+        let bumpmap = mp.get_float_texture_or_none("bumpmap");
+
+        Arc::new(DisneyMaterial {
+                     color,
+                     metallic,
+                     eta,
+                     roughness,
+                     specular_tint,
+                     anisotropic,
+                     sheen,
+                     sheen_tint,
+                     clearcoat,
+                     clearcoat_gloss,
+                     spec_trans,
+                     scatter_distance,
+                     flatness,
+                     diff_trans,
+                     bumpmap,
+                     thin,
+                 })
+    }
 }
 
 impl Material for DisneyMaterial {
@@ -144,6 +185,8 @@ impl Material for DisneyMaterial {
             // Lambertian, weighted by (1.0 - diff_trans}
             bxdfs.add(arena <- LambertianTransmission::new(dt * c));
         }
+
+        si.bsdf = Some(Arc::new(BSDF::new(si, 1.0, bxdfs.into_slice())));
     }
 }
 
