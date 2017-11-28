@@ -7,6 +7,7 @@ use {Normal3f, Vector2f, Vector3f};
 use interaction::SurfaceInteraction;
 use texture::Texture;
 
+mod disney;
 mod matte;
 mod metal;
 mod plastic;
@@ -16,6 +17,7 @@ mod substrate;
 mod translucent;
 mod uber;
 
+pub use self::disney::DisneyMaterial;
 pub use self::matte::MatteMaterial;
 pub use self::metal::Metal;
 pub use self::plastic::Plastic;
