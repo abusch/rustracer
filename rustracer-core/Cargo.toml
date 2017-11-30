@@ -18,7 +18,7 @@ failure = "0.1"
 image = "0.17"
 indicatif = "0.8"
 itertools = "0.7"
-lazy_static = "0.2"
+lazy_static = "1.0"
 light_arena = "0.1"
 minifb = { version = "0.10", optional = true }
 num = "0.1"
@@ -33,7 +33,7 @@ thread-id = "3"
 
 [dev-dependencies]
 rand = "0.3"
-quickcheck = "0.4.1"
+quickcheck = "0.5"
 
 [patch.crates-io]
 skeptic = { git = "https://github.com/budziq/rust-skeptic"}
