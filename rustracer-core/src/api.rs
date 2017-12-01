@@ -158,7 +158,7 @@ impl RenderOptions {
             "mitchell" => MitchellNetravali::create(&mut self.filter_params),
             "gaussian" => GaussianFilter::create(&mut self.filter_params),
             "triangle" => TriangleFilter::create(&mut self.filter_params),
-            _ => return Err(format_err!("Filter \"{}\" unknown.", self.filter_name)),
+            _ => bail!("Filter \"{}\" unknown.", self.filter_name),
         };
 
         Ok(filter)
@@ -169,7 +169,7 @@ impl RenderOptions {
         let film = if self.film_name == "image" {
             Film::create(&mut self.film_params, filter)
         } else {
-            return Err(format_err!("Film \"{}\" unknown.", self.film_name));
+            bail!("Film \"{}\" unknown.", self.film_name);
         };
 
         Ok(film)
@@ -180,7 +180,7 @@ impl RenderOptions {
                          self.sampler_name == "02sequence" {
             ZeroTwoSequence::create(&mut self.sampler_params)
         } else {
-            return Err(format_err!("Sampler \"{}\" unknown.", self.sampler_name));
+            bail!("Sampler \"{}\" unknown.", self.sampler_name);
         };
 
         Ok(sampler)
@@ -194,7 +194,7 @@ impl RenderOptions {
         let camera = if self.camera_name == "perspective" {
             PerspectiveCamera::create(&mut self.camera_params, &self.camera_to_world, film)
         } else {
-            return Err(format_err!("Camera \"{}\" unknown.", self.camera_name));
+            bail!("Camera \"{}\" unknown.", self.camera_name);
         };
 
         Ok(camera)
@@ -215,7 +215,7 @@ impl RenderOptions {
             } else if self.integrator_name == "normal" {
                 Box::new(Normal::default())
             } else {
-                return Err(format_err!("Integrator \"{}\" unknown.", self.integrator_name));
+                bail!("Integrator \"{}\" unknown.", self.integrator_name);
             };
 
         Ok(integrator)
@@ -761,7 +761,7 @@ impl Api for RealApi {
 
             let mat_name = mp.find_string("type", "");
             if mat_name == "" {
-                return Err(err_msg("No parameter string \"type\" found in named_material"));
+                bail!("No parameter string \"type\" found in named_material");
             }
             make_material(&mat_name, &mut mp)
         };
@@ -991,7 +991,7 @@ fn make_float_texture(name: &str,
     } else if name == "imagemap" {
         Arc::new(ImageTexture::<f32>::create(transform, tp))
     } else {
-        return Err(err_msg("Unkown texture"));
+        bail!("Unkown texture type {}", name);
     };
 
     Ok(tex)
@@ -1028,7 +1028,7 @@ fn make_spectrum_texture(name: &str,
     } else if name == "ptex" {
         unimplemented!()
     } else {
-        return Err(err_msg("Unkown texture"));
+        bail!("Unkown texture type {}", name);
     };
 
     Ok(tex)

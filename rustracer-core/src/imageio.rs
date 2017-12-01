@@ -206,7 +206,7 @@ fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     } else if &word == "PF" {
         3
     } else {
-        return Err(format_err!("Error reading PFM file \"{}\"", path.as_ref().display()));
+        bail!("Error reading PFM file \"{}\"", path.as_ref().display());
     };
 
     // Read the rest of the header
