@@ -893,16 +893,15 @@ impl Api for RealApi {
 
         // TODO finish
         let start_time = ::std::time::Instant::now();
-        let stats = renderer::render(scene,
-                                     &mut integrator,
-                                     camera,
-                                     8,
-                                     &mut sampler,
-                                     16,
-                                     Box::new(NoopDisplayUpdater {}))?;
+        renderer::render(scene,
+                         &mut integrator,
+                         camera,
+                         8,
+                         &mut sampler,
+                         16,
+                         Box::new(NoopDisplayUpdater {}))?;
         stats::report_stats();
         let duration = start_time.elapsed();
-        println!("{:?}", stats);
         println!("Render time: {}", HumanDuration(duration));
         stats::print_stats();
 

@@ -13,7 +13,6 @@ use paramset::ParamSet;
 use ray::Ray;
 use sampling;
 use shapes::Shape;
-use stats;
 use texture::Texture;
 
 pub struct TriangleMesh {
@@ -165,7 +164,6 @@ impl Triangle {
 
 impl Shape for Triangle {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
-        stats::inc_triangle_test();
         let p0 = &self.mesh.p[self.v(0)];
         let p1 = &self.mesh.p[self.v(1)];
         let p2 = &self.mesh.p[self.v(2)];
@@ -354,7 +352,6 @@ impl Shape for Triangle {
             isect.shading.n = isect.hit.n;
         }
 
-        stats::inc_triangle_isect();
         Some((isect, t))
     }
 
@@ -535,7 +532,6 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
     let mut tris: Vec<Arc<Shape + Send + Sync>> = Vec::with_capacity(n_triangles);
 
     for i in 0..n_triangles {
-        stats::inc_num_triangles();
         tris.push(Arc::new(Triangle::new(Arc::clone(&mesh), i, reverse_orientation)));
     }
 

@@ -1,4 +1,3 @@
-use std::sync::mpsc::channel;
 use std::sync::Arc;
 
 use crossbeam;
@@ -29,7 +28,7 @@ pub fn render(scene: Arc<Scene>,
               sampler: &mut Box<Sampler + Send + Sync>,
               block_size: i32,
               mut _display: Box<DisplayUpdater + Send>)
-              -> Result<stats::Stats, Error> {
+              -> Result<(), Error> {
     integrator.preprocess(Arc::clone(&scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
     let sample_extent = sample_bounds.diagonal();
@@ -41,8 +40,6 @@ pub fn render(scene: Arc<Scene>,
                                (sample_extent.y + block_size - 1) / block_size);
 
     let num_blocks = n_tiles.x * n_tiles.y;
-    // This channel will receive the stats from each worker thread
-    let (stats_tx, stats_rx) = channel();
     info!("Rendering scene using {} threads", num_threads);
     let image_bounds = Bounds2i::from_points(&Point2i::new(0, 0),
                                              &Point2i::new(n_tiles.x, n_tiles.y));
@@ -62,7 +59,6 @@ pub fn render(scene: Arc<Scene>,
 
         // Spawn worker threads
         for _ in 0..num_threads {
-            let stats_tx = stats_tx.clone();
             let mut sampler = sampler.clone();
             let tiles_iter = Arc::clone(&tiles_iter);
             scope.spawn(move || {
@@ -136,21 +132,10 @@ pub fn render(scene: Arc<Scene>,
                     pb.inc(1);
                 }
                 stats::report_stats();
-                // Once there are no more tiles to render, send the thread's accumulated stats back
-                // to the main thread
-                stats_tx
-                    .send(stats::get_stats())
-                    .unwrap_or_else(|e| error!("Failed to send thread stats: {}", e));
             });
         }
     });
     pb.finish();
 
-    // Collect all the stats from the threads
-    let global_stats = stats_rx
-        .iter()
-        .take(num_threads)
-        .fold(stats::get_stats(), |a, b| a + b);
-
-    camera.get_film().write_image().map(|_| global_stats)
+    camera.get_film().write_image()
 }
