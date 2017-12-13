@@ -29,6 +29,7 @@ ply-rs = "0.1" # { version = "0.1.1", git = "https://github.com/abusch/ply-rs.gi
 slog = { version = "2", features = ["max_level_debug", "release_max_level_info"] }
 slog-scope = "4"
 slog-term = "2"
+state = { version = "0.3", features = ["tls"]}
 thread-id = "3"
 
 [dev-dependencies]

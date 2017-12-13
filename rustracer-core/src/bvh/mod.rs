@@ -15,6 +15,13 @@ use primitive::{GeometricPrimitive, Primitive};
 use ray::Ray;
 use shapes::Shape;
 
+stat_counter!("BVH/Interior nodes", interior_nodes);
+stat_counter!("BVH/Leaf nodes", leaf_nodes);
+pub fn init_stats() {
+    interior_nodes::init();
+    leaf_nodes::init();
+}
+
 #[derive(Copy, Clone, Debug)]
 pub enum SplitMethod {
     Middle,
@@ -516,6 +523,7 @@ enum BVHBuildNode {
 impl BVHBuildNode {
     fn interior(axis: Axis, child1: Box<BVHBuildNode>, child2: Box<BVHBuildNode>) -> BVHBuildNode {
         let bbox = Bounds3f::union(child1.bounds(), child2.bounds());
+        interior_nodes::inc();
         BVHBuildNode::Interior {
             bounds: bbox,
             children: [child1, child2],
@@ -524,6 +532,7 @@ impl BVHBuildNode {
     }
 
     fn leaf(first_prim_offset: usize, num_prims: usize, bbox: Bounds3f) -> BVHBuildNode {
+        leaf_nodes::inc();
         BVHBuildNode::Leaf {
             bounds: bbox,
             first_prim_offset: first_prim_offset,

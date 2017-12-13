@@ -25,6 +25,7 @@ extern crate parking_lot;
 extern crate slog;
 #[macro_use]
 extern crate slog_scope;
+extern crate state;
 
 #[cfg(test)]
 #[macro_use]
@@ -38,6 +39,9 @@ use std::ops::{Add, Mul, Sub};
 
 use num::{Num, One, Signed};
 
+// stats needs to be declared first so its macros can be used by the following modules
+#[macro_use]
+mod stats;
 mod api;
 mod blockedarray;
 pub mod bounds;
@@ -70,9 +74,19 @@ pub mod sampler;
 pub mod scene;
 pub mod shapes;
 pub mod spectrum;
-mod stats;
 pub mod texture;
 pub mod transform;
+
+pub fn init_stats() {
+    // This one needs to be called first
+    stats::init_stats();
+    api::init_stats();
+    bvh::init_stats();
+    lightdistrib::init_stats();
+    mipmap::init_stats();
+    renderer::init_stats();
+    scene::init_stats();
+}
 
 use geometry::{Normal3, Point2, Point3, Vector2, Vector3};
 use spectrum::Spectrum;

@@ -33,6 +33,7 @@ fn main() {
 }
 
 fn run(matches: &ArgMatches) -> Result<(), Error> {
+    rt::init_stats();
     let filename = matches.value_of("INPUT").unwrap();
     pbrt::parse_scene(filename)?;
 

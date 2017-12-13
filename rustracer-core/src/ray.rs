@@ -5,7 +5,6 @@ use std::fmt;
 use num::zero;
 
 use {Point3f, Transform, Vector3f};
-use stats;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {
@@ -17,7 +16,6 @@ pub struct Ray {
 
 impl Ray {
     pub fn new(o: Point3f, d: Vector3f) -> Ray {
-        stats::inc_primary_ray();
         assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
         assert_ne!(d.length_squared(), 0.0);
@@ -30,7 +28,6 @@ impl Ray {
     }
 
     pub fn segment(o: Point3f, d: Vector3f, tmax: f32) -> Ray {
-        stats::inc_primary_ray();
         assert!(!o.x.is_nan() && !o.y.is_nan() && !o.z.is_nan());
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
         assert_ne!(d.length_squared(), 0.0);

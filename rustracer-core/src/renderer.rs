@@ -17,6 +17,11 @@ use scene::Scene;
 use spectrum::Spectrum;
 use stats;
 
+stat_counter!("Integrator/Camera rays traced", n_camera_ray);
+pub fn init_stats() {
+    n_camera_ray::init();
+}
+
 pub fn render(scene: Arc<Scene>,
               integrator: &mut Box<SamplerIntegrator + Send + Sync>,
               camera: Box<Camera + Send + Sync>,
@@ -106,7 +111,7 @@ pub fn render(scene: Arc<Scene>,
                             let s = sampler.get_camera_sample(&p);
                             let mut ray = camera.generate_ray_differential(&s);
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
-                            stats::inc_camera_ray();
+                            n_camera_ray::inc();
                             let mut sample_colour =
                                 integrator.li(scene, &mut ray, &mut sampler, &alloc, 0);
                             if sample_colour.has_nan() {
@@ -130,6 +135,7 @@ pub fn render(scene: Arc<Scene>,
                     camera.get_film().merge_film_tile(film_tile);
                     pb.inc(1);
                 }
+                stats::report_stats();
                 // Once there are no more tiles to render, send the thread's accumulated stats back
                 // to the main thread
                 stats_tx

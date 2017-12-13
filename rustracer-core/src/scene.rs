@@ -5,7 +5,15 @@ use interaction::SurfaceInteraction;
 use light::{Light, LightFlags};
 use primitive::Primitive;
 use ray::Ray;
-use stats;
+
+stat_counter!("Intersections/Regular ray intersection tests",
+              n_intersection_tests);
+stat_counter!("Intersections/Shadow ray intersection tests",
+              n_shadow_tests);
+pub fn init_stats() {
+    n_intersection_tests::init();
+    n_shadow_tests::init();
+}
 
 pub struct Scene {
     pub lights: Vec<Arc<Light + Sync + Send>>,
@@ -39,12 +47,12 @@ impl Scene {
     }
 
     pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
-        stats::inc_intersection_test();
+        n_intersection_tests::inc();
         self.aggregate.intersect(ray)
     }
 
     pub fn intersect_p(&self, ray: &Ray) -> bool {
-        stats::inc_shadow_test();
+        n_shadow_tests::inc();
         self.aggregate.intersect_p(ray)
     }
 

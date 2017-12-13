@@ -9,6 +9,13 @@ use {Clampable, Point2f, Point2i, Vector2f};
 use {clamp, lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
 
+stat_counter!("Texture/EWA lookups", n_ewa_lookups);
+stat_counter!("Texture/Trilinear lookups", n_trilerp_lookups);
+pub fn init_stats() {
+    n_ewa_lookups::init();
+    n_trilerp_lookups::init();
+}
+
 #[derive(Debug)]
 pub enum WrapMode {
     Repeat,
@@ -191,6 +198,7 @@ impl<T> MIPMap<T>
     }
 
     pub fn lookup(&self, st: &Point2f, width: f32) -> T {
+        n_trilerp_lookups::inc();
         // Compute MIPMap-level for trilinear filtering
         let level = self.levels() as f32 - 1.0 + width.max(1e-8).log2();
         // Perform trilinear interpolation at appropriate MIPMap level
@@ -215,6 +223,7 @@ impl<T> MIPMap<T>
                                  f32::max(f32::abs(dst1[0]), f32::abs(dst1[1])));
             return self.lookup(st, 2.0 * width);
         }
+        n_ewa_lookups::inc();
 
         // Compute ellipse minor and major axes
         if dst0.length_squared() < dst1.length_squared() {

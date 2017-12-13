@@ -10,6 +10,11 @@ use sampler::lowdiscrepancy::radical_inverse;
 use sampling::Distribution1D;
 use scene::Scene;
 
+stat_counter!("SpatialLightDistribution/Distributions created", n_created);
+pub fn init_stats() {
+    n_created::init();
+}
+
 pub trait LightDistribution {
     fn lookup<'a>(&'a self, p: &Point3f) -> &'a Distribution1D;
 }
@@ -76,6 +81,7 @@ impl SpatialLightDistribution {
     }
 
     pub fn compute_distribution(&self, pi: &Point3i) -> Distribution1D {
+        n_created::inc();
         // Compute the world-space bounding box of the voxel corresponding to
         // |pi|.
         let p0 = Point3f::new(pi[0] as f32 / self.n_voxels[0] as f32,

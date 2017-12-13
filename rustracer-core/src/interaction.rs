@@ -11,7 +11,6 @@ use primitive::Primitive;
 use ray::Ray;
 use shapes::Shape;
 use spectrum::Spectrum;
-use stats;
 use transform;
 
 
@@ -59,7 +58,6 @@ impl Interaction {
 
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
-        stats::inc_secondary_ray();
         let o = offset_ray_origin(&self.p, &self.p_error, &self.n, dir);
         Ray::new(o, *dir)
     }
@@ -68,12 +66,10 @@ impl Interaction {
         let o = offset_ray_origin(&self.p, &self.p_error, &self.n, &(*p - self.p));
         let d = *p - self.p;
         assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
-        stats::inc_secondary_ray();
         Ray::segment(o, d, 1.0 - 1e-4)
     }
 
     pub fn spawn_ray_to_interaction(&self, it: &Interaction) -> Ray {
-        stats::inc_secondary_ray();
         let origin = offset_ray_origin(&self.p, &self.p_error, &self.n, &(it.p - self.p));
         let target = offset_ray_origin(&it.p, &it.p_error, &it.n, &(origin - it.p));
         let d = target - origin;
@@ -206,7 +202,6 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
 
     pub fn spawn_ray(&self, dir: &Vector3f) -> Ray {
         assert!(dir.x != 0.0 || dir.y != 0.0 || dir.z != 0.0);
-        stats::inc_secondary_ray();
         let o = offset_ray_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, dir);
         Ray::new(o, *dir)
     }
@@ -214,7 +209,6 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     pub fn spawn_ray_to(&self, p: &Point3f) -> Ray {
         let d = *p - self.hit.p;
         assert!(d.x != 0.0 || d.y != 0.0 || d.z != 0.0);
-        stats::inc_secondary_ray();
         let o = offset_ray_origin(&self.hit.p, &self.hit.p_error, &self.hit.n, &d);
         Ray::segment(o, d, 1.0 - 1e-4)
     }

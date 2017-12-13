@@ -25,7 +25,18 @@ use scene::Scene;
 use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
 use shapes::plymesh;
 use spectrum::Spectrum;
+use stats;
 use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, ScaleTexture, Texture, UVTexture};
+
+
+stat_counter!("Scene/Materials created", n_materials_created);
+stat_counter!("Scene/Object instances created", n_object_instances_created);
+stat_counter!("Scene/Object instances used", n_object_instances_used);
+pub fn init_stats() {
+    n_materials_created::init();
+    n_object_instances_created::init();
+    n_object_instances_used::init();
+}
 
 #[derive(Debug, Copy, Clone)]
 pub enum ApiState {
@@ -889,9 +900,11 @@ impl Api for RealApi {
                                      &mut sampler,
                                      16,
                                      Box::new(NoopDisplayUpdater {}))?;
+        stats::report_stats();
         let duration = start_time.elapsed();
         println!("{:?}", stats);
         println!("Render time: {}", HumanDuration(duration));
+        stats::print_stats();
 
         Ok(())
     }
@@ -941,6 +954,7 @@ fn make_shapes(name: &str,
 }
 
 fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+    n_materials_created::inc();
     if name == "matte" {
         MatteMaterial::create(mp)
     } else if name == "plastic" {
