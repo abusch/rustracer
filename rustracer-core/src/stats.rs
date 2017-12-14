@@ -84,7 +84,7 @@ impl StatAccumulator {
             to_print
                 .entry(category.to_owned())
                 .or_insert(Vec::new())
-                .push(format!("    {:<42}{:12}", title, value));
+                .push(format!("    {:<42}               {:12}", title, value));
         }
         // Memory counters
         for (desc, value) in &self.memory_counters {
@@ -97,20 +97,20 @@ impl StatAccumulator {
                 to_print
                     .entry(category.to_owned())
                     .or_insert(Vec::new())
-                    .push(format!("    {:<42}{:9.2} kiB", title, kb));
+                    .push(format!("    {:<42}                  {:9.2} kiB", title, kb));
             } else {
                 let mib = kb / 1024.0;
                 if mib < 1024.0 {
                     to_print
                         .entry(category.to_owned())
                         .or_insert(Vec::new())
-                        .push(format!("    {:<42}{:9.2} MiB", title, mib));
+                        .push(format!("    {:<42}                  {:9.2} MiB", title, mib));
                 } else {
                     let gib = mib / 1024.0;
                     to_print
                         .entry(category.to_owned())
                         .or_insert(Vec::new())
-                        .push(format!("    {:<42}{:9.2} GiB", title, gib));
+                        .push(format!("    {:<42}                  {:9.2} GiB", title, gib));
                 }
             }
         }
@@ -127,7 +127,7 @@ impl StatAccumulator {
             to_print
                 .entry(category.to_owned())
                 .or_insert(Vec::new())
-                .push(format!("    {:<42}{:.3} avg [range {} - {}]",
+                .push(format!("    {:<42}                      {:.3} avg [range {} - {}]",
                               title,
                               avg,
                               *min,
@@ -202,6 +202,7 @@ macro_rules! stat_counter(
                 vec.push(Box::new(report));
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn inc() {
                 let v = VALUE.get();
@@ -232,6 +233,7 @@ macro_rules! stat_memory_counter(
                 vec.push(Box::new(report));
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn add(a: u64) {
                 let v = VALUE.get();
@@ -269,6 +271,7 @@ macro_rules! stat_int_distribution(
                 vec.push(Box::new(report));
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn report_value(v: u64) {
                 let s = SUM.get();
@@ -312,12 +315,14 @@ macro_rules! stat_percent(
                 vec.push(Box::new(report));
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn inc() {
                 let v = NUM.get();
                 v.set(v.get() + 1);
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn inc_total() {
                 let v = DENOM.get();
@@ -350,18 +355,21 @@ macro_rules! stat_ratio(
                 vec.push(Box::new(report));
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn inc() {
                 let v = NUM.get();
                 v.set(v.get() + 1);
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn add(a: u64) {
                 let v = NUM.get();
                 v.set(v.get() + a);
             }
 
+            #[allow(dead_code)]
             #[inline(always)]
             pub fn inc_total() {
                 let v = DENOM.get();
