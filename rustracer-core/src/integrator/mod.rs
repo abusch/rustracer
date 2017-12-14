@@ -25,6 +25,10 @@ pub use self::path::PathIntegrator;
 pub use self::ao::AmbientOcclusion;
 pub use self::normal::Normal;
 
+pub fn init_stats() {
+    path::init_stats();
+}
+
 pub trait SamplerIntegrator {
     fn pixel_bounds(&self) -> &Bounds2i;
 

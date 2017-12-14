@@ -14,6 +14,13 @@ use sampler::Sampler;
 use scene::Scene;
 use spectrum::Spectrum;
 
+stat_percent!("Integrator/Zero-radiance paths", zero_radiance_paths);
+stat_int_distribution!("Integrator/Path length", path_length);
+pub fn init_stats() {
+    zero_radiance_paths::init();
+    path_length::init();
+}
+
 pub struct PathIntegrator {
     pixel_bounds: Bounds2i,
     max_ray_depth: u8,
@@ -142,7 +149,11 @@ impl SamplerIntegrator for PathIntegrator {
 
             // Sample illumination from lights to find path contribution.
             if bsdf.num_components(BxDFType::all() & !BxDFType::BSDF_SPECULAR) > 0 {
+                zero_radiance_paths::inc_total();
                 let ld = beta * uniform_sample_one_light(isect, scene, sampler, distrib);
+                if ld.is_black() {
+                    zero_radiance_paths::inc();
+                }
                 assert!(ld.y() >= 0.0);
                 l += ld;
             }
@@ -188,6 +199,7 @@ impl SamplerIntegrator for PathIntegrator {
             bounces += 1;
         }
 
+        path_length::report_value(bounces as u64);
         l
     }
 }

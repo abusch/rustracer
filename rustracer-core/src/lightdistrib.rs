@@ -11,8 +11,11 @@ use sampling::Distribution1D;
 use scene::Scene;
 
 stat_counter!("SpatialLightDistribution/Distributions created", n_created);
+stat_int_distribution!("SpatialLightDistribution/Hash probes per lookup",
+                       n_probes_per_lookup);
 pub fn init_stats() {
     n_created::init();
+    n_probes_per_lookup::init();
 }
 
 pub trait LightDistribution {
@@ -186,7 +189,9 @@ impl LightDistribution for SpatialLightDistribution {
         // use quadratic probing when the hash table entry is already used for
         // another value; step stores the square root of the probe step.
         let mut step = 1;
+        let mut n_probes: u64 = 0;
         loop {
+            n_probes += 1;
             let entry = &self.hash_table[hash as usize];
             // Does the hash table entry at offset |hash| match the current point?
             let entry_packed_pos = entry.packed_pos.load(Ordering::Acquire);
@@ -214,6 +219,7 @@ impl LightDistribution for SpatialLightDistribution {
                 }
                 unsafe {
                     // We have a valid sampling distribution.
+                    n_probes_per_lookup::report_value(n_probes);
                     return dist.as_ref().unwrap();
                 }
             } else if entry_packed_pos != INVALID_PACKED_POS {
@@ -248,6 +254,7 @@ impl LightDistribution for SpatialLightDistribution {
                     let distrib_ptr = Box::into_raw(distrib);
                     entry.distribution.store(distrib_ptr, Ordering::Release);
                     unsafe {
+                        n_probes_per_lookup::report_value(n_probes);
                         return distrib_ptr.as_ref().unwrap();
                     }
                 }

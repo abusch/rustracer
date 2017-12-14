@@ -83,6 +83,7 @@ pub fn init_stats() {
     api::init_stats();
     bvh::init_stats();
     film::init_stats();
+    integrator::init_stats();
     lightdistrib::init_stats();
     mipmap::init_stats();
     renderer::init_stats();
