@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeMap};
 
 use parking_lot::Mutex;
 use state::Storage;
@@ -73,7 +73,7 @@ impl StatAccumulator {
     }
 
     pub fn print_stats(&self) {
-        let mut to_print: HashMap<String, Vec<String>> = HashMap::new();
+        let mut to_print: BTreeMap<String, Vec<String>> = BTreeMap::new();
         println!("Statistics:");
         // Counters
         for (desc, value) in &self.counters {
