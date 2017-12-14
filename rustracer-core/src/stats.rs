@@ -12,6 +12,7 @@ pub struct StatAccumulator {
     int_distribution_mins: HashMap<String, u64>,
     int_distribution_maxs: HashMap<String, u64>,
     percentages: HashMap<String, (u64, u64)>,
+    ratios: HashMap<String, (u64, u64)>,
 }
 
 impl StatAccumulator {
@@ -61,6 +62,12 @@ impl StatAccumulator {
         let frac = self.percentages
             .entry(name.to_owned())
             .or_insert((0, 0));
+        (*frac).0 += num;
+        (*frac).1 += denom;
+    }
+
+    pub fn report_ratio(&mut self, name: &str, num: u64, denom: u64) {
+        let frac = self.ratios.entry(name.to_owned()).or_insert((0, 0));
         (*frac).0 += num;
         (*frac).1 += denom;
     }
@@ -142,6 +149,22 @@ impl StatAccumulator {
                               num,
                               denom,
                               (num as f64 * 100.0) / (denom as f64)));
+        }
+        // Ratios
+        for (desc, value) in &self.ratios {
+            let (num, denom) = *value;
+            if denom == 0 {
+                continue;
+            }
+            let (category, title) = self.get_category_and_title(desc);
+            to_print
+                .entry(category.to_owned())
+                .or_insert(Vec::new())
+                .push(format!("    {:<42}{:12} / {:12} ({:.2}x)",
+                              title,
+                              num,
+                              denom,
+                              (num as f64) / (denom as f64)));
         }
 
         for (category, stats) in &to_print {
@@ -303,6 +326,50 @@ macro_rules! stat_percent(
 
             pub fn report(acc: &mut StatAccumulator) {
                 acc.report_percentage($d, NUM.get().get(), DENOM.get().get());
+            }
+        }
+    );
+);
+
+#[macro_export]
+macro_rules! stat_ratio(
+    ($d:expr, $x:ident) => (
+        mod $x {
+            use std::cell::Cell;
+            use state::LocalStorage;
+            use stats::StatAccumulator;
+
+            static NUM: LocalStorage<Cell<u64>> = LocalStorage::new();
+            static DENOM: LocalStorage<Cell<u64>> = LocalStorage::new();
+
+            pub fn init() {
+                NUM.set(|| Cell::new(0));
+                DENOM.set(|| Cell::new(0));
+                let mutex = $crate::stats::STAT_REPORTERS.get();
+                let mut vec = mutex.lock();
+                vec.push(Box::new(report));
+            }
+
+            #[inline(always)]
+            pub fn inc() {
+                let v = NUM.get();
+                v.set(v.get() + 1);
+            }
+
+            #[inline(always)]
+            pub fn add(a: u64) {
+                let v = NUM.get();
+                v.set(v.get() + a);
+            }
+
+            #[inline(always)]
+            pub fn inc_total() {
+                let v = DENOM.get();
+                v.set(v.get() + 1);
+            }
+
+            pub fn report(acc: &mut StatAccumulator) {
+                acc.report_ratio($d, NUM.get().get(), DENOM.get().get());
             }
         }
     );

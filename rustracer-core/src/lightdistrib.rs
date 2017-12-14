@@ -11,10 +11,13 @@ use sampling::Distribution1D;
 use scene::Scene;
 
 stat_counter!("SpatialLightDistribution/Distributions created", n_created);
+stat_ratio!("SpatialLightDistribution/Lookups per distribution",
+            n_lookups_per_distribution);
 stat_int_distribution!("SpatialLightDistribution/Hash probes per lookup",
                        n_probes_per_lookup);
 pub fn init_stats() {
     n_created::init();
+    n_lookups_per_distribution::init();
     n_probes_per_lookup::init();
 }
 
@@ -85,6 +88,7 @@ impl SpatialLightDistribution {
 
     pub fn compute_distribution(&self, pi: &Point3i) -> Distribution1D {
         n_created::inc();
+        n_lookups_per_distribution::inc_total();
         // Compute the world-space bounding box of the voxel corresponding to
         // |pi|.
         let p0 = Point3f::new(pi[0] as f32 / self.n_voxels[0] as f32,
@@ -154,6 +158,7 @@ impl SpatialLightDistribution {
 
 impl LightDistribution for SpatialLightDistribution {
     fn lookup<'a>(&'a self, p: &Point3f) -> &'a Distribution1D {
+        n_lookups_per_distribution::inc();
         // First compute integer voxel coordinates for the given point |p|
         // with respect to the overall voxel grid.
         let offset = self.scene.world_bounds().offset(p);

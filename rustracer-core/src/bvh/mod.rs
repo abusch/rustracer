@@ -16,10 +16,12 @@ use ray::Ray;
 use shapes::Shape;
 
 stat_memory_counter!("Memory/BVH tree", tree_bytes);
+stat_ratio!("BVH/Primitives per leaf node", total_primitives_per_leaf);
 stat_counter!("BVH/Interior nodes", interior_nodes);
 stat_counter!("BVH/Leaf nodes", leaf_nodes);
 pub fn init_stats() {
     tree_bytes::init();
+    total_primitives_per_leaf::init();
     interior_nodes::init();
     leaf_nodes::init();
 }
@@ -535,6 +537,8 @@ impl BVHBuildNode {
 
     fn leaf(first_prim_offset: usize, num_prims: usize, bbox: Bounds3f) -> BVHBuildNode {
         leaf_nodes::inc();
+        total_primitives_per_leaf::add(num_prims as u64);
+        total_primitives_per_leaf::inc_total();
         BVHBuildNode::Leaf {
             bounds: bbox,
             first_prim_offset: first_prim_offset,

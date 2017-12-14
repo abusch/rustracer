@@ -15,9 +15,13 @@ use sampling;
 use shapes::Shape;
 use texture::Texture;
 
+stat_percent!("Intersections/Ray-triangle intersection tests", n_hits);
 stat_memory_counter!("Memory/Triangle meshes", tri_mesh_bytes);
+stat_ratio!("Scene/Triangles per triangle mesh", n_tris_per_mesh);
 pub fn init_stats() {
+    n_hits::init();
     tri_mesh_bytes::init();
+    n_tris_per_mesh::init();
 }
 
 pub struct TriangleMesh {
@@ -44,6 +48,8 @@ impl TriangleMesh {
                n: Option<&[Normal3f]>,
                uv: Option<&[Point2f]>)
                -> Self {
+        n_tris_per_mesh::inc_total();
+        n_tris_per_mesh::add(vertex_indices.len() as u64);
         let points: Vec<Point3f> = p.iter().map(|pt| object_to_world * pt).collect();
         TriangleMesh {
             object_to_world: object_to_world.clone(),
@@ -172,6 +178,8 @@ impl Triangle {
 
 impl Shape for Triangle {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
+        n_hits::inc_total();
+
         let p0 = &self.mesh.p[self.v(0)];
         let p1 = &self.mesh.p[self.v(1)];
         let p2 = &self.mesh.p[self.v(2)];
@@ -360,10 +368,13 @@ impl Shape for Triangle {
             isect.shading.n = isect.hit.n;
         }
 
+        n_hits::inc();
         Some((isect, t))
     }
 
     fn intersect_p(&self, ray: &Ray) -> bool {
+        n_hits::inc_total();
+
         let p0 = &self.mesh.p[self.v(0)];
         let p1 = &self.mesh.p[self.v(1)];
         let p2 = &self.mesh.p[self.v(2)];
@@ -466,6 +477,7 @@ impl Shape for Triangle {
             return false;
         }
 
+        n_hits::inc();
         true
     }
 
