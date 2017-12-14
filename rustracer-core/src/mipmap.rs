@@ -11,9 +11,11 @@ use blockedarray::BlockedArray;
 
 stat_counter!("Texture/EWA lookups", n_ewa_lookups);
 stat_counter!("Texture/Trilinear lookups", n_trilerp_lookups);
+stat_memory_counter!("Memory/Texture MIP maps", mipmap_memory);
 pub fn init_stats() {
     n_ewa_lookups::init();
     n_trilerp_lookups::init();
+    mipmap_memory::init();
 }
 
 #[derive(Debug)]
@@ -165,6 +167,9 @@ impl<T> MIPMap<T>
             }
             mipmap.pyramid.push(ba);
         }
+
+        mipmap_memory::add((4 * resolution.x * resolution.y * ::std::mem::size_of::<T>() as i32) as
+                           u64 / 3);
 
         mipmap
     }

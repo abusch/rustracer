@@ -14,6 +14,11 @@ use spectrum::Spectrum;
 const FILTER_SIZE: usize = 16;
 const FILTER_TABLE_SIZE: usize = FILTER_SIZE * FILTER_SIZE;
 
+stat_memory_counter!("Memory/Film pixels", film_pixel_memory);
+pub fn init_stats() {
+    film_pixel_memory::init();
+}
+
 #[derive(Default)]
 struct AtomicFloat {
     bits: AtomicU32,
@@ -68,6 +73,8 @@ impl Film {
               cropped_pixel_bounds);
         let mut pixels = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
         pixels.resize_default(cropped_pixel_bounds.area() as usize);
+        film_pixel_memory::add(cropped_pixel_bounds.area() as u64 *
+                               ::std::mem::size_of::<Pixel>() as u64);
         let mut filter_table = [0f32; FILTER_TABLE_SIZE];
 
         let (xwidth, ywidth) = filter.width();

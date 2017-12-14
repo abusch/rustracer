@@ -16,6 +16,10 @@ pub use self::disk::Disk;
 pub use self::mesh::{Triangle, TriangleMesh};
 pub use self::sphere::Sphere;
 
+pub fn init_stats() {
+    mesh::init_stats();
+}
+
 pub trait Shape: Debug {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
 

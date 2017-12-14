@@ -15,9 +15,11 @@ use primitive::{GeometricPrimitive, Primitive};
 use ray::Ray;
 use shapes::Shape;
 
+stat_memory_counter!("Memory/BVH tree", tree_bytes);
 stat_counter!("BVH/Interior nodes", interior_nodes);
 stat_counter!("BVH/Leaf nodes", leaf_nodes);
 pub fn init_stats() {
+    tree_bytes::init();
     interior_nodes::init();
     leaf_nodes::init();
 }
@@ -111,13 +113,13 @@ impl BVH {
             primitives: ordered_prims,
             nodes: nodes,
         };
-        let tree_bytes = total_nodes * ::std::mem::size_of::<LinearBVHNode>() +
+        tree_bytes::add((total_nodes * ::std::mem::size_of::<LinearBVHNode>() +
                          ::std::mem::size_of_val(&bvh) +
-                         prims.len() * ::std::mem::size_of_val(&prims[0]);
-        info!("BVH created with {} nodes for {} primitives ({} MB)",
+                         prims.len() * ::std::mem::size_of_val(&prims[0])) as
+                        u64);
+        info!("BVH created with {} nodes for {} primitives",
               total_nodes,
-              bvh.primitives.len(),
-              (tree_bytes / (1024 * 1024)) as f32);
+              bvh.primitives.len());
 
         bvh
     }

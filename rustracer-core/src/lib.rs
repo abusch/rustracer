@@ -82,10 +82,12 @@ pub fn init_stats() {
     stats::init_stats();
     api::init_stats();
     bvh::init_stats();
+    film::init_stats();
     lightdistrib::init_stats();
     mipmap::init_stats();
     renderer::init_stats();
     scene::init_stats();
+    shapes::init_stats();
 }
 
 use geometry::{Normal3, Point2, Point3, Vector2, Vector3};

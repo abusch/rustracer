@@ -6,6 +6,7 @@ use state::Storage;
 #[derive(Default)]
 pub struct StatAccumulator {
     counters: HashMap<String, u64>,
+    memory_counters: HashMap<String, u64>,
 }
 
 impl StatAccumulator {
@@ -14,9 +15,15 @@ impl StatAccumulator {
         *counter += value;
     }
 
+    pub fn report_memory_counter(&mut self, name: &str, value: u64) {
+        let counter = self.memory_counters.entry(name.to_owned()).or_insert(0);
+        *counter += value;
+    }
+
     pub fn print_stats(&self) {
         let mut to_print: HashMap<String, Vec<String>> = HashMap::new();
         println!("Statistics:");
+        // Counters
         for (desc, value) in &self.counters {
             if *value == 0 {
                 continue;
@@ -26,6 +33,34 @@ impl StatAccumulator {
                 .entry(category.to_owned())
                 .or_insert(Vec::new())
                 .push(format!("    {:<42}{:12}", title, value));
+        }
+        // Memory counters
+        for (desc, value) in &self.memory_counters {
+            if *value == 0 {
+                continue;
+            }
+            let (category, title) = self.get_category_and_title(desc);
+            let kb = (*value as f64) / 1024.0;
+            if kb < 1024.0 {
+                to_print
+                    .entry(category.to_owned())
+                    .or_insert(Vec::new())
+                    .push(format!("    {:<42}{:9.2} kiB", title, kb));
+            } else {
+                let mib = kb / 1024.0;
+                if mib < 1024.0 {
+                    to_print
+                        .entry(category.to_owned())
+                        .or_insert(Vec::new())
+                        .push(format!("    {:<42}{:9.2} MiB", title, mib));
+                } else {
+                    let gib = mib / 1024.0;
+                    to_print
+                        .entry(category.to_owned())
+                        .or_insert(Vec::new())
+                        .push(format!("    {:<42}{:9.2} GiB", title, gib));
+                }
+            }
         }
 
         for (category, stats) in &to_print {
@@ -71,6 +106,36 @@ macro_rules! stat_counter(
 
             pub fn report(acc: &mut StatAccumulator) {
                 acc.report_counter($d, VALUE.get().get());
+            }
+        }
+    );
+);
+
+#[macro_export]
+macro_rules! stat_memory_counter(
+    ($d:expr, $x:ident) => (
+        mod $x {
+            use std::cell::Cell;
+            use state::LocalStorage;
+            use stats::StatAccumulator;
+
+            static VALUE: LocalStorage<Cell<u64>> = LocalStorage::new();
+
+            pub fn init() {
+                VALUE.set(|| Cell::new(0));
+                let mutex = $crate::stats::STAT_REPORTERS.get();
+                let mut vec = mutex.lock();
+                vec.push(Box::new(report));
+            }
+
+            #[inline(always)]
+            pub fn add(a: u64) {
+                let v = VALUE.get();
+                v.set(v.get() + a);
+            }
+
+            pub fn report(acc: &mut StatAccumulator) {
+                acc.report_memory_counter($d, VALUE.get().get());
             }
         }
     );

@@ -15,6 +15,11 @@ use sampling;
 use shapes::Shape;
 use texture::Texture;
 
+stat_memory_counter!("Memory/Triangle meshes", tri_mesh_bytes);
+pub fn init_stats() {
+    tri_mesh_bytes::init();
+}
+
 pub struct TriangleMesh {
     object_to_world: Transform,
     world_to_object: Transform,
@@ -138,12 +143,15 @@ pub struct Triangle {
 impl Triangle {
     pub fn new(mesh: Arc<TriangleMesh>, tri_number: usize, reverse_orientation: bool) -> Triangle {
         let swaps_handedness = mesh.object_to_world.swaps_handedness();
-        Triangle {
+        let tri = Triangle {
             mesh: mesh,
             v_start_index: tri_number * 3,
             reverse_orientation: reverse_orientation,
             swaps_handedness: swaps_handedness,
-        }
+        };
+        tri_mesh_bytes::add(::std::mem::size_of_val(&tri) as u64);
+
+        tri
     }
 
     #[inline(always)]
