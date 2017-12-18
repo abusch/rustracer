@@ -7,17 +7,17 @@ pub fn noise3(p: &Point3f) -> f32 {
 
 pub fn noise(x: f32, y: f32, z: f32) -> f32 {
     // Compute noise cell coordinates and offsets
-    let mut ix = x.floor() as usize;
-    let mut iy = x.floor() as usize;
-    let mut iz = x.floor() as usize;
+    let mut ix = x.floor() as i32;
+    let mut iy = y.floor() as i32;
+    let mut iz = z.floor() as i32;
     let dx = x - ix as f32;
     let dy = y - iy as f32;
     let dz = z - iz as f32;
 
     // Compute gradient weights
-    ix &= NOISE_PERM_SIZE - 1;
-    iy &= NOISE_PERM_SIZE - 1;
-    iz &= NOISE_PERM_SIZE - 1;
+    ix &= NOISE_PERM_SIZE as i32 - 1;
+    iy &= NOISE_PERM_SIZE as i32 - 1;
+    iz &= NOISE_PERM_SIZE as i32 - 1;
     let w000 = grad(ix, iy, iz, dx, dy, dz);
     let w100 = grad(ix + 1, iy, iz, dx - 1.0, dy, dz);
     let w010 = grad(ix, iy + 1, iz, dx, dy - 1.0, dz);
@@ -66,7 +66,7 @@ pub fn fbm(p: &Point3f, dpdx: &Vector3f, dpdy: &Vector3f, omega: f32, max_octave
 }
 
 #[inline]
-fn grad(x: usize, y: usize, z: usize, dx: f32, dy: f32, dz: f32) -> f32 {
+fn grad(x: i32, y: i32, z: i32, dx: f32, dy: f32, dz: f32) -> f32 {
     let mut h = NOISE_PERM[NOISE_PERM[NOISE_PERM[x as usize] + y as usize] + z as usize];
     h &= 15;
     let u = if h < 8 || h == 12 || h == 13 { dx } else { dy };

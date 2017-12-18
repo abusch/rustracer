@@ -26,7 +26,8 @@ use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
 use shapes::plymesh;
 use spectrum::Spectrum;
 use stats;
-use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, ScaleTexture, Texture, UVTexture};
+use texture::{CheckerboardTexture, ConstantTexture, ImageTexture, ScaleTexture, Texture,
+              UVTexture, FbmTexture};
 
 
 stat_counter!("Scene/Materials created", n_materials_created);
@@ -1003,6 +1004,8 @@ fn make_float_texture(name: &str,
         Arc::new(ScaleTexture::<f32>::create(tp))
     } else if name == "imagemap" {
         Arc::new(ImageTexture::<f32>::create(transform, tp))
+    } else if name == "fbm" {
+        Arc::new(FbmTexture::create_float(transform, tp))
     } else {
         bail!("Unkown texture type {}", name);
     };
@@ -1031,7 +1034,7 @@ fn make_spectrum_texture(name: &str,
     } else if name == "dots" {
         unimplemented!()
     } else if name == "fbm" {
-        unimplemented!()
+        Arc::new(FbmTexture::create_spectrum(transform, tp))
     } else if name == "wrinkled" {
         unimplemented!()
     } else if name == "marble" {

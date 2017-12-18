@@ -105,17 +105,17 @@ pub trait TextureMapping3D: Debug {
 }
 
 #[derive(Debug, Default)]
-pub struct TransformMapping3D {
+pub struct IdentityMapping3D {
     world_to_texture: Transform,
 }
 
-impl TransformMapping3D {
-    pub fn new() -> TransformMapping3D {
-        TransformMapping3D { world_to_texture: Transform::default() }
+impl IdentityMapping3D {
+    pub fn new(tex2world: Transform) -> IdentityMapping3D {
+        IdentityMapping3D { world_to_texture: tex2world }
     }
 }
 
-impl TextureMapping3D for TransformMapping3D {
+impl TextureMapping3D for IdentityMapping3D {
     fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f) {
         let dpdx = &self.world_to_texture * &si.dpdx;
         let dpdy = &self.world_to_texture * &si.dpdy;
