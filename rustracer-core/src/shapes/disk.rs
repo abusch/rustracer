@@ -93,7 +93,7 @@ impl Shape for Disk {
         let one_minus_v = (r_hit - self.inner_radius) / (self.radius - self.inner_radius);
         let v = 1.0 - one_minus_v;
         let dpdu = Vector3f::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
-        let dpdv = Vector3f::new(p_hit.x, p_hit.y, 0.0) * (self.inner_radius - self.radius) / r_hit;
+        let dpdv = Vector3f::new(p_hit.x, p_hit.y, 0.0) * (self.radius - self.inner_radius) / r_hit;
         let dndu = Normal3f::new(0.0, 0.0, 0.0);
         let dndv = Normal3f::new(0.0, 0.0, 0.0);
 
