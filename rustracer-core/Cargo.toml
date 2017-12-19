@@ -33,7 +33,7 @@ state = { version = "0.3", features = ["tls"]}
 thread-id = "3"
 
 [dev-dependencies]
-rand = "0.3"
+rand = "0.4"
 quickcheck = "0.5"
 
 [patch.crates-io]
