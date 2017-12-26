@@ -1,7 +1,11 @@
+// Unstable features coming in next Epoch
+#![feature(match_default_bindings, nll, universal_impl_trait, conservative_impl_trait, dyn_trait)]
+// Unstable features needed for light_arena
 #![feature(placement_in_syntax, integer_atomics, vec_resize_default)]
-#![recursion_limit = "1024"]
+// Lints
 #![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
+
 #[macro_use]
 extern crate bitflags;
 #[macro_use]

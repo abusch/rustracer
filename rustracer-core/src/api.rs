@@ -48,14 +48,14 @@ pub enum ApiState {
 
 impl ApiState {
     pub fn verify_uninitialized(&self) -> Result<(), Error> {
-        match *self {
+        match self {
             ApiState::Uninitialized => Ok(()),
             _ => Err(err_msg("Api::init() has already been called!")),
         }
     }
 
     pub fn verify_initialized(&self) -> Result<(), Error> {
-        match *self {
+        match self {
             ApiState::Uninitialized => Err(err_msg("Api::init() has not been called!")),
             _ => Ok(()),
         }
@@ -63,7 +63,7 @@ impl ApiState {
 
     pub fn verify_options(&self) -> Result<(), Error> {
         self.verify_initialized()?;
-        match *self {
+        match self {
             ApiState::WorldBlock => Err(err_msg("Options cannot be set inside world block.")),
             _ => Ok(()),
         }
@@ -71,7 +71,7 @@ impl ApiState {
 
     pub fn verify_world(&self) -> Result<(), Error> {
         self.verify_initialized()?;
-        match *self {
+        match self {
             ApiState::OptionsBlock => Err(err_msg("Scene description must be inside world block.")),
             _ => Ok(()),
         }

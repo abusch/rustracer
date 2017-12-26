@@ -547,7 +547,7 @@ impl BVHBuildNode {
     }
 
     fn bounds(&self) -> &Bounds3f {
-        match *self {
+        match self {
             BVHBuildNode::Interior { ref bounds, .. } |
             BVHBuildNode::Leaf { ref bounds, .. } => bounds,
         }
