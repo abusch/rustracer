@@ -2,11 +2,9 @@ extern crate clap;
 extern crate failure;
 extern crate rustracer_core as rt;
 #[macro_use]
-extern crate slog;
-extern crate slog_scope;
-extern crate slog_term;
+extern crate log;
+extern crate flexi_logger;
 
-mod logging;
 mod argparse;
 
 use clap::ArgMatches;
@@ -18,12 +16,18 @@ fn main() {
     let matches = argparse::parse_args();
 
     // configure logger
-    let level = if matches.is_present("verbose") {
-        slog::Level::Debug
-    } else {
-        slog::Level::Info
-    };
-    let _guard = logging::configure_logger(level);
+    // let level = if matches.is_present("verbose") {
+    //     slog::Level::Debug
+    // } else {
+    //     slog::Level::Info
+    // };
+    flexi_logger::Logger::with_str("rustracer=info")
+        .log_to_file()
+        .suppress_timestamp()
+        .directory("/tmp")
+        .format(flexi_logger::opt_format)
+        .start()
+        .unwrap_or_else(|e| panic!("Failed to initialize logger: {}", e));
 
 
     if let Err(ref e) = run(&matches) {

@@ -80,7 +80,6 @@ impl<T> MIPMap<T>
             for t in 0..res.y as usize {
                 for s in 0..res_pow2.x as usize {
                     // Compute texel (s,t) in s-zoomed image
-                    resampled_image[t * res_pow2.x as usize + s] = zero();
                     for j in 0..4usize {
                         let mut orig_s = s_weights[s].first_texel as isize + j as isize;
                         orig_s = match wrap_mode {

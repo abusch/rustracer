@@ -8,6 +8,6 @@ rustracer-core = { path = "../rustracer-core/"}
 clap = "2"
 failure = "0.1"
 indicatif = "0.8"
-slog = { version = "2", features = ["max_level_debug", "release_max_level_info"] }
-slog-scope = "4"
-slog-term = "2"
+log = "0.4"
+# flexi_logger = "0.6"
+flexi_logger = { git = "https://github.com/abusch/flexi_logger"}

@@ -19,16 +19,13 @@ extern crate itertools as it;
 #[macro_use]
 extern crate lazy_static;
 extern crate light_arena;
+#[macro_use]
+extern crate log;
 extern crate num;
 #[cfg(feature="exr")]
 extern crate openexr;
 extern crate ply_rs;
 extern crate parking_lot;
-#[macro_use(slog_error, slog_warn, slog_info, slog_debug, slog_trace, slog_log, slog_record,
-            slog_record_static, slog_b, slog_kv)]
-extern crate slog;
-#[macro_use]
-extern crate slog_scope;
 extern crate state;
 
 #[cfg(test)]

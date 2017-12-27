@@ -33,7 +33,7 @@ pub fn resolve_filename(filename: &str) -> String {
         buf.push(filename);
         buf.as_path()
             .canonicalize()
-            .unwrap()
+            .expect(&format!("Failed to canonicalize filename {}", filename))
             .to_str()
             .expect("Filename contained invalid UTF-8 characters")
             .to_owned()
