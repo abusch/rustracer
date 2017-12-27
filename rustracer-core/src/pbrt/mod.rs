@@ -13,7 +13,19 @@ use fileutil;
 
 pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<(), Error> {
     let filename = filename.as_ref();
-    let mut file = File::open(filename)
+    let tokens = tokenize_file(filename)?;
+    fileutil::set_search_directory(fileutil::directory_containing(filename));
+    let api = RealApi::default();
+    api.init()?;
+    parser::parse(&tokens[..], &api)
+        .map_err(|e| format_err!("Failed to parse scene file: {:?}", e))?;
+
+    Ok(())
+}
+
+pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Tokens>, Error> {
+    let resolved_filename = fileutil::resolve_filename(filename.as_ref().to_str().unwrap());
+    let mut file = File::open(&resolved_filename)
         .context("Failed to open scene file")?;
     let mut file_content = String::new();
     file.read_to_string(&mut file_content)
@@ -28,13 +40,8 @@ pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<(), Error> {
         .into_iter()
         .filter(|x| *x != lexer::Tokens::COMMENT)
         .collect::<Vec<_>>();
-    fileutil::set_search_directory(fileutil::directory_containing(filename));
-    let api = RealApi::default();
-    api.init()?;
-    parser::parse(&filtered_tokens[..], &api)
-        .map_err(|e| format_err!("Failed to parse scene file: {:?}", e))?;
 
-    Ok(())
+    Ok(filtered_tokens)
 }
 
 #[ignore]

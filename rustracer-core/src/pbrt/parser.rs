@@ -11,7 +11,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
     (input: I,
      api: &A)
      -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
-    // TODO remove all the error conversions once https://github.com/brson/error-chain/issues/134 is fixed
+
     let accelerator = (token(Tokens::ACCELERATOR), string_(), param_list())
             .and_then(|(_, typ, mut params)| {
                 api.accelerator(typ, &mut params)
@@ -51,6 +51,15 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                                                     api.film(name, &mut params)
                                                                         .map_err(|e| e.compat())
                                                                 });
+    let include = (token(Tokens::INCLUDE), string_()).and_then(|(_, name)| {
+        super::tokenize_file(&name)
+            .and_then(|tokens| { 
+                parse(&tokens[..], api)
+                    .map(|_| ())
+                    .map_err(|e| format_err!("Failed to parse included file: {:?}", e))
+            })
+            .map_err(|e| e.compat())
+    });
     let integrator = (token(Tokens::INTEGRATOR), string_(), param_list())
         .and_then(|(_, name, mut params)| {
                       api.integrator(name, &mut params).map_err(|e| e.compat())
@@ -164,6 +173,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(camera),
                                              try(film),
                                              try(filter),
+                                             try(include),
                                              try(integrator),
                                              try(arealightsource),
                                              try(lightsource),
