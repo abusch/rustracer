@@ -13,9 +13,6 @@ use shapes::Shape;
 use spectrum::Spectrum;
 use transform;
 
-
-// TODO Find a better design for this mess of inheritance...
-
 #[derive(Copy, Clone)]
 pub struct Interaction {
     /// The point where the ray hit the primitive

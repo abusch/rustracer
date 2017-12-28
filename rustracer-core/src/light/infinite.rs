@@ -74,7 +74,7 @@ impl InfiniteAreaLight {
             n_samples: n_samples,
             l_map: l_map,
             world_center: RwLock::new(Point3f::zero()),
-            world_radius: RwLock::new(0.0), // TODO
+            world_radius: RwLock::new(0.0),
             distribution: distribution,
         }
     }

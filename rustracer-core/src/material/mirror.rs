@@ -35,7 +35,7 @@ impl Material for MirrorMaterial {
             super::bump(bump, si);
         }
         let mut bxdfs = BxDFHolder::new(arena);
-        let R = self.kr.evaluate(si); // TODO clamp
+        let R = self.kr.evaluate(si).clamp();
         if !R.is_black() {
             let fresnel = arena <- Fresnel::no_op();
             bxdfs.add(arena <- SpecularReflection::new(R, fresnel));
