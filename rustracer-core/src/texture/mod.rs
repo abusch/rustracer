@@ -19,17 +19,17 @@ pub use self::imagemap::ImageTexture;
 pub use self::fbm::FbmTexture;
 pub use self::scale::ScaleTexture;
 
-pub trait Texture<T>: Debug {
+pub trait Texture<T>: Debug + Send + Sync {
     fn evaluate(&self, si: &SurfaceInteraction) -> T;
 }
 
 // Some convenient aliases
-pub type TextureSpectrum = Texture<Spectrum> + Send + Sync;
-pub type TextureFloat = Texture<f32> + Send + Sync;
+pub type TextureSpectrum = Texture<Spectrum>;
+pub type TextureFloat = Texture<f32>;
 
 #[derive(Debug)]
 pub struct UVTexture {
-    mapping: Box<TextureMapping2D + Send + Sync>,
+    mapping: Box<TextureMapping2D>,
 }
 
 impl UVTexture {
@@ -69,7 +69,7 @@ impl Texture<Spectrum> for UVTexture {
 
 // Texture mappings
 
-pub trait TextureMapping2D: Debug {
+pub trait TextureMapping2D: Debug + Send + Sync {
     fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f);
 }
 
@@ -100,7 +100,7 @@ impl TextureMapping2D for UVMapping2D {
     }
 }
 
-pub trait TextureMapping3D: Debug {
+pub trait TextureMapping3D: Debug + Send + Sync {
     fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f);
 }
 

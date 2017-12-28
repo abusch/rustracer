@@ -22,10 +22,10 @@ pub fn init_stats() {
 }
 
 pub fn render(scene: Arc<Scene>,
-              integrator: &mut Box<SamplerIntegrator + Send + Sync>,
-              camera: Box<Camera + Send + Sync>,
+              integrator: &mut SamplerIntegrator,
+              camera: &Camera,
               num_threads: usize,
-              sampler: &mut Box<Sampler + Send + Sync>,
+              sampler: &mut Box<Sampler>,
               block_size: i32,
               mut _display: Box<DisplayUpdater + Send>)
               -> Result<(), Error> {

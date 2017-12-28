@@ -59,7 +59,7 @@ pub fn get_next_id() -> u32 {
     id
 }
 
-pub trait Light: Debug {
+pub trait Light: Debug + Send + Sync {
     fn id(&self) -> u32;
     /// Sample the light source
     /// Return a tuple of:

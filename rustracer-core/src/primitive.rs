@@ -10,16 +10,16 @@ use material::{Material, TransportMode};
 use ray::Ray;
 use shapes::Shape;
 
-pub trait Primitive: Debug {
+pub trait Primitive: Debug + Send + Sync {
     fn world_bounds(&self) -> Bounds3f;
 
     fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction>;
 
     fn intersect_p(&self, ray: &Ray) -> bool;
 
-    fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>>;
+    fn area_light(&self) -> Option<Arc<AreaLight>>;
 
-    fn material(&self) -> Option<Arc<Material + Send + Sync>>;
+    fn material(&self) -> Option<Arc<Material>>;
     fn compute_scattering_functions<'a, 'b>(&self,
                                             isect: &mut SurfaceInteraction<'a, 'b>,
                                             mode: TransportMode,
@@ -29,9 +29,9 @@ pub trait Primitive: Debug {
 
 #[derive(Debug)]
 pub struct GeometricPrimitive {
-    pub shape: Arc<Shape + Send + Sync>,
-    pub area_light: Option<Arc<AreaLight + Send + Sync>>,
-    pub material: Option<Arc<Material + Send + Sync>>,
+    pub shape: Arc<Shape>,
+    pub area_light: Option<Arc<AreaLight>>,
+    pub material: Option<Arc<Material>>,
 }
 
 impl Primitive for GeometricPrimitive {
@@ -53,11 +53,11 @@ impl Primitive for GeometricPrimitive {
         self.shape.intersect_p(ray)
     }
 
-    fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>> {
+    fn area_light(&self) -> Option<Arc<AreaLight>> {
         self.area_light.clone()
     }
 
-    fn material(&self) -> Option<Arc<Material + Send + Sync>> {
+    fn material(&self) -> Option<Arc<Material>> {
         self.material.clone()
     }
 

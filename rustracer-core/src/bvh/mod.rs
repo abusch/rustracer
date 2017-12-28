@@ -36,22 +36,22 @@ pub enum SplitMethod {
 #[derive(Debug)]
 pub struct BVH {
     max_prims_per_node: usize,
-    primitives: Vec<Arc<Primitive + Send + Sync>>,
+    primitives: Vec<Arc<Primitive>>,
     nodes: Vec<LinearBVHNode>,
 }
 
 impl BVH {
-    pub fn from_triangles(mut tris: Vec<Arc<Shape + Send + Sync>>,
-                          material: &Arc<Material + Send + Sync>)
+    pub fn from_triangles(mut tris: Vec<Arc<Shape>>,
+                          material: &Arc<Material>)
                           -> BVH {
-        let mut prims: Vec<Arc<Primitive + Send + Sync>> = tris.drain(..)
+        let mut prims: Vec<Arc<Primitive>> = tris.drain(..)
             .map(|t| {
                 let prim = GeometricPrimitive {
                     shape: Arc::clone(&t),
                     area_light: None,
                     material: Some(Arc::clone(material)),
                 };
-                let b: Arc<Primitive + Send + Sync> = Arc::new(prim);
+                let b: Arc<Primitive> = Arc::new(prim);
                 b
             })
             .collect();
@@ -59,7 +59,7 @@ impl BVH {
         BVH::new(1, &mut prims, SplitMethod::SAH)
     }
 
-    pub fn create(prims: &mut Vec<Arc<Primitive + Send + Sync>>, ps: &mut ParamSet) -> BVH {
+    pub fn create(prims: &mut Vec<Arc<Primitive>>, ps: &mut ParamSet) -> BVH {
         let split_method_name = ps.find_one_string("splitmethod", "sah".into());
         let split_method = if split_method_name == "sah" {
             SplitMethod::SAH
@@ -75,7 +75,7 @@ impl BVH {
     }
 
     pub fn new(max_prims_per_node: usize,
-               prims: &mut Vec<Arc<Primitive + Send + Sync>>,
+               prims: &mut Vec<Arc<Primitive>>,
                split_method: SplitMethod)
                -> BVH {
         info!("Generating BVH with method {:?}:", split_method);
@@ -126,13 +126,13 @@ impl BVH {
         bvh
     }
 
-    fn recursive_build(primitives: &[Arc<Primitive + Send + Sync>],
+    fn recursive_build(primitives: &[Arc<Primitive>],
                        primitive_info: &mut Vec<BVHPrimitiveInfo>,
                        start: usize,
                        end: usize,
                        max_prims_per_node: usize,
                        total_nodes: &mut usize,
-                       ordered_prims: &mut Vec<Arc<Primitive + Send + Sync>>,
+                       ordered_prims: &mut Vec<Arc<Primitive>>,
                        split_method: SplitMethod)
                        -> BVHBuildNode {
         *total_nodes += 1;
@@ -478,11 +478,11 @@ impl Primitive for BVH {
         false
     }
 
-    fn area_light(&self) -> Option<Arc<AreaLight + Send + Sync>> {
+    fn area_light(&self) -> Option<Arc<AreaLight>> {
         panic!("area_light() should not be called on an Aggregate Primitive!");
     }
 
-    fn material(&self) -> Option<Arc<Material + Send + Sync>> {
+    fn material(&self) -> Option<Arc<Material>> {
         panic!("material() should not be called on an Aggregate Primitive!");
     }
 

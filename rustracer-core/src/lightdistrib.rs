@@ -21,7 +21,7 @@ pub fn init_stats() {
     n_probes_per_lookup::init();
 }
 
-pub trait LightDistribution {
+pub trait LightDistribution: Send + Sync {
     fn lookup<'a>(&'a self, p: &Point3f) -> &'a Distribution1D;
 }
 

@@ -29,15 +29,15 @@ pub fn init_stats() {
     path::init_stats();
 }
 
-pub trait SamplerIntegrator {
+pub trait SamplerIntegrator: Send + Sync {
     fn pixel_bounds(&self) -> &Bounds2i;
 
-    fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut Box<Sampler + Send + Sync>) {}
+    fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut Box<Sampler>) {}
 
     fn li(&self,
           scene: &Scene,
           ray: &mut Ray,
-          sampler: &mut Box<Sampler + Send + Sync>,
+          sampler: &mut Box<Sampler>,
           arena: &Allocator,
           depth: u32)
           -> Spectrum;
@@ -48,7 +48,7 @@ pub trait SamplerIntegrator {
                            isect: &SurfaceInteraction,
                            scene: &Scene,
                            bsdf: &bsdf::BSDF,
-                           sampler: &mut Box<Sampler + Send + Sync>,
+                           sampler: &mut Box<Sampler>,
                            arena: &Allocator,
                            depth: u32)
                            -> Spectrum {
@@ -88,7 +88,7 @@ pub trait SamplerIntegrator {
                              isect: &SurfaceInteraction,
                              scene: &Scene,
                              bsdf: &bsdf::BSDF,
-                             sampler: &mut Box<Sampler + Send + Sync>,
+                             sampler: &mut Box<Sampler>,
                              arena: &Allocator,
                              depth: u32)
                              -> Spectrum {
@@ -135,7 +135,7 @@ pub trait SamplerIntegrator {
 
 pub fn uniform_sample_all_light(it: &SurfaceInteraction,
                                 scene: &Scene,
-                                sampler: &mut Box<Sampler + Send + Sync>,
+                                sampler: &mut Box<Sampler>,
                                 n_light_samples: &[usize])
                                 -> Spectrum {
     let mut L = Spectrum::black();
@@ -173,7 +173,7 @@ pub fn uniform_sample_all_light(it: &SurfaceInteraction,
 pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
     it: &SurfaceInteraction,
     scene: &Scene,
-    sampler: &mut Box<Sampler + Send + Sync>,
+    sampler: &mut Box<Sampler>,
     distrib: D,
 ) -> Spectrum{
     let distrib = distrib.into();
@@ -206,10 +206,10 @@ pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
 
 pub fn estimate_direct(it: &SurfaceInteraction,
                        u_scattering: &Point2f,
-                       light: &Arc<Light + Send + Sync>,
+                       light: &Arc<Light>,
                        u_light: &Point2f,
                        scene: &Scene,
-                       _sampler: &mut Box<Sampler + Send + Sync>)
+                       _sampler: &mut Box<Sampler>)
                        -> Spectrum {
     let specular = false;
 

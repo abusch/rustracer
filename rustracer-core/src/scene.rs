@@ -16,14 +16,14 @@ pub fn init_stats() {
 }
 
 pub struct Scene {
-    pub lights: Vec<Arc<Light + Sync + Send>>,
-    pub infinite_lights: Vec<Arc<Light + Sync + Send>>,
-    aggregate: Arc<Primitive + Sync + Send>,
+    pub lights: Vec<Arc<Light>>,
+    pub infinite_lights: Vec<Arc<Light>>,
+    aggregate: Arc<Primitive>,
 }
 
 impl Scene {
-    pub fn new(aggregate: Arc<Primitive + Sync + Send>,
-               lights: Vec<Arc<Light + Sync + Send>>)
+    pub fn new(aggregate: Arc<Primitive>,
+               lights: Vec<Arc<Light>>)
                -> Scene {
         let mut scene = Scene {
             lights: Vec::new(),

@@ -9,12 +9,14 @@ use texture::Texture;
 
 #[derive(Debug)]
 pub struct ScaleTexture<T> {
-    tex1: Arc<Texture<T> + Send + Sync>,
-    tex2: Arc<Texture<T> + Send + Sync>,
+    tex1: Arc<Texture<T>>,
+    tex2: Arc<Texture<T>>,
 }
 
 impl<T> Texture<T> for ScaleTexture<T>
     where T: Debug,
+          T: Send,
+          T: Sync,
           T: Mul<Output = T>
 {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {

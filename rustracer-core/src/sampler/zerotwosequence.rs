@@ -54,7 +54,7 @@ impl ZeroTwoSequence {
         }
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<Sampler + Send + Sync> {
+    pub fn create(ps: &mut ParamSet) -> Box<Sampler> {
         let nsamples = ps.find_one_int("pixelsamples", 16);
         let sd = ps.find_one_int("dimensions", 4);
         // TODO quickrender
@@ -194,7 +194,7 @@ impl Sampler for ZeroTwoSequence {
         self.spp
     }
 
-    fn box_clone(&self) -> Box<Sampler + Send + Sync> {
+    fn box_clone(&self) -> Box<Sampler> {
         Box::new(self.clone())
     }
 

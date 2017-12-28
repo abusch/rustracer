@@ -25,7 +25,7 @@ impl GaussianFilter {
         ((-self.alpha * d * d).exp() - expv).max(0f32)
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<Filter + Send + Sync> {
+    pub fn create(ps: &mut ParamSet) -> Box<Filter> {
         let xw = ps.find_one_float("xwidth", 2.0);
         let yw = ps.find_one_float("ywidth", 2.0);
         let alpha = ps.find_one_float("alpha", 2.0);

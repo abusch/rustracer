@@ -39,7 +39,7 @@ pub struct DisneyMaterial {
 }
 
 impl DisneyMaterial {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
         let color = mp.get_spectrum_texture("color", &Spectrum::from(0.5));
         let metallic = mp.get_float_texture("metallic", 0.0);
         let eta = mp.get_float_texture("eta", 1.5);

@@ -13,7 +13,7 @@ use spectrum::Spectrum;
 pub struct DiffuseAreaLight {
     id: u32,
     l_emit: Spectrum,
-    shape: Arc<Shape + Send + Sync>,
+    shape: Arc<Shape>,
     n_samples: u32,
     two_sided: bool,
     area: f32,
@@ -21,7 +21,7 @@ pub struct DiffuseAreaLight {
 
 impl DiffuseAreaLight {
     pub fn new(l_emit: Spectrum,
-               shape: Arc<Shape + Send + Sync>,
+               shape: Arc<Shape>,
                n_samples: u32,
                two_sided: bool)
                -> DiffuseAreaLight {
@@ -38,7 +38,7 @@ impl DiffuseAreaLight {
 
     pub fn create(_light2world: &Transform,
                   ps: &mut ParamSet,
-                  shape: Arc<Shape + Send + Sync>)
+                  shape: Arc<Shape>)
                   -> Arc<DiffuseAreaLight> {
         let L = ps.find_one_spectrum("L", Spectrum::white());
         let sc = ps.find_one_spectrum("scale", Spectrum::white());

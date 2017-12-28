@@ -37,7 +37,7 @@ impl MitchellNetravali {
         }
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<Filter + Send + Sync> {
+    pub fn create(ps: &mut ParamSet) -> Box<Filter> {
         let xw = ps.find_one_float("xwidth", 2.0);
         let yw = ps.find_one_float("ywidth", 2.0);
         let B = ps.find_one_float("B", 1.0 / 3.0);

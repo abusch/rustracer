@@ -22,7 +22,7 @@ pub struct TranslucentMaterial {
 }
 
 impl TranslucentMaterial {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::from(0.25));
         let ks = mp.get_spectrum_texture("Ks", &Spectrum::from(0.25));
         let reflect = mp.get_spectrum_texture("reflect", &Spectrum::from(0.5));

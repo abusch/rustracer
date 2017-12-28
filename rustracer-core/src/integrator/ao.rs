@@ -31,7 +31,7 @@ impl SamplerIntegrator for AmbientOcclusion {
     fn li(&self,
           scene: &Scene,
           ray: &mut Ray,
-          sampler: &mut Box<Sampler + Send + Sync>,
+          sampler: &mut Box<Sampler>,
           _arena: &Allocator,
           _depth: u32)
           -> Spectrum {

@@ -20,7 +20,7 @@ impl SamplerIntegrator for Normal {
     fn li(&self,
           scene: &Scene,
           ray: &mut Ray,
-          _sampler: &mut Box<Sampler + Send + Sync>,
+          _sampler: &mut Box<Sampler>,
           _arena: &Allocator,
           _depth: u32)
           -> Spectrum {

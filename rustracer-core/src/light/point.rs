@@ -25,7 +25,7 @@ impl PointLight {
         }
     }
 
-    pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light + Send + Sync> {
+    pub fn create(l2w: &Transform, params: &mut ParamSet) -> Arc<Light> {
         let I = params.find_one_spectrum("I", Spectrum::white());
         let scale = params.find_one_spectrum("scale", Spectrum::white());
         let p = params.find_one_point3f("from", Point3f::zero());

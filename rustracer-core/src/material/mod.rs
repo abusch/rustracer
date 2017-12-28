@@ -34,7 +34,7 @@ pub enum TransportMode {
     IMPORTANCE,
 }
 
-pub trait Material: Debug {
+pub trait Material: Debug + Send + Sync {
     fn compute_scattering_functions<'a, 'b>(&self,
                                             isect: &mut SurfaceInteraction<'a, 'b>,
                                             mode: TransportMode,
@@ -43,7 +43,7 @@ pub trait Material: Debug {
 }
 
 
-pub fn bump(d: &Arc<Texture<f32> + Send + Sync>, si: &mut SurfaceInteraction) {
+pub fn bump(d: &Arc<Texture<f32>>, si: &mut SurfaceInteraction) {
     // Compute offset positions and evaluate displacement texture
     let mut si_eval = si.clone();
 

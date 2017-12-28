@@ -7,7 +7,7 @@ use paramset::ParamSet;
 use ray::{Ray, RayDifferential};
 use sampling;
 
-pub trait Camera {
+pub trait Camera: Send+ Sync {
     fn get_film(&self) -> &Film;
     fn generate_ray(&self, sample: &CameraSample) -> Ray;
     fn generate_ray_differential(&self, sample: &CameraSample) -> Ray;
@@ -69,7 +69,7 @@ impl PerspectiveCamera {
     pub fn create(ps: &mut ParamSet,
                   cam2world: &Transform,
                   film: Box<Film>)
-                  -> Box<Camera + Send + Sync> {
+                  -> Box<Camera> {
         let mut shutteropen = ps.find_one_float("shutteropen", 0.0);
         let mut shutterclose = ps.find_one_float("shutterclose", 1.0);
         if shutterclose < shutteropen {

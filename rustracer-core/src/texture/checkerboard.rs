@@ -16,16 +16,16 @@ pub enum AAMethod {
 
 #[derive(Debug)]
 pub struct CheckerboardTexture<T> {
-    tex1: Arc<Texture<T> + Send + Sync>,
-    tex2: Arc<Texture<T> + Send + Sync>,
-    mapping: Box<TextureMapping2D + Send + Sync>,
+    tex1: Arc<Texture<T>>,
+    tex2: Arc<Texture<T>>,
+    mapping: Box<TextureMapping2D>,
     aa_method: AAMethod,
 }
 
 impl<T> CheckerboardTexture<T> {
-    pub fn new(tex1: Arc<Texture<T> + Send + Sync>,
-               tex2: Arc<Texture<T> + Send + Sync>,
-               mapping: Box<TextureMapping2D + Send + Sync>,
+    pub fn new(tex1: Arc<Texture<T>>,
+               tex2: Arc<Texture<T>>,
+               mapping: Box<TextureMapping2D>,
                aa_method: AAMethod)
                -> CheckerboardTexture<T> {
         CheckerboardTexture {

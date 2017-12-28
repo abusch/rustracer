@@ -21,7 +21,7 @@ pub struct Plastic {
 }
 
 impl Plastic {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
         info!("Creating Plastic material");
         let Kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.25));
         let Ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.25));

@@ -16,7 +16,7 @@ pub struct MirrorMaterial {
 }
 
 impl MirrorMaterial {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material + Sync + Send> {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
         info!("Creating Mirror material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::grey(0.9));
         let bump_map = mp.get_float_texture_or_none("bumpmap");

@@ -67,8 +67,8 @@ impl TriangleMesh {
                   _w2o: &Transform,
                   reverse_orientation: bool,
                   params: &mut ParamSet,
-                  _float_textures: &HashMap<String, Arc<Texture<f32> + Send + Sync>>)
-                  -> Vec<Arc<Shape + Send + Sync>> {
+                  _float_textures: &HashMap<String, Arc<Texture<f32>>>)
+                  -> Vec<Arc<Shape>> {
         let vi: Vec<usize> = params
             .find_int("indices")
             .unwrap_or_default()
@@ -125,7 +125,7 @@ impl TriangleMesh {
 
         // TODO implement rest of the validation / sanity checking
 
-        let res: Vec<Arc<Shape + Send + Sync>> =
+        let res: Vec<Arc<Shape>> =
             create_triangle_mesh(o2w,
                                  reverse_orientation,
                                  &vi[..],
@@ -545,11 +545,11 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
                             s: Option<&[Vector3f]>,
                             n: Option<&[Normal3f]>,
                             uv: Option<&[Point2f]>)
-                            -> Vec<Arc<Shape + Send + Sync>> {
+                            -> Vec<Arc<Shape>> {
     let mesh = Arc::new(TriangleMesh::new(object_to_world, vertex_indices, p, s, n, uv));
 
     let n_triangles = vertex_indices.len() / 3;
-    let mut tris: Vec<Arc<Shape + Send + Sync>> = Vec::with_capacity(n_triangles);
+    let mut tris: Vec<Arc<Shape>> = Vec::with_capacity(n_triangles);
 
     for i in 0..n_triangles {
         tris.push(Arc::new(Triangle::new(Arc::clone(&mesh), i, reverse_orientation)));

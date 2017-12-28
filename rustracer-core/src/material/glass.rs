@@ -23,7 +23,7 @@ pub struct GlassMaterial {
 }
 
 impl GlassMaterial {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
         info!("Creating Glass material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::white());
         let Kt = mp.get_spectrum_texture("Kt", &Spectrum::white());

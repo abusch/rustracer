@@ -26,7 +26,7 @@ impl Cylinder {
     pub fn create(object_to_world: &Transform,
                   reverse_orientation: bool,
                   params: &mut ParamSet)
-                  -> Arc<Shape + Send + Sync> {
+                  -> Arc<Shape> {
         let radius = params.find_one_float("radius", 1.0);
         let z_min = params.find_one_float("z_min", -1.0);
         let z_max = params.find_one_float("z_max", 1.0);

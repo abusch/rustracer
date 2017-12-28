@@ -20,7 +20,7 @@ pub fn init_stats() {
     mesh::init_stats();
 }
 
-pub trait Shape: Debug {
+pub trait Shape: Debug + Send + Sync {
     fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)>;
 
     fn intersect_p(&self, ray: &Ray) -> bool {

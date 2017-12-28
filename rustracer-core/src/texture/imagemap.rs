@@ -16,7 +16,7 @@ use transform::Transform;
 
 #[derive(Debug)]
 pub struct ImageTexture<T> {
-    mapping: Box<TextureMapping2D + Send + Sync>,
+    mapping: Box<TextureMapping2D>,
     mipmap: Arc<MIPMap<T>>,
 }
 
@@ -37,7 +37,7 @@ impl<T> ImageTexture<T>
                                       max_aniso: f32,
                                       scale: f32,
                                       gamma: bool,
-                                      map: Box<TextureMapping2D + Send + Sync>,
+                                      map: Box<TextureMapping2D>,
                                       convert: F)
                                       -> ImageTexture<T> {
         debug!("Loading texture {}", path.display());
@@ -176,6 +176,8 @@ impl<T> Texture<T> for ImageTexture<T>
     where T: Zero,
           T: Clone,
           T: Copy,
+          T: Send,
+          T: Sync,
           T: Clampable,
           T: Debug,
           T: AddAssign<T>,

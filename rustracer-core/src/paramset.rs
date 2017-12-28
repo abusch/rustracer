@@ -284,15 +284,15 @@ impl<T: Debug> Default for ParamSetItem<T> {
 pub struct TextureParams<'a> {
     geom_params: &'a mut ParamSet,
     material_params: &'a mut ParamSet,
-    float_textures: &'a HashMap<String, Arc<Texture<f32> + Send + Sync>>,
-    spectrum_textures: &'a HashMap<String, Arc<Texture<Spectrum> + Send + Sync>>,
+    float_textures: &'a HashMap<String, Arc<Texture<f32>>>,
+    spectrum_textures: &'a HashMap<String, Arc<Texture<Spectrum>>>,
 }
 
 impl<'a> TextureParams<'a> {
     pub fn new(gp: &'a mut ParamSet,
                mp: &'a mut ParamSet,
-               ft: &'a HashMap<String, Arc<Texture<f32> + Send + Sync>>,
-               st: &'a HashMap<String, Arc<Texture<Spectrum> + Send + Sync>>)
+               ft: &'a HashMap<String, Arc<Texture<f32>>>,
+               st: &'a HashMap<String, Arc<Texture<Spectrum>>>)
                -> TextureParams<'a> {
         TextureParams {
             geom_params: gp,
@@ -335,7 +335,7 @@ impl<'a> TextureParams<'a> {
     pub fn get_spectrum_texture(&mut self,
                                 n: &str,
                                 default: &Spectrum)
-                                -> Arc<Texture<Spectrum> + Send + Sync> {
+                                -> Arc<Texture<Spectrum>> {
         let mut name = self.geom_params.find_one_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_one_texture(n, "".to_owned());
@@ -355,7 +355,7 @@ impl<'a> TextureParams<'a> {
         Arc::new(ConstantTexture::new(val))
     }
 
-    pub fn get_float_texture(&mut self, n: &str, default: f32) -> Arc<Texture<f32> + Send + Sync> {
+    pub fn get_float_texture(&mut self, n: &str, default: f32) -> Arc<Texture<f32>> {
         let mut name = self.geom_params.find_one_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_one_texture(n, "".to_owned());
@@ -375,7 +375,7 @@ impl<'a> TextureParams<'a> {
 
     pub fn get_float_texture_or_none(&mut self,
                                      n: &str)
-                                     -> Option<Arc<Texture<f32> + Send + Sync>> {
+                                     -> Option<Arc<Texture<f32>>> {
         let mut name = self.geom_params.find_one_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_one_texture(n, "".to_owned());
@@ -393,7 +393,7 @@ impl<'a> TextureParams<'a> {
             .find_float(n)
             .or_else(|| self.material_params.find_float(n))
             .map(|val| {
-                     let tex: Arc<Texture<f32> + Send + Sync> =
+                     let tex: Arc<Texture<f32>> =
                          Arc::new(ConstantTexture::new(val[0]));
                      tex
                  })

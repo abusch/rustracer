@@ -21,7 +21,7 @@ pub struct Metal {
 }
 
 impl Metal {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
         let copper_eta =
             Spectrum::from_sampled(&COPPER_WAVELENGTHS[..], &COPPER_N[..], COPPER_SAMPLES);
         let eta = mp.get_spectrum_texture("eta", &copper_eta);

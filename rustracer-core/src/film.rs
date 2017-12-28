@@ -52,7 +52,7 @@ pub struct Film {
 impl Film {
     pub fn new(resolution: Point2i,
                cropwindow: Bounds2f,
-               filter: Box<Filter + Sync + Send>,
+               filter: Box<Filter>,
                diagonal: f32,
                filename: &str,
                scale: f32)
@@ -99,7 +99,7 @@ impl Film {
         }
     }
 
-    pub fn create(ps: &mut ParamSet, filter: Box<Filter + Send + Sync>) -> Box<Film> {
+    pub fn create(ps: &mut ParamSet, filter: Box<Filter>) -> Box<Film> {
         let mut filename = ps.find_one_string("filename", "".into());
         if filename == "" {
             filename = "image.png".into();

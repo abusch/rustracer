@@ -26,7 +26,7 @@ pub struct UberMaterial {
 }
 
 impl UberMaterial {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material + Send + Sync> {
+    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::from(0.25));
         let ks = mp.get_spectrum_texture("Ks", &Spectrum::from(0.25));
         let kr = mp.get_spectrum_texture("Kr", &Spectrum::from(0.0));
