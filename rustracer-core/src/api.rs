@@ -17,7 +17,7 @@ use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegr
 use material::{DisneyMaterial, GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial,
                Plastic, SubstrateMaterial, TranslucentMaterial, UberMaterial};
 use paramset::{ParamSet, TextureParams};
-use primitive::{GeometricPrimitive, Primitive};
+use primitive::{GeometricPrimitive, TransformedPrimitive, Primitive};
 use renderer;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
@@ -166,6 +166,8 @@ pub struct RenderOptions {
     camera_to_world: Transform,
     lights: Vec<Arc<Light>>,
     primitives: Vec<Arc<Primitive>>,
+    instances: HashMap<String, Vec<Arc<Primitive>>>,
+    current_instance: Option<String>,
 }
 
 impl RenderOptions {
@@ -243,19 +245,24 @@ impl RenderOptions {
         info!("Making scene with {} primitives and {} lights",
               self.primitives.len(),
               self.lights.len());
-        let accelerator = self.make_accelerator();
+        let accelerator = make_accelerator(&self.accelerator_name,
+                                           &self.primitives,
+                                           &mut self.accelerator_params);
         Ok(Arc::new(Scene::new(accelerator, self.lights.clone())))
     }
+}
 
-    pub fn make_accelerator(&mut self) -> Arc<Primitive> {
-        if self.accelerator_name == "kdtree" {
-            unimplemented!()
-        } else if self.accelerator_name == "bvh" {
-            Arc::new(BVH::create(&mut self.primitives, &mut self.accelerator_params))
-        } else {
-            warn!("Accelerator \"{}\" unknown.", self.accelerator_name);
-            Arc::new(BVH::create(&mut self.primitives, &mut self.accelerator_params))
-        }
+pub fn make_accelerator(accelerator_name: &str,
+                        prims: &[Arc<Primitive>],
+                        accelerator_params: &mut ParamSet)
+                        -> Arc<Primitive> {
+    if accelerator_name == "kdtree" {
+        unimplemented!()
+    } else if accelerator_name == "bvh" {
+        Arc::new(BVH::create(prims, accelerator_params))
+    } else {
+        warn!("Accelerator \"{}\" unknown.", accelerator_name);
+        Arc::new(BVH::create(prims, accelerator_params))
     }
 }
 
@@ -279,6 +286,8 @@ impl Default for RenderOptions {
             camera_to_world: Transform::default(),
             lights: Vec::new(),
             primitives: Vec::new(),
+            instances: HashMap::new(),
+            current_instance: None,
         }
     }
 }
@@ -435,9 +444,9 @@ pub trait Api {
     fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
     fn shape(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
     fn reverse_orientation(&self) -> Result<(), Error>;
-    // TODO object_begin
-    // TODO object_end
-    // TODO object_instance
+    fn object_begin(&self, name: String) -> Result<(), Error>;
+    fn object_end(&self) -> Result<(), Error>;
+    fn object_instance(&self, name: String) -> Result<(), Error>;
     fn world_end(&self) -> Result<(), Error>;
 }
 
@@ -864,8 +873,15 @@ impl Api for RealApi {
                                                               });
             prims.push(prim);
         }
-        state.render_options.primitives.append(&mut prims);
-        state.render_options.lights.append(&mut area_lights);
+        if let Some(name) = &state.render_options.current_instance {
+            let mut inst = state.render_options.instances
+                .get_mut(name)
+                .ok_or(format_err!("Unable to find instance named {}", name))?;
+            inst.append(&mut prims);
+        } else {
+            state.render_options.primitives.append(&mut prims);
+            state.render_options.lights.append(&mut area_lights);
+        }
         Ok(())
     }
 
@@ -911,6 +927,75 @@ impl Api for RealApi {
         let duration = start_time.elapsed();
         println!("Render time: {}", HumanDuration(duration));
         stats::print_stats();
+
+        Ok(())
+    }
+
+    fn object_begin(&self, name: String) -> Result<(), Error> {
+        debug!("object_begin called");
+        self.attribute_begin()?;
+        // Make sure we mutably borrow _state_ *after* we call attribute_begin(), as it
+        // needs to borrow _state_ mutably as well...
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+
+        if state.render_options.current_instance.is_some() {
+            return Err(err_msg("ObjectBegin called inside of instance definition"));
+        }
+        state.render_options.current_instance = Some(name.to_owned());
+        state.render_options.instances.insert(name, Vec::new());
+
+        Ok(())
+    }
+
+    fn object_end(&self) -> Result<(), Error> {
+        debug!("object_end called");
+        {
+            let mut state = self.state.borrow_mut();
+            state.api_state.verify_world()?;
+
+            if state.render_options.current_instance.is_none() {
+                return Err(err_msg("ObjectEnd called outside of instance definition "));
+            }
+            state.render_options.current_instance = None;
+        }
+        self.attribute_end()?;
+        n_object_instances_created::inc();
+
+        Ok(())
+    }
+
+    fn object_instance(&self, name: String) -> Result<(), Error> {
+        debug!("object_instance called");
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_world()?;
+
+        if state.render_options.current_instance.is_some() {
+            return Err(err_msg("ObjectInstance called inside of instance definition"));
+        }
+        let inst = state
+            .render_options
+            .instances
+            .get_mut(&name)
+            .ok_or(format_err!("Unable to find instance named {}", name))?;
+        if inst.is_empty() {
+            return Ok(());
+        }
+        n_object_instances_used::inc();
+
+        if inst.len() > 1 {
+            // Create aggregate for instance primitives
+            let accel = make_accelerator(&state.render_options.accelerator_name,
+                                         &inst,
+                                         &mut state.render_options.accelerator_params);
+            inst.clear();
+            inst.push(accel);
+        }
+        let prim = Arc::new(TransformedPrimitive {
+            primitive: inst.get(0).unwrap().clone(),
+            primitive_to_world: state.cur_transform.clone(),
+        });
+        state.render_options.primitives.push(prim);
 
         Ok(())
     }

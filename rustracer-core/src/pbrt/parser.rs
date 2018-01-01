@@ -25,6 +25,12 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
         token(Tokens::TRANSFORMBEGIN).and_then(|_| api.transform_begin().map_err(|e| e.compat()));
     let transform_end =
         token(Tokens::TRANSFORMEND).and_then(|_| api.transform_end().map_err(|e| e.compat()));
+    let object_begin =
+        (token(Tokens::OBJECTBEGIN), string_()).and_then(|(_, name)| api.object_begin(name).map_err(|e| e.compat()));
+    let object_end =
+        token(Tokens::OBJECTEND).and_then(|_| api.object_end().map_err(|e| e.compat()));
+    let object_instance =
+        (token(Tokens::OBJECTINSTANCE), string_()).and_then(|(_, name)| api.object_instance(name).map_err(|e| e.compat()));
     let world_begin =
         token(Tokens::WORLDBEGIN).and_then(|_| api.world_begin().map_err(|e| e.compat()));
     let world_end = token(Tokens::WORLDEND).and_then(|_| api.world_end().map_err(|e| e.compat()));
@@ -167,6 +173,9 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(attribute_end),
                                              try(transform_begin),
                                              try(transform_end),
+                                             try(object_begin),
+                                             try(object_end),
+                                             try(object_instance),
                                              try(world_begin),
                                              try(world_end),
                                              try(look_at),

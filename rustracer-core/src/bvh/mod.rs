@@ -59,7 +59,7 @@ impl BVH {
         BVH::new(1, &mut prims, SplitMethod::SAH)
     }
 
-    pub fn create(prims: &mut Vec<Arc<Primitive>>, ps: &mut ParamSet) -> BVH {
+    pub fn create(prims: &[Arc<Primitive>], ps: &mut ParamSet) -> BVH {
         let split_method_name = ps.find_one_string("splitmethod", "sah".into());
         let split_method = if split_method_name == "sah" {
             SplitMethod::SAH
@@ -75,7 +75,7 @@ impl BVH {
     }
 
     pub fn new(max_prims_per_node: usize,
-               prims: &mut Vec<Arc<Primitive>>,
+               prims: &[Arc<Primitive>],
                split_method: SplitMethod)
                -> BVH {
         info!("Generating BVH with method {:?}:", split_method);

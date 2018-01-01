@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
+use Transform;
 use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
 use light::AreaLight;
@@ -69,5 +70,45 @@ impl Primitive for GeometricPrimitive {
         if let Some(ref material) = self.material() {
             material.compute_scattering_functions(isect, mode, allow_multiple_lobes, arena);
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct TransformedPrimitive {
+    pub primitive: Arc<Primitive>,
+    pub primitive_to_world: Transform,
+}
+
+impl Primitive for TransformedPrimitive {
+    fn world_bounds(&self) -> Bounds3f {
+        &self.primitive_to_world * &self.primitive.world_bounds()
+    }
+
+    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+        let mut r = self.primitive_to_world.inverse() * *ray;
+        self.primitive.intersect(&mut r).map(|isect| {
+            ray.t_max = r.t_max;
+            isect.transform(&self.primitive_to_world)
+        })
+    }
+
+    fn intersect_p(&self, ray: &Ray) -> bool {
+        let r = self.primitive_to_world.inverse() * *ray;
+        self.primitive.intersect_p(&r)
+    }
+
+    fn area_light(&self) -> Option<Arc<AreaLight>> {
+        None
+    }
+
+    fn material(&self) -> Option<Arc<Material>> {
+        None
+    }
+    fn compute_scattering_functions<'a, 'b>(&self,
+                                            _isect: &mut SurfaceInteraction<'a, 'b>,
+                                            _mode: TransportMode,
+                                            _allow_multiple_lobes: bool,
+                                            _arena: &'b Allocator) {
+        panic!("TransformedPrimitive::compute_scattering_functions() should not be called!");
     }
 }
