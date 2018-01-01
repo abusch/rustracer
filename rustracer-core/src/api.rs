@@ -392,7 +392,24 @@ pub trait Api {
                uy: f32,
                uz: f32)
                -> Result<(), Error>;
-    // TODO concat_Transform
+    fn concat_transform(&self,
+                 tr00: f32,
+                 tr01: f32,
+                 tr02: f32,
+                 tr03: f32,
+                 tr04: f32,
+                 tr05: f32,
+                 tr06: f32,
+                 tr07: f32,
+                 tr08: f32,
+                 tr09: f32,
+                 tr10: f32,
+                 tr11: f32,
+                 tr12: f32,
+                 tr13: f32,
+                 tr14: f32,
+                 tr15: f32)
+                 -> Result<(), Error>;
     fn transform(&self,
                  tr00: f32,
                  tr01: f32,
@@ -519,6 +536,49 @@ impl Api for RealApi {
         state.api_state.verify_initialized()?;
         let t = Transform::scale(sx, sy, sz);
         state.cur_transform = &state.cur_transform * &t;
+        Ok(())
+    }
+
+    fn concat_transform(&self,
+                 tr00: f32,
+                 tr01: f32,
+                 tr02: f32,
+                 tr03: f32,
+                 tr04: f32,
+                 tr05: f32,
+                 tr06: f32,
+                 tr07: f32,
+                 tr08: f32,
+                 tr09: f32,
+                 tr10: f32,
+                 tr11: f32,
+                 tr12: f32,
+                 tr13: f32,
+                 tr14: f32,
+                 tr15: f32)
+                 -> Result<(), Error> {
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_initialized()?;
+        let mat = Matrix4x4::from_elements(tr00,
+                                           tr04,
+                                           tr08,
+                                           tr12,
+                                           tr01,
+                                           tr05,
+                                           tr09,
+                                           tr13,
+                                           tr02,
+                                           tr06,
+                                           tr10,
+                                           tr14,
+                                           tr03,
+                                           tr07,
+                                           tr11,
+                                           tr15);
+        state.cur_transform = &state.cur_transform * &Transform {
+            m: mat,
+            m_inv: mat.inverse(),
+        };
         Ok(())
     }
 

@@ -140,6 +140,26 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                       api.texture(name, typ, texname, &mut params)
                           .map_err(|e| e.compat())
                   });
+    let concat_transform = (token::<I>(Tokens::CONCATTRANSFORM), num_array()).and_then(|(_, nums)| {
+        api.concat_transform(nums[0],
+                       nums[1],
+                       nums[2],
+                       nums[3],
+                       nums[4],
+                       nums[5],
+                       nums[6],
+                       nums[7],
+                       nums[8],
+                       nums[9],
+                       nums[10],
+                       nums[11],
+                       nums[12],
+                       nums[13],
+                       nums[14],
+                       nums[15])
+            .map_err(|e| e.compat())
+    });
+
     let transform = (token::<I>(Tokens::TRANSFORM), num_array()).and_then(|(_, nums)| {
         api.transform(nums[0],
                        nums[1],
@@ -197,6 +217,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(scale),
                                              try(rotate),
                                              try(translate),
+                                             try(concat_transform),
                                              try(transform)));
     (parsers, eof()).map(|(res, _)| res).parse(input)
 }
