@@ -110,17 +110,23 @@ pub enum Array {
 impl Array {
     pub fn as_num_array(&self) -> Vec<f32> {
         // TODO proper error handling
-        match *self {
-            Array::NumArray(ref a) => a.clone(),
-            _ => panic!("Attempted to cast a num array to a String array"),
+        match self {
+            Array::NumArray(a) => a.clone(),
+            Array::StrArray(a) => {
+                warn!("Attempted to cast a string array to a num array: {:?}", a);
+                vec![]
+            },
         }
     }
 
     // TODO proper error handling
     pub fn as_str_array(&self) -> Vec<String> {
-        match *self {
-            Array::StrArray(ref a) => a.clone(),
-            _ => panic!("Attempted to cast a string array to a num array"),
+        match self {
+            Array::StrArray(a) => a.clone(),
+            Array::NumArray(a) => {
+                warn!("Attempted to cast a num array to a string array: {:?}", a);
+                vec![]
+            },
         }
     }
 }

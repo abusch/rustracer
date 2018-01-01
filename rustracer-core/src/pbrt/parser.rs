@@ -52,8 +52,9 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                                                         .map_err(|e| e.compat())
                                                                 });
     let include = (token(Tokens::INCLUDE), string_()).and_then(|(_, name)| {
+        info!("Parsing included file: {}", name);
         super::tokenize_file(&name)
-            .and_then(|tokens| { 
+            .and_then(|tokens| {
                 parse(&tokens[..], api)
                     .map(|_| ())
                     .map_err(|e| format_err!("Failed to parse included file: {:?}", e))
