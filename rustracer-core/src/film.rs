@@ -47,6 +47,7 @@ pub struct Film {
     filter_table: [f32; FILTER_TABLE_SIZE],
     filter_radius: Vector2f,
     scale: f32,
+    max_sample_luminance: f32,
 }
 
 impl Film {
@@ -55,7 +56,8 @@ impl Film {
                filter: Box<Filter>,
                diagonal: f32,
                filename: &str,
-               scale: f32)
+               scale: f32,
+               max_sample_luminance: f32)
                -> Film {
         let cropped_pixel_bounds =
             Bounds2i::from_points(&Point2i::new((resolution.x as f32 * cropwindow.p_min.x).ceil() as
@@ -90,12 +92,13 @@ impl Film {
         Film {
             full_resolution: resolution,
             pixels: Mutex::new(pixels),
-            filter_table: filter_table,
+            filter_table,
             filter_radius: Vector2f::new(xwidth, ywidth),
             cropped_pixel_bounds: cropped_pixel_bounds,
-            scale: scale,
+            scale,
             _diagonal: diagonal * 0.001,
             filename: filename.to_owned(),
+            max_sample_luminance
         }
     }
 
@@ -121,13 +124,14 @@ impl Film {
         }
         let scale = ps.find_one_float("scale", 1.0);
         let diagonal = ps.find_one_float("diagonal", 35.0);
+        let max_sample_luminance = ps.find_one_float("maxsampleluminance", f32::INFINITY);
         // TODO max_sample_luminance
         Box::new(Film::new(Point2i::new(xres, yres),
                            crop,
                            filter,
                            diagonal,
                            &filename,
-                           scale))
+                           scale, max_sample_luminance))
     }
 
     pub fn get_film_tile(&self, sample_bounds: &Bounds2i) -> FilmTile {
@@ -145,7 +149,7 @@ impl Film {
         let tile_pixel_bounds: Bounds2i =
             Bounds2i::from(Bounds2f::intersect(&sample_extent_bounds, &float_cropped_pixel_bounds));
 
-        FilmTile::new(&tile_pixel_bounds, &self.filter_radius, &self.filter_table)
+        FilmTile::new(&tile_pixel_bounds, &self.filter_radius, &self.filter_table, self.max_sample_luminance)
     }
 
     pub fn merge_film_tile(&self, tile: FilmTile) {
@@ -239,10 +243,11 @@ pub struct FilmTile {
     inv_filter_radius: Vector2f,
     filter_table: Box<[f32]>,
     pub pixels: Vec<FilmTilePixel>,
+    max_sample_luminance: f32,
 }
 
 impl FilmTile {
-    pub fn new(pixel_bounds: &Bounds2i, filter_radius: &Vector2f, filter: &[f32]) -> FilmTile {
+    pub fn new(pixel_bounds: &Bounds2i, filter_radius: &Vector2f, filter: &[f32], max_sample_luminance: f32) -> FilmTile {
         let mut filter_table = Vec::new();
         filter_table.extend_from_slice(filter);
         FilmTile {
@@ -253,6 +258,7 @@ impl FilmTile {
             // the data from Film leads to all kind of lifetime issues...
             filter_table: filter_table.into_boxed_slice(),
             pixels: vec![FilmTilePixel::default(); pixel_bounds.area() as usize],
+            max_sample_luminance,
         }
     }
 
@@ -261,6 +267,11 @@ impl FilmTile {
             warn!("colour has NaNs! Ignoring");
             return;
         }
+        let L = if colour.y() > self.max_sample_luminance {
+            colour * self.max_sample_luminance / colour.y()
+        } else {
+            colour
+        };
         let float_pixel_bounds: Bounds2f = self.pixel_bounds.into();
         // Convert to discrete pixel space
         let p_film_discrete = *p_film - Vector2f::new(0.5, 0.5);
@@ -307,7 +318,7 @@ impl FilmTile {
                 let filter_weight = &self.filter_table[offset];
                 let idx = self.get_pixel_index(&Point2i::new(x, y));
                 let pixel = &mut self.pixels[idx];
-                pixel.contrib_sum += colour * *filter_weight;
+                pixel.contrib_sum += L * *filter_weight;
                 pixel.filter_weight_sum += *filter_weight;
             }
         }
