@@ -182,14 +182,14 @@ pub fn find_interval<P>(size: usize, pred: P) -> usize
         let half = len >> 1;
         let middle = first + half;
         // Bisect range based on value of _pred_ at _middle_
-        if pred(middle) {
+        if pred(middle as usize) {
             first = middle + 1;
             len -= half + 1;
         } else {
             len = half;
         }
     }
-    clamp(first - 1, 0, size - 2)
+    clamp(first as isize - 1, 0, size as isize - 2) as usize
 }
 
 /// Version of min() that works on `PartialOrd`, so it works for both u32 and f32.
@@ -287,26 +287,48 @@ impl Clampable for Spectrum {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-#[test]
-fn test_gamma() {
-    let g5 = gamma(5);
-    let p = Point3f::new(-0.4, 0.9, 0.2);
-    let v = g5 * p.abs();
-    println!("gamma(5) = {}, p={:?}, v={:?}", gamma(5), p, v);
+    #[test]
+    fn test_find_interval() {
+        let a = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        // check clamping for out of range
+        assert_eq!(0, find_interval(a.len(), |index| a[index] as isize <= -1));
+        assert_eq!(a.len() - 2, find_interval(a.len(), |index| a[index] <= 100));
+
+        for i in 0..a.len() - 1 {
+            assert_eq!(i, find_interval(a.len(), |index| a[index] <= i));
+            assert_eq!(i, find_interval(a.len(), |index| a[index] as f32 <= i as f32 + 0.5));
+            if i > 0 {
+                assert_eq!(i - 1, find_interval(a.len(), |index| a[index] as f32 <= i as f32 - 0.5));
+            }
+        }
+    }
+
+    #[test]
+    fn test_gamma() {
+        let g5 = gamma(5);
+        let p = Point3f::new(-0.4, 0.9, 0.2);
+        let v = g5 * p.abs();
+        println!("gamma(5) = {}, p={:?}, v={:?}", gamma(5), p, v);
+    }
+
+    #[test]
+    fn test_is_power_of_2() {
+        assert!(is_power_of_2(4));
+        assert!(is_power_of_2(8));
+        assert!(is_power_of_2(1024));
+        assert!(!is_power_of_2(3));
+        assert!(!is_power_of_2(7));
+    }
+
+    #[test]
+    fn test_round_up_pow_2() {
+        assert_eq!(round_up_pow_2(1023), 1024);
+        assert_eq!(round_up_pow_2(1024), 1024);
+    }
 }
 
-#[test]
-fn test_is_power_of_2() {
-    assert!(is_power_of_2(4));
-    assert!(is_power_of_2(8));
-    assert!(is_power_of_2(1024));
-    assert!(!is_power_of_2(3));
-    assert!(!is_power_of_2(7));
-}
-
-#[test]
-fn test_round_up_pow_2() {
-    assert_eq!(round_up_pow_2(1023), 1024);
-    assert_eq!(round_up_pow_2(1024), 1024);
-}
