@@ -21,7 +21,7 @@ fn main() {
     // } else {
     //     slog::Level::Info
     // };
-    flexi_logger::Logger::with_str("rustracer=info")
+    flexi_logger::Logger::with_str("rustracer=info,rustracer_core=info")
         .log_to_file()
         .suppress_timestamp()
         .directory("/tmp")

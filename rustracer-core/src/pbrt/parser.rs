@@ -40,6 +40,11 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                           api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
                               .map_err(|e| e.compat())
                       });
+    let coordinate_system =
+        (token(Tokens::COORDINATESYSTEM), string_()).and_then(|(_, name)| {
+                                                                   api.coordinate_system(name)
+                                                                       .map_err(|e| e.compat())
+                                                               });
     let coord_sys_transform =
         (token(Tokens::COORDSYSTRANSFORM), string_()).and_then(|(_, name)| {
                                                                    api.coord_sys_transform(name)
@@ -199,6 +204,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>
                                              try(world_begin),
                                              try(world_end),
                                              try(look_at),
+                                             try(coordinate_system),
                                              try(coord_sys_transform),
                                              try(camera),
                                              try(film),

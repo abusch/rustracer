@@ -428,8 +428,7 @@ pub trait Api {
                  tr14: f32,
                  tr15: f32)
                  -> Result<(), Error>;
-    // TODO coordinate_system
-    // TODO coordinate_sys_transform
+    fn coordinate_system(&self, name: String) -> Result<(), Error>;
     fn coord_sys_transform(&self, name: String) -> Result<(), Error>;
     // TODO active_transform_all
     // TODO active_transform_end_time
@@ -643,6 +642,15 @@ impl Api for RealApi {
                                          &Point3f::new(lx, ly, lz),
                                          &Vector3f::new(ux, uy, uz));
         state.cur_transform = &state.cur_transform * &look_at;
+        Ok(())
+    }
+
+    fn coordinate_system(&self, name: String) -> Result<(), Error> {
+        debug!("coordinate_system called");
+        let mut state = self.state.borrow_mut();
+        state.api_state.verify_initialized()?;
+        state.named_coordinate_systems.insert(name, state.cur_transform.clone());
+
         Ok(())
     }
 
