@@ -166,7 +166,7 @@ impl ply::PropertyAccess for Vertex {
             ("t", ply::Property::Float(v)) |
             ("texture_v", ply::Property::Float(v)) |
             ("texture_t", ply::Property::Float(v)) => self.uv.y = v,
-            _ => panic!("Unknown property \"{}\" found for vertex element", key),
+            _ => debug!("Unknown property \"{}\" found for vertex element", key),
         }
     }
 }
@@ -183,7 +183,7 @@ impl ply::PropertyAccess for Face {
     fn set_property(&mut self, key: String, prop: ply::Property) {
         match (key.as_ref(), prop) {
             ("vertex_indices", ply::Property::ListInt(v)) => self.vertex_indices = v,
-            (_k, _) => panic!("Face: Invalid combination key/value for key {}", key),
+            (_k, p) => debug!("Face: Invalid combination key/value for key {} / prop {:?}", key, p),
         }
     }
 }
