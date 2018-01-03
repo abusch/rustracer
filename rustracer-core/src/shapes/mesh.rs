@@ -13,7 +13,7 @@ use paramset::ParamSet;
 use ray::Ray;
 use sampling;
 use shapes::Shape;
-use texture::Texture;
+use texture::{Texture, TextureFloat, ConstantTexture};
 
 stat_percent!("Intersections/Ray-triangle intersection tests", n_hits);
 stat_memory_counter!("Memory/Triangle meshes", tri_mesh_bytes);
@@ -31,7 +31,9 @@ pub struct TriangleMesh {
     p: Vec<Point3f>,
     n: Option<Vec<Normal3f>>,
     s: Option<Vec<Vector3f>>,
-    uv: Option<Vec<Point2f>>, // TODO alpha mask
+    uv: Option<Vec<Point2f>>,
+    alpha_mask: Option<Arc<TextureFloat>>,
+    shadow_alpha_mask: Option<Arc<TextureFloat>>,
 }
 
 impl fmt::Debug for TriangleMesh {
@@ -46,7 +48,9 @@ impl TriangleMesh {
                p: &[Point3f],
                s: Option<&[Vector3f]>,
                n: Option<&[Normal3f]>,
-               uv: Option<&[Point2f]>)
+               uv: Option<&[Point2f]>,
+               alpha_mask: Option<Arc<TextureFloat>>,
+               shadow_alpha_mask: Option<Arc<TextureFloat>>)
                -> Self {
         n_tris_per_mesh::inc_total();
         n_tris_per_mesh::add(vertex_indices.len() as u64);
@@ -59,6 +63,8 @@ impl TriangleMesh {
             n: n.map(Vec::from),
             s: s.map(Vec::from),
             uv: uv.map(Vec::from),
+            alpha_mask,
+            shadow_alpha_mask
         }
     }
 
@@ -67,7 +73,7 @@ impl TriangleMesh {
                   _w2o: &Transform,
                   reverse_orientation: bool,
                   params: &mut ParamSet,
-                  _float_textures: &HashMap<String, Arc<Texture<f32>>>)
+                  float_textures: &HashMap<String, Arc<Texture<f32>>>)
                   -> Vec<Arc<Shape>> {
         let vi: Vec<usize> = params
             .find_int("indices")
@@ -124,6 +130,29 @@ impl TriangleMesh {
                       });
 
         // TODO implement rest of the validation / sanity checking
+        let mut alpha_mask = None;
+        let alpha_tex_name = params.find_texture("alpha", String::from(""));
+        if &alpha_tex_name != "" {
+            if let Some(tex) = float_textures.get(&alpha_tex_name) {
+                alpha_mask = Some(tex.clone());
+            } else {
+                error!("");
+            }
+        } else if params.find_one_float("alpha", 1.0) == 0.0 {
+            alpha_mask = Some(Arc::new(ConstantTexture::new(0.0)));
+        }
+
+        let mut shadow_alpha_mask = None;
+        let shadow_alpha_tex_name = params.find_texture("shadowalpha", String::from(""));
+        if &shadow_alpha_tex_name != "" {
+            if let Some(tex) = float_textures.get(&shadow_alpha_tex_name) {
+                shadow_alpha_mask = Some(tex.clone());
+            } else {
+                error!("");
+            }
+        } else if params.find_one_float("shadowalpha", 1.0) == 0.0 {
+            shadow_alpha_mask = Some(Arc::new(ConstantTexture::new(0.0)));
+        }
 
         let res: Vec<Arc<Shape>> =
             create_triangle_mesh(o2w,
@@ -132,7 +161,9 @@ impl TriangleMesh {
                                  &P[..],
                                  S.as_ref().map(|s| &s[..]),
                                  N.as_ref().map(|n| &n[..]),
-                                 uvs.as_ref().map(|uv| &uv[..]));
+                                 uvs.as_ref().map(|uv| &uv[..]),
+                                 alpha_mask,
+                                 shadow_alpha_mask);
 
         res
     }
@@ -316,7 +347,22 @@ impl Shape for Triangle {
         let uv_hit = uv[0] * b0 + uv[1] * b1 + uv[2] * b2;
 
         // test intersection against alpha texture if present
-        // TODO
+        if let Some(ref alpha_mask) = self.mesh.alpha_mask {
+            let isect_local = SurfaceInteraction::new(
+                    p_hit,
+                    zero(),
+                    uv_hit,
+                    -ray.d,
+                    dpdu,
+                    dpdv,
+                    zero(),
+                    zero(),
+                    self
+                );
+            if alpha_mask.evaluate(&isect_local) == 0.0 {
+                return None;
+            }
+        }
 
         // Fill in SurfaceInteraction from triangle hit
         let mut isect = SurfaceInteraction::new(p_hit,
@@ -449,9 +495,9 @@ impl Shape for Triangle {
         }
         // - compute barycentric coordinates and t value for triangle intersection
         let inv_det = 1.0 / det;
-        let _b0 = e0 * inv_det;
-        let _b1 = e1 * inv_det;
-        let _b2 = e2 * inv_det;
+        let b0 = e0 * inv_det;
+        let b1 = e1 * inv_det;
+        let b2 = e2 * inv_det;
         let t = t_scaled * inv_det;
 
         // - ensure that computed triangle t is conservatively greater than zero
@@ -476,6 +522,57 @@ impl Shape for Triangle {
         if t <= delta_t {
             return false;
         }
+
+        // Test shadow ray intersection against alpha texture, if present
+        if self.mesh.alpha_mask.is_some() || self.mesh.shadow_alpha_mask.is_some() {
+            // Compute triangle partial derivatives
+            let mut dpdu = Vector3f::new(0.0, 0.0, 0.0);
+            let mut dpdv = Vector3f::new(0.0, 0.0, 0.0);
+            let uv = self.get_uvs();
+            // - compute deltas for partial derivatives
+            let duv02 = uv[0] - uv[2];
+            let duv12 = uv[1] - uv[2];
+            let dp02 = *p0 - *p2;
+            let dp12 = *p1 - *p2;
+            let determinant = duv02[0] * duv12[1] - duv02[1] * duv12[0];
+            let degenerate_uv = determinant.abs() < 1e-8;
+            if !degenerate_uv {
+                let inv_det = 1.0 / determinant;
+                dpdu = (duv12[1] * dp02 - duv02[1] * dp12) / inv_det;
+                dpdv = (-duv12[0] * dp02 + duv02[0] * dp12) / inv_det;
+            }
+            if degenerate_uv || dpdu.cross(&dpdv).length_squared() == 0.0 {
+                // handle zero determinant for triangle partial derivative matric
+                let (v1, v2) = coordinate_system(&(*p2 - *p0).cross(&(*p1 - *p0)).normalize());
+                dpdu = v1;
+                dpdv = v2;
+            }
+            // interpolate (u,v) parametric coordinates and hit point
+            let p_hit = *p0 * b0 + *p1 * b1 + *p2 * b2;
+            let uv_hit = uv[0] * b0 + uv[1] * b1 + uv[2] * b2;
+            let isect_local = SurfaceInteraction::new(
+                    p_hit,
+                    zero(),
+                    uv_hit,
+                    -ray.d,
+                    dpdu,
+                    dpdv,
+                    zero(),
+                    zero(),
+                    self
+                );
+            if let Some(ref alpha_mask) = self.mesh.alpha_mask {
+                if alpha_mask.evaluate(&isect_local) == 0.0 {
+                    return false;
+                }
+            }
+            if let Some(ref shadow_alpha_mask) = self.mesh.shadow_alpha_mask {
+                if shadow_alpha_mask.evaluate(&isect_local) == 0.0 {
+                    return false;
+                }
+            }
+        }
+
 
         n_hits::inc();
         true
@@ -544,9 +641,11 @@ pub fn create_triangle_mesh(object_to_world: &Transform,
                             p: &[Point3f],
                             s: Option<&[Vector3f]>,
                             n: Option<&[Normal3f]>,
-                            uv: Option<&[Point2f]>)
+                            uv: Option<&[Point2f]>,
+                            alpha_mask: Option<Arc<TextureFloat>>,
+                            shadow_alpha_mask: Option<Arc<TextureFloat>>)
                             -> Vec<Arc<Shape>> {
-    let mesh = Arc::new(TriangleMesh::new(object_to_world, vertex_indices, p, s, n, uv));
+    let mesh = Arc::new(TriangleMesh::new(object_to_world, vertex_indices, p, s, n, uv, alpha_mask, shadow_alpha_mask));
 
     let n_triangles = vertex_indices.len() / 3;
     let mut tris: Vec<Arc<Shape>> = Vec::with_capacity(n_triangles);

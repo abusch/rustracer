@@ -10,14 +10,14 @@ use {Normal3f, Point2f, Point3f};
 use paramset::ParamSet;
 use shapes::Shape;
 use shapes::mesh::create_triangle_mesh;
-use texture::Texture;
+use texture::{Texture, ConstantTexture};
 use transform::Transform;
 
 pub fn create(o2w: &Transform,
               _w2o: &Transform,
               reverse_orientation: bool,
               params: &mut ParamSet,
-              _float_textures: &HashMap<String, Arc<Texture<f32>>>)
+              float_textures: &HashMap<String, Arc<Texture<f32>>>)
               -> Vec<Arc<Shape>> {
     let filename = params.find_one_filename("filename", "".into());
     let f = File::open(&filename).unwrap();
@@ -123,13 +123,39 @@ pub fn create(o2w: &Transform,
         }
     }
 
+    let mut alpha_mask = None;
+    let alpha_tex_name = params.find_texture("alpha", String::from(""));
+    if &alpha_tex_name != "" {
+        if let Some(tex) = float_textures.get(&alpha_tex_name) {
+            alpha_mask = Some(tex.clone());
+        } else {
+            error!("");
+        }
+    } else if params.find_one_float("alpha", 1.0) == 0.0 {
+        alpha_mask = Some(Arc::new(ConstantTexture::new(0.0)));
+    }
+
+    let mut shadow_alpha_mask = None;
+    let shadow_alpha_tex_name = params.find_texture("shadowalpha", String::from(""));
+    if &shadow_alpha_tex_name != "" {
+        if let Some(tex) = float_textures.get(&shadow_alpha_tex_name) {
+            shadow_alpha_mask = Some(tex.clone());
+        } else {
+            error!("");
+        }
+    } else if params.find_one_float("shadowalpha", 1.0) == 0.0 {
+        shadow_alpha_mask = Some(Arc::new(ConstantTexture::new(0.0)));
+    }
+
     create_triangle_mesh(o2w,
                          reverse_orientation,
                          &vertex_indices,
                          &p,
                          None,
                          if has_normals { Some(&n) } else { None },
-                         if has_texture { Some(&uv) } else { None })
+                         if has_texture { Some(&uv) } else { None },
+                         alpha_mask,
+                         shadow_alpha_mask)
 }
 
 struct Vertex {

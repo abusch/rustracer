@@ -251,7 +251,6 @@ impl ParamSet {
     find!(find_point3f, point3fs, Point3f);
     find!(find_vector3f, vector3fs, Vector3f);
     find!(find_normal3f, normal3fs, Normal3f);
-    find!(find_texture, textures, String);
     find_one!(find_one_bool, bools, bool);
     find_one!(find_one_int, ints, i32);
     find_one!(find_one_float, floats, f32);
@@ -261,7 +260,8 @@ impl ParamSet {
     find_one!(find_one_point3f, point3fs, Point3f);
     find_one!(find_one_vector3f, vector3fs, Vector3f);
     find_one!(find_one_normal3f, normal3fs, Normal3f);
-    find_one!(find_one_texture, textures, String);
+
+    find_one!(find_texture, textures, String);
 }
 
 #[derive(Debug, Clone)]
@@ -336,9 +336,9 @@ impl<'a> TextureParams<'a> {
                                 n: &str,
                                 default: &Spectrum)
                                 -> Arc<Texture<Spectrum>> {
-        let mut name = self.geom_params.find_one_texture(n, "".to_owned());
+        let mut name = self.geom_params.find_texture(n, "".to_owned());
         if &name == "" {
-            name = self.material_params.find_one_texture(n, "".to_owned());
+            name = self.material_params.find_texture(n, "".to_owned());
         }
         if &name != "" {
             if let Some(tex) = self.spectrum_textures.get(&name) {
@@ -356,9 +356,9 @@ impl<'a> TextureParams<'a> {
     }
 
     pub fn get_float_texture(&mut self, n: &str, default: f32) -> Arc<Texture<f32>> {
-        let mut name = self.geom_params.find_one_texture(n, "".to_owned());
+        let mut name = self.geom_params.find_texture(n, "".to_owned());
         if &name == "" {
-            name = self.material_params.find_one_texture(n, "".to_owned());
+            name = self.material_params.find_texture(n, "".to_owned());
         }
         if &name != "" {
             if let Some(tex) = self.float_textures.get(&name) {
@@ -376,9 +376,9 @@ impl<'a> TextureParams<'a> {
     pub fn get_float_texture_or_none(&mut self,
                                      n: &str)
                                      -> Option<Arc<Texture<f32>>> {
-        let mut name = self.geom_params.find_one_texture(n, "".to_owned());
+        let mut name = self.geom_params.find_texture(n, "".to_owned());
         if &name == "" {
-            name = self.material_params.find_one_texture(n, "".to_owned());
+            name = self.material_params.find_texture(n, "".to_owned());
         }
         if &name != "" {
             if let Some(tex) = self.float_textures.get(&name) {
