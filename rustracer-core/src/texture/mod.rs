@@ -34,7 +34,9 @@ pub struct UVTexture {
 
 impl UVTexture {
     pub fn new() -> UVTexture {
-        UVTexture { mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)) }
+        UVTexture {
+            mapping: Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0)),
+        }
     }
 
     pub fn create_spectrum(_tex2world: &Transform, tp: &mut TextureParams) -> UVTexture {
@@ -94,9 +96,11 @@ impl UVMapping2D {
 
 impl TextureMapping2D for UVMapping2D {
     fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f) {
-        (Point2f::new(self.su * si.uv.x + self.du, self.sv * si.uv.y + self.dv),
-         Vector2f::zero(),
-         Vector2f::zero())
+        (
+            Point2f::new(self.su * si.uv.x + self.du, self.sv * si.uv.y + self.dv),
+            Vector2f::zero(),
+            Vector2f::zero(),
+        )
     }
 }
 
@@ -111,7 +115,9 @@ pub struct IdentityMapping3D {
 
 impl IdentityMapping3D {
     pub fn new(tex2world: Transform) -> IdentityMapping3D {
-        IdentityMapping3D { world_to_texture: tex2world }
+        IdentityMapping3D {
+            world_to_texture: tex2world,
+        }
     }
 }
 

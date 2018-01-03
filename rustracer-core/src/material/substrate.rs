@@ -7,7 +7,7 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::{TextureSpectrum, TextureFloat};
+use texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]
 pub struct SubstrateMaterial {
@@ -29,22 +29,24 @@ impl SubstrateMaterial {
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(SubstrateMaterial {
-                     kd,
-                     ks,
-                     nu: urough,
-                     nv: vrough,
-                     bump_map,
-                     remap_roughness,
-                 })
+            kd,
+            ks,
+            nu: urough,
+            nv: vrough,
+            bump_map,
+            remap_roughness,
+        })
     }
 }
 
 impl Material for SubstrateMaterial {
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            si: &mut SurfaceInteraction<'a, 'b>,
-                                            _mode: TransportMode,
-                                            _allow_multiple_lobes: bool,
-                                            arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        si: &mut SurfaceInteraction<'a, 'b>,
+        _mode: TransportMode,
+        _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);
         }

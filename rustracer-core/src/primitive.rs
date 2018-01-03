@@ -21,11 +21,13 @@ pub trait Primitive: Debug + Send + Sync {
     fn area_light(&self) -> Option<Arc<AreaLight>>;
 
     fn material(&self) -> Option<Arc<Material>>;
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            isect: &mut SurfaceInteraction<'a, 'b>,
-                                            mode: TransportMode,
-                                            allow_multiple_lobes: bool,
-                                            arena: &'b Allocator);
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        isect: &mut SurfaceInteraction<'a, 'b>,
+        mode: TransportMode,
+        allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    );
 }
 
 #[derive(Debug)]
@@ -41,13 +43,11 @@ impl Primitive for GeometricPrimitive {
     }
 
     fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
-        self.shape
-            .intersect(ray)
-            .map(|(mut isect, t_hit)| {
-                     isect.primitive = Some(self);
-                     ray.t_max = t_hit;
-                     isect
-                 })
+        self.shape.intersect(ray).map(|(mut isect, t_hit)| {
+            isect.primitive = Some(self);
+            ray.t_max = t_hit;
+            isect
+        })
     }
 
     fn intersect_p(&self, ray: &Ray) -> bool {
@@ -62,11 +62,13 @@ impl Primitive for GeometricPrimitive {
         self.material.clone()
     }
 
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            isect: &mut SurfaceInteraction<'a, 'b>,
-                                            mode: TransportMode,
-                                            allow_multiple_lobes: bool,
-                                            arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        isect: &mut SurfaceInteraction<'a, 'b>,
+        mode: TransportMode,
+        allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         if let Some(ref material) = self.material() {
             material.compute_scattering_functions(isect, mode, allow_multiple_lobes, arena);
         }
@@ -104,11 +106,13 @@ impl Primitive for TransformedPrimitive {
     fn material(&self) -> Option<Arc<Material>> {
         None
     }
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            _isect: &mut SurfaceInteraction<'a, 'b>,
-                                            _mode: TransportMode,
-                                            _allow_multiple_lobes: bool,
-                                            _arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        _isect: &mut SurfaceInteraction<'a, 'b>,
+        _mode: TransportMode,
+        _allow_multiple_lobes: bool,
+        _arena: &'b Allocator,
+    ) {
         panic!("TransformedPrimitive::compute_scattering_functions() should not be called!");
     }
 }

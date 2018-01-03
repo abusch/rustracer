@@ -4,18 +4,17 @@ use std::f32;
 use light_arena::Allocator;
 use num::zero;
 
-use {lerp, clamp, Vector3f, Point2f};
-use bsdf::{BSDF, BxDFHolder, BxDF, BxDFType, TrowbridgeReitzDistribution, MicrofacetDistribution,
-           SpecularTransmission, MicrofacetReflection, MicrofacetTransmission,
-           LambertianTransmission};
+use {clamp, lerp, Point2f, Vector3f};
+use bsdf::{BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
+           MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
+           TrowbridgeReitzDistribution, BSDF};
 use bsdf::{fr_dielectric, reflect, Fresnel};
-use geometry::{spherical_direction, same_hemisphere, abs_cos_theta};
+use geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
-use texture::{TextureSpectrum, TextureFloat};
+use texture::{TextureFloat, TextureSpectrum};
 use spectrum::Spectrum;
-
 
 #[derive(Debug)]
 pub struct DisneyMaterial {
@@ -58,32 +57,34 @@ impl DisneyMaterial {
         let bumpmap = mp.get_float_texture_or_none("bumpmap");
 
         Arc::new(DisneyMaterial {
-                     color,
-                     metallic,
-                     eta,
-                     roughness,
-                     specular_tint,
-                     anisotropic,
-                     sheen,
-                     sheen_tint,
-                     clearcoat,
-                     clearcoat_gloss,
-                     spec_trans,
-                     scatter_distance,
-                     flatness,
-                     diff_trans,
-                     bumpmap,
-                     thin,
-                 })
+            color,
+            metallic,
+            eta,
+            roughness,
+            specular_tint,
+            anisotropic,
+            sheen,
+            sheen_tint,
+            clearcoat,
+            clearcoat_gloss,
+            spec_trans,
+            scatter_distance,
+            flatness,
+            diff_trans,
+            bumpmap,
+            thin,
+        })
     }
 }
 
 impl Material for DisneyMaterial {
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            si: &mut SurfaceInteraction<'a, 'b>,
-                                            mode: TransportMode,
-                                            _allow_multiple_lobes: bool,
-                                            arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        si: &mut SurfaceInteraction<'a, 'b>,
+        mode: TransportMode,
+        _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         if let Some(ref bump) = self.bumpmap {
             super::bump(bump, si);
         }
@@ -119,7 +120,9 @@ impl Material for DisneyMaterial {
                 let flat = self.flatness.evaluate(si);
                 // Blend between DisneyDiffuse and fake subsurface based on flatness. Additionally,
                 // weight using diff_trans.
-                bxdfs.add(arena <- DisneyDiffuse::new(diffuse_weight * (1.0 - flat) * (1.0 - dt) * c));
+                bxdfs.add(
+                    arena <- DisneyDiffuse::new(diffuse_weight * (1.0 - flat) * (1.0 - dt) * c),
+                );
                 bxdfs
                     .add(arena <- DisneyFakeSS::new(diffuse_weight * flat * (1.0 - dt) * c, rough));
             } else {
@@ -140,7 +143,9 @@ impl Material for DisneyMaterial {
 
             // Sheen (if enabled).
             if sheen_weight > 0.0 {
-                bxdfs.add(arena <- DisneySheen::new(diffuse_weight * sheen_weight * c_sheen, SheenMode::Reflect));
+                bxdfs.add(
+                    arena <- DisneySheen::new(diffuse_weight * sheen_weight * c_sheen, SheenMode::Reflect),
+                );
             }
         }
 
@@ -152,9 +157,11 @@ impl Material for DisneyMaterial {
 
         // Specular is Trowbridge-Reitz with a modified Fresnel function
         let spec_tint = self.specular_tint.evaluate(si);
-        let cspec0 = lerp(metallic_weight,
-                          schlick_r0_from_eta(e) * lerp(spec_tint, Spectrum::white(), c_tint),
-                          c);
+        let cspec0 = lerp(
+            metallic_weight,
+            schlick_r0_from_eta(e) * lerp(spec_tint, Spectrum::white(), c_tint),
+            c,
+        );
         let fresnel = arena <- DisneyFresnel::new(cspec0, metallic_weight, e);
         bxdfs.add(arena <- MicrofacetReflection::new(c, distrib, fresnel));
 
@@ -365,8 +372,10 @@ impl BxDF for DisneyClearCoat {
 
         let alpha = 0.25;
         let alpha2 = alpha * alpha;
-        let cos_theta = f32::sqrt(f32::max(0.0,
-                                           (1.0 - f32::powf(alpha2, 1.0 - u[0])) / (1.0 - alpha2)));
+        let cos_theta = f32::sqrt(f32::max(
+            0.0,
+            (1.0 - f32::powf(alpha2, 1.0 - u[0])) / (1.0 - alpha2),
+        ));
         let sin_theta = f32::sqrt(f32::max(0.0, 1.0 - cos_theta * cos_theta));
         let phi = 2.0 * f32::consts::PI * u[1];
         let mut wh = spherical_direction(sin_theta, cos_theta, phi);
@@ -401,7 +410,6 @@ impl BxDF for DisneyClearCoat {
         // surface normal.
         let Dr = GTR1(abs_cos_theta(&wh), lerp(self.gloss, 0.1, 0.001));
         Dr / (4.0 * wo.dot(&wh))
-
     }
 
     fn get_type(&self) -> BxDFType {
@@ -428,9 +436,11 @@ impl DisneyFresnel {
 
 impl Fresnel for DisneyFresnel {
     fn evaluate(&self, cos_I: f32) -> Spectrum {
-        lerp(self.metallic,
-             Spectrum::from(fr_dielectric(cos_I, 1.0, self.eta)),
-             fr_schlick_spectrum(self.r0, cos_I))
+        lerp(
+            self.metallic,
+            Spectrum::from(fr_dielectric(cos_I, 1.0, self.eta)),
+            fr_schlick_spectrum(self.r0, cos_I),
+        )
     }
 }
 
@@ -441,7 +451,9 @@ struct DisneyMicrofacetDistribution {
 
 impl DisneyMicrofacetDistribution {
     fn new(alphax: f32, alphay: f32) -> DisneyMicrofacetDistribution {
-        DisneyMicrofacetDistribution { inner: TrowbridgeReitzDistribution::new(alphax, alphay) }
+        DisneyMicrofacetDistribution {
+            inner: TrowbridgeReitzDistribution::new(alphax, alphay),
+        }
     }
 }
 
@@ -502,8 +514,8 @@ fn schlick_r0_from_eta(eta: f32) -> f32 {
 fn GTR1(cos_theta: f32, alpha: f32) -> f32 {
     let alpha2 = alpha * alpha;
 
-    (alpha2 - 1.0) /
-    (f32::consts::PI * f32::log10(alpha2) * (1.0 + (alpha2 - 1.0) * cos_theta * cos_theta))
+    (alpha2 - 1.0)
+        / (f32::consts::PI * f32::log10(alpha2) * (1.0 + (alpha2 - 1.0) * cos_theta * cos_theta))
 }
 
 #[inline]

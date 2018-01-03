@@ -23,32 +23,35 @@ pub struct Cylinder {
 }
 
 impl Cylinder {
-    pub fn create(object_to_world: &Transform,
-                  reverse_orientation: bool,
-                  params: &mut ParamSet)
-                  -> Arc<Shape> {
+    pub fn create(
+        object_to_world: &Transform,
+        reverse_orientation: bool,
+        params: &mut ParamSet,
+    ) -> Arc<Shape> {
         let radius = params.find_one_float("radius", 1.0);
         let z_min = params.find_one_float("z_min", -1.0);
         let z_max = params.find_one_float("z_max", 1.0);
         let phi_max = params.find_one_float("phi_max", 360.0);
 
         Arc::new(Cylinder {
-                     object_to_world: object_to_world.clone(),
-                     world_to_object: object_to_world.inverse(),
-                     radius,
-                     z_min,
-                     z_max,
-                     phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
-                     reverse_orientation,
-                     transform_swaps_handedness: object_to_world.swaps_handedness(),
-                 })
+            object_to_world: object_to_world.clone(),
+            world_to_object: object_to_world.inverse(),
+            radius,
+            z_min,
+            z_max,
+            phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
+            reverse_orientation,
+            transform_swaps_handedness: object_to_world.swaps_handedness(),
+        })
     }
 }
 
 impl Shape for Cylinder {
     fn object_bounds(&self) -> Bounds3f {
-        Bounds3f::from_points(&Point3f::new(-self.radius, -self.radius, self.z_min),
-                              &Point3f::new(self.radius, self.radius, self.z_max))
+        Bounds3f::from_points(
+            &Point3f::new(-self.radius, -self.radius, self.z_min),
+            &Point3f::new(self.radius, self.radius, self.z_max),
+        )
     }
 
     fn world_bounds(&self) -> Bounds3f {
@@ -148,22 +151,26 @@ impl Shape for Cylinder {
 
             // Compute dndu and dndv from fundamental form coefficients
             let inv_EGF2 = 1.0 / (E * G - F * F);
-            let dndu = Normal3f::from((f * F - e * G) * inv_EGF2 * dpdu +
-                                      (e * F - f * E) * inv_EGF2 * dpdv);
-            let dndv = Normal3f::from((g * F - f * G) * inv_EGF2 * dpdu +
-                                      (f * F - g * E) * inv_EGF2 * dpdv);
+            let dndu = Normal3f::from(
+                (f * F - e * G) * inv_EGF2 * dpdu + (e * F - f * E) * inv_EGF2 * dpdv,
+            );
+            let dndv = Normal3f::from(
+                (g * F - f * G) * inv_EGF2 * dpdu + (f * F - g * E) * inv_EGF2 * dpdv,
+            );
 
             let p_error = gamma(3) * Vector3f::new(p_hit.x.abs(), p_hit.y.abs(), 0.0);
 
-            let isect = SurfaceInteraction::new(p_hit,
-                                                p_error,
-                                                Point2f::new(u, v),
-                                                -ray.d,
-                                                dpdu,
-                                                dpdv,
-                                                dndu,
-                                                dndv,
-                                                self);
+            let isect = SurfaceInteraction::new(
+                p_hit,
+                p_error,
+                Point2f::new(u, v),
+                -ray.d,
+                dpdu,
+                dpdv,
+                dndu,
+                dndv,
+                self,
+            );
 
             Some((isect.transform(&self.object_to_world), t_shape_hit.into()))
         } else {
@@ -248,7 +255,6 @@ impl Shape for Cylinder {
     fn area(&self) -> f32 {
         (self.z_max - self.z_min) * self.radius * self.phi_max
     }
-
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
         let z = lerp(u[0], self.z_min, self.z_max);

@@ -1,17 +1,17 @@
-use std::ops::{Add, AddAssign, Sub, Div, Mul, Index, IndexMut, MulAssign};
+use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, MulAssign, Sub};
 use std::fmt;
 use std::convert::From;
 use std::f32;
 
-use num::{Zero, One};
+use num::{One, Zero};
 
-use {clamp, lerp, find_interval};
+use {clamp, find_interval, lerp};
 use cie;
 
 /// Represents a linear RGB spectrum.
 /// TODO Rename this to `RGBSpectrum` and make `Spectrum` a type alias to this so we can also support
 /// full spectral rendering.
-#[derive(Debug,Copy,PartialEq,Clone,Default)]
+#[derive(Debug, Copy, PartialEq, Clone, Default)]
 pub struct Spectrum {
     pub r: f32,
     pub g: f32,
@@ -72,17 +72,20 @@ impl Spectrum {
             f32::from(v) / 255.0
         }
 
-        Spectrum::rgb(inverse_gamma_convert_float(as_float(rgb[0])),
-                      inverse_gamma_convert_float(as_float(rgb[1])),
-                      inverse_gamma_convert_float(as_float(rgb[2])))
+        Spectrum::rgb(
+            inverse_gamma_convert_float(as_float(rgb[0])),
+            inverse_gamma_convert_float(as_float(rgb[1])),
+            inverse_gamma_convert_float(as_float(rgb[2])),
+        )
     }
 
     pub fn inverse_gamma_correct(&self) -> Spectrum {
-        Spectrum::rgb(inverse_gamma_convert_float(self.r),
-                      inverse_gamma_convert_float(self.g),
-                      inverse_gamma_convert_float(self.b))
+        Spectrum::rgb(
+            inverse_gamma_convert_float(self.r),
+            inverse_gamma_convert_float(self.g),
+            inverse_gamma_convert_float(self.b),
+        )
     }
-
 
     /// Convert a linear spectrum in XYZ format to a linear RGB format.
     pub fn from_xyz(xyz: &[f32; 3]) -> Spectrum {
@@ -113,8 +116,8 @@ impl Spectrum {
             xyz[1] += val * cie::CIE_Y[i];
             xyz[2] += val * cie::CIE_Z[i];
         }
-        let scale = (cie::CIE_LAMBDA[cie::N_CIE_SAMPLES - 1] - cie::CIE_LAMBDA[0]) /
-                    (cie::CIE_Y_INTEGRAL * cie::N_CIE_SAMPLES as f32);
+        let scale = (cie::CIE_LAMBDA[cie::N_CIE_SAMPLES - 1] - cie::CIE_LAMBDA[0])
+            / (cie::CIE_Y_INTEGRAL * cie::N_CIE_SAMPLES as f32);
         xyz[0] *= scale;
         xyz[1] *= scale;
         xyz[2] *= scale;
@@ -153,9 +156,11 @@ impl Spectrum {
     }
 
     pub fn clamp(&self) -> Spectrum {
-        Spectrum::rgb(clamp(self.r, 0.0, f32::INFINITY),
-                      clamp(self.g, 0.0, f32::INFINITY),
-                      clamp(self.b, 0.0, f32::INFINITY))
+        Spectrum::rgb(
+            clamp(self.r, 0.0, f32::INFINITY),
+            clamp(self.g, 0.0, f32::INFINITY),
+            clamp(self.b, 0.0, f32::INFINITY),
+        )
     }
 }
 

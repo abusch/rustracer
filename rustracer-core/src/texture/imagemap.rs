@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::path::Path;
 use std::fmt::Debug;
 use num::Zero;
-use std::ops::{AddAssign, Mul, Div};
+use std::ops::{AddAssign, Div, Mul};
 
 use {Clampable, Point2i};
 use fileutil;
@@ -21,25 +21,27 @@ pub struct ImageTexture<T> {
 }
 
 impl<T> ImageTexture<T>
-    where T: Zero,
-          T: Clone,
-          T: Copy,
-          T: Clampable,
-          T: Debug,
-          T: AddAssign<T>,
-          T: Mul<f32, Output = T>,
-          T: Div<f32, Output = T>,
-          T: Sized
+where
+    T: Zero,
+    T: Clone,
+    T: Copy,
+    T: Clampable,
+    T: Debug,
+    T: AddAssign<T>,
+    T: Mul<f32, Output = T>,
+    T: Div<f32, Output = T>,
+    T: Sized,
 {
-    pub fn new<F: Fn(&Spectrum) -> T>(path: &Path,
-                                      wrap_mode: WrapMode,
-                                      trilerp: bool,
-                                      max_aniso: f32,
-                                      scale: f32,
-                                      gamma: bool,
-                                      map: Box<TextureMapping2D>,
-                                      convert: F)
-                                      -> ImageTexture<T> {
+    pub fn new<F: Fn(&Spectrum) -> T>(
+        path: &Path,
+        wrap_mode: WrapMode,
+        trilerp: bool,
+        max_aniso: f32,
+        scale: f32,
+        gamma: bool,
+        map: Box<TextureMapping2D>,
+        convert: F,
+    ) -> ImageTexture<T> {
         debug!("Loading texture {}", path.display());
         let (res, texels) = match read_image(path) {
             Ok((mut pixels, res)) => {
@@ -56,8 +58,10 @@ impl<T> ImageTexture<T>
                 (res, pixels)
             }
             Err(e) => {
-                warn!("Could not open texture file. Using grey texture instead: {}",
-                      e);
+                warn!(
+                    "Could not open texture file. Using grey texture instead: {}",
+                    e
+                );
                 (Point2i::new(1, 1), vec![Spectrum::grey(0.18)])
             }
         };
@@ -65,22 +69,24 @@ impl<T> ImageTexture<T>
         let converted_texels: Vec<T> = texels
             .iter()
             .map(|p| {
-                     let s = if gamma {
-                         scale * p.inverse_gamma_correct()
-                     } else {
-                         scale * *p
-                     };
-                     convert(&s)
-                 })
+                let s = if gamma {
+                    scale * p.inverse_gamma_correct()
+                } else {
+                    scale * *p
+                };
+                convert(&s)
+            })
             .collect();
 
         ImageTexture {
             mapping: map,
-            mipmap: Arc::new(MIPMap::new(&res,
-                                         &converted_texels[..],
-                                         trilerp,
-                                         max_aniso,
-                                         wrap_mode)),
+            mipmap: Arc::new(MIPMap::new(
+                &res,
+                &converted_texels[..],
+                trilerp,
+                max_aniso,
+                wrap_mode,
+            )),
         }
     }
 }
@@ -110,18 +116,21 @@ impl ImageTexture<Spectrum> {
         };
         let scale = tp.find_float("scale", 1.0);
         let filename = tp.find_filename("filename", "");
-        let gamma = tp.find_bool("gamma",
-                                 fileutil::has_extension(&filename, "tga") ||
-                                 fileutil::has_extension(&filename, "png"));
+        let gamma = tp.find_bool(
+            "gamma",
+            fileutil::has_extension(&filename, "tga") || fileutil::has_extension(&filename, "png"),
+        );
 
-        Self::new(Path::new(&filename),
-                  wrap_mode,
-                  trilerp,
-                  max_aniso,
-                  scale,
-                  gamma,
-                  Box::new(map),
-                  convert_to_spectrum)
+        Self::new(
+            Path::new(&filename),
+            wrap_mode,
+            trilerp,
+            max_aniso,
+            scale,
+            gamma,
+            Box::new(map),
+            convert_to_spectrum,
+        )
     }
 }
 
@@ -150,18 +159,21 @@ impl ImageTexture<f32> {
         };
         let scale = tp.find_float("scale", 1.0);
         let filename = tp.find_filename("filename", "");
-        let gamma = tp.find_bool("gamma",
-                                 fileutil::has_extension(&filename, "tga") ||
-                                 fileutil::has_extension(&filename, "png"));
+        let gamma = tp.find_bool(
+            "gamma",
+            fileutil::has_extension(&filename, "tga") || fileutil::has_extension(&filename, "png"),
+        );
 
-        Self::new(Path::new(&filename),
-                  wrap_mode,
-                  trilerp,
-                  max_aniso,
-                  scale,
-                  gamma,
-                  Box::new(map),
-                  convert_to_float)
+        Self::new(
+            Path::new(&filename),
+            wrap_mode,
+            trilerp,
+            max_aniso,
+            scale,
+            gamma,
+            Box::new(map),
+            convert_to_float,
+        )
     }
 }
 fn convert_to_spectrum(from: &Spectrum) -> Spectrum {
@@ -173,17 +185,18 @@ fn convert_to_float(from: &Spectrum) -> f32 {
 }
 
 impl<T> Texture<T> for ImageTexture<T>
-    where T: Zero,
-          T: Clone,
-          T: Copy,
-          T: Send,
-          T: Sync,
-          T: Clampable,
-          T: Debug,
-          T: AddAssign<T>,
-          T: Mul<f32, Output = T>,
-          T: Div<f32, Output = T>,
-          T: Sized
+where
+    T: Zero,
+    T: Clone,
+    T: Copy,
+    T: Send,
+    T: Sync,
+    T: Clampable,
+    T: Debug,
+    T: AddAssign<T>,
+    T: Mul<f32, Output = T>,
+    T: Div<f32, Output = T>,
+    T: Sized,
 {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {
         let (st, dstdx, dstdy) = self.mapping.map(si);

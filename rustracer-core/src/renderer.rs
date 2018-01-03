@@ -21,33 +21,39 @@ pub fn init_stats() {
     n_camera_ray::init();
 }
 
-pub fn render(scene: Arc<Scene>,
-              integrator: &mut SamplerIntegrator,
-              camera: &Camera,
-              num_threads: usize,
-              sampler: &mut Box<Sampler>,
-              block_size: i32,
-              mut _display: Box<DisplayUpdater + Send>)
-              -> Result<(), Error> {
+pub fn render(
+    scene: Arc<Scene>,
+    integrator: &mut SamplerIntegrator,
+    camera: &Camera,
+    num_threads: usize,
+    sampler: &mut Box<Sampler>,
+    block_size: i32,
+    mut _display: Box<DisplayUpdater + Send>,
+) -> Result<(), Error> {
     integrator.preprocess(Arc::clone(&scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
     let sample_extent = sample_bounds.diagonal();
     let pixel_bounds = integrator.pixel_bounds();
-    info!("Rendering with sample_bounds = {}, pixel_bounds = {}",
-          sample_bounds,
-          pixel_bounds);
-    let n_tiles = Point2i::new((sample_extent.x + block_size - 1) / block_size,
-                               (sample_extent.y + block_size - 1) / block_size);
+    info!(
+        "Rendering with sample_bounds = {}, pixel_bounds = {}",
+        sample_bounds, pixel_bounds
+    );
+    let n_tiles = Point2i::new(
+        (sample_extent.x + block_size - 1) / block_size,
+        (sample_extent.y + block_size - 1) / block_size,
+    );
 
     let num_blocks = n_tiles.x * n_tiles.y;
     info!("Rendering scene using {} threads", num_threads);
-    let image_bounds = Bounds2i::from_points(&Point2i::new(0, 0),
-                                             &Point2i::new(n_tiles.x, n_tiles.y));
+    let image_bounds =
+        Bounds2i::from_points(&Point2i::new(0, 0), &Point2i::new(n_tiles.x, n_tiles.y));
     let tiles_iter = Arc::new(Mutex::new(image_bounds.into_iter()));
     let pb = indicatif::ProgressBar::new(num_blocks as _);
-    pb.set_style(indicatif::ProgressStyle::default_bar()
-                     .progress_chars("=>-")
-                     .template("[{elapsed_precise}] [{wide_bar}] {percent}% [{pos}/{len}] {eta}"));
+    pb.set_style(
+        indicatif::ProgressStyle::default_bar()
+            .progress_chars("=>-")
+            .template("[{elapsed_precise}] [{wide_bar}] {percent}% [{pos}/{len}] {eta}"),
+    );
     pb.tick();
 
     crossbeam::scope(|scope| {
@@ -86,8 +92,8 @@ pub fn render(scene: Arc<Scene>,
                     let x1 = i32::min(x0 + block_size, sample_bounds.p_max.x);
                     let y0 = sample_bounds.p_min.y + tile.y * block_size;
                     let y1 = i32::min(y0 + block_size, sample_bounds.p_max.y);
-                    let tile_bounds = Bounds2i::from_points(&Point2i::new(x0, y0),
-                                                            &Point2i::new(x1, y1));
+                    let tile_bounds =
+                        Bounds2i::from_points(&Point2i::new(x0, y0), &Point2i::new(x1, y1));
                     info!("Starting image tile {}", tile_bounds);
 
                     let mut film_tile = camera.get_film().get_film_tile(&tile_bounds);

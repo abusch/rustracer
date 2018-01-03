@@ -8,7 +8,7 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::{TextureSpectrum, TextureFloat};
+use texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]
 pub struct MatteMaterial {
@@ -25,19 +25,21 @@ impl MatteMaterial {
         let bump_map = mp.get_float_texture_or_none("bumpmap");
 
         Arc::new(MatteMaterial {
-                     kd,
-                     sigma,
-                     bump_map,
-                 })
+            kd,
+            sigma,
+            bump_map,
+        })
     }
 }
 
 impl Material for MatteMaterial {
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            si: &mut SurfaceInteraction<'a, 'b>,
-                                            _mode: TransportMode,
-                                            _allow_multiple_lobes: bool,
-                                            arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        si: &mut SurfaceInteraction<'a, 'b>,
+        _mode: TransportMode,
+        _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         let mut bxdfs = BxDFHolder::new(arena);
 
         if let Some(ref bump_map) = self.bump_map {

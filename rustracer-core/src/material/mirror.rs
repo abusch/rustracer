@@ -7,7 +7,7 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::{TextureSpectrum, TextureFloat};
+use texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]
 pub struct MirrorMaterial {
@@ -26,11 +26,13 @@ impl MirrorMaterial {
 }
 
 impl Material for MirrorMaterial {
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            si: &mut SurfaceInteraction<'a, 'b>,
-                                            _mode: TransportMode,
-                                            _allow_multiple_lobes: bool,
-                                            arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        si: &mut SurfaceInteraction<'a, 'b>,
+        _mode: TransportMode,
+        _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);
         }

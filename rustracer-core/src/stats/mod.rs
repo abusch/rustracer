@@ -1,4 +1,4 @@
-use std::collections::{HashMap, BTreeMap};
+use std::collections::{BTreeMap, HashMap};
 
 use parking_lot::Mutex;
 use state::Storage;
@@ -29,12 +29,14 @@ impl StatAccumulator {
         *counter += value;
     }
 
-    pub fn report_int_distribution(&mut self,
-                                   name: &str,
-                                   sum: u64,
-                                   count: u64,
-                                   min: u64,
-                                   max: u64) {
+    pub fn report_int_distribution(
+        &mut self,
+        name: &str,
+        sum: u64,
+        count: u64,
+        min: u64,
+        max: u64,
+    ) {
         {
             let s = self.int_distribution_sums
                 .entry(name.to_owned())
@@ -62,9 +64,7 @@ impl StatAccumulator {
     }
 
     pub fn report_percentage(&mut self, name: &str, num: u64, denom: u64) {
-        let frac = self.percentages
-            .entry(name.to_owned())
-            .or_insert((0, 0));
+        let frac = self.percentages.entry(name.to_owned()).or_insert((0, 0));
         (*frac).0 += num;
         (*frac).1 += denom;
     }
@@ -107,13 +107,19 @@ impl StatAccumulator {
                     to_print
                         .entry(category.to_owned())
                         .or_insert(Vec::new())
-                        .push(format!("    {:<42}                  {:9.2} MiB", title, mib));
+                        .push(format!(
+                            "    {:<42}                  {:9.2} MiB",
+                            title, mib
+                        ));
                 } else {
                     let gib = mib / 1024.0;
                     to_print
                         .entry(category.to_owned())
                         .or_insert(Vec::new())
-                        .push(format!("    {:<42}                  {:9.2} GiB", title, gib));
+                        .push(format!(
+                            "    {:<42}                  {:9.2} GiB",
+                            title, gib
+                        ));
                 }
             }
         }
@@ -130,12 +136,10 @@ impl StatAccumulator {
             to_print
                 .entry(category.to_owned())
                 .or_insert(Vec::new())
-                .push(format!("    {:<42}                      {:.3} avg [range {} - {}]",
-                              title,
-                              avg,
-                              *min,
-                              *max));
-
+                .push(format!(
+                    "    {:<42}                      {:.3} avg [range {} - {}]",
+                    title, avg, *min, *max
+                ));
         }
         // Percentages
         for (desc, value) in &self.percentages {
@@ -147,11 +151,13 @@ impl StatAccumulator {
             to_print
                 .entry(category.to_owned())
                 .or_insert(Vec::new())
-                .push(format!("    {:<42}{:12} / {:12} ({:.2}%)",
-                              title,
-                              num,
-                              denom,
-                              (num as f64 * 100.0) / (denom as f64)));
+                .push(format!(
+                    "    {:<42}{:12} / {:12} ({:.2}%)",
+                    title,
+                    num,
+                    denom,
+                    (num as f64 * 100.0) / (denom as f64)
+                ));
         }
         // Ratios
         for (desc, value) in &self.ratios {
@@ -163,11 +169,13 @@ impl StatAccumulator {
             to_print
                 .entry(category.to_owned())
                 .or_insert(Vec::new())
-                .push(format!("    {:<42}{:12} / {:12} ({:.2}x)",
-                              title,
-                              num,
-                              denom,
-                              (num as f64) / (denom as f64)));
+                .push(format!(
+                    "    {:<42}{:12} / {:12} ({:.2}x)",
+                    title,
+                    num,
+                    denom,
+                    (num as f64) / (denom as f64)
+                ));
         }
 
         for (category, stats) in &to_print {
@@ -180,7 +188,11 @@ impl StatAccumulator {
 
     fn get_category_and_title<'a>(&self, s: &'a str) -> (&'a str, &'a str) {
         let v: Vec<&'a str> = s.split('/').collect();
-        if v.len() > 1 { (v[0], v[1]) } else { ("", s) }
+        if v.len() > 1 {
+            (v[0], v[1])
+        } else {
+            ("", s)
+        }
     }
 }
 

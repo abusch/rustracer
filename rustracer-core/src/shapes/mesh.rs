@@ -4,8 +4,8 @@ use std::fmt;
 
 use num::zero;
 
-use {Transform, Point2f, Point3f, Vector3f, Normal3f, max_dimension, permute_v, permute_p,
-     coordinate_system, gamma, max_component};
+use {coordinate_system, gamma, max_component, max_dimension, permute_p, permute_v, Normal3f,
+     Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use geometry;
 use interaction::{Interaction, SurfaceInteraction};
@@ -13,7 +13,7 @@ use paramset::ParamSet;
 use ray::Ray;
 use sampling;
 use shapes::Shape;
-use texture::{Texture, TextureFloat, ConstantTexture};
+use texture::{ConstantTexture, Texture, TextureFloat};
 
 stat_percent!("Intersections/Ray-triangle intersection tests", n_hits);
 stat_memory_counter!("Memory/Triangle meshes", tri_mesh_bytes);
@@ -43,15 +43,16 @@ impl fmt::Debug for TriangleMesh {
 }
 
 impl TriangleMesh {
-    pub fn new(object_to_world: &Transform,
-               vertex_indices: &[usize],
-               p: &[Point3f],
-               s: Option<&[Vector3f]>,
-               n: Option<&[Normal3f]>,
-               uv: Option<&[Point2f]>,
-               alpha_mask: Option<Arc<TextureFloat>>,
-               shadow_alpha_mask: Option<Arc<TextureFloat>>)
-               -> Self {
+    pub fn new(
+        object_to_world: &Transform,
+        vertex_indices: &[usize],
+        p: &[Point3f],
+        s: Option<&[Vector3f]>,
+        n: Option<&[Normal3f]>,
+        uv: Option<&[Point2f]>,
+        alpha_mask: Option<Arc<TextureFloat>>,
+        shadow_alpha_mask: Option<Arc<TextureFloat>>,
+    ) -> Self {
         n_tris_per_mesh::inc_total();
         n_tris_per_mesh::add(vertex_indices.len() as u64);
         let points: Vec<Point3f> = p.iter().map(|pt| object_to_world * pt).collect();
@@ -64,17 +65,18 @@ impl TriangleMesh {
             s: s.map(Vec::from),
             uv: uv.map(Vec::from),
             alpha_mask,
-            shadow_alpha_mask
+            shadow_alpha_mask,
         }
     }
 
     #[allow(non_snake_case)]
-    pub fn create(o2w: &Transform,
-                  _w2o: &Transform,
-                  reverse_orientation: bool,
-                  params: &mut ParamSet,
-                  float_textures: &HashMap<String, Arc<Texture<f32>>>)
-                  -> Vec<Arc<Shape>> {
+    pub fn create(
+        o2w: &Transform,
+        _w2o: &Transform,
+        reverse_orientation: bool,
+        params: &mut ParamSet,
+        float_textures: &HashMap<String, Arc<Texture<f32>>>,
+    ) -> Vec<Arc<Shape>> {
         let vi: Vec<usize> = params
             .find_int("indices")
             .unwrap_or_default()
@@ -89,11 +91,7 @@ impl TriangleMesh {
                 params
                     .find_float("uv")
                     .or_else(|| params.find_float("st"))
-                    .map(|fuv| {
-                             fuv.chunks(2)
-                                 .map(|s| Point2f::new(s[0], s[1]))
-                                 .collect()
-                         })
+                    .map(|fuv| fuv.chunks(2).map(|s| Point2f::new(s[0], s[1])).collect())
             });
         // if !uvs.is_empty() {
         //     if uvs.len() < P.len() {
@@ -111,23 +109,23 @@ impl TriangleMesh {
             error!("Vertex positions \"P\" not provided with triangle mesh shape");
             return Vec::new();
         }
-        let S = params
-            .find_vector3f("S")
-            .and_then(|s| if s.len() != P.len() {
-                          error!("Number of \"S\"s for mesh triangle must match \"P\"s");
-                          None
-                      } else {
-                          Some(s)
-                      });
+        let S = params.find_vector3f("S").and_then(|s| {
+            if s.len() != P.len() {
+                error!("Number of \"S\"s for mesh triangle must match \"P\"s");
+                None
+            } else {
+                Some(s)
+            }
+        });
         // TODO should be Normal3f
-        let N = params
-            .find_normal3f("N")
-            .and_then(|n| if n.len() != P.len() {
-                          error!("Number of \"N\"s for mesh triangle must match \"P\"s");
-                          None
-                      } else {
-                          Some(n)
-                      });
+        let N = params.find_normal3f("N").and_then(|n| {
+            if n.len() != P.len() {
+                error!("Number of \"N\"s for mesh triangle must match \"P\"s");
+                None
+            } else {
+                Some(n)
+            }
+        });
 
         // TODO implement rest of the validation / sanity checking
         let mut alpha_mask = None;
@@ -154,16 +152,17 @@ impl TriangleMesh {
             shadow_alpha_mask = Some(Arc::new(ConstantTexture::new(0.0)));
         }
 
-        let res: Vec<Arc<Shape>> =
-            create_triangle_mesh(o2w,
-                                 reverse_orientation,
-                                 &vi[..],
-                                 &P[..],
-                                 S.as_ref().map(|s| &s[..]),
-                                 N.as_ref().map(|n| &n[..]),
-                                 uvs.as_ref().map(|uv| &uv[..]),
-                                 alpha_mask,
-                                 shadow_alpha_mask);
+        let res: Vec<Arc<Shape>> = create_triangle_mesh(
+            o2w,
+            reverse_orientation,
+            &vi[..],
+            &P[..],
+            S.as_ref().map(|s| &s[..]),
+            N.as_ref().map(|n| &n[..]),
+            uvs.as_ref().map(|uv| &uv[..]),
+            alpha_mask,
+            shadow_alpha_mask,
+        );
 
         res
     }
@@ -200,9 +199,11 @@ impl Triangle {
         if let Some(ref uv) = self.mesh.uv {
             [uv[self.v(0)], uv[self.v(1)], uv[self.v(2)]]
         } else {
-            [Point2f::new(0.0, 0.0),
-             Point2f::new(1.0, 0.0),
-             Point2f::new(1.0, 1.0)]
+            [
+                Point2f::new(0.0, 0.0),
+                Point2f::new(1.0, 0.0),
+                Point2f::new(1.0, 1.0),
+            ]
         }
     }
 }
@@ -279,8 +280,9 @@ impl Shape for Triangle {
         p1t.z *= sz;
         p2t.z *= sz;
         let t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
-        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det)) ||
-           (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det)) {
+        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det))
+            || (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det))
+        {
             return None;
         }
         // - compute barycentric coordinates and t value for triangle intersection
@@ -307,8 +309,8 @@ impl Shape for Triangle {
 
         // Compute `delta_t` term for triangle t error bounds and check `t`
         let max_e = max_component(&Vector3f::new(e0, e1, e2).abs());
-        let delta_t = 3.0 * (gamma(3) * max_e * maxzt + delta_e * maxzt + delta_z * max_e) *
-                      inv_det.abs();
+        let delta_t =
+            3.0 * (gamma(3) * max_e * maxzt + delta_e * maxzt + delta_z * max_e) * inv_det.abs();
         if t <= delta_t {
             return None;
         }
@@ -349,31 +351,33 @@ impl Shape for Triangle {
         // test intersection against alpha texture if present
         if let Some(ref alpha_mask) = self.mesh.alpha_mask {
             let isect_local = SurfaceInteraction::new(
-                    p_hit,
-                    zero(),
-                    uv_hit,
-                    -ray.d,
-                    dpdu,
-                    dpdv,
-                    zero(),
-                    zero(),
-                    self
-                );
+                p_hit,
+                zero(),
+                uv_hit,
+                -ray.d,
+                dpdu,
+                dpdv,
+                zero(),
+                zero(),
+                self,
+            );
             if alpha_mask.evaluate(&isect_local) == 0.0 {
                 return None;
             }
         }
 
         // Fill in SurfaceInteraction from triangle hit
-        let mut isect = SurfaceInteraction::new(p_hit,
-                                                p_error,
-                                                uv_hit,
-                                                -ray.d,
-                                                dpdu,
-                                                dpdv,
-                                                zero(),
-                                                zero(),
-                                                self);
+        let mut isect = SurfaceInteraction::new(
+            p_hit,
+            p_error,
+            uv_hit,
+            -ray.d,
+            dpdu,
+            dpdv,
+            zero(),
+            zero(),
+            self,
+        );
         // - Override surface normal
         let n = Normal3f::from(dp02.cross(&dp12).normalize());
         isect.hit.n = n;
@@ -489,8 +493,9 @@ impl Shape for Triangle {
         p1t.z *= sz;
         p2t.z *= sz;
         let t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
-        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det)) ||
-           (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det)) {
+        if (det < 0.0 && (t_scaled >= 0.0 || t_scaled < ray.t_max * det))
+            || (det > 0.0 && (t_scaled <= 0.0 || t_scaled > ray.t_max * det))
+        {
             return false;
         }
         // - compute barycentric coordinates and t value for triangle intersection
@@ -517,8 +522,8 @@ impl Shape for Triangle {
 
         // Compute `delta_t` term for triangle t error bounds and check `t`
         let max_e = max_component(&Vector3f::new(e0, e1, e2).abs());
-        let delta_t = 3.0 * (gamma(3) * max_e * maxzt + delta_e * maxzt + delta_z * max_e) *
-                      inv_det.abs();
+        let delta_t =
+            3.0 * (gamma(3) * max_e * maxzt + delta_e * maxzt + delta_z * max_e) * inv_det.abs();
         if t <= delta_t {
             return false;
         }
@@ -551,16 +556,16 @@ impl Shape for Triangle {
             let p_hit = *p0 * b0 + *p1 * b1 + *p2 * b2;
             let uv_hit = uv[0] * b0 + uv[1] * b1 + uv[2] * b2;
             let isect_local = SurfaceInteraction::new(
-                    p_hit,
-                    zero(),
-                    uv_hit,
-                    -ray.d,
-                    dpdu,
-                    dpdv,
-                    zero(),
-                    zero(),
-                    self
-                );
+                p_hit,
+                zero(),
+                uv_hit,
+                -ray.d,
+                dpdu,
+                dpdv,
+                zero(),
+                zero(),
+                self,
+            );
             if let Some(ref alpha_mask) = self.mesh.alpha_mask {
                 if alpha_mask.evaluate(&isect_local) == 0.0 {
                     return false;
@@ -572,7 +577,6 @@ impl Shape for Triangle {
                 }
             }
         }
-
 
         n_hits::inc();
         true
@@ -635,23 +639,37 @@ impl Shape for Triangle {
     }
 }
 
-pub fn create_triangle_mesh(object_to_world: &Transform,
-                            reverse_orientation: bool,
-                            vertex_indices: &[usize],
-                            p: &[Point3f],
-                            s: Option<&[Vector3f]>,
-                            n: Option<&[Normal3f]>,
-                            uv: Option<&[Point2f]>,
-                            alpha_mask: Option<Arc<TextureFloat>>,
-                            shadow_alpha_mask: Option<Arc<TextureFloat>>)
-                            -> Vec<Arc<Shape>> {
-    let mesh = Arc::new(TriangleMesh::new(object_to_world, vertex_indices, p, s, n, uv, alpha_mask, shadow_alpha_mask));
+pub fn create_triangle_mesh(
+    object_to_world: &Transform,
+    reverse_orientation: bool,
+    vertex_indices: &[usize],
+    p: &[Point3f],
+    s: Option<&[Vector3f]>,
+    n: Option<&[Normal3f]>,
+    uv: Option<&[Point2f]>,
+    alpha_mask: Option<Arc<TextureFloat>>,
+    shadow_alpha_mask: Option<Arc<TextureFloat>>,
+) -> Vec<Arc<Shape>> {
+    let mesh = Arc::new(TriangleMesh::new(
+        object_to_world,
+        vertex_indices,
+        p,
+        s,
+        n,
+        uv,
+        alpha_mask,
+        shadow_alpha_mask,
+    ));
 
     let n_triangles = vertex_indices.len() / 3;
     let mut tris: Vec<Arc<Shape>> = Vec::with_capacity(n_triangles);
 
     for i in 0..n_triangles {
-        tris.push(Arc::new(Triangle::new(Arc::clone(&mesh), i, reverse_orientation)));
+        tris.push(Arc::new(Triangle::new(
+            Arc::clone(&mesh),
+            i,
+            reverse_orientation,
+        )));
     }
 
     tris

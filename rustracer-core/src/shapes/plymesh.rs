@@ -10,15 +10,16 @@ use {Normal3f, Point2f, Point3f};
 use paramset::ParamSet;
 use shapes::Shape;
 use shapes::mesh::create_triangle_mesh;
-use texture::{Texture, ConstantTexture};
+use texture::{ConstantTexture, Texture};
 use transform::Transform;
 
-pub fn create(o2w: &Transform,
-              _w2o: &Transform,
-              reverse_orientation: bool,
-              params: &mut ParamSet,
-              float_textures: &HashMap<String, Arc<Texture<f32>>>)
-              -> Vec<Arc<Shape>> {
+pub fn create(
+    o2w: &Transform,
+    _w2o: &Transform,
+    reverse_orientation: bool,
+    params: &mut ParamSet,
+    float_textures: &HashMap<String, Arc<Texture<f32>>>,
+) -> Vec<Arc<Shape>> {
     let filename = params.find_one_filename("filename", "".into());
     let f = File::open(&filename).unwrap();
     let mut f = BufReader::new(f);
@@ -36,22 +37,27 @@ pub fn create(o2w: &Transform,
     for (key, elem) in &header.elements {
         if key == "vertex" {
             vertex_count = elem.count;
-            if !elem.properties.contains_key("x") || !elem.properties.contains_key("y") ||
-               !elem.properties.contains_key("z") {
-                error!("PLY file \"{}\": Vertex coordinate property not found",
-                       filename);
+            if !elem.properties.contains_key("x") || !elem.properties.contains_key("y")
+                || !elem.properties.contains_key("z")
+            {
+                error!(
+                    "PLY file \"{}\": Vertex coordinate property not found",
+                    filename
+                );
                 return Vec::new();
             }
-            if elem.properties.contains_key("nx") && elem.properties.contains_key("ny") &&
-               elem.properties.contains_key("nz") {
+            if elem.properties.contains_key("nx") && elem.properties.contains_key("ny")
+                && elem.properties.contains_key("nz")
+            {
                 has_normals = true;
             }
-            if (elem.properties.contains_key("u") && elem.properties.contains_key("v")) ||
-               (elem.properties.contains_key("s") && elem.properties.contains_key("t")) ||
-               (elem.properties.contains_key("texture_u") &&
-                elem.properties.contains_key("texture_v")) ||
-               (elem.properties.contains_key("texture_s") &&
-                elem.properties.contains_key("texture_t")) {
+            if (elem.properties.contains_key("u") && elem.properties.contains_key("v"))
+                || (elem.properties.contains_key("s") && elem.properties.contains_key("t"))
+                || (elem.properties.contains_key("texture_u")
+                    && elem.properties.contains_key("texture_v"))
+                || (elem.properties.contains_key("texture_s")
+                    && elem.properties.contains_key("texture_t"))
+            {
                 has_texture = true;
             }
         } else if key == "face" {
@@ -60,13 +66,16 @@ pub fn create(o2w: &Transform,
     }
 
     if vertex_count == 0 || face_count == 0 {
-        error!("PLY file \"{}\" is invalid! No face/vertex elements found!",
-               filename);
+        error!(
+            "PLY file \"{}\" is invalid! No face/vertex elements found!",
+            filename
+        );
         return Vec::new();
     } else {
-        info!("Loading PLY file with {} vertices and {} faces",
-              vertex_count,
-              face_count);
+        info!(
+            "Loading PLY file with {} vertices and {} faces",
+            vertex_count, face_count
+        );
     }
 
     let mut vertices = Vec::new();
@@ -88,26 +97,29 @@ pub fn create(o2w: &Transform,
         }
     }
 
-    let vertex_indices: Vec<usize> = faces.into_iter().flat_map(|f| {
-        let length = f.vertex_indices.len();
-        if length != 3 && length != 4 {
-            warn!("plymesh: Ignoring face with {} vertices (only triangles and quads are supported!", f.vertex_indices.len());
-            Vec::new()
-        } else {
-            let mut vec = Vec::new();
-            vec.push(f.vertex_indices[0] as usize);
-            vec.push(f.vertex_indices[1] as usize);
-            vec.push(f.vertex_indices[2] as usize);
-            if length == 4 {
-                // If it's a quad, split it into 2 triangles
-                vec.push(f.vertex_indices[3] as usize);
+    let vertex_indices: Vec<usize> = faces
+        .into_iter()
+        .flat_map(|f| {
+            let length = f.vertex_indices.len();
+            if length != 3 && length != 4 {
+                warn!("plymesh: Ignoring face with {} vertices (only triangles and quads are supported!", f.vertex_indices.len());
+                Vec::new()
+            } else {
+                let mut vec = Vec::new();
                 vec.push(f.vertex_indices[0] as usize);
+                vec.push(f.vertex_indices[1] as usize);
                 vec.push(f.vertex_indices[2] as usize);
-            }
+                if length == 4 {
+                    // If it's a quad, split it into 2 triangles
+                    vec.push(f.vertex_indices[3] as usize);
+                    vec.push(f.vertex_indices[0] as usize);
+                    vec.push(f.vertex_indices[2] as usize);
+                }
 
-            vec
-        }
-    }).collect();
+                vec
+            }
+        })
+        .collect();
 
     let mut p = Vec::with_capacity(vertex_count);
     let mut n = Vec::with_capacity(vertex_count);
@@ -147,15 +159,17 @@ pub fn create(o2w: &Transform,
         shadow_alpha_mask = Some(Arc::new(ConstantTexture::new(0.0)));
     }
 
-    create_triangle_mesh(o2w,
-                         reverse_orientation,
-                         &vertex_indices,
-                         &p,
-                         None,
-                         if has_normals { Some(&n) } else { None },
-                         if has_texture { Some(&uv) } else { None },
-                         alpha_mask,
-                         shadow_alpha_mask)
+    create_triangle_mesh(
+        o2w,
+        reverse_orientation,
+        &vertex_indices,
+        &p,
+        None,
+        if has_normals { Some(&n) } else { None },
+        if has_texture { Some(&uv) } else { None },
+        alpha_mask,
+        shadow_alpha_mask,
+    )
 }
 
 struct Vertex {
@@ -184,14 +198,14 @@ impl ply::PropertyAccess for Vertex {
             ("ny", ply::Property::Float(v)) => self.n.y = v,
             ("nz", ply::Property::Float(v)) => self.n.z = v,
             // texture coordinates
-            ("u", ply::Property::Float(v)) |
-            ("texture_u", ply::Property::Float(v)) |
-            ("s", ply::Property::Float(v)) |
-            ("texture_s", ply::Property::Float(v)) => self.uv.x = v,
-            ("v", ply::Property::Float(v)) |
-            ("t", ply::Property::Float(v)) |
-            ("texture_v", ply::Property::Float(v)) |
-            ("texture_t", ply::Property::Float(v)) => self.uv.y = v,
+            ("u", ply::Property::Float(v))
+            | ("texture_u", ply::Property::Float(v))
+            | ("s", ply::Property::Float(v))
+            | ("texture_s", ply::Property::Float(v)) => self.uv.x = v,
+            ("v", ply::Property::Float(v))
+            | ("t", ply::Property::Float(v))
+            | ("texture_v", ply::Property::Float(v))
+            | ("texture_t", ply::Property::Float(v)) => self.uv.y = v,
             _ => debug!("Unknown property \"{}\" found for vertex element", key),
         }
     }
@@ -203,13 +217,18 @@ struct Face {
 
 impl ply::PropertyAccess for Face {
     fn new() -> Face {
-        Face { vertex_indices: Vec::new() }
+        Face {
+            vertex_indices: Vec::new(),
+        }
     }
 
     fn set_property(&mut self, key: String, prop: ply::Property) {
         match (key.as_ref(), prop) {
             ("vertex_indices", ply::Property::ListInt(v)) => self.vertex_indices = v,
-            (_k, p) => debug!("Face: Invalid combination key/value for key {} / prop {:?}", key, p),
+            (_k, p) => debug!(
+                "Face: Invalid combination key/value for key {} / prop {:?}",
+                key, p
+            ),
         }
     }
 }

@@ -6,10 +6,14 @@ use light::{Light, LightFlags};
 use primitive::Primitive;
 use ray::Ray;
 
-stat_counter!("Intersections/Regular ray intersection tests",
-              n_intersection_tests);
-stat_counter!("Intersections/Shadow ray intersection tests",
-              n_shadow_tests);
+stat_counter!(
+    "Intersections/Regular ray intersection tests",
+    n_intersection_tests
+);
+stat_counter!(
+    "Intersections/Shadow ray intersection tests",
+    n_shadow_tests
+);
 pub fn init_stats() {
     n_intersection_tests::init();
     n_shadow_tests::init();
@@ -22,9 +26,7 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(aggregate: Arc<Primitive>,
-               lights: Vec<Arc<Light>>)
-               -> Scene {
+    pub fn new(aggregate: Arc<Primitive>, lights: Vec<Arc<Light>>) -> Scene {
         let mut scene = Scene {
             lights: Vec::new(),
             infinite_lights: Vec::new(),

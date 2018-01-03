@@ -195,5 +195,3 @@ macro_rules! stat_ratio(
         }
     );
 );
-
-

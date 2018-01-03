@@ -25,8 +25,7 @@ pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<(), Error> {
 
 pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Tokens>, Error> {
     let resolved_filename = fileutil::resolve_filename(filename.as_ref().to_str().unwrap());
-    let mut file = File::open(&resolved_filename)
-        .context("Failed to open scene file")?;
+    let mut file = File::open(&resolved_filename).context("Failed to open scene file")?;
     let mut file_content = String::new();
     file.read_to_string(&mut file_content)
         .context("Failed to read content of scene file")?;

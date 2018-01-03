@@ -40,10 +40,11 @@ impl Light for PointLight {
         self.id
     }
 
-    fn sample_li(&self,
-                 isect: &Interaction,
-                 _u: &Point2f)
-                 -> (Spectrum, Vector3f, f32, VisibilityTester) {
+    fn sample_li(
+        &self,
+        isect: &Interaction,
+        _u: &Point2f,
+    ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let wi = self.pos - isect.p;
         let r2 = wi.length_squared();
         let l_i = self.emission_colour / (4.0 * PI * r2);

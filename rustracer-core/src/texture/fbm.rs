@@ -5,7 +5,7 @@ use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use noise;
 use spectrum::Spectrum;
-use texture::{Texture, TextureMapping3D, IdentityMapping3D};
+use texture::{IdentityMapping3D, Texture, TextureMapping3D};
 
 #[derive(Debug)]
 pub struct FbmTexture<T> {

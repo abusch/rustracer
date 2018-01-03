@@ -9,19 +9,19 @@ pub trait DisplayUpdater {
 }
 
 pub struct MinifbDisplayUpdater {
-    #[cfg(feature = "display")]
-    window: minifb::Window,
+    #[cfg(feature = "display")] window: minifb::Window,
 }
 
 impl MinifbDisplayUpdater {
     #[cfg(feature = "display")]
     pub fn new(res: Point2i) -> MinifbDisplayUpdater {
         MinifbDisplayUpdater {
-            window: minifb::Window::new("Rustracer",
-                                        res.x as usize,
-                                        res.y as usize,
-                                        minifb::WindowOptions::default())
-                    .expect("Unable to open a window"),
+            window: minifb::Window::new(
+                "Rustracer",
+                res.x as usize,
+                res.y as usize,
+                minifb::WindowOptions::default(),
+            ).expect("Unable to open a window"),
         }
     }
 

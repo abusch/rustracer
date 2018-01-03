@@ -28,13 +28,14 @@ impl SamplerIntegrator for AmbientOcclusion {
         &self.pixel_bounds
     }
 
-    fn li(&self,
-          scene: &Scene,
-          ray: &mut Ray,
-          sampler: &mut Box<Sampler>,
-          _arena: &Allocator,
-          _depth: u32)
-          -> Spectrum {
+    fn li(
+        &self,
+        scene: &Scene,
+        ray: &mut Ray,
+        sampler: &mut Box<Sampler>,
+        _arena: &Allocator,
+        _depth: u32,
+    ) -> Spectrum {
         let mut n_clear: usize = 0;
 
         if let Some(intersection) = scene.intersect(ray) {

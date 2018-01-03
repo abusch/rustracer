@@ -15,7 +15,8 @@ pub struct Normal3<T> {
 }
 
 impl<T> Normal3<T>
-    where T: Num + Copy
+where
+    T: Num + Copy,
 {
     pub fn new(x: T, y: T, z: T) -> Normal3<T> {
         Normal3 { x, y, z }
@@ -54,7 +55,8 @@ impl Normal3<f32> {
 
 // Operators
 impl<T> Add<Normal3<T>> for Normal3<T>
-    where T: Add<Output = T> + Copy
+where
+    T: Add<Output = T> + Copy,
 {
     type Output = Normal3<T>;
 
@@ -68,7 +70,8 @@ impl<T> Add<Normal3<T>> for Normal3<T>
 }
 
 impl<T> AddAssign<Normal3<T>> for Normal3<T>
-    where T: AddAssign + Copy
+where
+    T: AddAssign + Copy,
 {
     fn add_assign(&mut self, other: Normal3<T>) {
         self.x += other.x;
@@ -78,7 +81,8 @@ impl<T> AddAssign<Normal3<T>> for Normal3<T>
 }
 
 impl<T> Sub<Normal3<T>> for Normal3<T>
-    where T: Sub<Output = T> + Copy
+where
+    T: Sub<Output = T> + Copy,
 {
     type Output = Normal3<T>;
 
@@ -92,7 +96,8 @@ impl<T> Sub<Normal3<T>> for Normal3<T>
 }
 
 impl<T> SubAssign<Normal3<T>> for Normal3<T>
-    where T: SubAssign + Copy
+where
+    T: SubAssign + Copy,
 {
     fn sub_assign(&mut self, other: Normal3<T>) {
         self.x -= other.x;
@@ -102,7 +107,8 @@ impl<T> SubAssign<Normal3<T>> for Normal3<T>
 }
 
 impl<T> Div<T> for Normal3<T>
-    where T: Div<Output = T> + Copy
+where
+    T: Div<Output = T> + Copy,
 {
     type Output = Normal3<T>;
 
@@ -116,7 +122,8 @@ impl<T> Div<T> for Normal3<T>
 }
 
 impl<T> DivAssign<T> for Normal3<T>
-    where T: DivAssign + Copy
+where
+    T: DivAssign + Copy,
 {
     fn div_assign(&mut self, v: T) {
         self.x /= v;
@@ -126,7 +133,8 @@ impl<T> DivAssign<T> for Normal3<T>
 }
 
 impl<T> Mul<T> for Normal3<T>
-    where T: Mul<Output = T> + Copy
+where
+    T: Mul<Output = T> + Copy,
 {
     type Output = Normal3<T>;
 
@@ -151,9 +159,9 @@ impl Mul<Normal3<f32>> for f32 {
     }
 }
 
-
 impl<T> MulAssign<T> for Normal3<T>
-    where T: MulAssign + Copy
+where
+    T: MulAssign + Copy,
 {
     fn mul_assign(&mut self, v: T) {
         self.x *= v;
@@ -163,7 +171,8 @@ impl<T> MulAssign<T> for Normal3<T>
 }
 
 impl<T> Neg for Normal3<T>
-    where T: Neg<Output = T>
+where
+    T: Neg<Output = T>,
 {
     type Output = Normal3<T>;
 
@@ -201,7 +210,8 @@ impl<T> IndexMut<usize> for Normal3<T> {
 }
 
 impl<T> Default for Normal3<T>
-    where T: Default
+where
+    T: Default,
 {
     fn default() -> Self {
         Normal3 {
@@ -213,7 +223,8 @@ impl<T> Default for Normal3<T>
 }
 
 impl<T> Zero for Normal3<T>
-    where T: Num + Copy
+where
+    T: Num + Copy,
 {
     fn zero() -> Normal3<T> {
         Normal3::new(T::zero(), T::zero(), T::zero())
@@ -225,7 +236,8 @@ impl<T> Zero for Normal3<T>
 }
 
 impl<T> From<Vector3<T>> for Normal3<T>
-    where T: Num + Copy
+where
+    T: Num + Copy,
 {
     fn from(v: Vector3<T>) -> Normal3<T> {
         Normal3::new(v.x, v.y, v.z)
@@ -233,7 +245,8 @@ impl<T> From<Vector3<T>> for Normal3<T>
 }
 
 impl<T> Display for Normal3<T>
-    where T: Display
+where
+    T: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "[{}, {}, {}]", self.x, self.y, self.z)

@@ -22,10 +22,10 @@ extern crate light_arena;
 #[macro_use]
 extern crate log;
 extern crate num;
-#[cfg(feature="exr")]
+#[cfg(feature = "exr")]
 extern crate openexr;
-extern crate ply_rs;
 extern crate parking_lot;
+extern crate ply_rs;
 extern crate state;
 
 #[cfg(test)]
@@ -118,11 +118,12 @@ pub const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
 /// This version should be generic enough to linearly interpolate between 2 Spectrums using an f32
 /// parameter.
 pub fn lerp<S, T>(t: S, a: T, b: T) -> T
-    where S: One,
-          S: Sub<S, Output = S>,
-          S: Copy,
-          T: Add<T, Output = T>,
-          T: Mul<S, Output = T>
+where
+    S: One,
+    S: Sub<S, Output = S>,
+    S: Copy,
+    T: Add<T, Output = T>,
+    T: Mul<S, Output = T>,
 {
     let one: S = num::one();
     a * (one - t) + b * t
@@ -130,10 +131,15 @@ pub fn lerp<S, T>(t: S, a: T, b: T) -> T
 
 /// Return the dimension index (0, 1 or 2) that contains the largest component.
 pub fn max_dimension<T>(v: &Vector3<T>) -> usize
-    where T: Num + PartialOrd
+where
+    T: Num + PartialOrd,
 {
     if v.x > v.y {
-        if v.x > v.z { 0 } else { 2 }
+        if v.x > v.z {
+            0
+        } else {
+            2
+        }
     } else if v.y > v.z {
         1
     } else {
@@ -147,14 +153,16 @@ pub fn max_component(v: &Vector3f) -> f32 {
 
 /// Permute the components of this vector based on the given indices for x, y and z.
 pub fn permute_v<T>(v: &Vector3<T>, x: usize, y: usize, z: usize) -> Vector3<T>
-    where T: Num + Copy
+where
+    T: Num + Copy,
 {
     Vector3::new(v[x], v[y], v[z])
 }
 
 /// Permute the components of this point based on the given indices for x, y and z.
 pub fn permute_p<T>(v: &Point3<T>, x: usize, y: usize, z: usize) -> Point3<T>
-    where T: Num + Signed + Copy
+where
+    T: Num + Signed + Copy,
 {
     Point3::new(v[x], v[y], v[z])
 }
@@ -174,7 +182,8 @@ pub fn coordinate_system(v1: &Vector3f) -> (Vector3f, Vector3f) {
 
 // TODO does this exist in std?
 pub fn find_interval<P>(size: usize, pred: P) -> usize
-    where P: Fn(usize) -> bool
+where
+    P: Fn(usize) -> bool,
 {
     let mut first = 0;
     let mut len = size;
@@ -194,12 +203,20 @@ pub fn find_interval<P>(size: usize, pred: P) -> usize
 
 /// Version of min() that works on `PartialOrd`, so it works for both u32 and f32.
 pub fn min<T: PartialOrd + Copy>(a: T, b: T) -> T {
-    if a.lt(&b) { a } else { b }
+    if a.lt(&b) {
+        a
+    } else {
+        b
+    }
 }
 
 /// Version of max() that works on `PartialOrd`, so it works for both u32 and f32.
 pub fn max<T: PartialOrd + Copy>(a: T, b: T) -> T {
-    if a.gt(&b) { a } else { b }
+    if a.gt(&b) {
+        a
+    } else {
+        b
+    }
 }
 
 #[inline]
@@ -258,7 +275,8 @@ pub fn next_float_down(v: f32) -> f32 {
 }
 
 pub fn clamp<T>(val: T, low: T, high: T) -> T
-    where T: PartialOrd + Copy
+where
+    T: PartialOrd + Copy,
 {
     if val < low {
         low
@@ -281,9 +299,11 @@ impl Clampable for f32 {
 
 impl Clampable for Spectrum {
     fn clamp(self, min: f32, max: f32) -> Spectrum {
-        Spectrum::rgb(self.r.clamp(min, max),
-                      self.g.clamp(min, max),
-                      self.b.clamp(min, max))
+        Spectrum::rgb(
+            self.r.clamp(min, max),
+            self.g.clamp(min, max),
+            self.b.clamp(min, max),
+        )
     }
 }
 
@@ -301,9 +321,15 @@ mod tests {
 
         for i in 0..a.len() - 1 {
             assert_eq!(i, find_interval(a.len(), |index| a[index] <= i));
-            assert_eq!(i, find_interval(a.len(), |index| a[index] as f32 <= i as f32 + 0.5));
+            assert_eq!(
+                i,
+                find_interval(a.len(), |index| a[index] as f32 <= i as f32 + 0.5)
+            );
             if i > 0 {
-                assert_eq!(i - 1, find_interval(a.len(), |index| a[index] as f32 <= i as f32 - 0.5));
+                assert_eq!(
+                    i - 1,
+                    find_interval(a.len(), |index| a[index] as f32 <= i as f32 - 0.5)
+                );
             }
         }
     }
@@ -331,4 +357,3 @@ mod tests {
         assert_eq!(round_up_pow_2(1024), 1024);
     }
 }
-

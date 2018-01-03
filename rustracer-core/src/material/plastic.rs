@@ -8,8 +8,7 @@ use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
-use texture::{TextureSpectrum, TextureFloat};
-
+use texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]
 pub struct Plastic {
@@ -30,21 +29,23 @@ impl Plastic {
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(Plastic {
-                     kd: Kd,
-                     ks: Ks,
-                     roughness,
-                     bump_map,
-                     remap_roughness,
-                 })
+            kd: Kd,
+            ks: Ks,
+            roughness,
+            bump_map,
+            remap_roughness,
+        })
     }
 }
 
 impl Material for Plastic {
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            si: &mut SurfaceInteraction<'a, 'b>,
-                                            _mode: TransportMode,
-                                            _allow_multiple_lobes: bool,
-                                            arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        si: &mut SurfaceInteraction<'a, 'b>,
+        _mode: TransportMode,
+        _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);
         }

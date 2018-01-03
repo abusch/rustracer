@@ -1,9 +1,9 @@
 extern crate clap;
 extern crate failure;
-extern crate rustracer_core as rt;
+extern crate flexi_logger;
 #[macro_use]
 extern crate log;
-extern crate flexi_logger;
+extern crate rustracer_core as rt;
 
 mod argparse;
 
@@ -28,7 +28,6 @@ fn main() {
         .format(flexi_logger::opt_format)
         .start()
         .unwrap_or_else(|e| panic!("Failed to initialize logger: {}", e));
-
 
     if let Err(ref e) = run(&matches) {
         println!("Application error: {}", e);

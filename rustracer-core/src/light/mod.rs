@@ -67,10 +67,11 @@ pub trait Light: Debug + Send + Sync {
     ///  * the sampled direction wi
     ///  * the pdf for that direction
     ///  * A VisibilityTester
-    fn sample_li(&self,
-                 isect: &Interaction,
-                 u: &Point2f)
-                 -> (Spectrum, Vector3f, f32, VisibilityTester);
+    fn sample_li(
+        &self,
+        isect: &Interaction,
+        u: &Point2f,
+    ) -> (Spectrum, Vector3f, f32, VisibilityTester);
 
     fn pdf_li(&self, si: &Interaction, wi: &Vector3f) -> f32;
 

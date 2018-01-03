@@ -6,7 +6,7 @@ use bounds::Bounds2i;
 use bsdf::BxDFType;
 use camera::Camera;
 use integrator::{uniform_sample_one_light, SamplerIntegrator};
-use lightdistrib::{LightDistribution, UniformLightDistribution, SpatialLightDistribution};
+use lightdistrib::{LightDistribution, SpatialLightDistribution, UniformLightDistribution};
 use material::TransportMode;
 use paramset::ParamSet;
 use ray::Ray;
@@ -30,11 +30,12 @@ pub struct PathIntegrator {
 }
 
 impl PathIntegrator {
-    pub fn new(pixel_bounds: Bounds2i,
-               max_ray_depth: i32,
-               rr_threshold: f32,
-               light_sampling_strategy: String)
-               -> PathIntegrator {
+    pub fn new(
+        pixel_bounds: Bounds2i,
+        max_ray_depth: i32,
+        rr_threshold: f32,
+        light_sampling_strategy: String,
+    ) -> PathIntegrator {
         PathIntegrator {
             pixel_bounds,
             max_ray_depth: max_ray_depth as u8,
@@ -44,9 +45,7 @@ impl PathIntegrator {
         }
     }
 
-    pub fn create(params: &mut ParamSet,
-                  camera: &Camera)
-                  -> Box<SamplerIntegrator> {
+    pub fn create(params: &mut ParamSet, camera: &Camera) -> Box<SamplerIntegrator> {
         let max_depth = params.find_one_int("maxdepth", 5);
         let rr_threshold = params.find_one_float("rrthreshold", 1.0);
         let light_strategy = params.find_one_string("lightsamplestrategy", "spatial".into());
@@ -54,19 +53,27 @@ impl PathIntegrator {
         let mut pixel_bounds = camera.get_film().get_sample_bounds();
         if let Some(pb) = pb {
             if pb.len() != 4 {
-                error!("Expected 4 values for \"pixelbounds\" parameter. Got {}.",
-                       pb.len());
+                error!(
+                    "Expected 4 values for \"pixelbounds\" parameter. Got {}.",
+                    pb.len()
+                );
             } else {
-                pixel_bounds =
-                    Bounds2i::intersect(&pixel_bounds,
-                                        &Bounds2i::from_elements(pb[0], pb[2], pb[1], pb[3]));
+                pixel_bounds = Bounds2i::intersect(
+                    &pixel_bounds,
+                    &Bounds2i::from_elements(pb[0], pb[2], pb[1], pb[3]),
+                );
                 if pixel_bounds.area() == 0 {
                     error!("Degenerate \"pixelbounds\" specified. Ignoring.");
                 }
             }
         }
 
-        Box::new(PathIntegrator::new(pixel_bounds, max_depth, rr_threshold, light_strategy))
+        Box::new(PathIntegrator::new(
+            pixel_bounds,
+            max_depth,
+            rr_threshold,
+            light_strategy,
+        ))
     }
 }
 
@@ -77,21 +84,22 @@ impl SamplerIntegrator for PathIntegrator {
 
     fn preprocess(&mut self, scene: Arc<Scene>, _sampler: &mut Box<Sampler>) {
         // TODO create correct distribution based on strategy
-        self.light_distribution = if self.light_sampling_strategy == "uniform" ||
-                                     scene.lights.len() == 1 {
-            Some(Box::new(UniformLightDistribution::new(&scene)))
-        } else {
-            Some(Box::new(SpatialLightDistribution::new(scene, 64)))
-        }
+        self.light_distribution =
+            if self.light_sampling_strategy == "uniform" || scene.lights.len() == 1 {
+                Some(Box::new(UniformLightDistribution::new(&scene)))
+            } else {
+                Some(Box::new(SpatialLightDistribution::new(scene, 64)))
+            }
     }
 
-    fn li(&self,
-          scene: &Scene,
-          r: &mut Ray,
-          sampler: &mut Box<Sampler>,
-          arena: &Allocator,
-          _depth: u32)
-          -> Spectrum {
+    fn li(
+        &self,
+        scene: &Scene,
+        r: &mut Ray,
+        sampler: &mut Box<Sampler>,
+        arena: &Allocator,
+        _depth: u32,
+    ) -> Spectrum {
         let mut l = Spectrum::black();
         let mut beta = Spectrum::white();
         let mut specular_bounce = false;
@@ -107,10 +115,10 @@ impl SamplerIntegrator for PathIntegrator {
         let mut eta_scale = 1.0;
         loop {
             // Find next path vertex and accumulate contribution
-            debug!("Path tracer bounce {}, current L={:?}, beta={:?}",
-                   bounces,
-                   l,
-                   beta);
+            debug!(
+                "Path tracer bounce {}, current L={:?}, beta={:?}",
+                bounces, l, beta
+            );
             // Intersect _ray_ with scene and store intersection in _isect_
             let mut found_intersection = scene.intersect(&mut ray);
 
@@ -169,8 +177,9 @@ impl SamplerIntegrator for PathIntegrator {
             assert!(beta.y() >= 0.0);
             // assert!(!beta.y().is_infinite());
             specular_bounce = flags.contains(BxDFType::BSDF_SPECULAR);
-            if flags.contains(BxDFType::BSDF_SPECULAR) &&
-               flags.contains(BxDFType::BSDF_TRANSMISSION) {
+            if flags.contains(BxDFType::BSDF_SPECULAR)
+                && flags.contains(BxDFType::BSDF_TRANSMISSION)
+            {
                 let eta = bsdf.eta;
                 // Update the term that tracks radiance scaling for refraction
                 // depending on whether the ray is entering or leaving the

@@ -23,11 +23,12 @@ pub struct CheckerboardTexture<T> {
 }
 
 impl<T> CheckerboardTexture<T> {
-    pub fn new(tex1: Arc<Texture<T>>,
-               tex2: Arc<Texture<T>>,
-               mapping: Box<TextureMapping2D>,
-               aa_method: AAMethod)
-               -> CheckerboardTexture<T> {
+    pub fn new(
+        tex1: Arc<Texture<T>>,
+        tex2: Arc<Texture<T>>,
+        mapping: Box<TextureMapping2D>,
+        aa_method: AAMethod,
+    ) -> CheckerboardTexture<T> {
         CheckerboardTexture {
             tex1,
             tex2,
@@ -38,9 +39,10 @@ impl<T> CheckerboardTexture<T> {
 }
 
 impl CheckerboardTexture<Spectrum> {
-    pub fn create_spectrum(_tex2world: &Transform,
-                           tp: &mut TextureParams)
-                           -> CheckerboardTexture<Spectrum> {
+    pub fn create_spectrum(
+        _tex2world: &Transform,
+        tp: &mut TextureParams,
+    ) -> CheckerboardTexture<Spectrum> {
         let dim = tp.find_int("dimension", 2);
         if dim != 2 && dim != 3 {
             panic!("{} dimensional checkerboard texture not supported", dim);
@@ -86,9 +88,10 @@ impl CheckerboardTexture<Spectrum> {
 }
 
 impl<T> Texture<T> for CheckerboardTexture<T>
-    where T: Debug,
-          T: Mul<f32, Output = T>,
-          T: Add<Output = T>
+where
+    T: Debug,
+    T: Mul<f32, Output = T>,
+    T: Add<Output = T>,
 {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {
         let (st, dstdx, dstdy) = self.mapping.map(si);
@@ -121,9 +124,8 @@ impl<T> Texture<T> for CheckerboardTexture<T>
 
                 // Apply box filter to checkerboard region
                 fn bump_int(x: f32) -> i32 {
-                    (f32::floor(x / 2.0) +
-                     2.0 * f32::max(x / 2.0 - f32::floor(x / 2.0) - 0.5, 0.0)) as
-                    i32
+                    (f32::floor(x / 2.0) + 2.0 * f32::max(x / 2.0 - f32::floor(x / 2.0) - 0.5, 0.0))
+                        as i32
                 }
                 let sint = (bump_int(s1) - bump_int(s0)) as f32 / (2.0 * ds);
                 let tint = (bump_int(t1) - bump_int(t0)) as f32 / (2.0 * dt);

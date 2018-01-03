@@ -1,9 +1,9 @@
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, AtomicPtr, Ordering};
+use std::sync::atomic::{AtomicPtr, AtomicU64, Ordering};
 
 use num::Zero;
 
-use {clamp, Point2f, Point3i, Point3f, Vector3f, Normal3f};
+use {clamp, Normal3f, Point2f, Point3f, Point3i, Vector3f};
 use bounds::Bounds3f;
 use interaction::Interaction;
 use sampler::lowdiscrepancy::radical_inverse;
@@ -11,10 +11,14 @@ use sampling::Distribution1D;
 use scene::Scene;
 
 stat_counter!("SpatialLightDistribution/Distributions created", n_created);
-stat_ratio!("SpatialLightDistribution/Lookups per distribution",
-            n_lookups_per_distribution);
-stat_int_distribution!("SpatialLightDistribution/Hash probes per lookup",
-                       n_probes_per_lookup);
+stat_ratio!(
+    "SpatialLightDistribution/Lookups per distribution",
+    n_lookups_per_distribution
+);
+stat_int_distribution!(
+    "SpatialLightDistribution/Hash probes per lookup",
+    n_probes_per_lookup
+);
 pub fn init_stats() {
     n_created::init();
     n_lookups_per_distribution::init();
@@ -32,7 +36,9 @@ pub struct UniformLightDistribution {
 impl UniformLightDistribution {
     pub fn new(scene: &Scene) -> UniformLightDistribution {
         let prob = vec![1.0; scene.lights.len()];
-        UniformLightDistribution { distrib: Box::new(Distribution1D::new(&prob[..])) }
+        UniformLightDistribution {
+            distrib: Box::new(Distribution1D::new(&prob[..])),
+        }
     }
 }
 
@@ -69,14 +75,15 @@ impl SpatialLightDistribution {
         let mut hash_table: Vec<HashEntry> = Vec::with_capacity(hash_table_size);
         for _ in 0..hash_table_size {
             hash_table.push(HashEntry {
-                                packed_pos: AtomicU64::new(INVALID_PACKED_POS),
-                                distribution: AtomicPtr::default(),
-                            });
+                packed_pos: AtomicU64::new(INVALID_PACKED_POS),
+                distribution: AtomicPtr::default(),
+            });
         }
 
-        info!("SpatialLightDistribution: scene bounds {}, voxel res {:?}",
-              b,
-              n_voxels);
+        info!(
+            "SpatialLightDistribution: scene bounds {}, voxel res {:?}",
+            b, n_voxels
+        );
 
         SpatialLightDistribution {
             scene,
@@ -91,14 +98,20 @@ impl SpatialLightDistribution {
         n_lookups_per_distribution::inc_total();
         // Compute the world-space bounding box of the voxel corresponding to
         // |pi|.
-        let p0 = Point3f::new(pi[0] as f32 / self.n_voxels[0] as f32,
-                              pi[1] as f32 / self.n_voxels[1] as f32,
-                              pi[2] as f32 / self.n_voxels[2] as f32);
-        let p1 = Point3f::new((pi[0] as f32 + 1.0) / self.n_voxels[0] as f32,
-                              (pi[1] as f32 + 1.0) / self.n_voxels[1] as f32,
-                              (pi[2] as f32 + 1.0) / self.n_voxels[2] as f32);
-        let voxel_bounds = Bounds3f::from_points(&self.scene.world_bounds().lerp(&p0),
-                                                 &self.scene.world_bounds().lerp(&p1));
+        let p0 = Point3f::new(
+            pi[0] as f32 / self.n_voxels[0] as f32,
+            pi[1] as f32 / self.n_voxels[1] as f32,
+            pi[2] as f32 / self.n_voxels[2] as f32,
+        );
+        let p1 = Point3f::new(
+            (pi[0] as f32 + 1.0) / self.n_voxels[0] as f32,
+            (pi[1] as f32 + 1.0) / self.n_voxels[1] as f32,
+            (pi[2] as f32 + 1.0) / self.n_voxels[2] as f32,
+        );
+        let voxel_bounds = Bounds3f::from_points(
+            &self.scene.world_bounds().lerp(&p0),
+            &self.scene.world_bounds().lerp(&p1),
+        );
 
         // Compute the sampling distribution. Sample a number of points inside
         // voxelBounds using a 3D Halton sequence; at each one, sample each
@@ -109,13 +122,17 @@ impl SpatialLightDistribution {
         let n_samples = 128;
         let mut light_contrib: Vec<f32> = vec![0.0; self.scene.lights.len()];
         for i in 0..n_samples {
-            let po = voxel_bounds.lerp(&Point3f::new(radical_inverse(0, i),
-                                                     radical_inverse(1, i),
-                                                     radical_inverse(2, i)));
-            let intr = Interaction::new(po,
-                                        Vector3f::zero(),
-                                        Vector3f::new(1.0, 0.0, 0.0),
-                                        Normal3f::zero());
+            let po = voxel_bounds.lerp(&Point3f::new(
+                radical_inverse(0, i),
+                radical_inverse(1, i),
+                radical_inverse(2, i),
+            ));
+            let intr = Interaction::new(
+                po,
+                Vector3f::zero(),
+                Vector3f::new(1.0, 0.0, 0.0),
+                Normal3f::zero(),
+            );
 
             // Use the next two Halton dimensions to sample a point on the
             // light source.
@@ -148,9 +165,10 @@ impl SpatialLightDistribution {
             light_contrib[i] = f32::max(light_contrib[i], min_contrib);
         }
 
-        info!("Initialized light distribution in voxel pi={}, avg_contrib={}",
-              pi,
-              avg_contrib);
+        info!(
+            "Initialized light distribution in voxel pi={}, avg_contrib={}",
+            pi, avg_contrib
+        );
         // Compute a sampling distribution from the accumulated contributions.
         Distribution1D::new(&light_contrib[..])
     }
@@ -167,9 +185,11 @@ impl LightDistribution for SpatialLightDistribution {
             // The clamp should almost never be necessary, but is there to be
             // robust to computed intersection points being slightly outside
             // the scene bounds due to floating-point roundoff error.
-            pi[i] = clamp((offset[i] * self.n_voxels[i] as f32) as i32,
-                          0,
-                          self.n_voxels[i] as i32 - 1);
+            pi[i] = clamp(
+                (offset[i] * self.n_voxels[i] as f32) as i32,
+                0,
+                self.n_voxels[i] as i32 - 1,
+            );
         }
 
         // Pack the 3D integer voxel coordinates into a single 64-bit value.
@@ -242,12 +262,15 @@ impl LightDistribution for SpatialLightDistribution {
                 // atomic compare/exchange to try to claim this entry for the
                 // current position.
                 if entry
-                       .packed_pos
-                       .compare_exchange_weak(INVALID_PACKED_POS,
-                                              packed_pos,
-                                              Ordering::SeqCst,
-                                              Ordering::SeqCst)
-                       .is_ok() {
+                    .packed_pos
+                    .compare_exchange_weak(
+                        INVALID_PACKED_POS,
+                        packed_pos,
+                        Ordering::SeqCst,
+                        Ordering::SeqCst,
+                    )
+                    .is_ok()
+                {
                     // Success; we've claimed this position for this voxel's
                     // distribution. Now compute the sampling distribution and
                     // add it to the hash table. As long as packedPos has been

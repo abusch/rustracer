@@ -14,10 +14,11 @@ pub struct ScaleTexture<T> {
 }
 
 impl<T> Texture<T> for ScaleTexture<T>
-    where T: Debug,
-          T: Send,
-          T: Sync,
-          T: Mul<Output = T>
+where
+    T: Debug,
+    T: Send,
+    T: Sync,
+    T: Mul<Output = T>,
 {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {
         self.tex1.evaluate(si) * self.tex2.evaluate(si)

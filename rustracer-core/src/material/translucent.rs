@@ -8,7 +8,7 @@ use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::{TextureSpectrum, TextureFloat};
+use texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]
 pub struct TranslucentMaterial {
@@ -32,23 +32,25 @@ impl TranslucentMaterial {
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(TranslucentMaterial {
-                     kd,
-                     ks,
-                     reflect,
-                     transmit,
-                     roughness,
-                     bumpmap,
-                     remap_roughness,
-                 })
+            kd,
+            ks,
+            reflect,
+            transmit,
+            roughness,
+            bumpmap,
+            remap_roughness,
+        })
     }
 }
 
 impl Material for TranslucentMaterial {
-    fn compute_scattering_functions<'a, 'b>(&self,
-                                            si: &mut SurfaceInteraction<'a, 'b>,
-                                            mode: TransportMode,
-                                            _allow_multiple_lobes: bool,
-                                            arena: &'b Allocator) {
+    fn compute_scattering_functions<'a, 'b>(
+        &self,
+        si: &mut SurfaceInteraction<'a, 'b>,
+        mode: TransportMode,
+        _allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         let mut bxdfs = BxDFHolder::new(arena);
         let eta = 1.5;
 

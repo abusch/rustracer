@@ -38,7 +38,6 @@ pub fn noise(x: f32, y: f32, z: f32) -> f32 {
     let y0 = lerp(wy, x00, x10);
     let y1 = lerp(wy, x01, x11);
 
-
     lerp(wz, y0, y1)
 }
 

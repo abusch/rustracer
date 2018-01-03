@@ -38,13 +38,14 @@ impl SamplerIntegrator for Whitted {
         &self.pixel_bounds
     }
 
-    fn li(&self,
-          scene: &Scene,
-          ray: &mut Ray,
-          sampler: &mut Box<Sampler>,
-          arena: &Allocator,
-          depth: u32)
-          -> Spectrum {
+    fn li(
+        &self,
+        scene: &Scene,
+        ray: &mut Ray,
+        sampler: &mut Box<Sampler>,
+        arena: &Allocator,
+        depth: u32,
+    ) -> Spectrum {
         let mut colour = Spectrum::black();
 
         match scene.intersect(ray) {
@@ -82,13 +83,15 @@ impl SamplerIntegrator for Whitted {
                 if depth + 1 < u32::from(self.max_ray_depth) {
                     colour +=
                         self.specular_reflection(ray, &isect, scene, &bsdf, sampler, arena, depth);
-                    colour += self.specular_transmission(ray,
-                                                         &isect,
-                                                         scene,
-                                                         &bsdf,
-                                                         sampler,
-                                                         arena,
-                                                         depth);
+                    colour += self.specular_transmission(
+                        ray,
+                        &isect,
+                        scene,
+                        &bsdf,
+                        sampler,
+                        arena,
+                        depth,
+                    );
                 }
             }
             None => {
@@ -98,7 +101,6 @@ impl SamplerIntegrator for Whitted {
                     .fold(Spectrum::black(), |c, l| c + l.le(ray));
             }
         }
-
 
         colour
     }

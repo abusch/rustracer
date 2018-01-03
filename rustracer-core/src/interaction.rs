@@ -104,16 +104,17 @@ pub struct SurfaceInteraction<'a, 'b> {
 }
 
 impl<'a, 'b> SurfaceInteraction<'a, 'b> {
-    pub fn new(p: Point3f,
-               p_error: Vector3f,
-               uv: Point2f,
-               wo: Vector3f,
-               dpdu: Vector3f,
-               dpdv: Vector3f,
-               dndu: Normal3f,
-               dndv: Normal3f,
-               shape: &Shape)
-               -> SurfaceInteraction {
+    pub fn new(
+        p: Point3f,
+        p_error: Vector3f,
+        uv: Point2f,
+        wo: Vector3f,
+        dpdu: Vector3f,
+        dpdv: Vector3f,
+        dndu: Normal3f,
+        dndv: Normal3f,
+        shape: &Shape,
+    ) -> SurfaceInteraction {
         let mut n = Normal3f::from(dpdu.cross(&dpdv).normalize());
         if shape.reverse_orientation() ^ shape.transform_swaps_handedness() {
             n *= -1.0;
@@ -155,10 +156,12 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
     pub fn transform(&self, t: &Transform) -> SurfaceInteraction<'a, 'b> {
         let (p, p_err) = t.transform_point_with_error(&self.hit.p, &self.hit.p_error);
         let mut si = SurfaceInteraction {
-            hit: Interaction::new(p,
-                                  p_err,
-                                  (t * &self.hit.wo).normalize(),
-                                  t.transform_normal(&self.hit.n).normalize()),
+            hit: Interaction::new(
+                p,
+                p_err,
+                (t * &self.hit.wo).normalize(),
+                t.transform_normal(&self.hit.n).normalize(),
+            ),
             uv: self.uv,
             dpdu: t * &self.dpdu,
             dpdv: t * &self.dpdv,
@@ -186,11 +189,13 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         si
     }
 
-    pub fn compute_scattering_functions(&mut self,
-                                        ray: &Ray,
-                                        transport: TransportMode,
-                                        allow_multiple_lobes: bool,
-                                        arena: &'b Allocator) {
+    pub fn compute_scattering_functions(
+        &mut self,
+        ray: &Ray,
+        transport: TransportMode,
+        allow_multiple_lobes: bool,
+        arena: &'b Allocator,
+    ) {
         self.compute_differential(ray);
         if let Some(primitive) = self.primitive {
             primitive.compute_scattering_functions(self, transport, allow_multiple_lobes, arena);
@@ -210,12 +215,14 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         Ray::segment(o, d, 1.0 - 1e-4)
     }
 
-    pub fn set_shading_geometry(&mut self,
-                                dpdus: &Vector3f,
-                                dpdvs: &Vector3f,
-                                dndus: &Normal3f,
-                                dndvs: &Normal3f,
-                                is_orientation_authoritative: bool) {
+    pub fn set_shading_geometry(
+        &mut self,
+        dpdus: &Vector3f,
+        dpdvs: &Vector3f,
+        dndus: &Normal3f,
+        dndvs: &Normal3f,
+        is_orientation_authoritative: bool,
+    ) {
         // Compute shading.n for SurfaceInteraction
         self.shading.n = Normal3f::from(dpdus.cross(dpdvs).normalize());
         if self.shape.reverse_orientation() ^ self.shape.transform_swaps_handedness() {
@@ -243,10 +250,10 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             let d = self.hit
                 .n
                 .dot(&Vector3f::new(self.hit.p.x, self.hit.p.y, self.hit.p.z));
-            let tx = -(self.hit.n.dot(&Vector3f::from(diff.rx_origin)) - d) /
-                     self.hit.n.dot(&diff.rx_direction);
-            let ty = -(self.hit.n.dot(&Vector3f::from(diff.ry_origin)) - d) /
-                     self.hit.n.dot(&diff.ry_direction);
+            let tx = -(self.hit.n.dot(&Vector3f::from(diff.rx_origin)) - d)
+                / self.hit.n.dot(&diff.rx_direction);
+            let ty = -(self.hit.n.dot(&Vector3f::from(diff.ry_origin)) - d)
+                / self.hit.n.dot(&diff.ry_direction);
             if tx.is_infinite() || tx.is_nan() || ty.is_infinite() || ty.is_nan() {
                 self.dudx = 0.0;
                 self.dudy = 0.0;
@@ -276,13 +283,18 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 dim[1] = 1;
             }
             // Initialize A, Bx, and By matrices for offset computation
-            let A = [[self.dpdu[dim[0]], self.dpdv[dim[0]]],
-                     [self.dpdu[dim[1]], self.dpdv[dim[1]]]];
-            let Bx = Vector2f::new(px[dim[0]] - self.hit.p[dim[0]],
-                                   px[dim[1]] - self.hit.p[dim[1]]);
-            let By = Vector2f::new(py[dim[0]] - self.hit.p[dim[0]],
-                                   py[dim[1]] - self.hit.p[dim[1]]);
-
+            let A = [
+                [self.dpdu[dim[0]], self.dpdv[dim[0]]],
+                [self.dpdu[dim[1]], self.dpdv[dim[1]]],
+            ];
+            let Bx = Vector2f::new(
+                px[dim[0]] - self.hit.p[dim[0]],
+                px[dim[1]] - self.hit.p[dim[1]],
+            );
+            let By = Vector2f::new(
+                py[dim[0]] - self.hit.p[dim[0]],
+                py[dim[1]] - self.hit.p[dim[1]],
+            );
 
             let (dudx, dvdx) = transform::solve_linear_system2x2(&A, &Bx).unwrap_or((0.0, 0.0));
             let (dudy, dvdy) = transform::solve_linear_system2x2(&A, &By).unwrap_or((0.0, 0.0));

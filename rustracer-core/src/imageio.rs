@@ -4,13 +4,13 @@ use std::io::{BufRead, BufReader, Read};
 
 use failure::{Error, ResultExt};
 use img;
-#[cfg(feature="exr")]
-use openexr::{FrameBuffer, FrameBufferMut, InputFile, ScanlineOutputFile, Header, PixelType};
+#[cfg(feature = "exr")]
+use openexr::{FrameBuffer, FrameBufferMut, Header, InputFile, PixelType, ScanlineOutputFile};
 
-use {Point2i, clamp};
+use {clamp, Point2i};
 use bounds::Bounds2i;
 use fileutil::has_extension;
-use spectrum::{Spectrum, gamma_correct};
+use spectrum::{gamma_correct, Spectrum};
 
 pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading image {}", path.as_ref().display());
@@ -30,11 +30,12 @@ pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     }
 }
 
-pub fn write_image<P: AsRef<Path>>(name: P,
-                                   rgb: &[f32],
-                                   output_bounds: &Bounds2i,
-                                   total_resolution: &Point2i)
-                                   -> Result<(), Error> {
+pub fn write_image<P: AsRef<Path>>(
+    name: P,
+    rgb: &[f32],
+    output_bounds: &Bounds2i,
+    total_resolution: &Point2i,
+) -> Result<(), Error> {
     let path = name.as_ref();
 
     if has_extension(path, "png") {
@@ -46,52 +47,56 @@ pub fn write_image<P: AsRef<Path>>(name: P,
     }
 }
 
-fn write_image_png<P: AsRef<Path>>(name: P,
-                                   rgb: &[f32],
-                                   output_bounds: &Bounds2i,
-                                   _total_resolution: &Point2i)
-                                   -> Result<(), Error> {
+fn write_image_png<P: AsRef<Path>>(
+    name: P,
+    rgb: &[f32],
+    output_bounds: &Bounds2i,
+    _total_resolution: &Point2i,
+) -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
     let rgb8: Vec<_> = rgb.iter()
         .map(|v| clamp(255.0 * gamma_correct(*v) + 0.5, 0.0, 255.0) as u8)
         .collect();
 
-
-    img::save_buffer(path,
-                     &rgb8,
-                     resolution.x as u32,
-                     resolution.y as u32,
-                     img::RGB(8))
-            .context(format!("Failed to save image file {}", path.display()))?;
+    img::save_buffer(
+        path,
+        &rgb8,
+        resolution.x as u32,
+        resolution.y as u32,
+        img::RGB(8),
+    ).context(format!("Failed to save image file {}", path.display()))?;
     Ok(())
 }
 
-#[cfg(not(feature="exr"))]
-fn write_image_exr<P: AsRef<Path>>(name: P,
-                                   rgb: &[f32],
-                                   output_bounds: &Bounds2i,
-                                   total_resolution: &Point2i)
-                                   -> Result<(), Error> {
+#[cfg(not(feature = "exr"))]
+fn write_image_exr<P: AsRef<Path>>(
+    name: P,
+    rgb: &[f32],
+    output_bounds: &Bounds2i,
+    total_resolution: &Point2i,
+) -> Result<(), Error> {
     panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
 }
 
-#[cfg(feature="exr")]
-fn write_image_exr<P: AsRef<Path>>(name: P,
-                                   rgb: &[f32],
-                                   output_bounds: &Bounds2i,
-                                   _total_resolution: &Point2i)
-                                   -> Result<(), Error> {
+#[cfg(feature = "exr")]
+fn write_image_exr<P: AsRef<Path>>(
+    name: P,
+    rgb: &[f32],
+    output_bounds: &Bounds2i,
+    _total_resolution: &Point2i,
+) -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
     let mut file = File::create(path)?;
-    let mut output_file = ScanlineOutputFile::new(&mut file,
-                                                  Header::new()
-                                                      .set_resolution(resolution.x as u32,
-                                                                      resolution.y as u32)
-                                                      .add_channel("R", PixelType::FLOAT)
-                                                      .add_channel("G", PixelType::FLOAT)
-                                                      .add_channel("B", PixelType::FLOAT))?;
+    let mut output_file = ScanlineOutputFile::new(
+        &mut file,
+        Header::new()
+            .set_resolution(resolution.x as u32, resolution.y as u32)
+            .add_channel("R", PixelType::FLOAT)
+            .add_channel("G", PixelType::FLOAT)
+            .add_channel("B", PixelType::FLOAT),
+    )?;
 
     // Create a `FrameBuffer` that points at our pixel data and describes it as
     // RGB data.
@@ -115,11 +120,11 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
     let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
     let pixels: Vec<Spectrum> = rgb.pixels()
         .map(|p| {
-                 let r = f32::from(p.data[0]) / 255.0;
-                 let g = f32::from(p.data[1]) / 255.0;
-                 let b = f32::from(p.data[2]) / 255.0;
-                 Spectrum::rgb(r, g, b)
-             })
+            let r = f32::from(p.data[0]) / 255.0;
+            let g = f32::from(p.data[1]) / 255.0;
+            let b = f32::from(p.data[2]) / 255.0;
+            Spectrum::rgb(r, g, b)
+        })
         .collect();
 
     Ok((pixels, res))
@@ -133,19 +138,19 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
 
     let meta = hdr.metadata();
     let data = hdr.read_image_transform(|p| {
-                                            let rgb = p.to_hdr();
-                                            Spectrum::rgb(rgb[0], rgb[1], rgb[2])
-                                        })?;
+        let rgb = p.to_hdr();
+        Spectrum::rgb(rgb[0], rgb[1], rgb[2])
+    })?;
 
     Ok((data, Point2i::new(meta.width as i32, meta.height as i32)))
 }
 
-#[cfg(not(feature="exr"))]
+#[cfg(not(feature = "exr"))]
 fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
 }
 
-#[cfg(feature="exr")]
+#[cfg(feature = "exr")]
 fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading EXR texture {}", path.as_ref().display());
     let mut file = File::open(path.as_ref())?;
@@ -224,11 +229,10 @@ fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     let file_little_endian = scale < 0.0;
     let host_little_endian = true;
 
-    info!("n_channels={}, width={}, height={}, scale={}",
-          n_channels,
-          width,
-          height,
-          scale);
+    info!(
+        "n_channels={}, width={}, height={}, scale={}",
+        n_channels, width, height, scale
+    );
 
     // Read the rest of the data
     let n_floats = n_channels * width * height;
@@ -260,7 +264,6 @@ fn read_image_pfm<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
             .map(|rgb| Spectrum::rgb(rgb[0], rgb[1], rgb[2]))
             .collect()
     };
-
 
     Ok((rgb, Point2i::new(width as i32, height as i32)))
 }

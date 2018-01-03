@@ -79,8 +79,9 @@ impl EFloat {
         assert!(!self.v.is_nan());
         assert!(!self.low.is_nan());
         assert!(!self.high.is_nan());
-        if !self.low.is_infinite() && !self.low.is_nan() && !self.high.is_infinite() &&
-           !self.high.is_nan() {
+        if !self.low.is_infinite() && !self.low.is_nan() && !self.high.is_infinite()
+            && !self.high.is_nan()
+        {
             assert!(self.low <= self.high);
             assert!(self.low <= self.v);
             assert!(self.v <= self.high);
@@ -102,8 +103,8 @@ pub fn solve_quadratic(a: &EFloat, b: &EFloat, c: &EFloat) -> Option<(EFloat, EF
     }
 
     let root_discrim = discrim.sqrt();
-    let float_root_discrim = EFloat::new(root_discrim as f32,
-                                         MACHINE_EPSILON * root_discrim as f32);
+    let float_root_discrim =
+        EFloat::new(root_discrim as f32, MACHINE_EPSILON * root_discrim as f32);
 
     let q = if b.v < 0.0 {
         -0.5 * (*b - float_root_discrim)
@@ -159,15 +160,23 @@ impl Mul<EFloat> for EFloat {
     type Output = EFloat;
 
     fn mul(self, f: EFloat) -> EFloat {
-        let prod: [f32; 4] = [self.lower_bound() * f.lower_bound(),
-                              self.upper_bound() * f.lower_bound(),
-                              self.lower_bound() * f.upper_bound(),
-                              self.upper_bound() * f.upper_bound()];
+        let prod: [f32; 4] = [
+            self.lower_bound() * f.lower_bound(),
+            self.upper_bound() * f.lower_bound(),
+            self.lower_bound() * f.upper_bound(),
+            self.upper_bound() * f.upper_bound(),
+        ];
 
         let r = EFloat {
             v: self.v * f.v,
-            low: next_float_down(f32::min(f32::min(prod[0], prod[1]), f32::min(prod[2], prod[3]))),
-            high: next_float_up(f32::max(f32::max(prod[0], prod[1]), f32::max(prod[2], prod[3]))),
+            low: next_float_down(f32::min(
+                f32::min(prod[0], prod[1]),
+                f32::min(prod[2], prod[3]),
+            )),
+            high: next_float_up(f32::max(
+                f32::max(prod[0], prod[1]),
+                f32::max(prod[2], prod[3]),
+            )),
         };
         r.check();
         r
@@ -181,12 +190,16 @@ impl Div<EFloat> for EFloat {
         let (low, high) = if f.lower_bound() < 0.0 && f.upper_bound() > 0.0 {
             (f32::NEG_INFINITY, f32::INFINITY)
         } else {
-            let div: [f32; 4] = [self.lower_bound() / f.lower_bound(),
-                                 self.upper_bound() / f.lower_bound(),
-                                 self.lower_bound() / f.upper_bound(),
-                                 self.upper_bound() / f.upper_bound()];
-            (next_float_down(f32::min(f32::min(div[0], div[1]), f32::min(div[2], div[3]))),
-             next_float_up(f32::max(f32::max(div[0], div[1]), f32::max(div[2], div[3]))))
+            let div: [f32; 4] = [
+                self.lower_bound() / f.lower_bound(),
+                self.upper_bound() / f.lower_bound(),
+                self.lower_bound() / f.upper_bound(),
+                self.upper_bound() / f.upper_bound(),
+            ];
+            (
+                next_float_down(f32::min(f32::min(div[0], div[1]), f32::min(div[2], div[3]))),
+                next_float_up(f32::max(f32::max(div[0], div[1]), f32::max(div[2], div[3]))),
+            )
         };
         let r = EFloat {
             v: self.v / f.v,
