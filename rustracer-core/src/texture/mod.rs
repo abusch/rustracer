@@ -7,16 +7,18 @@ use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use spectrum::Spectrum;
 
-mod constant;
 mod checkerboard;
-mod imagemap;
+mod constant;
 mod fbm;
+mod imagemap;
+mod mix;
 mod scale;
 
-pub use self::constant::ConstantTexture;
 pub use self::checkerboard::CheckerboardTexture;
-pub use self::imagemap::ImageTexture;
+pub use self::constant::ConstantTexture;
 pub use self::fbm::FbmTexture;
+pub use self::imagemap::ImageTexture;
+pub use self::mix::MixTexture;
 pub use self::scale::ScaleTexture;
 
 pub trait Texture<T>: Debug + Send + Sync {

@@ -26,8 +26,8 @@ use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
 use shapes::plymesh;
 use spectrum::Spectrum;
 use stats;
-use texture::{CheckerboardTexture, ConstantTexture, FbmTexture, ImageTexture, ScaleTexture,
-              Texture, UVTexture};
+use texture::{CheckerboardTexture, ConstantTexture, FbmTexture, ImageTexture, MixTexture,
+              ScaleTexture, Texture, UVTexture};
 
 stat_counter!("Scene/Materials created", n_materials_created);
 stat_counter!("Scene/Object instances created", n_object_instances_created);
@@ -1213,6 +1213,8 @@ fn make_float_texture(
         Arc::new(ImageTexture::<f32>::create(transform, tp))
     } else if name == "fbm" {
         Arc::new(FbmTexture::create_float(transform, tp))
+    } else if name == "mix" {
+        Arc::new(MixTexture::create_float(transform, tp))
     } else {
         bail!("Unkown texture type {}", name);
     };
@@ -1230,7 +1232,7 @@ fn make_spectrum_texture(
     } else if name == "scale" {
         Arc::new(ScaleTexture::<Spectrum>::create(tp))
     } else if name == "mix" {
-        unimplemented!()
+        Arc::new(MixTexture::create_spectrum(transform, tp))
     } else if name == "bilerp" {
         unimplemented!()
     } else if name == "imagemap" {
