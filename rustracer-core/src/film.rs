@@ -105,7 +105,7 @@ impl Film {
         }
     }
 
-    pub fn create(ps: &mut ParamSet, filter: Box<Filter>) -> Box<Film> {
+    pub fn create(ps: &ParamSet, filter: Box<Filter>) -> Box<Film> {
         let mut filename = ps.find_one_string("filename", "".into());
         if filename == "" {
             filename = "image.png".into();

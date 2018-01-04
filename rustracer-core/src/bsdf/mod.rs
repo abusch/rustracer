@@ -67,7 +67,7 @@ pub struct BSDF<'a> {
     ng: Normal3f,
     ss: Vector3f,
     ts: Vector3f,
-    bxdfs: &'a [&'a BxDF],
+    pub bxdfs: &'a [&'a BxDF],
 }
 
 impl<'a> BSDF<'a> {

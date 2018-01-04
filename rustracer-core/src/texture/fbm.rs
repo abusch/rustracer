@@ -23,7 +23,7 @@ impl<T> FbmTexture<T> {
 }
 
 impl FbmTexture<f32> {
-    pub fn create_float(tex2world: &Transform, tp: &mut TextureParams) -> FbmTexture<f32> {
+    pub fn create_float(tex2world: &Transform, tp: &TextureParams) -> FbmTexture<f32> {
         FbmTexture {
             mapping: Box::new(IdentityMapping3D::new(tex2world.clone())),
             roughness: tp.find_float("omega", 0.5),
@@ -34,7 +34,7 @@ impl FbmTexture<f32> {
 }
 
 impl FbmTexture<Spectrum> {
-    pub fn create_spectrum(tex2world: &Transform, tp: &mut TextureParams) -> FbmTexture<Spectrum> {
+    pub fn create_spectrum(tex2world: &Transform, tp: &TextureParams) -> FbmTexture<Spectrum> {
         FbmTexture {
             mapping: Box::new(IdentityMapping3D::new(tex2world.clone())),
             roughness: tp.find_float("omega", 0.5),

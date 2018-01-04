@@ -26,7 +26,7 @@ impl Whitted {
         }
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator> {
+    pub fn create(ps: &ParamSet) -> Box<SamplerIntegrator> {
         let max_depth = ps.find_one_int("maxdepth", 5);
         // TODO pixel_bounds
         Box::new(Self::new(max_depth as u8))

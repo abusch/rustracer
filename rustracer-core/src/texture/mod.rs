@@ -41,7 +41,7 @@ impl UVTexture {
         }
     }
 
-    pub fn create_spectrum(_tex2world: &Transform, tp: &mut TextureParams) -> UVTexture {
+    pub fn create_spectrum(_tex2world: &Transform, tp: &TextureParams) -> UVTexture {
         let typ = tp.find_string("mapping", "uv");
         let mapping = if typ == "uv" {
             let su = tp.find_float("uscale", 1.0);

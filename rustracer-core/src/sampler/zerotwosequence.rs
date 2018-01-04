@@ -54,7 +54,7 @@ impl ZeroTwoSequence {
         }
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<Sampler> {
+    pub fn create(ps: &ParamSet) -> Box<Sampler> {
         let nsamples = ps.find_one_int("pixelsamples", 16);
         let sd = ps.find_one_int("dimensions", 4);
         // TODO quickrender

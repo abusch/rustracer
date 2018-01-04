@@ -15,7 +15,7 @@ use geometry::Matrix4x4;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
 use material::{DisneyMaterial, GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial,
-               Plastic, SubstrateMaterial, TranslucentMaterial, UberMaterial};
+               MixMaterial, Plastic, SubstrateMaterial, TranslucentMaterial, UberMaterial};
 use paramset::{ParamSet, TextureParams};
 use primitive::{GeometricPrimitive, Primitive, TransformedPrimitive};
 use renderer;
@@ -170,23 +170,23 @@ pub struct RenderOptions {
 }
 
 impl RenderOptions {
-    pub fn make_filter(&mut self) -> Result<Box<Filter>, Error> {
+    pub fn make_filter(&self) -> Result<Box<Filter>, Error> {
         debug!("Making filter");
         let filter = match self.filter_name.as_ref() {
-            "box" => BoxFilter::create(&mut self.filter_params),
-            "mitchell" => MitchellNetravali::create(&mut self.filter_params),
-            "gaussian" => GaussianFilter::create(&mut self.filter_params),
-            "triangle" => TriangleFilter::create(&mut self.filter_params),
+            "box" => BoxFilter::create(&self.filter_params),
+            "mitchell" => MitchellNetravali::create(&self.filter_params),
+            "gaussian" => GaussianFilter::create(&self.filter_params),
+            "triangle" => TriangleFilter::create(&self.filter_params),
             _ => bail!("Filter \"{}\" unknown.", self.filter_name),
         };
 
         Ok(filter)
     }
 
-    pub fn make_film(&mut self, filter: Box<Filter>) -> Result<Box<Film>, Error> {
+    pub fn make_film(&self, filter: Box<Filter>) -> Result<Box<Film>, Error> {
         debug!("Making film");
         let film = if self.film_name == "image" {
-            Film::create(&mut self.film_params, filter)
+            Film::create(&self.film_params, filter)
         } else {
             bail!("Film \"{}\" unknown.", self.film_name);
         };
@@ -194,10 +194,10 @@ impl RenderOptions {
         Ok(film)
     }
 
-    pub fn make_sampler(&mut self) -> Result<Box<Sampler>, Error> {
+    pub fn make_sampler(&self) -> Result<Box<Sampler>, Error> {
         let sampler = if self.sampler_name == "lowdiscrepancy" || self.sampler_name == "02sequence"
         {
-            ZeroTwoSequence::create(&mut self.sampler_params)
+            ZeroTwoSequence::create(&self.sampler_params)
         } else {
             bail!("Sampler \"{}\" unknown.", self.sampler_name);
         };
@@ -205,13 +205,13 @@ impl RenderOptions {
         Ok(sampler)
     }
 
-    pub fn make_camera(&mut self) -> Result<Box<Camera>, Error> {
+    pub fn make_camera(&self) -> Result<Box<Camera>, Error> {
         debug!("Making camera");
         let filter = self.make_filter()?;
         let film = self.make_film(filter)?;
 
         let camera = if self.camera_name == "perspective" {
-            PerspectiveCamera::create(&mut self.camera_params, &self.camera_to_world, film)
+            PerspectiveCamera::create(&self.camera_params, &self.camera_to_world, film)
         } else {
             bail!("Camera \"{}\" unknown.", self.camera_name);
         };
@@ -219,15 +219,15 @@ impl RenderOptions {
         Ok(camera)
     }
 
-    pub fn make_integrator(&mut self, camera: &Camera) -> Result<Box<SamplerIntegrator>, Error> {
+    pub fn make_integrator(&self, camera: &Camera) -> Result<Box<SamplerIntegrator>, Error> {
         debug!("Making integrator");
         let integrator: Box<SamplerIntegrator> = if self.integrator_name == "whitted" {
-            Whitted::create(&mut self.integrator_params)
+            Whitted::create(&self.integrator_params)
         // Box::new(Normal {})
         } else if self.integrator_name == "directlighting" {
-            DirectLightingIntegrator::create(&mut self.integrator_params)
+            DirectLightingIntegrator::create(&self.integrator_params)
         } else if self.integrator_name == "path" {
-            PathIntegrator::create(&mut self.integrator_params, camera)
+            PathIntegrator::create(&self.integrator_params, camera)
         } else if self.integrator_name == "normal" {
             Box::new(Normal::default())
         } else {
@@ -237,7 +237,7 @@ impl RenderOptions {
         Ok(integrator)
     }
 
-    pub fn make_scene(&mut self) -> Result<Arc<Scene>, Error> {
+    pub fn make_scene(&self) -> Result<Arc<Scene>, Error> {
         info!(
             "Making scene with {} primitives and {} lights",
             self.primitives.len(),
@@ -246,7 +246,7 @@ impl RenderOptions {
         let accelerator = make_accelerator(
             &self.accelerator_name,
             &self.primitives,
-            &mut self.accelerator_params,
+            &self.accelerator_params,
         );
         Ok(Arc::new(Scene::new(accelerator, self.lights.clone())))
     }
@@ -255,7 +255,7 @@ impl RenderOptions {
 pub fn make_accelerator(
     accelerator_name: &str,
     prims: &[Arc<Primitive>],
-    accelerator_params: &mut ParamSet,
+    accelerator_params: &ParamSet,
 ) -> Arc<Primitive> {
     if accelerator_name == "kdtree" {
         unimplemented!()
@@ -307,10 +307,10 @@ pub struct GraphicsState {
 }
 
 impl GraphicsState {
-    pub fn create_material(&mut self, params: &mut ParamSet) -> Arc<Material> {
+    pub fn create_material(&self, params: &ParamSet) -> Arc<Material> {
         let mut mp = TextureParams::new(
             params,
-            &mut self.material_param,
+            &self.material_param,
             &self.float_textures,
             &self.spectrum_textures,
         );
@@ -324,10 +324,10 @@ impl GraphicsState {
                         "No material named \"{}\". Using matte material instead.",
                         cur_mat_name
                     );
-                    make_material("matte", &mut mp)
+                    make_material("matte", &mut mp, &self.named_material)
                 })
         } else {
-            make_material(&self.material, &mut mp)
+            make_material(&self.material, &mut mp, &self.named_material)
         }
     }
 }
@@ -442,12 +442,12 @@ pub trait Api {
     // TODO active_transform_end_time
     // TODO active_transform_start_time
     // TODO transform_times
-    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn film(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn camera(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn pixel_filter(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn film(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn sampler(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn accelerator(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn integrator(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn camera(&self, name: String, params: &ParamSet) -> Result<(), Error>;
     // TODO make_named_medium
     // TODO medium_interface
     fn world_begin(&self) -> Result<(), Error>;
@@ -460,14 +460,14 @@ pub trait Api {
         name: String,
         typ: String,
         texname: String,
-        params: &mut ParamSet,
+        params: &ParamSet,
     ) -> Result<(), Error>;
-    fn material(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn material(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn make_named_material(&self, name: String, params: &ParamSet) -> Result<(), Error>;
     fn named_material(&self, name: String) -> Result<(), Error>;
-    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
-    fn shape(&self, name: String, params: &mut ParamSet) -> Result<(), Error>;
+    fn lightsource(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<(), Error>;
+    fn shape(&self, name: String, params: &ParamSet) -> Result<(), Error>;
     fn reverse_orientation(&self) -> Result<(), Error>;
     fn object_begin(&self, name: String) -> Result<(), Error>;
     fn object_end(&self) -> Result<(), Error>;
@@ -484,7 +484,7 @@ impl RealApi {
     fn make_light(
         &self,
         name: &str,
-        param_set: &mut ParamSet,
+        param_set: &ParamSet,
         light_2_world: &Transform,
     ) -> Result<Arc<Light>, Error> {
         if name == "point" {
@@ -689,7 +689,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn pixel_filter(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn pixel_filter(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("pixel_filter called");
@@ -698,7 +698,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn film(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn film(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Film called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -707,7 +707,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn sampler(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn sampler(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("sampler called");
@@ -716,7 +716,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn accelerator(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn accelerator(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("accelerator called");
@@ -725,7 +725,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn integrator(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn integrator(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Integrator called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
@@ -734,7 +734,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn camera(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn camera(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         let mut state = self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("Camera called with {}", name);
@@ -810,7 +810,7 @@ impl Api for RealApi {
         name: String,
         typ: String,
         texname: String,
-        params: &mut ParamSet,
+        params: &ParamSet,
     ) -> Result<(), Error> {
         debug!("texture() called with {} and {} and {}", name, typ, texname);
         let mut state = self.state.borrow_mut();
@@ -869,7 +869,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn make_named_material(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn make_named_material(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("MakeNamedMaterial called with {}", name);
         let mut state = self.state.borrow_mut();
 
@@ -877,7 +877,7 @@ impl Api for RealApi {
             let mut empty_params = ParamSet::default();
             let mut mp = TextureParams::new(
                 params,
-                &mut empty_params,
+                &empty_params,
                 &state.graphics_state.float_textures,
                 &state.graphics_state.spectrum_textures,
             );
@@ -886,7 +886,7 @@ impl Api for RealApi {
             if mat_name == "" {
                 bail!("No parameter string \"type\" found in named_material");
             }
-            make_material(&mat_name, &mut mp)
+            make_material(&mat_name, &mp, &state.graphics_state.named_material)
         };
         if state
             .graphics_state
@@ -899,7 +899,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn material(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn material(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Material called with {}", name);
         let mut state = self.state.borrow_mut();
         state.graphics_state.material = name;
@@ -916,7 +916,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn lightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn lightsource(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Lightsource called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -925,7 +925,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn arealightsource(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn arealightsource(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Arealightsource called with {}", name);
         let mut state = self.state.borrow_mut();
         state.graphics_state.area_light = name;
@@ -933,7 +933,7 @@ impl Api for RealApi {
         Ok(())
     }
 
-    fn shape(&self, name: String, params: &mut ParamSet) -> Result<(), Error> {
+    fn shape(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Shape called with {}", name);
         let mut state = self.state.borrow_mut();
         state.api_state.verify_world()?;
@@ -955,11 +955,11 @@ impl Api for RealApi {
         };
         for s in shapes {
             let area = if state.graphics_state.area_light != "" {
-                let mut ps = state.graphics_state.area_light_params.clone();
+                let ps = state.graphics_state.area_light_params.clone();
                 let (area_light, light) = make_area_light(
                     &state.graphics_state.area_light,
                     &state.cur_transform,
-                    &mut ps,
+                    &ps,
                     Arc::clone(&s),
                 )?;
                 area_lights.push(light);
@@ -1095,7 +1095,7 @@ impl Api for RealApi {
             let accel = make_accelerator(
                 &state.render_options.accelerator_name,
                 &inst,
-                &mut state.render_options.accelerator_params,
+                &state.render_options.accelerator_params,
             );
             inst.clear();
             inst.push(accel);
@@ -1115,7 +1115,7 @@ fn make_shapes(
     object2world: &Transform,
     world2object: &Transform,
     reverse_orientation: bool,
-    ps: &mut ParamSet,
+    ps: &ParamSet,
     graphics_state: &GraphicsState,
 ) -> Vec<Arc<Shape>> {
     let mut shapes: Vec<Arc<Shape>> = Vec::new();
@@ -1158,7 +1158,11 @@ fn make_shapes(
     shapes
 }
 
-fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material> {
+fn make_material(
+    name: &str,
+    mp: &TextureParams,
+    named_materials: &HashMap<String, Arc<Material>>,
+) -> Arc<Material> {
     n_materials_created::inc();
     if name == "matte" {
         MatteMaterial::create(mp)
@@ -1178,6 +1182,18 @@ fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material> {
         UberMaterial::create(mp)
     } else if name == "disney" {
         DisneyMaterial::create(mp)
+    } else if name == "mix" {
+        let name1 = mp.find_string("namedmaterial1", "");
+        let name2 = mp.find_string("namedmaterial2", "");
+        let mat1 = named_materials.get(&name1).cloned().unwrap_or_else(|| {
+            warn!("Named material \"{}\" undefined. Using \"matte\"", name1);
+            make_material("matte", mp, named_materials)
+        });
+        let mat2 = named_materials.get(&name2).cloned().unwrap_or_else(|| {
+            warn!("Named material \"{}\" undefined. Using \"matte\"", name2);
+            make_material("matte", mp, named_materials)
+        });
+        MixMaterial::create(mp, mat1, mat2)
     } else {
         warn!("Unknown material {}. Using matte.", name);
         MatteMaterial::create(mp)
@@ -1187,7 +1203,7 @@ fn make_material(name: &str, mp: &mut TextureParams) -> Arc<Material> {
 fn make_area_light(
     name: &str,
     light2world: &Transform,
-    params: &mut ParamSet,
+    params: &ParamSet,
     shape: Arc<Shape>,
 ) -> Result<(Arc<AreaLight>, Arc<Light>), Error> {
     if name == "area" || name == "diffuse" {
@@ -1203,7 +1219,7 @@ fn make_area_light(
 fn make_float_texture(
     name: &str,
     transform: &Transform,
-    tp: &mut TextureParams,
+    tp: &TextureParams,
 ) -> Result<Arc<Texture<f32>>, Error> {
     let tex: Arc<Texture<f32>> = if name == "constant" {
         Arc::new(ConstantTexture::create_float(transform, tp))
@@ -1225,7 +1241,7 @@ fn make_float_texture(
 fn make_spectrum_texture(
     name: &str,
     transform: &Transform,
-    tp: &mut TextureParams,
+    tp: &TextureParams,
 ) -> Result<Arc<Texture<Spectrum>>, Error> {
     let tex: Arc<Texture<Spectrum>> = if name == "constant" {
         Arc::new(ConstantTexture::create_spectrum(transform, tp))

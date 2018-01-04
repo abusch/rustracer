@@ -44,16 +44,14 @@ pub trait BxDF: Debug {
     }
 }
 
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct ScaledBxDF {
-    bxdf: Box<BxDF>,
+#[derive(Debug, Clone, Copy)]
+pub struct ScaledBxDF<'a> {
+    bxdf: &'a BxDF,
     scale: Spectrum,
 }
 
-impl ScaledBxDF {
-    #[allow(dead_code)]
-    fn new(bxdf: Box<BxDF>, scale: Spectrum) -> ScaledBxDF {
+impl<'a> ScaledBxDF<'a> {
+    pub fn new(bxdf: &'a BxDF, scale: Spectrum) -> ScaledBxDF<'a> {
         ScaledBxDF {
             bxdf: bxdf,
             scale: scale,
@@ -61,7 +59,7 @@ impl ScaledBxDF {
     }
 }
 
-impl BxDF for ScaledBxDF {
+impl<'a> BxDF for ScaledBxDF<'a> {
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
         self.bxdf.f(wo, wi) * self.scale
     }
@@ -69,14 +67,7 @@ impl BxDF for ScaledBxDF {
         let (spectrum, wi, pdf, bxdftype) = self.bxdf.sample_f(wo, sample);
         (spectrum * self.scale, wi, pdf, bxdftype)
     }
-    // fn rho(&self, wo: &Vector3f, n_samples: u32) -> (Point2f, Spectrum) {
-    //     let (sample, spectrum) = self.bxdf.rho(wo, n_samples);
-    //     (sample, spectrum * self.scale)
-    // }
-    // fn rho_hh(&self, n_samples: u32) -> (Point2f, Point2f, Spectrum) {
-    //     let (sample1, sample2, spectrum) = self.bxdf.rho_hh(n_samples);
-    //     (sample1, sample2, spectrum * self.scale)
-    // }
+
     fn get_type(&self) -> BxDFType {
         self.bxdf.get_type()
     }

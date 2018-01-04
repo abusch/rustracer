@@ -41,7 +41,7 @@ impl<T> CheckerboardTexture<T> {
 impl CheckerboardTexture<Spectrum> {
     pub fn create_spectrum(
         _tex2world: &Transform,
-        tp: &mut TextureParams,
+        tp: &TextureParams,
     ) -> CheckerboardTexture<Spectrum> {
         let dim = tp.find_int("dimension", 2);
         if dim != 2 && dim != 3 {

@@ -26,7 +26,7 @@ where
 }
 
 impl ScaleTexture<Spectrum> {
-    pub fn create(tp: &mut TextureParams) -> ScaleTexture<Spectrum> {
+    pub fn create(tp: &TextureParams) -> ScaleTexture<Spectrum> {
         let tex1 = tp.get_spectrum_texture("tex1", &Spectrum::white());
         let tex2 = tp.get_spectrum_texture("tex2", &Spectrum::white());
 
@@ -35,7 +35,7 @@ impl ScaleTexture<Spectrum> {
 }
 
 impl ScaleTexture<f32> {
-    pub fn create(tp: &mut TextureParams) -> ScaleTexture<f32> {
+    pub fn create(tp: &TextureParams) -> ScaleTexture<f32> {
         let tex1 = tp.get_float_texture("tex1", 1.0);
         let tex2 = tp.get_float_texture("tex2", 1.0);
 

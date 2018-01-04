@@ -17,7 +17,7 @@ pub fn create(
     o2w: &Transform,
     _w2o: &Transform,
     reverse_orientation: bool,
-    params: &mut ParamSet,
+    params: &ParamSet,
     float_textures: &HashMap<String, Arc<Texture<f32>>>,
 ) -> Vec<Arc<Shape>> {
     let filename = params.find_one_filename("filename", "".into());

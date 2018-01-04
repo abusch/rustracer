@@ -3,6 +3,7 @@
 use std::fmt::Debug;
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::cell::Cell;
 
 use {Normal3f, Point2f, Point3f, Vector3f};
 use api::{ParamListEntry, ParamType};
@@ -13,11 +14,11 @@ use texture::ConstantTexture;
 
 macro_rules! find_one(
     ($x:ident, $y:ident, $t:ty) => (
-        pub fn $x(&mut self, name: &str, d: $t) -> $t {
-            let mut res = self.$y.iter_mut().find(|ref mut e| e.name == name);
+        pub fn $x(&self, name: &str, d: $t) -> $t {
+            let res = self.$y.iter().find(|ref e| e.name == name);
 
-            if let Some(e) = res.as_mut() {
-                e.looked_up = true;
+            if let Some(e) = res.as_ref() {
+                e.looked_up.set(true);
             }
 
             res.map(|e| e.values[0].clone()).unwrap_or(d)
@@ -27,11 +28,11 @@ macro_rules! find_one(
 
 macro_rules! find(
     ($x:ident, $y:ident, $t:ty) => (
-        pub fn $x(&mut self, name: &str) -> Option<Vec<$t>> {
-            let mut res = self.$y.iter_mut().find(|ref mut e| e.name == name);
+        pub fn $x(&self, name: &str) -> Option<Vec<$t>> {
+            let res = self.$y.iter().find(|ref e| e.name == name);
 
-            if let Some(e) = res.as_mut() {
-                e.looked_up = true;
+            if let Some(e) = res.as_ref() {
+                e.looked_up.set(true);
             }
 
             res.map(|e| e.values.clone())
@@ -142,7 +143,7 @@ impl ParamSet {
         }
     }
 
-    pub fn find_one_filename(&mut self, name: &str, d: String) -> String {
+    pub fn find_one_filename(&self, name: &str, d: String) -> String {
         let filename = self.find_one_string(name, "".to_owned());
         if filename == "" {
             d
@@ -155,7 +156,7 @@ impl ParamSet {
         self.bools.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -163,7 +164,7 @@ impl ParamSet {
         self.ints.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -171,7 +172,7 @@ impl ParamSet {
         self.floats.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -179,7 +180,7 @@ impl ParamSet {
         self.strings.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -187,7 +188,7 @@ impl ParamSet {
         self.spectra.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -195,7 +196,7 @@ impl ParamSet {
         self.point2fs.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -203,7 +204,7 @@ impl ParamSet {
         self.point3fs.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -211,7 +212,7 @@ impl ParamSet {
         self.vector3fs.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -219,7 +220,7 @@ impl ParamSet {
         self.normal3fs.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -227,7 +228,7 @@ impl ParamSet {
         self.textures.push(ParamSetItem {
             name: name,
             values: values,
-            looked_up: false,
+            looked_up: Cell::new(false),
         });
     }
 
@@ -257,7 +258,7 @@ impl ParamSet {
 struct ParamSetItem<T: Debug> {
     name: String,
     values: Vec<T>,
-    looked_up: bool,
+    looked_up: Cell<bool>,
 }
 
 impl<T: Debug> Default for ParamSetItem<T> {
@@ -265,22 +266,22 @@ impl<T: Debug> Default for ParamSetItem<T> {
         ParamSetItem {
             name: String::new(),
             values: Vec::new(),
-            looked_up: false,
+            looked_up: Cell::new(false),
         }
     }
 }
 
 pub struct TextureParams<'a> {
-    geom_params: &'a mut ParamSet,
-    material_params: &'a mut ParamSet,
+    geom_params: &'a ParamSet,
+    material_params: &'a ParamSet,
     float_textures: &'a HashMap<String, Arc<Texture<f32>>>,
     spectrum_textures: &'a HashMap<String, Arc<Texture<Spectrum>>>,
 }
 
 impl<'a> TextureParams<'a> {
     pub fn new(
-        gp: &'a mut ParamSet,
-        mp: &'a mut ParamSet,
+        gp: &'a ParamSet,
+        mp: &'a ParamSet,
         ft: &'a HashMap<String, Arc<Texture<f32>>>,
         st: &'a HashMap<String, Arc<Texture<Spectrum>>>,
     ) -> TextureParams<'a> {
@@ -292,37 +293,37 @@ impl<'a> TextureParams<'a> {
         }
     }
 
-    pub fn find_int(&mut self, n: &str, d: i32) -> i32 {
+    pub fn find_int(&self, n: &str, d: i32) -> i32 {
         let d = self.material_params.find_one_int(n, d);
         self.geom_params.find_one_int(n, d)
     }
 
-    pub fn find_string(&mut self, n: &str, d: &str) -> String {
+    pub fn find_string(&self, n: &str, d: &str) -> String {
         let mat_string = self.material_params.find_one_string(n, d.to_owned());
         self.geom_params.find_one_string(n, mat_string)
     }
 
-    pub fn find_filename(&mut self, n: &str, d: &str) -> String {
+    pub fn find_filename(&self, n: &str, d: &str) -> String {
         let mat_string = self.material_params.find_one_filename(n, d.to_owned());
         self.geom_params.find_one_filename(n, mat_string)
     }
 
-    pub fn find_bool(&mut self, n: &str, d: bool) -> bool {
+    pub fn find_bool(&self, n: &str, d: bool) -> bool {
         let d = self.material_params.find_one_bool(n, d);
         self.geom_params.find_one_bool(n, d)
     }
 
-    pub fn find_float(&mut self, n: &str, d: f32) -> f32 {
+    pub fn find_float(&self, n: &str, d: f32) -> f32 {
         let d = self.material_params.find_one_float(n, d);
         self.geom_params.find_one_float(n, d)
     }
 
-    pub fn find_spectrum(&mut self, n: &str, d: Spectrum) -> Spectrum {
+    pub fn find_spectrum(&self, n: &str, d: Spectrum) -> Spectrum {
         let d = self.material_params.find_one_spectrum(n, d);
         self.geom_params.find_one_spectrum(n, d)
     }
 
-    pub fn get_spectrum_texture(&mut self, n: &str, default: &Spectrum) -> Arc<Texture<Spectrum>> {
+    pub fn get_spectrum_texture(&self, n: &str, default: &Spectrum) -> Arc<Texture<Spectrum>> {
         let mut name = self.geom_params.find_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_texture(n, "".to_owned());
@@ -343,7 +344,7 @@ impl<'a> TextureParams<'a> {
         Arc::new(ConstantTexture::new(val))
     }
 
-    pub fn get_float_texture(&mut self, n: &str, default: f32) -> Arc<Texture<f32>> {
+    pub fn get_float_texture(&self, n: &str, default: f32) -> Arc<Texture<f32>> {
         let mut name = self.geom_params.find_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_texture(n, "".to_owned());
@@ -361,7 +362,7 @@ impl<'a> TextureParams<'a> {
         Arc::new(ConstantTexture::new(val))
     }
 
-    pub fn get_float_texture_or_none(&mut self, n: &str) -> Option<Arc<Texture<f32>>> {
+    pub fn get_float_texture_or_none(&self, n: &str) -> Option<Arc<Texture<f32>>> {
         let mut name = self.geom_params.find_texture(n, "".to_owned());
         if &name == "" {
             name = self.material_params.find_texture(n, "".to_owned());

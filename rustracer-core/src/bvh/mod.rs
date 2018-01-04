@@ -57,7 +57,7 @@ impl BVH {
         BVH::new(1, &mut prims, SplitMethod::SAH)
     }
 
-    pub fn create(prims: &[Arc<Primitive>], ps: &mut ParamSet) -> BVH {
+    pub fn create(prims: &[Arc<Primitive>], ps: &ParamSet) -> BVH {
         let split_method_name = ps.find_one_string("splitmethod", "sah".into());
         let split_method = if split_method_name == "sah" {
             SplitMethod::SAH

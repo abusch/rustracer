@@ -41,7 +41,7 @@ impl DirectLightingIntegrator {
         }
     }
 
-    pub fn create(ps: &mut ParamSet) -> Box<SamplerIntegrator> {
+    pub fn create(ps: &ParamSet) -> Box<SamplerIntegrator> {
         let max_depth = ps.find_one_int("maxdepth", 5);
         let st = ps.find_one_string("strategy", "all".into());
         let strategy = if st == "one" {

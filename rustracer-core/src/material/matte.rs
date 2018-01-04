@@ -18,7 +18,7 @@ pub struct MatteMaterial {
 }
 
 impl MatteMaterial {
-    pub fn create(mp: &mut TextureParams) -> Arc<Material> {
+    pub fn create(mp: &TextureParams) -> Arc<Material> {
         info!("Creating Matte material");
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.5));
         let sigma = mp.get_float_texture("sigma", 0.0);

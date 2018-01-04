@@ -1,7 +1,6 @@
 extern crate clap;
 extern crate failure;
 extern crate flexi_logger;
-#[macro_use]
 extern crate log;
 extern crate rustracer_core as rt;
 

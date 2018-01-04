@@ -38,7 +38,7 @@ impl DiffuseAreaLight {
 
     pub fn create(
         _light2world: &Transform,
-        ps: &mut ParamSet,
+        ps: &ParamSet,
         shape: Arc<Shape>,
     ) -> Arc<DiffuseAreaLight> {
         let L = ps.find_one_spectrum("L", Spectrum::white());

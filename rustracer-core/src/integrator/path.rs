@@ -45,7 +45,7 @@ impl PathIntegrator {
         }
     }
 
-    pub fn create(params: &mut ParamSet, camera: &Camera) -> Box<SamplerIntegrator> {
+    pub fn create(params: &ParamSet, camera: &Camera) -> Box<SamplerIntegrator> {
         let max_depth = params.find_one_int("maxdepth", 5);
         let rr_threshold = params.find_one_float("rrthreshold", 1.0);
         let light_strategy = params.find_one_string("lightsamplestrategy", "spatial".into());
