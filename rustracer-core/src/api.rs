@@ -506,7 +506,7 @@ impl RealApi {
 impl Api for RealApi {
     fn init(&self) -> Result<(), Error> {
         debug!("API initialized!");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_uninitialized()?;
 
         state.api_state = ApiState::OptionsBlock;
@@ -515,7 +515,7 @@ impl Api for RealApi {
 
     fn identity(&self) -> Result<(), Error> {
         debug!("Identity called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         state.cur_transform = Transform::default();
         Ok(())
@@ -523,7 +523,7 @@ impl Api for RealApi {
 
     fn translate(&self, dx: f32, dy: f32, dz: f32) -> Result<(), Error> {
         debug!("Translate called with {} {} {}", dx, dy, dz);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let t = Transform::translate(&Vector3f::new(dx, dy, dz));
         state.cur_transform = &state.cur_transform * &t;
@@ -532,7 +532,7 @@ impl Api for RealApi {
 
     fn rotate(&self, angle: f32, dx: f32, dy: f32, dz: f32) -> Result<(), Error> {
         debug!("Rotate called with {} {} {} {}", angle, dx, dy, dz);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let t = Transform::rotate(angle, Vector3f::new(dx, dy, dz));
         state.cur_transform = &state.cur_transform * &t;
@@ -541,7 +541,7 @@ impl Api for RealApi {
 
     fn scale(&self, sx: f32, sy: f32, sz: f32) -> Result<(), Error> {
         debug!("Scale called with {} {} {}", sx, sy, sz);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let t = Transform::scale(sx, sy, sz);
         state.cur_transform = &state.cur_transform * &t;
@@ -567,7 +567,7 @@ impl Api for RealApi {
         tr14: f32,
         tr15: f32,
     ) -> Result<(), Error> {
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let mat = Matrix4x4::from_elements(
             tr00,
@@ -613,7 +613,7 @@ impl Api for RealApi {
         tr14: f32,
         tr15: f32,
     ) -> Result<(), Error> {
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let mat = Matrix4x4::from_elements(
             tr00,
@@ -653,7 +653,7 @@ impl Api for RealApi {
         uz: f32,
     ) -> Result<(), Error> {
         debug!("look_at called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let look_at = Transform::look_at(
             &Point3f::new(ex, ey, ez),
@@ -666,7 +666,7 @@ impl Api for RealApi {
 
     fn coordinate_system(&self, name: String) -> Result<(), Error> {
         debug!("coordinate_system called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         state
             .named_coordinate_systems
@@ -677,7 +677,7 @@ impl Api for RealApi {
 
     fn coord_sys_transform(&self, name: String) -> Result<(), Error> {
         debug!("coord_sys_transform called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
 
         if let Some(t) = state.named_coordinate_systems.get(&name).cloned() {
@@ -690,7 +690,7 @@ impl Api for RealApi {
     }
 
     fn pixel_filter(&self, name: String, params: &ParamSet) -> Result<(), Error> {
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("pixel_filter called");
         state.render_options.filter_name = name;
@@ -700,7 +700,7 @@ impl Api for RealApi {
 
     fn film(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Film called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_options()?;
         state.render_options.film_name = name;
         state.render_options.film_params = params.clone();
@@ -708,7 +708,7 @@ impl Api for RealApi {
     }
 
     fn sampler(&self, name: String, params: &ParamSet) -> Result<(), Error> {
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("sampler called");
         state.render_options.sampler_name = name;
@@ -717,7 +717,7 @@ impl Api for RealApi {
     }
 
     fn accelerator(&self, name: String, params: &ParamSet) -> Result<(), Error> {
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("accelerator called");
         state.render_options.accelerator_name = name;
@@ -727,7 +727,7 @@ impl Api for RealApi {
 
     fn integrator(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Integrator called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_options()?;
         state.render_options.integrator_name = name;
         state.render_options.integrator_params = params.clone();
@@ -735,7 +735,7 @@ impl Api for RealApi {
     }
 
     fn camera(&self, name: String, params: &ParamSet) -> Result<(), Error> {
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_options()?;
         debug!("Camera called with {}", name);
         state.render_options.camera_name = name;
@@ -748,7 +748,7 @@ impl Api for RealApi {
 
     fn world_begin(&self) -> Result<(), Error> {
         debug!("world_begin called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_options()?;
         state.api_state = ApiState::WorldBlock;
         let cur_transform = state.cur_transform.clone();
@@ -761,7 +761,7 @@ impl Api for RealApi {
 
     fn attribute_begin(&self) -> Result<(), Error> {
         debug!("attribute_begin called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         state.save_graphics_state();
         state.save_transform();
@@ -771,7 +771,7 @@ impl Api for RealApi {
 
     fn attribute_end(&self) -> Result<(), Error> {
         debug!("attribute_end called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         if state.pushed_graphics_states.is_empty() {
             error!("Unmatched AttributeEnd encountered. Ignoring it.");
@@ -785,7 +785,7 @@ impl Api for RealApi {
 
     fn transform_begin(&self) -> Result<(), Error> {
         debug!("transform_begin called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         state.save_transform();
 
@@ -794,7 +794,7 @@ impl Api for RealApi {
 
     fn transform_end(&self) -> Result<(), Error> {
         debug!("transform_end called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         if state.pushed_transforms.is_empty() {
             error!("Unmatched TransformEnd encountered. Ignoring it.");
@@ -813,7 +813,7 @@ impl Api for RealApi {
         params: &ParamSet,
     ) -> Result<(), Error> {
         debug!("texture() called with {} and {} and {}", name, typ, texname);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         let mut empty_params = ParamSet::default();
 
@@ -871,7 +871,7 @@ impl Api for RealApi {
 
     fn make_named_material(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("MakeNamedMaterial called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
 
         let mtl = {
             let mut empty_params = ParamSet::default();
@@ -901,7 +901,7 @@ impl Api for RealApi {
 
     fn material(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Material called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.graphics_state.material = name;
         state.graphics_state.material_param = params.clone();
         state.graphics_state.current_named_material = String::new();
@@ -910,7 +910,7 @@ impl Api for RealApi {
 
     fn named_material(&self, name: String) -> Result<(), Error> {
         debug!("NamedMaterial called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         state.graphics_state.current_named_material = name;
         Ok(())
@@ -918,7 +918,7 @@ impl Api for RealApi {
 
     fn lightsource(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Lightsource called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         let lt = self.make_light(&name, params, &state.cur_transform)?;
         state.render_options.lights.push(lt);
@@ -927,7 +927,7 @@ impl Api for RealApi {
 
     fn arealightsource(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Arealightsource called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.graphics_state.area_light = name;
         state.graphics_state.area_light_params = params.clone();
         Ok(())
@@ -935,7 +935,7 @@ impl Api for RealApi {
 
     fn shape(&self, name: String, params: &ParamSet) -> Result<(), Error> {
         debug!("Shape called with {}", name);
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
 
         let mut prims: Vec<Arc<Primitive>> = Vec::new();
@@ -990,7 +990,7 @@ impl Api for RealApi {
 
     fn reverse_orientation(&self) -> Result<(), Error> {
         debug!("ReverseOrientation called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
         state.graphics_state.reverse_orientation = !state.graphics_state.reverse_orientation;
 
@@ -999,7 +999,7 @@ impl Api for RealApi {
 
     fn world_end(&self) -> Result<(), Error> {
         debug!("world_end called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
 
         while !state.pushed_graphics_states.is_empty() {
@@ -1041,7 +1041,7 @@ impl Api for RealApi {
         self.attribute_begin()?;
         // Make sure we mutably borrow _state_ *after* we call attribute_begin(), as it
         // needs to borrow _state_ mutably as well...
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
 
         if state.render_options.current_instance.is_some() {
@@ -1056,7 +1056,7 @@ impl Api for RealApi {
     fn object_end(&self) -> Result<(), Error> {
         debug!("object_end called");
         {
-            let mut state = self.state.borrow_mut();
+            let state = &mut *self.state.borrow_mut();
             state.api_state.verify_world()?;
 
             if state.render_options.current_instance.is_none() {
@@ -1072,7 +1072,7 @@ impl Api for RealApi {
 
     fn object_instance(&self, name: String) -> Result<(), Error> {
         debug!("object_instance called");
-        let mut state = self.state.borrow_mut();
+        let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
 
         if state.render_options.current_instance.is_some() {
