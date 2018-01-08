@@ -307,7 +307,18 @@ impl Shape for Sphere {
         // Return uniform PDF if point is inside the sphere
         let p_origin = offset_ray_origin(&si.p, &si.p_error, &si.n, &(p_center - si.p));
         if distance_squared(&p_origin, &p_center) <= self.radius * self.radius {
-            return Shape::pdf_wi(self, si, wi);
+            // FIXME We can't access the default method implementation of the Shape trait from
+            // within the overriding method :( So we duplicate the implementation here for now,
+            // until I find a better way.
+            // return Shape::pdf_wi(self, si, wi);
+            let ray = si.spawn_ray(wi);
+
+            return if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
+                ::geometry::distance_squared(&si.p, &isect_light.hit.p)
+                    / (isect_light.hit.n.dot(&(-(*wi))).abs() * self.area())
+            } else {
+                0.0
+            };
         }
 
         // Compute general sphere PDF
