@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicPtr, AtomicU64, Ordering};
+use std::num::Wrapping;
 
 use num::Zero;
 
@@ -202,13 +203,13 @@ impl LightDistribution for SpatialLightDistribution {
         // a little work to make sure that its bits values are individually
         // fairly random. For details of and motivation for the following, see:
         // http://zimbry.blogspot.ch/2011/09/better-bit-mixing-improving-on.html
-        let mut hash = packed_pos;
+        let mut hash = Wrapping(packed_pos);
         hash ^= hash >> 31;
-        hash *= 0x7fb5d329728ea185;
+        hash *= Wrapping(0x7fb5d329728ea185);
         hash ^= hash >> 27;
-        hash *= 0x81dadef4bc2dd44d;
+        hash *= Wrapping(0x81dadef4bc2dd44d);
         hash ^= hash >> 33;
-        hash %= self.hash_table_size as u64;
+        hash %= Wrapping(self.hash_table_size as u64);
 
         // Now, see if the hash table already has an entry for the voxel. We'll
         // use quadratic probing when the hash table entry is already used for
@@ -217,7 +218,7 @@ impl LightDistribution for SpatialLightDistribution {
         let mut n_probes: u64 = 0;
         loop {
             n_probes += 1;
-            let entry = &self.hash_table[hash as usize];
+            let entry = &self.hash_table[hash.0 as usize];
             // Does the hash table entry at offset |hash| match the current point?
             let entry_packed_pos = entry.packed_pos.load(Ordering::Acquire);
             if entry_packed_pos == packed_pos {
@@ -251,9 +252,9 @@ impl LightDistribution for SpatialLightDistribution {
                 // The hash table entry we're checking has already been
                 // allocated for another voxel. Advance to the next entry with
                 // quadratic probing.
-                hash += step * step;
-                if hash >= self.hash_table_size as u64 {
-                    hash %= self.hash_table_size as u64;
+                hash += Wrapping(step * step);
+                if hash.0 >= self.hash_table_size as u64 {
+                    hash %= Wrapping(self.hash_table_size as u64);
                 }
                 step += 1;
             } else {
