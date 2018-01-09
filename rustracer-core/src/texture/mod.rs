@@ -65,6 +65,31 @@ impl TextureMapping2D for UVMapping2D {
     }
 }
 
+#[derive(Debug)]
+struct PlanarMapping2D {
+    vs: Vector3f,
+    vt: Vector3f,
+    ds: f32,
+    dt: f32,
+}
+
+impl PlanarMapping2D {
+    pub fn new(vs: Vector3f, vt: Vector3f, ds: f32, dt: f32) -> PlanarMapping2D {
+        PlanarMapping2D { vs, vt, ds, dt }
+    }
+}
+
+impl TextureMapping2D for PlanarMapping2D {
+    fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f) {
+        let vec = Vector3f::from(si.hit.p);
+        (
+            Point2f::new(self.ds + vec.dot(&self.vs), self.dt + vec.dot(&self.vt)),
+            Vector2f::new(si.dpdx.dot(&self.vs), si.dpdx.dot(&self.vt)),
+            Vector2f::new(si.dpdy.dot(&self.vs), si.dpdy.dot(&self.vt)),
+        )
+    }
+}
+
 pub trait TextureMapping3D: Debug + Send + Sync {
     fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f);
 }

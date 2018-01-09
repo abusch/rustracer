@@ -318,6 +318,11 @@ impl<'a> TextureParams<'a> {
         self.geom_params.find_one_float(n, d)
     }
 
+    pub fn find_vector3f(&self, n: &str, d: Vector3f) -> Vector3f {
+        let d = self.material_params.find_one_vector3f(n, d);
+        self.geom_params.find_one_vector3f(n, d)
+    }
+
     pub fn find_spectrum(&self, n: &str, d: Spectrum) -> Spectrum {
         let d = self.material_params.find_one_spectrum(n, d);
         self.geom_params.find_one_spectrum(n, d)

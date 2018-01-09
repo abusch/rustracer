@@ -2,11 +2,11 @@ use std::sync::Arc;
 use std::fmt::Debug;
 use std::ops::{Add, Mul};
 
-use Transform;
+use {Transform, Vector3f};
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use spectrum::Spectrum;
-use texture::{Texture, TextureMapping2D, UVMapping2D};
+use texture::{PlanarMapping2D, Texture, TextureMapping2D, UVMapping2D};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum AAMethod {
@@ -52,21 +52,25 @@ impl CheckerboardTexture<Spectrum> {
         if dim == 2 {
             // Initialize 2D texture mapping `map` from `tp`
             let typ = tp.find_string("mapping", "uv");
-            let map = if typ == "uv" {
+            let map: Box<TextureMapping2D> = if typ == "uv" {
                 let su = tp.find_float("uscale", 1.0);
                 let sv = tp.find_float("vscale", 1.0);
                 let du = tp.find_float("udelta", 0.0);
                 let dv = tp.find_float("vdelta", 0.0);
-                UVMapping2D::new(su, sv, du, dv)
+                Box::new(UVMapping2D::new(su, sv, du, dv))
             } else if typ == "spherical" {
                 unimplemented!()
             } else if typ == "cylindrical" {
                 unimplemented!()
             } else if typ == "planar" {
-                unimplemented!()
+                let vs = tp.find_vector3f("v1", Vector3f::new(1.0, 0.0, 0.0));
+                let vt = tp.find_vector3f("v2", Vector3f::new(0.0, 1.0, 0.0));
+                let ds = tp.find_float("udelta", 0.0);
+                let dt = tp.find_float("vdelta", 0.0);
+                Box::new(PlanarMapping2D::new(vs, vt, ds, dt))
             } else {
                 error!("2D texture mapping {} unknown", typ);
-                UVMapping2D::new(1.0, 1.0, 0.0, 0.0)
+                Box::new(UVMapping2D::new(1.0, 1.0, 0.0, 0.0))
             };
 
             // Compute `aaMethod` for `CheckerboardTexture`
@@ -80,7 +84,7 @@ impl CheckerboardTexture<Spectrum> {
                       aa);
                 AAMethod::ClosedForm
             };
-            CheckerboardTexture::new(tex1, tex2, Box::new(map), aa_method)
+            CheckerboardTexture::new(tex1, tex2, map, aa_method)
         } else {
             unimplemented!()
         }
