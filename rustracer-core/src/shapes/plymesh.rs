@@ -225,6 +225,9 @@ impl ply::PropertyAccess for Face {
     fn set_property(&mut self, key: String, prop: ply::Property) {
         match (key.as_ref(), prop) {
             ("vertex_indices", ply::Property::ListInt(v)) => self.vertex_indices = v,
+            ("vertex_indices", ply::Property::ListUInt(v)) => {
+                self.vertex_indices = v.iter().map(|u| *u as i32).collect()
+            }
             (_k, p) => debug!(
                 "Face: Invalid combination key/value for key {} / prop {:?}",
                 key, p
