@@ -55,6 +55,7 @@ pub mod efloat;
 mod fileutil;
 pub mod film;
 pub mod filter;
+mod floatfile;
 mod geometry;
 pub mod integrator;
 mod interaction;

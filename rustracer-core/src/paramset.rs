@@ -8,6 +8,7 @@ use std::cell::Cell;
 use {Normal3f, Point2f, Point3f, Vector3f};
 use api::{ParamListEntry, ParamType};
 use fileutil::resolve_filename;
+use floatfile::read_float_file;
 use spectrum::Spectrum;
 use texture::Texture;
 use texture::ConstantTexture;
@@ -135,6 +136,11 @@ impl ParamSet {
                 ParamType::Texture => {
                     self.add_texture(entry.param_name.clone(), entry.values.as_str_array())
                 }
+                ParamType::Spectrum => {
+                    let filenames = entry.values.as_str_array();
+                    self.add_sampled_spectrum_files(entry.param_name.clone(), filenames);
+                    // TODO handle case where floats are specified inline
+                }
                 _ => error!(
                     "Parameter type {:?} is not implemented yet!",
                     entry.param_type
@@ -228,6 +234,43 @@ impl ParamSet {
         self.textures.push(ParamSetItem {
             name: name,
             values: values,
+            looked_up: Cell::new(false),
+        });
+    }
+
+    fn add_sampled_spectrum_files(&mut self, name: String, values: Vec<String>) {
+        let mut s = Vec::with_capacity(values.len());
+        for filename in values {
+            let filename = resolve_filename(&filename);
+            match read_float_file(&filename) {
+                Err(_) => {
+                    warn!(
+                        "Unable to read SPD file \"{}\". Using black distribution.",
+                        filename
+                    );
+                    s.push(Spectrum::black());
+                }
+                Ok(floats) => {
+                    let mut wls = Vec::new();
+                    let mut v = Vec::new();
+                    floats.chunks(2).for_each(|chunk| {
+                        if chunk.len() == 2 {
+                            wls.push(chunk[0]);
+                            v.push(chunk[1]);
+                        } else {
+                            warn!(
+                                "Extra value found in spectrum file \"{}\". Ignoring it.",
+                                filename
+                            );
+                        }
+                    });
+                    s.push(Spectrum::from_sampled(&wls, &v, wls.len()));
+                }
+            }
+        }
+        self.spectra.push(ParamSetItem {
+            name,
+            values: s,
             looked_up: Cell::new(false),
         });
     }
