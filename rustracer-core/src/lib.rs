@@ -59,6 +59,7 @@ mod floatfile;
 mod geometry;
 pub mod integrator;
 mod interaction;
+mod interpolation;
 pub mod imageio;
 pub mod light;
 pub mod lightdistrib;
