@@ -1,10 +1,12 @@
 mod bxdf;
+mod fourier;
 mod fresnel;
 mod lambertian;
 mod oren_nayar;
 mod microfacet;
 
 pub use self::bxdf::*;
+pub use self::fourier::*;
 pub use self::fresnel::*;
 pub use self::lambertian::*;
 pub use self::oren_nayar::*;

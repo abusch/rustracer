@@ -8,11 +8,9 @@ pub fn sample_catmull_rom2_d(
     alpha: f32,
     u: f32,
 ) -> (f32, f32, f32) {
-    let size1 = nodes1.len();
     let size2 = nodes2.len();
     let mut u = u;
     // Determine offset and coefficients for the _alpha_ parameter
-    let mut offset = 0;
     let mut weights = [0.0; 4];
     let offset = if let Some(off) = catmull_rom_weights(nodes1, alpha, &mut weights) {
         off
@@ -107,7 +105,7 @@ pub fn sample_catmull_rom2_d(
     (x0 + width * t, fhat, fhat / maximum)
 }
 
-pub fn catmull_rom_weights(nodes: &[f32], x: f32, weights: &mut [f32; 4]) -> Option<u32> {
+pub fn catmull_rom_weights(nodes: &[f32], x: f32, weights: &mut [f32; 4]) -> Option<usize> {
     let size = nodes.len();
     // Return false if x is out of bounds
     if !(x >= nodes[0] && x <= nodes[size - 1]) {
@@ -153,7 +151,7 @@ pub fn catmull_rom_weights(nodes: &[f32], x: f32, weights: &mut [f32; 4]) -> Opt
         weights[3] = 0.0;
     }
 
-    Some(offset as u32)
+    Some(offset)
 }
 
 pub fn integrate_catmull_rom(n: usize, x: &[f32], values: &[f32], cdf: &mut [f32]) -> f32 {
@@ -256,4 +254,19 @@ pub fn invert_catmull_rom(n: usize, x: &[f32], values: &[f32], u: f32) -> f32 {
         t -= (Fhat - u) / fhat;
     }
     x0 + t * width
+}
+
+pub fn fourier(a: &[f32], m: u32, cos_phi: f32) -> f32 {
+    let mut value = 0.0;
+    // Initialize cosine iterates
+    let mut cos_k_minus_one_phi = cos_phi;
+    let mut cos_k_phi = 1.0;
+    for k in 0..m {
+        // Add the current summand and update the cosine iterates
+        value += a[k as usize] * cos_k_phi;
+        let cos_k_plus_one_phi = 2.0 * cos_phi * cos_k_phi - cos_k_minus_one_phi;
+        cos_k_minus_one_phi = cos_k_phi;
+        cos_k_phi = cos_k_plus_one_phi;
+    }
+    return value;
 }

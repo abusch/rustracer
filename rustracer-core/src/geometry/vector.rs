@@ -384,6 +384,22 @@ where
     }
 }
 
+impl<'a, T> Neg for &'a Vector3<T>
+where
+    T: Neg<Output = T>,
+    T: Copy,
+{
+    type Output = Vector3<T>;
+
+    fn neg(self) -> Vector3<T> {
+        Vector3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+
 impl<T> Neg for Vector3<T>
 where
     T: Neg<Output = T>,
