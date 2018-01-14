@@ -1,6 +1,8 @@
-use find_interval;
+use std::f32::consts::PI;
 
-pub fn sample_catmull_rom2_d(
+use {find_interval, INV_2_PI};
+
+pub fn sample_catmull_rom_2d(
     nodes1: &[f32],
     nodes2: &[f32],
     values: &[f32],
@@ -269,4 +271,79 @@ pub fn fourier(a: &[f32], m: u32, cos_phi: f32) -> f32 {
         cos_k_phi = cos_k_plus_one_phi;
     }
     return value;
+}
+
+pub fn sample_fourier(ak: &[f32], recip: &[f32], m: u32, u: f32) -> (f32, f32, f32) {
+    let mut u = u;
+
+    // Pick a side and declare bisection variables
+    let flip = u >= 0.5;
+    if flip {
+        u = 1.0 - 2.0 * (u - 0.5);
+    } else {
+        u *= 2.0;
+    }
+
+    let mut a = 0.0;
+    let mut b = PI;
+    let mut phi = 0.5 * PI;
+    let mut F;
+    let mut f;
+
+    loop {
+        // Evaluate $F(\phi)$ and its derivative $f(\phi)$
+
+        // Initialize sine and cosine iterates
+        let cos_phi = f32::cos(phi);
+        let sin_phi = f32::sqrt(f32::max(0.0, 1.0 - cos_phi * cos_phi));
+        let mut cos_phi_prev = cos_phi;
+        let mut cos_phi_cur = 1.0;
+        let mut sin_phi_prev = -sin_phi;
+        let mut sin_phi_cur = 0.0;
+
+        // Initialize _F_ and _f_ with the first series term
+        F = ak[0] * phi;
+        f = ak[0];
+        for k in 1..m {
+            // Compute next sine and cosine iterates
+            let sin_phi_next = 2.0 * cos_phi * sin_phi_cur - sin_phi_prev;
+            let cos_phi_next = 2.0 * cos_phi * cos_phi_cur - cos_phi_prev;
+            sin_phi_prev = sin_phi_cur;
+            sin_phi_cur = sin_phi_next;
+            cos_phi_prev = cos_phi_cur;
+            cos_phi_cur = cos_phi_next;
+
+            // Add the next series term to _F_ and _f_
+            F += ak[k as usize] * recip[k as usize] * sin_phi_next;
+            f += ak[k as usize] * cos_phi_next;
+        }
+        F -= u * ak[0] * PI;
+
+        // Update bisection bounds using updated $\phi$
+        if F > 0.0 {
+            b = phi;
+        } else {
+            a = phi;
+        }
+
+        // Stop the Fourier bisection iteration if converged
+        if f32::abs(F) < 1e-6 || b - a < 1e-6 {
+            break;
+        }
+
+        // Perform a Newton step given $f(\phi)$ and $F(\phi)$
+        phi -= F / f;
+
+        // Fall back to a bisection step when $\phi$ is out of bounds
+        if !(phi > a && phi < b) {
+            phi = 0.5 * (a + b);
+        }
+    }
+    // Potentially flip $\phi$ and return the result
+    if flip {
+        phi = 2.0 * PI - phi;
+    }
+    let pdf = INV_2_PI * f / ak[0];
+    let phiPtr = phi;
+    return (f, pdf, phiPtr);
 }
