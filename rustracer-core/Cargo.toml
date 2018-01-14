@@ -11,6 +11,7 @@ exr = ["openexr"]
 [dependencies]
 approx = "0.1"
 bitflags = "1"
+byteorder = "1.2"
 chrono = "0.4"
 combine = "2"
 crossbeam = "0.3"
