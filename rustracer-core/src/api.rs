@@ -14,8 +14,9 @@ use film::Film;
 use geometry::Matrix4x4;
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
-use material::{DisneyMaterial, GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial,
-               MixMaterial, Plastic, SubstrateMaterial, TranslucentMaterial, UberMaterial};
+use material::{DisneyMaterial, FourierMaterial, GlassMaterial, Material, MatteMaterial, Metal,
+               MirrorMaterial, MixMaterial, Plastic, SubstrateMaterial, TranslucentMaterial,
+               UberMaterial};
 use paramset::{ParamSet, TextureParams};
 use primitive::{GeometricPrimitive, Primitive, TransformedPrimitive};
 use renderer;
@@ -1194,6 +1195,8 @@ fn make_material(
             make_material("matte", mp, named_materials)
         });
         MixMaterial::create(mp, mat1, mat2)
+    } else if name == "fourier" {
+        FourierMaterial::create(mp)
     } else {
         warn!("Unknown material {}. Using matte.", name);
         MatteMaterial::create(mp)

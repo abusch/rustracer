@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
-use byteorder::{BigEndian, LittleEndian, NativeEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{NativeEndian, ReadBytesExt};
 use failure::Error;
 use num::zero;
 
@@ -14,20 +14,34 @@ use interpolation::{catmull_rom_weights, fourier, sample_fourier, sample_catmull
 use material::TransportMode;
 use spectrum::Spectrum;
 
-#[derive(Debug, Clone)]
+// This is ugly, but FourierBSDF has to be Copy, because it implements BxDF and needs to be
+// allocated from the arena, but I can't make it work with FourierBSDFTable... There must be a way
+// to do it with proper lifetime annotations but I couldn't figure it out, so I resorted to using
+// a raw pointer. It *should* be safe, since FourierBSDFTable lives for the duration of the
+// material (i.e the whole render), while FourierBSDF lives for a single ray trace. But TODO
+// revisit this at some point.
+
+#[derive(Debug, Copy, Clone)]
 pub struct FourierBSDF {
-    bsdf_table: Box<FourierBSDFTable>,
+    bsdf_table: *const FourierBSDFTable,
     mode: TransportMode,
 }
 
+unsafe impl Send for FourierBSDF {}
+unsafe impl Sync for FourierBSDF {}
+
 impl FourierBSDF {
-    pub fn new(bsdf_table: Box<FourierBSDFTable>, mode: TransportMode) -> FourierBSDF {
-        FourierBSDF { bsdf_table, mode }
+    pub fn new(bsdf_table: &FourierBSDFTable, mode: TransportMode) -> FourierBSDF {
+        FourierBSDF {
+            bsdf_table: bsdf_table as *const FourierBSDFTable,
+            mode,
+        }
     }
 }
 
 impl BxDF for FourierBSDF {
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
+        let bsdf_table = unsafe { &*self.bsdf_table };
         // Find the zenith angle cosines and azimuth difference angle
         let muI = cos_theta(&(-wi));
         let muO = cos_theta(wo);
@@ -38,8 +52,8 @@ impl BxDF for FourierBSDF {
         // Determine offsets and weights for $\mui$ and $\muo$
         let mut weightsI = [0.0; 4];
         let mut weightsO = [0.0; 4];
-        let maybe_offsetI = self.bsdf_table.get_weights_and_offset(muI, &mut weightsI);
-        let maybe_offsetO = self.bsdf_table.get_weights_and_offset(muO, &mut weightsO);
+        let maybe_offsetI = bsdf_table.get_weights_and_offset(muI, &mut weightsI);
+        let maybe_offsetO = bsdf_table.get_weights_and_offset(muO, &mut weightsO);
         if maybe_offsetI.is_none() || maybe_offsetO.is_none() {
             return Spectrum::black();
         }
@@ -48,7 +62,7 @@ impl BxDF for FourierBSDF {
 
         // Allocate storage to accumulate _ak_ coefficients
         // TODO use ALLOCA when available
-        let mut ak = vec![0.0; (self.bsdf_table.m_max * self.bsdf_table.n_channels) as usize];
+        let mut ak = vec![0.0; (bsdf_table.m_max * bsdf_table.n_channels) as usize];
 
         // Accumulate weighted sums of nearby $a_k$ coefficients
         let mut m_max = 0;
@@ -57,11 +71,11 @@ impl BxDF for FourierBSDF {
                 // Add contribution of _(a, b)_ to $a_k$ values
                 let weight = weightsI[a] * weightsO[b];
                 if weight != 0.0 {
-                    let (ap, m) = self.bsdf_table.get_ak(offsetI + a, offsetO + b);
+                    let (ap, m) = bsdf_table.get_ak(offsetI + a, offsetO + b);
                     m_max = u32::max(m_max, m);
-                    for c in 0..self.bsdf_table.n_channels {
+                    for c in 0..bsdf_table.n_channels {
                         for k in 0..m {
-                            ak[(c * self.bsdf_table.m_max + k) as usize] +=
+                            ak[(c * bsdf_table.m_max + k) as usize] +=
                                 weight * ap[(c * m + k) as usize];
                         }
                     }
@@ -80,31 +94,32 @@ impl BxDF for FourierBSDF {
         // Update _scale_ to account for adjoint light transport
         if self.mode == TransportMode::RADIANCE && muI * muO > 0.0 {
             let eta = if muI > 0.0 {
-                1.0 / self.bsdf_table.eta
+                1.0 / bsdf_table.eta
             } else {
-                self.bsdf_table.eta
+                bsdf_table.eta
             };
             scale *= eta * eta;
         }
-        if self.bsdf_table.n_channels == 1 {
+        if bsdf_table.n_channels == 1 {
             Spectrum::from(Y * scale)
         } else {
             // Compute and return RGB colors for tabulated BSDF
-            let R = fourier(&ak[1 * self.bsdf_table.m_max as usize..], m_max, cos_phi);
-            let B = fourier(&ak[2 * self.bsdf_table.m_max as usize..], m_max, cos_phi);
+            let R = fourier(&ak[1 * bsdf_table.m_max as usize..], m_max, cos_phi);
+            let B = fourier(&ak[2 * bsdf_table.m_max as usize..], m_max, cos_phi);
             let G = 1.39829 * Y - 0.100913 * B - 0.297375 * R;
             Spectrum::rgb(R * scale, G * scale, B * scale).clamp()
         }
     }
 
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+        let bsdf_table = unsafe { &*self.bsdf_table };
         // Sample zenith angle component for _FourierBSDF_
         let muO = cos_theta(wo);
         let (muI, _, pdfMu) = sample_catmull_rom_2d(
-            &self.bsdf_table.mu,
-            &self.bsdf_table.mu,
-            &self.bsdf_table.a0,
-            &self.bsdf_table.cdf,
+            &bsdf_table.mu,
+            &bsdf_table.mu,
+            &bsdf_table.a0,
+            &bsdf_table.cdf,
             muO,
             u[1],
         );
@@ -114,8 +129,8 @@ impl BxDF for FourierBSDF {
         // Determine offsets and weights for $\mui$ and $\muo$
         let mut weightsI = [0.0; 4];
         let mut weightsO = [0.0; 4];
-        let maybe_offsetI = self.bsdf_table.get_weights_and_offset(muI, &mut weightsI);
-        let maybe_offsetO = self.bsdf_table.get_weights_and_offset(muO, &mut weightsO);
+        let maybe_offsetI = bsdf_table.get_weights_and_offset(muI, &mut weightsI);
+        let maybe_offsetO = bsdf_table.get_weights_and_offset(muO, &mut weightsO);
         if maybe_offsetI.is_none() || maybe_offsetO.is_none() {
             return (Spectrum::black(), zero(), 0.0, self.get_type());
         }
@@ -124,7 +139,7 @@ impl BxDF for FourierBSDF {
 
         // Allocate storage to accumulate _ak_ coefficients
         // TODO use ALLOCA when available
-        let mut ak = vec![0.0; (self.bsdf_table.m_max * self.bsdf_table.n_channels) as usize];
+        let mut ak = vec![0.0; (bsdf_table.m_max * bsdf_table.n_channels) as usize];
 
         // Accumulate weighted sums of nearby $a_k$ coefficients
         let mut m_max = 0;
@@ -133,11 +148,11 @@ impl BxDF for FourierBSDF {
                 // Add contribution of _(a, b)_ to $a_k$ values
                 let weight = weightsI[a] * weightsO[b];
                 if weight != 0.0 {
-                    let (ap, m) = self.bsdf_table.get_ak(offsetI + a, offsetO + b);
+                    let (ap, m) = bsdf_table.get_ak(offsetI + a, offsetO + b);
                     m_max = u32::max(m_max, m);
-                    for c in 0..self.bsdf_table.n_channels {
+                    for c in 0..bsdf_table.n_channels {
                         for k in 0..m {
-                            ak[(c * self.bsdf_table.m_max + k) as usize] +=
+                            ak[(c * bsdf_table.m_max + k) as usize] +=
                                 weight * ap[(c * m + k) as usize];
                         }
                     }
@@ -146,7 +161,7 @@ impl BxDF for FourierBSDF {
         }
 
         // Importance sample the luminance Fourier expansion
-        let (Y, pdfPhi, phi) = sample_fourier(&ak, &self.bsdf_table.recip, m_max, u[0]);
+        let (Y, pdfPhi, phi) = sample_fourier(&ak, &bsdf_table.recip, m_max, u[0]);
         let pdf = f32::max(0.0, pdfPhi * pdfMu);
 
         // Compute the scattered direction for _FourierBSDF_
@@ -183,18 +198,18 @@ impl BxDF for FourierBSDF {
         };
         if self.mode == TransportMode::RADIANCE && muI * muO > 0.0 {
             let eta = if muI > 0.0 {
-                1.0 / self.bsdf_table.eta
+                1.0 / bsdf_table.eta
             } else {
-                self.bsdf_table.eta
+                bsdf_table.eta
             };
             scale *= eta * eta;
         }
 
-        if self.bsdf_table.n_channels == 1 {
+        if bsdf_table.n_channels == 1 {
             return (Spectrum::from(Y * scale), wi, pdf, self.get_type());
         }
-        let R = fourier(&ak[(1 * self.bsdf_table.m_max) as usize..], m_max, cosPhi);
-        let B = fourier(&ak[(2 * self.bsdf_table.m_max) as usize..], m_max, cosPhi);
+        let R = fourier(&ak[(1 * bsdf_table.m_max) as usize..], m_max, cosPhi);
+        let B = fourier(&ak[(2 * bsdf_table.m_max) as usize..], m_max, cosPhi);
         let G = 1.39829 * Y - 0.100913 * B - 0.297375 * R;
         return (
             Spectrum::rgb(R * scale, G * scale, B * scale).clamp(),
@@ -205,6 +220,7 @@ impl BxDF for FourierBSDF {
     }
 
     fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
+        let bsdf_table = unsafe { &*self.bsdf_table };
         // Find the zenith angle cosines and azimuth difference angle
         let muI = cos_theta(&(-wi));
         let muO = cos_theta(wo);
@@ -213,8 +229,8 @@ impl BxDF for FourierBSDF {
         // Compute luminance Fourier coefficients $a_k$ for $(\mui, \muo)$
         let mut weightsI = [0.0; 4];
         let mut weightsO = [0.0; 4];
-        let maybe_offsetI = self.bsdf_table.get_weights_and_offset(muI, &mut weightsI);
-        let maybe_offsetO = self.bsdf_table.get_weights_and_offset(muO, &mut weightsO);
+        let maybe_offsetI = bsdf_table.get_weights_and_offset(muI, &mut weightsI);
+        let maybe_offsetO = bsdf_table.get_weights_and_offset(muO, &mut weightsO);
         if maybe_offsetI.is_none() || maybe_offsetO.is_none() {
             return 0.0;
         }
@@ -223,7 +239,7 @@ impl BxDF for FourierBSDF {
 
         // Allocate storage to accumulate _ak_ coefficients
         // TODO use ALLOCA when available
-        let mut ak = vec![0.0; (self.bsdf_table.m_max * self.bsdf_table.n_channels) as usize];
+        let mut ak = vec![0.0; (bsdf_table.m_max * bsdf_table.n_channels) as usize];
 
         let mut mMax = 0;
         for o in 0..4 {
@@ -233,7 +249,7 @@ impl BxDF for FourierBSDF {
                     continue;
                 }
 
-                let (coeffs, order) = self.bsdf_table.get_ak(offsetI + i, offsetO + o);
+                let (coeffs, order) = bsdf_table.get_ak(offsetI + i, offsetO + o);
                 mMax = u32::max(mMax, order);
 
                 for k in 0..order {
@@ -249,9 +265,9 @@ impl BxDF for FourierBSDF {
                 continue;
             }
             rho += weightsO[o]
-                * self.bsdf_table.cdf[(offsetO + o) * self.bsdf_table.n_mu as usize
-                                          + self.bsdf_table.n_mu as usize
-                                          - 1] * (2.0 * PI);
+                * bsdf_table.cdf
+                    [(offsetO + o) * bsdf_table.n_mu as usize + bsdf_table.n_mu as usize - 1]
+                * (2.0 * PI);
         }
         let Y = fourier(&ak, mMax, cosPhi);
         if rho > 0.0 && Y > 0.0 {
@@ -282,57 +298,59 @@ pub struct FourierBSDFTable {
 }
 
 impl FourierBSDFTable {
-    ///  File format description:
-    ///
-    ///  This is the file format generated by the material designer of the paper
-    ///
-    ///  'A Comprehensive Framework for Rendering Layered Materials' by
-    ///  Wenzel Jakob, Eugene D'Eon, Otto Jakob and Steve Marschner
-    ///  Transactions on Graphics (Proceedings of SIGGRAPH 2014)
-    ///
-    ///  A standalone Python plugin for generating such data files is available
-    ///  on GitHub: https://github.com/wjakob/layerlab
-    ///
-    ///  This format specifies an isotropic BSDF expressed in a Spline x Fourier
-    ///  directional basis. It begins with a header of the following type:
-    ///
-    /// struct Header {
-    ///     uint8_t identifier[7];     // Set to 'SCATFUN'
-    ///     uint8_t version;           // Currently version is 1
-    ///     uint32_t flags;            // 0x01: file contains a BSDF, 0x02: uses
-    /// harmonic extrapolation
-    ///     int nMu;                   // Number of samples in the elevational
-    /// discretization
-    ///
-    ///     int nCoeffs;               // Total number of Fourier series coefficients
-    /// stored in the file
-    ///     int mMax;                  // Coeff. count for the longest series occurring
-    /// in the file
-    ///     int nChannels;             // Number of color channels (usually 1 or 3)
-    ///     int nBases;                // Number of BSDF basis functions (relevant for
-    /// texturing)
-    ///
-    ///     int nMetadataBytes;        // Size of descriptive metadata that follows the
-    /// BSDF data
-    ///     int nParameters;           // Number of textured material parameters
-    ///     int nParameterValues;      // Total number of BSDF samples for all textured
-    /// parameters
-    ///     float eta;                 // Relative IOR through the material
-    /// (eta(bottom) / eta(top))
-    ///
-    ///     float alpha[2];            // Beckmann-equiv. roughness on the top (0) and
-    /// bottom (1) side
-    ///     float unused[2];           // Unused fields to pad the header to 64 bytes
-    /// };
-    ///
-    ///  Due to space constraints, two features are not currently implemented in PBRT,
-    ///  namely texturing and harmonic extrapolation (though it would be
-    /// straightforward
-    ///  to port them from Mitsuba.)
+    //  File format description:
+    //
+    //  This is the file format generated by the material designer of the paper
+    //
+    //  'A Comprehensive Framework for Rendering Layered Materials' by
+    //  Wenzel Jakob, Eugene D'Eon, Otto Jakob and Steve Marschner
+    //  Transactions on Graphics (Proceedings of SIGGRAPH 2014)
+    //
+    //  A standalone Python plugin for generating such data files is available
+    //  on GitHub: https://github.com/wjakob/layerlab
+    //
+    //  This format specifies an isotropic BSDF expressed in a Spline x Fourier
+    //  directional basis. It begins with a header of the following type:
+    //
+    // struct Header {
+    //     uint8_t identifier[7];     // Set to 'SCATFUN'
+    //     uint8_t version;           // Currently version is 1
+    //     uint32_t flags;            // 0x01: file contains a BSDF, 0x02: uses
+    // harmonic extrapolation
+    //     int nMu;                   // Number of samples in the elevational
+    // discretization
+    //
+    //     int nCoeffs;               // Total number of Fourier series coefficients
+    // stored in the file
+    //     int mMax;                  // Coeff. count for the longest series occurring
+    // in the file
+    //     int nChannels;             // Number of color channels (usually 1 or 3)
+    //     int nBases;                // Number of BSDF basis functions (relevant for
+    // texturing)
+    //
+    //     int nMetadataBytes;        // Size of descriptive metadata that follows the
+    // BSDF data
+    //     int nParameters;           // Number of textured material parameters
+    //     int nParameterValues;      // Total number of BSDF samples for all textured
+    // parameters
+    //     float eta;                 // Relative IOR through the material
+    // (eta(bottom) / eta(top))
+    //
+    //     float alpha[2];            // Beckmann-equiv. roughness on the top (0) and
+    // bottom (1) side
+    //     float unused[2];           // Unused fields to pad the header to 64 bytes
+    // };
+    //
+    //  Due to space constraints, two features are not currently implemented in PBRT,
+    //  namely texturing and harmonic extrapolation (though it would be
+    // straightforward
+    //  to port them from Mitsuba.)
     pub fn read<P: AsRef<Path>>(filename: P) -> Result<FourierBSDFTable, Error> {
         let filename = filename.as_ref();
         let file = File::open(filename)?;
         let mut f = BufReader::new(file);
+
+        info!("Loading BSDF file \"{}\"", filename.display());
 
         const HEADER_EXP: [u8; 8] = [
             'S' as u8,
@@ -432,4 +450,12 @@ fn cos_d_phi(wa: &Vector3f, wb: &Vector3f) -> f32 {
         -1.0,
         1.0,
     )
+}
+
+#[test]
+fn test_fourier_bsdf_file() {
+    let filename = "/home/abusch/code/pbrt-v3-scenes/dragon/bsdfs/ceramic.bsdf";
+    let res = FourierBSDFTable::read(filename);
+    assert!(res.is_ok());
+    let table = res.unwrap();
 }

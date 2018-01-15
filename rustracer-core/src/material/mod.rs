@@ -8,6 +8,7 @@ use interaction::SurfaceInteraction;
 use texture::Texture;
 
 mod disney;
+mod fourier;
 mod matte;
 mod metal;
 mod mixmat;
@@ -19,6 +20,7 @@ mod translucent;
 mod uber;
 
 pub use self::disney::DisneyMaterial;
+pub use self::fourier::FourierMaterial;
 pub use self::matte::MatteMaterial;
 pub use self::metal::Metal;
 pub use self::mixmat::MixMaterial;
