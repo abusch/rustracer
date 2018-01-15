@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDF, BxDFHolder, FourierBSDF, FourierBSDFTable, BSDF};
+use bsdf::{BxDFHolder, FourierBSDF, FourierBSDFTable, BSDF};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
@@ -31,7 +31,7 @@ impl Material for FourierMaterial {
         &self,
         si: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
-        allow_multiple_lobes: bool,
+        _allow_multiple_lobes: bool,
         arena: &'b Allocator,
     ) {
         let mut bxdfs = BxDFHolder::new(arena);
