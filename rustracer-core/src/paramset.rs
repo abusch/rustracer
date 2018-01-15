@@ -7,9 +7,10 @@ use std::cell::Cell;
 
 use {Normal3f, Point2f, Point3f, Vector3f};
 use api::{ParamListEntry, ParamType};
+use cie::CIE_LAMBDA;
 use fileutil::resolve_filename;
 use floatfile::read_float_file;
-use spectrum::Spectrum;
+use spectrum::{blackbody_normalized, Spectrum};
 use texture::Texture;
 use texture::ConstantTexture;
 
@@ -141,7 +142,17 @@ impl ParamSet {
                     self.add_sampled_spectrum_files(entry.param_name.clone(), filenames);
                     // TODO handle case where floats are specified inline
                 }
-                _ => error!(
+                ParamType::Blackbody => {
+                    self.add_blackbody_spectrum(
+                        entry.param_name.clone(),
+                        entry.values.as_num_array(),
+                    );
+                }
+                ParamType::Vector2 => error!(
+                    "Parameter type {:?} is not implemented yet!",
+                    entry.param_type
+                ),
+                ParamType::Xyz => error!(
                     "Parameter type {:?} is not implemented yet!",
                     entry.param_type
                 ),
@@ -271,6 +282,25 @@ impl ParamSet {
         self.spectra.push(ParamSetItem {
             name,
             values: s,
+            looked_up: Cell::new(false),
+        });
+    }
+
+    fn add_blackbody_spectrum(&mut self, name: String, values: Vec<f32>) {
+        let spectra = values
+            .chunks(2)
+            .filter(|s| s.len() == 2)
+            .map(|v| {
+                let temp = v[0];
+                let scale = v[1];
+                let Le = blackbody_normalized(&CIE_LAMBDA, temp);
+                scale * Spectrum::from_sampled(&CIE_LAMBDA, &Le, CIE_LAMBDA.len())
+            })
+            .collect();
+
+        self.spectra.push(ParamSetItem {
+            name,
+            values: spectra,
             looked_up: Cell::new(false),
         });
     }

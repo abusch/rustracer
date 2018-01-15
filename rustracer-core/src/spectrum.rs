@@ -164,6 +164,34 @@ impl Spectrum {
     }
 }
 
+pub fn blackbody(lambda: &[f32], temp: f32) -> Vec<f32> {
+    assert!(temp > 0.0);
+
+    const c: f32 = 299792458.0;
+    const h: f32 = 6.62606957e-34;
+    const kb: f32 = 1.3806488e-23;
+    lambda
+        .iter()
+        .map(|lambda_i| {
+            // Compute emitted radiance for blackbody at wavelength _lambda[i]_
+            let l = lambda_i * 1e-9;
+            let lambda5 = (l * l) * (l * l) * l;
+            let Le_i = (2.0 * h * c * c) / (lambda5 * (f32::exp((h * c) / (l * kb * temp)) - 1.0));
+            assert!(!Le_i.is_infinite());
+            Le_i
+        })
+        .collect()
+}
+
+pub fn blackbody_normalized(lambda: &[f32], temp: f32) -> Vec<f32> {
+    let Le = blackbody(lambda, temp);
+    // normalize Le values based on maximum blackbody radiance
+    let lambda_max = 2.8977721e-3 / temp * 1e9;
+    let max_L = blackbody(&[lambda_max], temp);
+
+    Le.iter().map(|v| v / max_L[0]).collect()
+}
+
 fn interpolate_spectrum_samples(lambda: &[f32], vals: &[f32], n: usize, l: f32) -> f32 {
     for i in 0..n - 1 {
         assert!(lambda[i + 1] > lambda[i]);
