@@ -4,8 +4,9 @@ use std::sync::Arc;
 
 use failure::{err_msg, Error};
 use indicatif::HumanDuration;
+use num_cpus;
 
-use {Point3f, Transform, Vector3f};
+use {PbrtOptions, Point3f, Transform, Vector3f};
 use bvh::BVH;
 use camera::{Camera, PerspectiveCamera};
 use display::NoopDisplayUpdater;
@@ -478,10 +479,18 @@ pub trait Api {
 
 #[derive(Default)]
 pub struct RealApi {
+    options: PbrtOptions,
     state: RefCell<State>,
 }
 
 impl RealApi {
+    pub fn with_options(opts: PbrtOptions) -> RealApi {
+        RealApi {
+            options: opts,
+            ..RealApi::default()
+        }
+    }
+
     fn make_light(
         &self,
         name: &str,
@@ -1018,13 +1027,17 @@ impl Api for RealApi {
         let mut sampler = state.render_options.make_sampler()?;
         let scene = state.render_options.make_scene()?;
 
-        // TODO finish
+        let nthreads = if self.options.num_threads == 0 {
+            num_cpus::get()
+        } else {
+            self.options.num_threads as usize
+        };
         let start_time = ::std::time::Instant::now();
         renderer::render(
             scene,
             &mut *integrator,
             &*camera,
-            8,
+            nthreads,
             &mut sampler,
             16,
             Box::new(NoopDisplayUpdater {}),

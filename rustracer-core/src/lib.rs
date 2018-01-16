@@ -23,6 +23,7 @@ extern crate light_arena;
 #[macro_use]
 extern crate log;
 extern crate num;
+extern crate num_cpus;
 #[cfg(feature = "exr")]
 extern crate openexr;
 extern crate parking_lot;
@@ -116,6 +117,12 @@ pub fn gamma(n: u32) -> f32 {
 
 /// Smallest representable float strictly less than 1
 pub const ONE_MINUS_EPSILON: f32 = 0.99999994f32;
+
+#[derive(Debug, Copy, Clone, Default)]
+pub struct PbrtOptions {
+    pub num_threads: u8,
+    pub quick_render: bool,
+}
 
 /// Linear interpolation between 2 values.
 ///

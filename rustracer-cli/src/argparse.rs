@@ -13,8 +13,8 @@ pub fn parse_args<'a>() -> ArgMatches<'a> {
                 .default_value("image.png"),
         )
         .arg(
-            Arg::with_name("threads")
-                .long("threads")
+            Arg::with_name("nthreads")
+                .long("nthreads")
                 .short("t")
                 .help("Number of worker threads")
                 .takes_value(true),
@@ -32,7 +32,6 @@ pub fn parse_args<'a>() -> ArgMatches<'a> {
         .arg(
             Arg::with_name("INPUT")
                 .required(true)
-                .index(1)
                 .help("PBRT scene file to render"),
         )
         .get_matches()

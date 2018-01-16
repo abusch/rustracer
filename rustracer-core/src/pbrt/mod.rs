@@ -8,14 +8,15 @@ use std::io::prelude::*;
 use combine::State;
 use failure::*;
 
+use PbrtOptions;
 use api::{Api, RealApi};
 use fileutil;
 
-pub fn parse_scene<P: AsRef<Path>>(filename: P) -> Result<(), Error> {
+pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<(), Error> {
     let filename = filename.as_ref();
     let tokens = tokenize_file(filename)?;
     fileutil::set_search_directory(fileutil::directory_containing(filename));
-    let api = RealApi::default();
+    let api = RealApi::with_options(opts);
     api.init()?;
     parser::parse(&tokens[..], &api)
         .map_err(|e| format_err!("Failed to parse scene file: {:?}", e))?;
