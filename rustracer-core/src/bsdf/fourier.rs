@@ -452,6 +452,7 @@ fn cos_d_phi(wa: &Vector3f, wb: &Vector3f) -> f32 {
     )
 }
 
+#[ignore]
 #[test]
 fn test_fourier_bsdf_file() {
     let filename = "/home/abusch/code/pbrt-v3-scenes/dragon/bsdfs/ceramic.bsdf";

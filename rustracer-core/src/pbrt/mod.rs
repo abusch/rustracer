@@ -83,5 +83,5 @@ WorldBegin
 WorldEnd
         "##;
 
-    parse_scene(scene).unwrap();
+    parse_scene(PbrtOptions::default(), scene).unwrap();
 }
