@@ -3,6 +3,8 @@ use std::cmp;
 use std::f32;
 use std::fmt::Debug;
 
+use ndarray::prelude::*;
+use ndarray_parallel::prelude::*;
 use num::{zero, Zero};
 
 use {Clampable, Point2f, Point2i, Vector2f};
@@ -58,6 +60,7 @@ where
     T: AddAssign<T>,
     T: Mul<f32, Output = T>,
     T: Div<f32, Output = T>,
+    T: Send + Sync,
 {
     pub fn new(
         res: &Point2i,
@@ -67,66 +70,79 @@ where
         wrap_mode: WrapMode,
     ) -> MIPMap<T> {
         debug!("Creating MIPMap for texture");
-        let mut resolution = *res;
-        let mut resampled_image = Vec::new();
-        if !is_power_of_2(res.x) || !is_power_of_2(res.y) {
+        let (resolution, img_data) = if !is_power_of_2(res.x) || !is_power_of_2(res.y) {
             // resample image to power of two resolution
             let res_pow2 = Point2i::new(round_up_pow_2(res.x), round_up_pow_2(res.y));
             info!(
                 "Texture dimensions are not powers of 2: re-sampling MIPMap from {} to {}.",
                 res, res_pow2
             );
+
+            let mut resampled_img: Array2<T> =
+                Array2::zeros((res_pow2.x as usize, res_pow2.y as usize));
+
             // resample image in s direction
-            resampled_image.resize((res_pow2.x * res_pow2.y) as usize, zero());
             let s_weights = MIPMap::<T>::resample_weights(res.x as usize, res_pow2.x as usize);
             // apply s_weights to zoom in s direction
-            for t in 0..res.y as usize {
-                for s in 0..res_pow2.x as usize {
-                    // Compute texel (s,t) in s-zoomed image
-                    for j in 0..4usize {
-                        let mut orig_s = s_weights[s].first_texel as isize + j as isize;
-                        orig_s = match wrap_mode {
-                            WrapMode::Repeat => orig_s % res.x as isize,
-                            WrapMode::Clamp => clamp(orig_s, 0, res.x as isize - 1),
-                            WrapMode::Black => orig_s,
-                        };
-                        if orig_s >= 0 && orig_s < res.x as isize {
-                            resampled_image[t * res_pow2.x as usize + s] += img
-                                [(t * res.x as usize + orig_s as usize) as usize]
-                                * s_weights[s].weights[j];
+            resampled_img
+                .axis_iter_mut(Axis(0))
+                .into_par_iter()
+                .take(res.y as usize)
+                .enumerate()
+                .for_each(|(t, mut row)| {
+                    for s in 0..res_pow2.x as usize {
+                        // Compute texel (s,t) in s-zoomed image
+                        for j in 0..4usize {
+                            let mut orig_s = s_weights[s].first_texel as isize + j as isize;
+                            orig_s = match wrap_mode {
+                                WrapMode::Repeat => orig_s % res.x as isize,
+                                WrapMode::Clamp => clamp(orig_s, 0, res.x as isize - 1),
+                                WrapMode::Black => orig_s,
+                            };
+                            if orig_s >= 0 && orig_s < res.x as isize {
+                                row[s] += img[(t * res.x as usize + orig_s as usize) as usize]
+                                    * s_weights[s].weights[j];
+                            }
                         }
                     }
-                }
-            }
-            // TODO use rayon to parallelize this loop?
+                });
+
             // resample image in t direction
             let t_weights = MIPMap::<T>::resample_weights(res.y as usize, res_pow2.y as usize);
             // apply t_weights to zoom in t direction
-            for s in 0..res_pow2.x as usize {
-                let mut work_data: Vec<T> = vec![zero(); res_pow2.y as usize];
-                for t in 0..res_pow2.y as usize {
-                    // work_data[t] = zero();
-                    // Compute texel (s,t) in t-zoomed image
-                    for j in 0..4 {
-                        let mut offset = t_weights[t].first_texel as isize + j as isize;
-                        offset = match wrap_mode {
-                            WrapMode::Repeat => offset % res.y as isize,
-                            WrapMode::Clamp => clamp(offset, 0, res.y as isize - 1),
-                            WrapMode::Black => offset,
-                        };
-                        if offset >= 0 && offset < res.y as isize {
-                            work_data[t] += resampled_image
-                                [(offset * res_pow2.x as isize + s as isize) as usize]
-                                * t_weights[t].weights[j];
+            resampled_img
+                .axis_iter_mut(Axis(1))
+                .into_par_iter()
+                .for_each(|mut column| {
+                    let mut work_data: Vec<T> = vec![zero(); res_pow2.y as usize];
+                    for t in 0..res_pow2.y as usize {
+                        // Compute texel (s,t) in t-zoomed image
+                        for j in 0..4 {
+                            let mut offset = t_weights[t].first_texel as isize + j as isize;
+                            offset = match wrap_mode {
+                                WrapMode::Repeat => offset % res.y as isize,
+                                WrapMode::Clamp => clamp(offset, 0, res.y as isize - 1),
+                                WrapMode::Black => offset,
+                            };
+                            if offset >= 0 && offset < res.y as isize {
+                                work_data[t] += column[offset as usize] * t_weights[t].weights[j];
+                            }
                         }
                     }
-                }
-                for t in 0..res_pow2.y as usize {
-                    resampled_image[t * res_pow2.x as usize + s] = work_data[t].clamp(0.0, 1.0);
-                }
-            }
-            resolution = res_pow2;
-        }
+                    for t in 0..res_pow2.y as usize {
+                        column[t] = work_data[t].clamp(0.0, 1.0);
+                    }
+                });
+
+            (res_pow2, resampled_img)
+        } else {
+            (
+                *res,
+                ArrayView2::from_shape((res.x as usize, res.y as usize), img)
+                    .unwrap()
+                    .to_owned(),
+            )
+        };
 
         let mut mipmap = MIPMap {
             do_trilinear: do_trilinear,
@@ -141,16 +157,11 @@ where
         let n_levels = 1 + (cmp::max(resolution.x, resolution.y) as f32).log2() as usize;
         debug!("mipmap will have {} levels", n_levels);
         // Initialize most detailed level of the pyramid
-        let img_data = if resampled_image.is_empty() {
-            img
-        } else {
-            &resampled_image[..]
-        };
         // level 0
         mipmap.pyramid.push(BlockedArray::new_from(
             resolution.x as usize,
             resolution.y as usize,
-            img_data,
+            img_data.view().into_slice().unwrap(),
         ));
         for i in 1..n_levels {
             // initialize ith level of the pyramid

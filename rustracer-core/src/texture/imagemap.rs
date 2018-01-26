@@ -31,6 +31,7 @@ where
     T: Mul<f32, Output = T>,
     T: Div<f32, Output = T>,
     T: Sized,
+    T: Send + Sync,
 {
     pub fn new<F: Fn(&Spectrum) -> T>(
         path: &Path,
