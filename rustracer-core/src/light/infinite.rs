@@ -3,6 +3,8 @@ use std::path::Path;
 use std::cmp::min;
 use std::sync::Arc;
 
+use ndarray::prelude::*;
+use ndarray_parallel::prelude::*;
 use num::Zero;
 use parking_lot::RwLock;
 
@@ -66,17 +68,26 @@ impl InfiniteAreaLight {
         // - compute scalar-valued image img from environment map
         let (width, height) = (2 * l_map.width(), 2 * l_map.height());
         let filter = 0.5 / min(width, height) as f32;
-        let mut img = Vec::with_capacity(width * height);
-        for v in 0..height {
-            let vp = (v as f32 + 0.5) / height as f32;
-            let sin_theta = (PI * (v as f32 + 0.5) / height as f32).sin();
-            for u in 0..width {
-                let up = (u as f32 + 0.5) / width as f32;
-                img.push(l_map.lookup(&Point2f::new(up, vp), filter).y() * sin_theta);
-            }
-        }
+        let mut img = Array2::zeros((width, height));
+
+        img.axis_iter_mut(Axis(1))
+            .into_par_iter()
+            .enumerate()
+            .for_each(|(v, mut row)| {
+                let vp = (v as f32 + 0.5) / height as f32;
+                let sin_theta = (PI * (v as f32 + 0.5) / height as f32).sin();
+                for u in 0..width {
+                    let up = (u as f32 + 0.5) / width as f32;
+                    row[u] = l_map.lookup(&Point2f::new(up, vp), filter).y() * sin_theta;
+                }
+            });
+
         // - compute sampling distributions for rows and columns of image
-        let distribution = Box::new(Distribution2D::new(&img[..], width, height));
+        let distribution = Box::new(Distribution2D::new(
+            img.view().into_slice().unwrap(),
+            width,
+            height,
+        ));
 
         InfiniteAreaLight {
             id: super::get_next_id(),
