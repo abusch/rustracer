@@ -4,6 +4,7 @@ use std::f32;
 use std::fmt::Debug;
 
 use ndarray::prelude::*;
+use ndarray::Zip;
 use ndarray_parallel::prelude::*;
 use num::{zero, Zero};
 
@@ -167,20 +168,20 @@ where
             // initialize ith level of the pyramid
             let s_res = cmp::max(1, mipmap.pyramid[i - 1].u_size() / 2);
             let t_res = cmp::max(1, mipmap.pyramid[i - 1].v_size() / 2);
-            let mut ba = BlockedArray::new(s_res, t_res);
+            let mut buf = Array2::zeros((s_res, t_res));
             // Filter 4 texels from finer level of pyramid
-            for t in 0..t_res {
-                for s in 0..s_res {
-                    let (si, ti) = (s as isize, t as isize);
-                    ba[(s, t)] = (*mipmap.texel(i - 1, 2 * si, 2 * ti)
-                        + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti)
-                        + *mipmap.texel(i - 1, 2 * si, 2 * ti + 1)
-                        + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti + 1))
-                        * 0.25;
-                    debug!("l={}, ba[({}, {})]={:?}", i, s, t, ba[(s, t)]);
-                }
-            }
-            mipmap.pyramid.push(ba);
+            Zip::indexed(&mut buf).par_apply(|(s, t), p| {
+                let (si, ti) = (s as isize, t as isize);
+                *p = (*mipmap.texel(i - 1, 2 * si, 2 * ti)
+                    + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti)
+                    + *mipmap.texel(i - 1, 2 * si, 2 * ti + 1)
+                    + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti + 1)) * 0.25;
+            });
+            mipmap.pyramid.push(BlockedArray::new_from(
+                s_res,
+                t_res,
+                buf.view().into_slice().unwrap(),
+            ));
         }
 
         mipmap_memory::add(
