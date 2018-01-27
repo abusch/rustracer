@@ -68,9 +68,9 @@ impl InfiniteAreaLight {
         // - compute scalar-valued image img from environment map
         let (width, height) = (2 * l_map.width(), 2 * l_map.height());
         let filter = 0.5 / min(width, height) as f32;
-        let mut img = Array2::zeros((width, height));
+        let mut img = Array2::zeros((height, width));
 
-        img.axis_iter_mut(Axis(1))
+        img.axis_iter_mut(Axis(0))
             .into_par_iter()
             .enumerate()
             .for_each(|(v, mut row)| {

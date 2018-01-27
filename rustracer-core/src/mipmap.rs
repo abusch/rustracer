@@ -80,7 +80,7 @@ where
             );
 
             let mut resampled_img: Array2<T> =
-                Array2::zeros((res_pow2.x as usize, res_pow2.y as usize));
+                Array2::zeros((res_pow2.y as usize, res_pow2.x as usize));
 
             // resample image in s direction
             let s_weights = MIPMap::<T>::resample_weights(res.x as usize, res_pow2.x as usize);
