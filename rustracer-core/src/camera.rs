@@ -86,7 +86,7 @@ impl PerspectiveCamera {
         let focaldistance = ps.find_one_float("focaldistance", 1e6);
         let frame = ps.find_one_float(
             "frameaspectratio",
-            (film.full_resolution.x as f32 / film.full_resolution.y as f32),
+            film.full_resolution.x as f32 / film.full_resolution.y as f32,
         );
         let mut screen = if frame > 1.0 {
             Bounds2f::from_points(&Point2f::new(-frame, -1.0), &Point2f::new(frame, 1.0))

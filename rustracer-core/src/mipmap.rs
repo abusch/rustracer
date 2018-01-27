@@ -168,7 +168,7 @@ where
             // initialize ith level of the pyramid
             let s_res = cmp::max(1, mipmap.pyramid[i - 1].u_size() / 2);
             let t_res = cmp::max(1, mipmap.pyramid[i - 1].v_size() / 2);
-            let mut buf = Array2::zeros((s_res, t_res));
+            let mut buf = Array2::zeros((t_res, s_res));
             // Filter 4 texels from finer level of pyramid
             Zip::indexed(&mut buf).par_apply(|(s, t), p| {
                 let (si, ti) = (s as isize, t as isize);
@@ -351,7 +351,7 @@ where
                 // Compute squared radius and filter texel if inside ellipse
                 let r2 = A * ss * ss + B * ss * tt + C * tt * tt;
                 if r2 < 1.0 {
-                    let index = usize::min((r2 as usize * WEIGHT_LUT_SIZE), WEIGHT_LUT_SIZE - 1);
+                    let index = usize::min(r2 as usize * WEIGHT_LUT_SIZE, WEIGHT_LUT_SIZE - 1);
                     let weight = WEIGHT_LUT[index];
                     sum += *self.texel(level, is, it) * weight;
                     sumWts += weight;
