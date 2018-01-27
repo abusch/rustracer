@@ -3,9 +3,10 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 
 use failure::{Error, ResultExt};
-use img;
+use img::{self, GenericImage};
 #[cfg(feature = "exr")]
 use openexr::{FrameBuffer, FrameBufferMut, Header, InputFile, PixelType, ScanlineOutputFile};
+use rayon::prelude::*;
 
 use {clamp, Point2i};
 use bounds::Bounds2i;
@@ -115,14 +116,15 @@ fn write_image_exr<P: AsRef<Path>>(
 fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading texture {}", path.as_ref().display());
     let buf = img::open(path)?;
+    let (width, height) = buf.dimensions();
 
-    let rgb = buf.to_rgb();
-    let res = Point2i::new(rgb.width() as i32, rgb.height() as i32);
-    let pixels: Vec<Spectrum> = rgb.pixels()
+    let rgb = buf.to_rgb().into_raw();
+    let res = Point2i::new(width as i32, height as i32);
+    let pixels: Vec<Spectrum> = rgb.par_chunks(3)
         .map(|p| {
-            let r = f32::from(p.data[0]) / 255.0;
-            let g = f32::from(p.data[1]) / 255.0;
-            let b = f32::from(p.data[2]) / 255.0;
+            let r = f32::from(p[0]) / 255.0;
+            let g = f32::from(p[1]) / 255.0;
+            let b = f32::from(p[2]) / 255.0;
             Spectrum::rgb(r, g, b)
         })
         .collect();
@@ -175,8 +177,8 @@ fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
         exr_file.read_pixels(&mut fb).unwrap();
     }
 
-    let pixels = pixel_data
-        .iter()
+    let pixels: Vec<Spectrum> = pixel_data
+        .par_iter()
         .map(|&(r, g, b)| Spectrum::rgb(r, g, b))
         .collect();
     Ok((pixels, Point2i::new(width, height)))

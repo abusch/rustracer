@@ -30,6 +30,7 @@ extern crate num_cpus;
 extern crate openexr;
 extern crate parking_lot;
 extern crate ply_rs;
+extern crate rayon;
 extern crate state;
 
 #[cfg(test)]
