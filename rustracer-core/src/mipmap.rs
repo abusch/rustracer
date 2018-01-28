@@ -185,7 +185,7 @@ where
         }
 
         mipmap_memory::add(
-            (4 * resolution.x * resolution.y * ::std::mem::size_of::<T>() as i32) as u64 / 3,
+            (4 * resolution.x as u64 * resolution.y as u64 * ::std::mem::size_of::<T>() as u64) / 3,
         );
 
         mipmap
