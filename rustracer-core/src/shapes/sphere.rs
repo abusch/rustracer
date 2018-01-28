@@ -105,7 +105,7 @@ impl Shape for Sphere {
             if p_hit.x == 0.0 && p_hit.y == 0.0 {
                 p_hit.x = 1e-5 * self.radius;
             }
-            let mut phi = f32::atan2(p_hit.x, p_hit.y);
+            let mut phi = f32::atan2(p_hit.y, p_hit.x);
             if phi < 0.0 {
                 phi += 2.0 * consts::PI;
             }
