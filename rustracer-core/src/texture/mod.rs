@@ -59,8 +59,10 @@ impl TextureMapping2D for UVMapping2D {
     fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f) {
         (
             Point2f::new(self.su * si.uv.x + self.du, self.sv * si.uv.y + self.dv),
-            Vector2f::zero(),
-            Vector2f::zero(),
+            // dstdx
+            Vector2f::new(self.su * si.dudx, self.dv * si.dvdx),
+            // dstdy
+            Vector2f::new(self.su * si.dudy, self.dv * si.dvdy),
         )
     }
 }
