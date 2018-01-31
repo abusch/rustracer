@@ -127,12 +127,11 @@ where
                 }
 
                 // Apply box filter to checkerboard region
-                fn bump_int(x: f32) -> i32 {
-                    (f32::floor(x / 2.0) + 2.0 * f32::max(x / 2.0 - f32::floor(x / 2.0) - 0.5, 0.0))
-                        as i32
+                fn bump_int(x: f32) -> f32 {
+                    f32::floor(x / 2.0) + 2.0 * f32::max(x / 2.0 - f32::floor(x / 2.0) - 0.5, 0.0)
                 }
-                let sint = (bump_int(s1) - bump_int(s0)) as f32 / (2.0 * ds);
-                let tint = (bump_int(t1) - bump_int(t0)) as f32 / (2.0 * dt);
+                let sint = (bump_int(s1) - bump_int(s0)) / (2.0 * ds);
+                let tint = (bump_int(t1) - bump_int(t0)) / (2.0 * dt);
                 let mut area2 = sint + tint - 2.0 * sint * tint;
                 if ds > 1.0 || dt > 1.0 {
                     area2 = 0.5
