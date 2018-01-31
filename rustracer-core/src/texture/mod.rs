@@ -1,7 +1,5 @@
 use std::fmt::Debug;
 
-use num::Zero;
-
 use {Point2f, Point3f, Transform, Vector2f, Vector3f};
 use interaction::SurfaceInteraction;
 use spectrum::Spectrum;
@@ -60,9 +58,9 @@ impl TextureMapping2D for UVMapping2D {
         (
             Point2f::new(self.su * si.uv.x + self.du, self.sv * si.uv.y + self.dv),
             // dstdx
-            Vector2f::new(self.su * si.dudx, self.dv * si.dvdx),
+            Vector2f::new(self.su * si.dudx, self.sv * si.dvdx),
             // dstdy
-            Vector2f::new(self.su * si.dudy, self.dv * si.dvdy),
+            Vector2f::new(self.su * si.dudy, self.sv * si.dvdy),
         )
     }
 }
