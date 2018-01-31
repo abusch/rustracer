@@ -48,10 +48,12 @@ impl Material for MatteMaterial {
 
         let r = self.kd.evaluate(si).clamp();
         let sigma = clamp(self.sigma.evaluate(si), 0.0, 1.0);
-        if sigma == 0.0 {
-            bxdfs.add(arena <- LambertianReflection::new(r));
-        } else {
-            bxdfs.add(arena <- OrenNayar::new(r, sigma));
+        if !r.is_black() {
+            if sigma == 0.0 {
+                bxdfs.add(arena <- LambertianReflection::new(r));
+            } else {
+                bxdfs.add(arena <- OrenNayar::new(r, sigma));
+            }
         }
 
         let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
