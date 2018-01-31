@@ -368,7 +368,7 @@ where
         let mut w = [0.0; 4];
         for i in 0..new_res {
             // compute image resampling weights for ith texel
-            let center = (i as f32 + 0.5) * (old_res as f32 / new_res as f32);
+            let center = (i as f32 + 0.5) * old_res as f32 / new_res as f32;
             let first_texel = ((center - filter_width) + 0.5).floor();
             for j in 0..4 {
                 let pos = first_texel + j as f32 + 0.5;
