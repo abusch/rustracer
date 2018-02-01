@@ -105,6 +105,20 @@ where
     }
 }
 
+impl<'a, T> Mul<T> for &'a Vector2<T>
+where
+    T: Mul<Output = T> + Copy,
+{
+    type Output = Vector2<T>;
+
+    fn mul(self, v: T) -> Vector2<T> {
+        Vector2 {
+            x: self.x * v,
+            y: self.y * v,
+        }
+    }
+}
+
 impl<T> Mul<T> for Vector2<T>
 where
     T: Mul<Output = T> + Copy,
@@ -116,6 +130,16 @@ where
             x: self.x * v,
             y: self.y * v,
         }
+    }
+}
+
+impl<'a, T> MulAssign<T> for &'a mut Vector2<T>
+where
+    T: MulAssign + Copy,
+{
+    fn mul_assign(&mut self, v: T) {
+        self.x *= v;
+        self.y *= v;
     }
 }
 
