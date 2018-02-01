@@ -38,8 +38,8 @@ where
     pub fn new_from(u_res: usize, v_res: usize, d: &[T]) -> BlockedArray<T> {
         let mut ba = Self::new(u_res, v_res);
 
-        for u in 0..u_res {
-            for v in 0..v_res {
+        for v in 0..v_res {
+            for u in 0..u_res {
                 ba[(u, v)] = d[v * u_res + u]
             }
         }
@@ -80,8 +80,7 @@ where
 {
     type Output = T;
 
-    fn index(&self, i: (usize, usize)) -> &T {
-        let (u, v) = i;
+    fn index(&self, (u, v): (usize, usize)) -> &T {
         let bu = self.block(u);
         let bv = self.block(v);
         let ou = self.offset(u);
@@ -98,8 +97,7 @@ where
     T: Zero,
     T: Debug,
 {
-    fn index_mut(&mut self, i: (usize, usize)) -> &mut T {
-        let (u, v) = i;
+    fn index_mut(&mut self, (u, v): (usize, usize)) -> &mut T {
         let bu = self.block(u);
         let bv = self.block(v);
         let ou = self.offset(u);
