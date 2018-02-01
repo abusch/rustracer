@@ -11,7 +11,6 @@ use num::{zero, Zero};
 use {Clampable, Point2f, Point2i, Vector2f};
 use {clamp, lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
-use spectrum::Spectrum;
 
 stat_counter!("Texture/EWA lookups", n_ewa_lookups);
 stat_counter!("Texture/Trilinear lookups", n_trilerp_lookups);
@@ -246,6 +245,7 @@ where
     pub fn lookup_diff(&self, st: &Point2f, dst0: &Vector2f, dst1: &Vector2f) -> T {
         let mut dst0 = *dst0;
         let mut dst1 = *dst1;
+
         if self.do_trilinear {
             let width = f32::max(
                 f32::max(f32::abs(dst0[0]), f32::abs(dst0[1])),
@@ -260,12 +260,13 @@ where
             ::std::mem::swap(&mut dst0, &mut dst1);
         }
         let major_length = dst0.length();
-        let minor_length = dst1.length();
+        let mut minor_length = dst1.length();
 
         // Clamp ellipse eccentricity if too large
         if (minor_length * self.max_anisotropy) < major_length && minor_length > 0.0 {
             let scale = major_length / (minor_length * self.max_anisotropy);
             dst1 *= scale;
+            minor_length *= scale;
         }
         if minor_length == 0.0 {
             return self.triangle(0, st);
@@ -352,7 +353,7 @@ where
                 // Compute squared radius and filter texel if inside ellipse
                 let r2 = A * ss * ss + B * ss * tt + C * tt * tt;
                 if r2 < 1.0 {
-                    let index = usize::min(r2 as usize * WEIGHT_LUT_SIZE, WEIGHT_LUT_SIZE - 1);
+                    let index = usize::min((r2 * WEIGHT_LUT_SIZE as f32) as usize, WEIGHT_LUT_SIZE - 1);
                     let weight = WEIGHT_LUT[index];
                     sum += *self.texel(level, is, it) * weight;
                     sumWts += weight;
