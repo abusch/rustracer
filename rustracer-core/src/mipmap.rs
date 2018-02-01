@@ -11,6 +11,7 @@ use num::{zero, Zero};
 use {Clampable, Point2f, Point2i, Vector2f};
 use {clamp, lerp, is_power_of_2, round_up_pow_2};
 use blockedarray::BlockedArray;
+use spectrum::Spectrum;
 
 stat_counter!("Texture/EWA lookups", n_ewa_lookups);
 stat_counter!("Texture/Trilinear lookups", n_trilerp_lookups);
@@ -47,7 +48,7 @@ pub struct MIPMap<T> {
     max_anisotropy: f32,
     wrap_mode: WrapMode,
     resolution: Point2i,
-    pyramid: Vec<BlockedArray<T>>,
+    pub(crate) pyramid: Vec<BlockedArray<T>>,
     black: T,
 }
 
@@ -170,7 +171,7 @@ where
             let t_res = cmp::max(1, mipmap.pyramid[i - 1].v_size() / 2);
             let mut buf = Array2::zeros((t_res, s_res));
             // Filter 4 texels from finer level of pyramid
-            Zip::indexed(&mut buf).par_apply(|(s, t), p| {
+            Zip::indexed(&mut buf).par_apply(|(t, s), p| {
                 let (si, ti) = (s as isize, t as isize);
                 *p = (*mipmap.texel(i - 1, 2 * si, 2 * ti)
                     + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti)
