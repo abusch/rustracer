@@ -80,13 +80,13 @@ where
             })
             .collect();
 
-            let mipmap = Arc::new(MIPMap::new(
-                &res,
-                &converted_texels[..],
-                trilerp,
-                max_aniso,
-                wrap_mode,
-            ));
+        let mipmap = Arc::new(MIPMap::new(
+            &res,
+            &converted_texels[..],
+            trilerp,
+            max_aniso,
+            wrap_mode,
+        ));
         ImageTexture {
             mapping: map,
             mipmap: mipmap,
@@ -138,19 +138,27 @@ impl ImageTexture<Spectrum> {
 
     pub fn dump_mipmap(&self) {
         info!("Dumping MIPMap levels for debugging...");
-        self.mipmap.pyramid.iter().enumerate().for_each(|(i, level)| {
-            let mut buf = Vec::new();
-            for y in 0..level.v_size() {
-                for x in 0..level.u_size() {
-                    let p = level[(x, y)];
-                    buf.push(p[0]);
-                    buf.push(p[1]);
-                    buf.push(p[2]);
+        self.mipmap
+            .pyramid
+            .iter()
+            .enumerate()
+            .for_each(|(i, level)| {
+                let mut buf = Vec::new();
+                for y in 0..level.v_size() {
+                    for x in 0..level.u_size() {
+                        let p = level[(x, y)];
+                        buf.push(p[0]);
+                        buf.push(p[1]);
+                        buf.push(p[2]);
+                    }
                 }
-            }
-            ::imageio::write_image(format!("mipmap_level_{}.png", i), &buf[..], &Bounds2i::from_elements(0, 0, level.u_size() as i32, level.v_size() as i32), &Point2i::new(level.u_size() as i32, level.v_size() as i32)).unwrap();
-        });
-
+                ::imageio::write_image(
+                    format!("mipmap_level_{}.png", i),
+                    &buf[..],
+                    &Bounds2i::from_elements(0, 0, level.u_size() as i32, level.v_size() as i32),
+                    &Point2i::new(level.u_size() as i32, level.v_size() as i32),
+                ).unwrap();
+            });
     }
 }
 

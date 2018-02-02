@@ -313,7 +313,7 @@ where
         let mut dst0 = *dst0;
         let mut dst1 = *dst1;
 
-        if level > self.levels() {
+        if level >= self.levels() {
             return *self.texel(self.levels() - 1, 0, 0);
         }
         // Convert EWA coordinates to appropriate scale for level
