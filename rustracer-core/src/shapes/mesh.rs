@@ -328,8 +328,8 @@ impl Shape for Triangle {
         let degenerate_uv = determinant.abs() < 1e-8;
         if !degenerate_uv {
             let inv_det = 1.0 / determinant;
-            dpdu = (duv12[1] * dp02 - duv02[1] * dp12) / inv_det;
-            dpdv = (-duv12[0] * dp02 + duv02[0] * dp12) / inv_det;
+            dpdu = (duv12[1] * dp02 - duv02[1] * dp12) * inv_det;
+            dpdv = (-duv12[0] * dp02 + duv02[0] * dp12) * inv_det;
         }
         if degenerate_uv || dpdu.cross(&dpdv).length_squared() == 0.0 {
             // handle zero determinant for triangle partial derivative matric
