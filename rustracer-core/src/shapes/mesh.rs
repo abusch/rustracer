@@ -54,7 +54,7 @@ impl TriangleMesh {
         shadow_alpha_mask: Option<Arc<TextureFloat>>,
     ) -> Self {
         n_tris_per_mesh::inc_total();
-        n_tris_per_mesh::add(vertex_indices.len() as u64);
+        n_tris_per_mesh::add(vertex_indices.len() as u64 / 3);
         let points: Vec<Point3f> = p.iter().map(|pt| object_to_world * pt).collect();
         TriangleMesh {
             object_to_world: object_to_world.clone(),
