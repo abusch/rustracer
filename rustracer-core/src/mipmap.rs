@@ -1,7 +1,7 @@
 use std::ops::{AddAssign, Div, Mul};
 use std::cmp;
 use std::f32;
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 
 use ndarray::prelude::*;
 use ndarray::Zip;
@@ -41,7 +41,6 @@ lazy_static! {
     };
 }
 
-#[derive(Debug)]
 pub struct MIPMap<T> {
     do_trilinear: bool,
     max_anisotropy: f32,
@@ -96,7 +95,7 @@ where
                         for j in 0..4usize {
                             let mut orig_s = s_weights[s].first_texel as isize + j as isize;
                             orig_s = match wrap_mode {
-                                WrapMode::Repeat => orig_s % res.x as isize,
+                                WrapMode::Repeat => modulo(orig_s, res.x as isize),
                                 WrapMode::Clamp => clamp(orig_s, 0, res.x as isize - 1),
                                 WrapMode::Black => orig_s,
                             };
@@ -121,7 +120,7 @@ where
                         for j in 0..4 {
                             let mut offset = t_weights[t].first_texel as isize + j as isize;
                             offset = match wrap_mode {
-                                WrapMode::Repeat => offset % res.y as isize,
+                                WrapMode::Repeat => modulo(offset, res.y as isize),
                                 WrapMode::Clamp => clamp(offset, 0, res.y as isize - 1),
                                 WrapMode::Black => offset,
                             };
@@ -131,7 +130,7 @@ where
                         }
                     }
                     for t in 0..res_pow2.y as usize {
-                        column[t] = work_data[t].clamp(0.0, 1.0);
+                        column[t] = work_data[t].clamp(0.0, f32::INFINITY);
                     }
                 });
 
@@ -206,8 +205,8 @@ where
     pub fn texel(&self, level: usize, s: isize, t: isize) -> &T {
         let l = &self.pyramid[level];
         let (u_size, v_size) = (l.u_size() as isize, l.v_size() as isize);
-        let (ss, tt): (usize, usize) = match self.wrap_mode {
-            WrapMode::Repeat => (modulo(s, u_size), modulo(t, v_size)),
+        let (ss, tt) = match self.wrap_mode {
+            WrapMode::Repeat => (modulo(s, u_size) as usize, modulo(t, v_size) as usize),
             WrapMode::Clamp => (
                 clamp(s, 0, u_size - 1) as usize,
                 clamp(t, 0, v_size - 1) as usize,
@@ -371,7 +370,7 @@ where
         for i in 0..new_res {
             // compute image resampling weights for ith texel
             let center = (i as f32 + 0.5) * old_res as f32 / new_res as f32;
-            let first_texel = ((center - filter_width) + 0.5).floor();
+            let first_texel = f32::floor((center - filter_width) + 0.5);
             for j in 0..4 {
                 let pos = first_texel + j as f32 + 0.5;
                 w[j] = Self::lanczos((pos - center) / filter_width);
@@ -412,17 +411,29 @@ where
     }
 }
 
+impl<T: Debug> Debug for MIPMap<T> {
+   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("MIPMap")
+            .field("do_trilinear", &self.do_trilinear)
+            .field("max_anisotropy", &self.max_anisotropy)
+            .field("wrap_mode", &self.wrap_mode)
+            .field("resolution", &self.resolution)
+            .field("pyramid", &format!("<{} levels>", &self.pyramid.len()))
+            .finish()
+    }
+}
+
 struct ResampleWeight {
     pub first_texel: i32,
     pub weights: [f32; 4],
 }
 
-fn modulo(a: isize, b: isize) -> usize {
+fn modulo(a: isize, b: isize) -> isize {
     let result = a % b;
     if result < 0 {
-        (result + b) as usize
+        result + b
     } else {
-        result as usize
+        result
     }
 }
 

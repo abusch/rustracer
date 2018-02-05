@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_1_PI, PI};
 use std::path::Path;
-use std::cmp::min;
 use std::sync::Arc;
+use std::fmt;
 
 use ndarray::prelude::*;
 use ndarray_parallel::prelude::*;
@@ -20,7 +20,17 @@ use sampling::Distribution2D;
 use scene::Scene;
 use spectrum::Spectrum;
 
-#[derive(Debug)]
+impl fmt::Debug for InfiniteAreaLight {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt.debug_struct("InifiniteAreaLight")
+            .field("id", &self.id)
+            .field("n_samples", &self.n_samples)
+            .field("world_center", &self.world_center)
+            .field("world_radius", &self.world_radius)
+            .finish()
+    }
+}
+
 pub struct InfiniteAreaLight {
     id: u32,
     light_to_world: Transform,
@@ -67,7 +77,7 @@ impl InfiniteAreaLight {
         // initialize sampling PDFs for infinite area light
         // - compute scalar-valued image img from environment map
         let (width, height) = (2 * l_map.width(), 2 * l_map.height());
-        let filter = 0.5 / min(width, height) as f32;
+        let filter = 0.5 / f32::min(width as f32, height as f32);
         let mut img = Array2::zeros((height, width));
 
         img.axis_iter_mut(Axis(0))

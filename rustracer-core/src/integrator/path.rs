@@ -116,7 +116,7 @@ impl SamplerIntegrator for PathIntegrator {
         loop {
             // Find next path vertex and accumulate contribution
             debug!(
-                "Path tracer bounce {}, current L={:?}, beta={:?}",
+                "Path tracer bounce {}, current L={}, beta={}",
                 bounces, l, beta
             );
             // Intersect _ray_ with scene and store intersection in _isect_
