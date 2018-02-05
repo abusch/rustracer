@@ -3,13 +3,10 @@ members = ["rustracer-core", "rustracer-cli"]
 
 [profile.dev]
 opt-level = 1
-codegen-units = 16
 
 [profile.release]
 opt-level = 3
 debug = false
-rpath = false
-lto = true
 
 [patch.crates-io]
 skeptic = { git = "https://github.com/budziq/rust-skeptic"}
