@@ -352,7 +352,8 @@ where
                 // Compute squared radius and filter texel if inside ellipse
                 let r2 = A * ss * ss + B * ss * tt + C * tt * tt;
                 if r2 < 1.0 {
-                    let index = usize::min((r2 * WEIGHT_LUT_SIZE as f32) as usize, WEIGHT_LUT_SIZE - 1);
+                    let index =
+                        usize::min((r2 * WEIGHT_LUT_SIZE as f32) as usize, WEIGHT_LUT_SIZE - 1);
                     let weight = WEIGHT_LUT[index];
                     sum += *self.texel(level, is, it) * weight;
                     sumWts += weight;
@@ -412,7 +413,7 @@ where
 }
 
 impl<T: Debug> Debug for MIPMap<T> {
-   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("MIPMap")
             .field("do_trilinear", &self.do_trilinear)
             .field("max_anisotropy", &self.max_anisotropy)
@@ -440,9 +441,7 @@ fn modulo(a: isize, b: isize) -> isize {
 #[test]
 fn test_array2() {
     // 5x3 image
-    let image = [00, 01, 02, 03, 04,
-                 10, 11, 12, 13, 14,
-                 20, 21, 22, 23, 24];
+    let image = [00, 01, 02, 03, 04, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24];
 
     let image_array = ArrayView2::from_shape((3, 5), &image).unwrap();
 
@@ -454,9 +453,7 @@ fn test_array2() {
 #[test]
 fn test_array2_mut() {
     // 5x3 image
-    let image = [00, 01, 02, 03, 04,
-                 10, 11, 12, 13, 14,
-                 20, 21, 22, 23, 24];
+    let image = [00, 01, 02, 03, 04, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24];
 
     let mut image_array = Array2::zeros((3, 5));
     let mut row_iter = image_array.axis_iter_mut(Axis(0));

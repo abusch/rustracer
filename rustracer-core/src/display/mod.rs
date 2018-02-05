@@ -9,7 +9,8 @@ pub trait DisplayUpdater {
 }
 
 pub struct MinifbDisplayUpdater {
-    #[cfg(feature = "display")] window: minifb::Window,
+    #[cfg(feature = "display")]
+    window: minifb::Window,
 }
 
 impl MinifbDisplayUpdater {
