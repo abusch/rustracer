@@ -4,6 +4,7 @@ Rustracer is a toy
 [raytracer](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) written in
 [Rust](http://rust-lang.org).
 
+[![dependency status](https://deps.rs/repo/github/abusch/rustracer/status.svg)](https://deps.rs/repo/github/abusch/rustracer)
 ## History
 
 It started as a little playground to play with raytracing concepts that I found
