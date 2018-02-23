@@ -1,5 +1,5 @@
 // Unstable features coming in next Epoch
-#![feature(match_default_bindings, nll, universal_impl_trait, conservative_impl_trait, dyn_trait)]
+#![feature(match_default_bindings, universal_impl_trait, conservative_impl_trait, dyn_trait)]
 // Unstable features needed for light_arena
 #![feature(placement_in_syntax, integer_atomics, vec_resize_default)]
 // Lints
