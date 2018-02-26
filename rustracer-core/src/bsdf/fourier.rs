@@ -458,5 +458,5 @@ fn test_fourier_bsdf_file() {
     let filename = "/home/abusch/code/pbrt-v3-scenes/dragon/bsdfs/ceramic.bsdf";
     let res = FourierBSDFTable::read(filename);
     assert!(res.is_ok());
-    let table = res.unwrap();
+    let _ = res.unwrap();
 }
