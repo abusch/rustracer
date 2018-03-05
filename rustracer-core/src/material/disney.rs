@@ -143,9 +143,7 @@ impl Material for DisneyMaterial {
 
             // Sheen (if enabled).
             if sheen_weight > 0.0 {
-                bxdfs.add(
-                    arena <- DisneySheen::new(diffuse_weight * sheen_weight * c_sheen, SheenMode::Reflect),
-                );
+                bxdfs.add(arena <- DisneySheen::new(diffuse_weight * sheen_weight * c_sheen));
             }
         }
 
@@ -168,7 +166,9 @@ impl Material for DisneyMaterial {
         // Clearcoat
         let cc = self.clearcoat.evaluate(si);
         if cc > 0.0 {
-            bxdfs.add(arena <- DisneyClearCoat::new(cc, self.clearcoat_gloss.evaluate(si)));
+            bxdfs.add(
+                arena <- DisneyClearCoat::new(cc, lerp(self.clearcoat_gloss.evaluate(si), 0.1, 0.001)),
+            );
         }
 
         // BTDF
@@ -297,22 +297,14 @@ impl BxDF for DisneyRetro {
 }
 
 // DisneySheen
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-enum SheenMode {
-    Reflect,
-    Transmit,
-}
-
 #[derive(Debug, Clone, Copy)]
 struct DisneySheen {
     r: Spectrum,
-    mode: SheenMode,
 }
 
 impl DisneySheen {
-    pub fn new(r: Spectrum, mode: SheenMode) -> DisneySheen {
-        DisneySheen { r, mode }
+    pub fn new(r: Spectrum) -> DisneySheen {
+        DisneySheen { r }
     }
 }
 
@@ -357,12 +349,13 @@ impl BxDF for DisneyClearCoat {
         // Clearcoat has ior = 1.5 hardcoded -> F0 = 0.04. It then uses the
         // GTR1 distribution, which has even fatter tails than Trowbridge-Reitz
         // (which is GTR2).
-        let Dr = GTR1(abs_cos_theta(&wh), lerp(self.gloss, 0.1, 0.001));
+        let Dr = GTR1(abs_cos_theta(&wh), self.gloss);
         let Fr = fr_schlick(0.04, wo.dot(&wh));
         // The geometric term always based on alpha = 0.25.
         let Gr = smithG_GGX(abs_cos_theta(wo), 0.25) * smithG_GGX(abs_cos_theta(wi), 0.25);
 
-        Spectrum::from(0.25 * self.weight * Gr * Fr * Dr)
+        // Ad-hoc 0.25 term to match Disney implementation (unpublished, via Brent Burley)
+        Spectrum::from(0.25 * self.weight * Gr * Fr * Dr / (abs_cos_theta(wo) * abs_cos_theta(wi)))
     }
 
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
@@ -370,8 +363,7 @@ impl BxDF for DisneyClearCoat {
             return (Spectrum::black(), zero(), 0.0, self.get_type());
         }
 
-        let alpha = 0.25;
-        let alpha2 = alpha * alpha;
+        let alpha2 = self.gloss * self.gloss;
         let cos_theta = f32::sqrt(f32::max(
             0.0,
             (1.0 - f32::powf(alpha2, 1.0 - u[0])) / (1.0 - alpha2),
@@ -408,8 +400,8 @@ impl BxDF for DisneyClearCoat {
         // Thus, the final value of the PDF is just the value of the
         // distribution for wh converted to a mesure with respect to the
         // surface normal.
-        let Dr = GTR1(abs_cos_theta(&wh), lerp(self.gloss, 0.1, 0.001));
-        Dr / (4.0 * wo.dot(&wh))
+        let Dr = GTR1(abs_cos_theta(&wh), self.gloss);
+        Dr * abs_cos_theta(&wh) / (4.0 * wo.dot(&wh))
     }
 
     fn get_type(&self) -> BxDFType {
