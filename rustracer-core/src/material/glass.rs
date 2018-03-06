@@ -68,28 +68,30 @@ impl Material for GlassMaterial {
         if !r.is_black() || !t.is_black() {
             let is_specular = u_rough == 0.0 && v_rough == 0.0;
             if is_specular && allow_multiple_lobes {
-                bxdfs.add(arena <- FresnelSpecular::new(r, t, 1.0, eta, mode));
+                bxdfs.add(arena.alloc(FresnelSpecular::new(r, t, 1.0, eta, mode)));
             } else {
                 if self.remap_roughness {
                     u_rough = TrowbridgeReitzDistribution::roughness_to_alpha(u_rough);
                     v_rough = TrowbridgeReitzDistribution::roughness_to_alpha(v_rough);
                 }
                 if !r.is_black() {
-                    let fresnel = arena <- Fresnel::dielectric(1.0, eta);
+                    let fresnel = arena.alloc(Fresnel::dielectric(1.0, eta));
                     let bxdf: &'b BxDF = if is_specular {
-                        arena <- SpecularReflection::new(r, fresnel)
+                        arena.alloc(SpecularReflection::new(r, fresnel))
                     } else {
-                        let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
-                        arena <- MicrofacetReflection::new(r, distrib, fresnel)
+                        let distrib =
+                            arena.alloc(TrowbridgeReitzDistribution::new(u_rough, v_rough));
+                        arena.alloc(MicrofacetReflection::new(r, distrib, fresnel))
                     };
                     bxdfs.add(bxdf);
                 }
                 if !t.is_black() {
                     let bxdf: &'b BxDF = if is_specular {
-                        arena <- SpecularTransmission::new(t, 1.0, eta, mode)
+                        arena.alloc(SpecularTransmission::new(t, 1.0, eta, mode))
                     } else {
-                        let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
-                        arena <- MicrofacetTransmission::new(r, distrib, 1.0, eta, mode)
+                        let distrib =
+                            arena.alloc(TrowbridgeReitzDistribution::new(u_rough, v_rough));
+                        arena.alloc(MicrofacetTransmission::new(r, distrib, 1.0, eta, mode))
                     };
                     bxdfs.add(bxdf);
                 }

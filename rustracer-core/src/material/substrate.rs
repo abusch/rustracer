@@ -62,8 +62,8 @@ impl Material for SubstrateMaterial {
                 roughu = TrowbridgeReitzDistribution::roughness_to_alpha(roughu);
                 roughv = TrowbridgeReitzDistribution::roughness_to_alpha(roughv);
             }
-            let distrib = arena <- TrowbridgeReitzDistribution::new(roughu, roughv);
-            bxdfs.add(arena <- FresnelBlend::new(s, d, distrib));
+            let distrib = arena.alloc(TrowbridgeReitzDistribution::new(roughu, roughv));
+            bxdfs.add(arena.alloc(FresnelBlend::new(s, d, distrib)));
         }
 
         let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());

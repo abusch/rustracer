@@ -46,10 +46,10 @@ impl Material for MixMaterial {
 
         let mut bxdfs = BxDFHolder::new(arena);
         for i in 0..n1 {
-            bxdfs.add(arena <- ScaledBxDF::new(si.bsdf.as_ref().unwrap().bxdfs[i], s1));
+            bxdfs.add(arena.alloc(ScaledBxDF::new(si.bsdf.as_ref().unwrap().bxdfs[i], s1)));
         }
         for i in 0..n2 {
-            bxdfs.add(arena <- ScaledBxDF::new(si2.bsdf.as_ref().unwrap().bxdfs[i], s2));
+            bxdfs.add(arena.alloc(ScaledBxDF::new(si2.bsdf.as_ref().unwrap().bxdfs[i], s2)));
         }
 
         si.bsdf.as_mut().map(|b| {

@@ -64,11 +64,17 @@ impl Material for Metal {
             urough = TrowbridgeReitzDistribution::roughness_to_alpha(urough);
             vrough = TrowbridgeReitzDistribution::roughness_to_alpha(vrough);
         }
-        let fresnel = arena <- Fresnel::conductor(Spectrum::white(),
-                                                  self.eta.evaluate(si),
-                                                  self.k.evaluate(si));
-        let distrib = arena <- TrowbridgeReitzDistribution::new(urough, vrough);
-        bxdfs.add(arena <- MicrofacetReflection::new(Spectrum::white(), distrib, fresnel));
+        let fresnel = arena.alloc(Fresnel::conductor(
+            Spectrum::white(),
+            self.eta.evaluate(si),
+            self.k.evaluate(si),
+        ));
+        let distrib = arena.alloc(TrowbridgeReitzDistribution::new(urough, vrough));
+        bxdfs.add(arena.alloc(MicrofacetReflection::new(
+            Spectrum::white(),
+            distrib,
+            fresnel,
+        )));
 
         let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));

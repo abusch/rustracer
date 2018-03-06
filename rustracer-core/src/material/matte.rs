@@ -50,9 +50,9 @@ impl Material for MatteMaterial {
         let sigma = clamp(self.sigma.evaluate(si), 0.0, 1.0);
         if !r.is_black() {
             if sigma == 0.0 {
-                bxdfs.add(arena <- LambertianReflection::new(r));
+                bxdfs.add(arena.alloc(LambertianReflection::new(r)));
             } else {
-                bxdfs.add(arena <- OrenNayar::new(r, sigma));
+                bxdfs.add(arena.alloc(OrenNayar::new(r, sigma)));
             }
         }
 

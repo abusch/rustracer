@@ -65,10 +65,10 @@ impl Material for TranslucentMaterial {
             let kd = self.kd.evaluate(si).clamp();
             if !kd.is_black() {
                 if !r.is_black() {
-                    bxdfs.add(arena <- LambertianReflection::new(r * kd));
+                    bxdfs.add(arena.alloc(LambertianReflection::new(r * kd)));
                 }
                 if !t.is_black() {
-                    bxdfs.add(arena <- LambertianTransmission::new(t * kd));
+                    bxdfs.add(arena.alloc(LambertianTransmission::new(t * kd)));
                 }
             }
             let ks = self.ks.evaluate(si).clamp();
@@ -77,14 +77,19 @@ impl Material for TranslucentMaterial {
                 if self.remap_roughness {
                     rough = TrowbridgeReitzDistribution::roughness_to_alpha(rough);
                 }
-                let distrib = arena <- TrowbridgeReitzDistribution::new(rough, rough);
+                let distrib = arena.alloc(TrowbridgeReitzDistribution::new(rough, rough));
                 if !r.is_black() {
-                    let fresnel = arena <- Fresnel::dielectric(1.0, eta);
-                    bxdfs.add(arena <- MicrofacetReflection::new(r * ks, distrib, fresnel));
+                    let fresnel = arena.alloc(Fresnel::dielectric(1.0, eta));
+                    bxdfs.add(arena.alloc(MicrofacetReflection::new(r * ks, distrib, fresnel)));
                 }
                 if !t.is_black() {
-                    bxdfs
-                        .add(arena <- MicrofacetTransmission::new(t * ks, distrib, 1.0, eta, mode));
+                    bxdfs.add(arena.alloc(MicrofacetTransmission::new(
+                        t * ks,
+                        distrib,
+                        1.0,
+                        eta,
+                        mode,
+                    )));
                 }
             }
         }
