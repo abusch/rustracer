@@ -11,13 +11,13 @@ use texture::TextureSpectrum;
 
 #[derive(Debug)]
 pub struct MixMaterial {
-    mat1: Arc<Material>,
-    mat2: Arc<Material>,
+    mat1: Arc<dyn Material>,
+    mat2: Arc<dyn Material>,
     scale: Arc<TextureSpectrum>,
 }
 
 impl MixMaterial {
-    pub fn create(mp: &TextureParams, m1: Arc<Material>, m2: Arc<Material>) -> Arc<Material> {
+    pub fn create(mp: &TextureParams, m1: Arc<dyn Material>, m2: Arc<dyn Material>) -> Arc<dyn Material> {
         Arc::new(MixMaterial {
             mat1: m1,
             mat2: m2,

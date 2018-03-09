@@ -121,11 +121,11 @@ pub fn tokenize<I: Stream<Item = char>>(input: I) -> Result<(Vec<Tokens>, I), Pa
 fn token_parser<'a, I: Stream<Item = char> + 'a>(
     s: &'static str,
     t: Tokens,
-) -> Box<Parser<Input = I, Output = Tokens> + 'a> {
+) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
     string(s).skip(spaces()).map(move |_| t.clone()).boxed()
 }
 
-fn float_parser<'a, I: Stream<Item = char> + 'a>() -> Box<Parser<Input = I, Output = Tokens> + 'a> {
+fn float_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
     (
         optional(char('-').or(char('+'))),
         optional(many::<Vec<_>, _>(digit())),
@@ -166,7 +166,7 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>() -> Box<Parser<Input = I, Outp
         .boxed()
 }
 
-fn string_parser<'a, I: Stream<Item = char> + 'a>() -> Box<Parser<Input = I, Output = Tokens> + 'a>
+fn string_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, Output = Tokens> + 'a>
 {
     between(
         token('"'),
@@ -183,7 +183,7 @@ fn string_parser<'a, I: Stream<Item = char> + 'a>() -> Box<Parser<Input = I, Out
         .boxed()
 }
 
-fn comment_parser<'a, I: Stream<Item = char> + 'a>() -> Box<Parser<Input = I, Output = Tokens> + 'a>
+fn comment_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, Output = Tokens> + 'a>
 {
     token('#')
         .and(skip_many(satisfy(|c| c != '\n')))

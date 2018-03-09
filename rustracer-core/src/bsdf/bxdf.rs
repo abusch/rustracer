@@ -46,12 +46,12 @@ pub trait BxDF: Debug {
 
 #[derive(Debug, Clone, Copy)]
 pub struct ScaledBxDF<'a> {
-    bxdf: &'a BxDF,
+    bxdf: &'a dyn BxDF,
     scale: Spectrum,
 }
 
 impl<'a> ScaledBxDF<'a> {
-    pub fn new(bxdf: &'a BxDF, scale: Spectrum) -> ScaledBxDF<'a> {
+    pub fn new(bxdf: &'a dyn BxDF, scale: Spectrum) -> ScaledBxDF<'a> {
         ScaledBxDF {
             bxdf: bxdf,
             scale: scale,

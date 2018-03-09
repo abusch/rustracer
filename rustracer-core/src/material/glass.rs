@@ -23,7 +23,7 @@ pub struct GlassMaterial {
 }
 
 impl GlassMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<Material> {
+    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
         info!("Creating Glass material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::white());
         let Kt = mp.get_spectrum_texture("Kt", &Spectrum::white());
@@ -76,7 +76,7 @@ impl Material for GlassMaterial {
                 }
                 if !r.is_black() {
                     let fresnel = arena <- Fresnel::dielectric(1.0, eta);
-                    let bxdf: &'b BxDF = if is_specular {
+                    let bxdf: &'b dyn BxDF = if is_specular {
                         arena <- SpecularReflection::new(r, fresnel)
                     } else {
                         let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);
@@ -85,7 +85,7 @@ impl Material for GlassMaterial {
                     bxdfs.add(bxdf);
                 }
                 if !t.is_black() {
-                    let bxdf: &'b BxDF = if is_specular {
+                    let bxdf: &'b dyn BxDF = if is_specular {
                         arena <- SpecularTransmission::new(t, 1.0, eta, mode)
                     } else {
                         let distrib = arena <- TrowbridgeReitzDistribution::new(u_rough, v_rough);

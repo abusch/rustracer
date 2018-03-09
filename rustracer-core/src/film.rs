@@ -54,7 +54,7 @@ impl Film {
     pub fn new(
         resolution: Point2i,
         cropwindow: Bounds2f,
-        filter: Box<Filter>,
+        filter: Box<dyn Filter>,
         diagonal: f32,
         filename: &str,
         scale: f32,
@@ -105,7 +105,7 @@ impl Film {
         }
     }
 
-    pub fn create(ps: &ParamSet, filter: Box<Filter>) -> Box<Film> {
+    pub fn create(ps: &ParamSet, filter: Box<dyn Filter>) -> Box<Film> {
         let mut filename = ps.find_one_string("filename", "".into());
         if filename == "" {
             filename = "image.png".into();

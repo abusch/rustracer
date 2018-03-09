@@ -26,7 +26,7 @@ pub struct PathIntegrator {
     max_ray_depth: u8,
     rr_threshold: f32,
     light_sampling_strategy: String,
-    light_distribution: Option<Box<LightDistribution>>,
+    light_distribution: Option<Box<dyn LightDistribution>>,
 }
 
 impl PathIntegrator {
@@ -45,7 +45,7 @@ impl PathIntegrator {
         }
     }
 
-    pub fn create(params: &ParamSet, camera: &Camera) -> Box<SamplerIntegrator> {
+    pub fn create(params: &ParamSet, camera: &dyn Camera) -> Box<dyn SamplerIntegrator> {
         let max_depth = params.find_one_int("maxdepth", 5);
         let rr_threshold = params.find_one_float("rrthreshold", 1.0);
         let light_strategy = params.find_one_string("lightsamplestrategy", "spatial".into());
@@ -82,7 +82,7 @@ impl SamplerIntegrator for PathIntegrator {
         &self.pixel_bounds
     }
 
-    fn preprocess(&mut self, scene: Arc<Scene>, _sampler: &mut Box<Sampler>) {
+    fn preprocess(&mut self, scene: Arc<Scene>, _sampler: &mut Box<dyn Sampler>) {
         // TODO create correct distribution based on strategy
         self.light_distribution =
             if self.light_sampling_strategy == "uniform" || scene.lights.len() == 1 {
@@ -96,7 +96,7 @@ impl SamplerIntegrator for PathIntegrator {
         &self,
         scene: &Scene,
         r: &mut Ray,
-        sampler: &mut Box<Sampler>,
+        sampler: &mut Box<dyn Sampler>,
         arena: &Allocator,
         _depth: u32,
     ) -> Spectrum {

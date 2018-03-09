@@ -17,12 +17,12 @@ pub trait Sampler: Send + Sync {
     fn start_next_sample(&mut self) -> bool;
     fn reseed(&mut self, seed: u64);
     fn spp(&self) -> usize;
-    fn box_clone(&self) -> Box<Sampler>;
+    fn box_clone(&self) -> Box<dyn Sampler>;
     fn current_sample_number(&self) -> usize;
 }
 
-impl Clone for Box<Sampler> {
-    fn clone(&self) -> Box<Sampler> {
+impl Clone for Box<dyn Sampler> {
+    fn clone(&self) -> Box<dyn Sampler> {
         self.box_clone()
     }
 }

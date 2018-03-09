@@ -9,8 +9,8 @@ use texture::Texture;
 
 #[derive(Debug)]
 pub struct ScaleTexture<T> {
-    tex1: Arc<Texture<T>>,
-    tex2: Arc<Texture<T>>,
+    tex1: Arc<dyn Texture<T>>,
+    tex2: Arc<dyn Texture<T>>,
 }
 
 impl<T> Texture<T> for ScaleTexture<T>

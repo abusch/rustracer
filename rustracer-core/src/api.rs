@@ -165,14 +165,14 @@ pub struct RenderOptions {
     camera_name: String,
     camera_params: ParamSet,
     camera_to_world: Transform,
-    lights: Vec<Arc<Light>>,
-    primitives: Vec<Arc<Primitive>>,
-    instances: HashMap<String, Vec<Arc<Primitive>>>,
+    lights: Vec<Arc<dyn Light>>,
+    primitives: Vec<Arc<dyn Primitive>>,
+    instances: HashMap<String, Vec<Arc<dyn Primitive>>>,
     current_instance: Option<String>,
 }
 
 impl RenderOptions {
-    pub fn make_filter(&self) -> Result<Box<Filter>, Error> {
+    pub fn make_filter(&self) -> Result<Box<dyn Filter>, Error> {
         debug!("Making filter");
         let filter = match self.filter_name.as_ref() {
             "box" => BoxFilter::create(&self.filter_params),
@@ -185,7 +185,7 @@ impl RenderOptions {
         Ok(filter)
     }
 
-    pub fn make_film(&self, filter: Box<Filter>) -> Result<Box<Film>, Error> {
+    pub fn make_film(&self, filter: Box<dyn Filter>) -> Result<Box<Film>, Error> {
         debug!("Making film");
         let film = if self.film_name == "image" {
             Film::create(&self.film_params, filter)
@@ -196,7 +196,7 @@ impl RenderOptions {
         Ok(film)
     }
 
-    pub fn make_sampler(&self) -> Result<Box<Sampler>, Error> {
+    pub fn make_sampler(&self) -> Result<Box<dyn Sampler>, Error> {
         let sampler = if self.sampler_name == "lowdiscrepancy" || self.sampler_name == "02sequence"
         {
             ZeroTwoSequence::create(&self.sampler_params)
@@ -207,7 +207,7 @@ impl RenderOptions {
         Ok(sampler)
     }
 
-    pub fn make_camera(&self) -> Result<Box<Camera>, Error> {
+    pub fn make_camera(&self) -> Result<Box<dyn Camera>, Error> {
         debug!("Making camera");
         let filter = self.make_filter()?;
         let film = self.make_film(filter)?;
@@ -221,9 +221,9 @@ impl RenderOptions {
         Ok(camera)
     }
 
-    pub fn make_integrator(&self, camera: &Camera) -> Result<Box<SamplerIntegrator>, Error> {
+    pub fn make_integrator(&self, camera: &dyn Camera) -> Result<Box<dyn SamplerIntegrator>, Error> {
         debug!("Making integrator");
-        let integrator: Box<SamplerIntegrator> = if self.integrator_name == "whitted" {
+        let integrator: Box<dyn SamplerIntegrator> = if self.integrator_name == "whitted" {
             Whitted::create(&self.integrator_params)
         // Box::new(Normal {})
         } else if self.integrator_name == "directlighting" {
@@ -256,9 +256,9 @@ impl RenderOptions {
 
 pub fn make_accelerator(
     accelerator_name: &str,
-    prims: &[Arc<Primitive>],
+    prims: &[Arc<dyn Primitive>],
     accelerator_params: &ParamSet,
-) -> Arc<Primitive> {
+) -> Arc<dyn Primitive> {
     if accelerator_name == "kdtree" {
         unimplemented!()
     } else if accelerator_name == "bvh" {
@@ -297,11 +297,11 @@ impl Default for RenderOptions {
 
 #[derive(Clone)]
 pub struct GraphicsState {
-    float_textures: HashMap<String, Arc<Texture<f32>>>,
-    spectrum_textures: HashMap<String, Arc<Texture<Spectrum>>>,
+    float_textures: HashMap<String, Arc<dyn Texture<f32>>>,
+    spectrum_textures: HashMap<String, Arc<dyn Texture<Spectrum>>>,
     material_param: ParamSet,
     material: String,
-    named_material: HashMap<String, Arc<Material>>,
+    named_material: HashMap<String, Arc<dyn Material>>,
     current_named_material: String,
     area_light_params: ParamSet,
     area_light: String,
@@ -309,7 +309,7 @@ pub struct GraphicsState {
 }
 
 impl GraphicsState {
-    pub fn create_material(&self, params: &ParamSet) -> Arc<Material> {
+    pub fn create_material(&self, params: &ParamSet) -> Arc<dyn Material> {
         let mut mp = TextureParams::new(
             params,
             &self.material_param,
@@ -496,7 +496,7 @@ impl RealApi {
         name: &str,
         param_set: &ParamSet,
         light_2_world: &Transform,
-    ) -> Result<Arc<Light>, Error> {
+    ) -> Result<Arc<dyn Light>, Error> {
         if name == "point" {
             let light = PointLight::create(light_2_world, param_set);
             Ok(light)
@@ -948,8 +948,8 @@ impl Api for RealApi {
         let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
 
-        let mut prims: Vec<Arc<Primitive>> = Vec::new();
-        let mut area_lights: Vec<Arc<Light>> = Vec::new();
+        let mut prims: Vec<Arc<dyn Primitive>> = Vec::new();
+        let mut area_lights: Vec<Arc<dyn Light>> = Vec::new();
         let shapes = make_shapes(
             &name,
             &state.cur_transform,
@@ -977,7 +977,7 @@ impl Api for RealApi {
             } else {
                 None
             };
-            let prim: Arc<Primitive> = Arc::new(GeometricPrimitive {
+            let prim: Arc<dyn Primitive> = Arc::new(GeometricPrimitive {
                 shape: s,
                 area_light: area,
                 material: mat.clone(),
@@ -1131,8 +1131,8 @@ fn make_shapes(
     reverse_orientation: bool,
     ps: &ParamSet,
     graphics_state: &GraphicsState,
-) -> Vec<Arc<Shape>> {
-    let mut shapes: Vec<Arc<Shape>> = Vec::new();
+) -> Vec<Arc<dyn Shape>> {
+    let mut shapes: Vec<Arc<dyn Shape>> = Vec::new();
     if name == "sphere" {
         shapes.push(Sphere::create(object2world, reverse_orientation, ps));
     } else if name == "cylinder" {
@@ -1175,8 +1175,8 @@ fn make_shapes(
 fn make_material(
     name: &str,
     mp: &TextureParams,
-    named_materials: &HashMap<String, Arc<Material>>,
-) -> Arc<Material> {
+    named_materials: &HashMap<String, Arc<dyn Material>>,
+) -> Arc<dyn Material> {
     n_materials_created::inc();
     if name == "matte" {
         MatteMaterial::create(mp)
@@ -1220,12 +1220,12 @@ fn make_area_light(
     name: &str,
     light2world: &Transform,
     params: &ParamSet,
-    shape: Arc<Shape>,
-) -> Result<(Arc<AreaLight>, Arc<Light>), Error> {
+    shape: Arc<dyn Shape>,
+) -> Result<(Arc<dyn AreaLight>, Arc<dyn Light>), Error> {
     if name == "area" || name == "diffuse" {
         let l = DiffuseAreaLight::create(light2world, params, shape);
-        let light: Arc<Light> = l.clone();
-        let area_light: Arc<AreaLight> = l.clone();
+        let light: Arc<dyn Light> = l.clone();
+        let area_light: Arc<dyn AreaLight> = l.clone();
         Ok((area_light, light))
     } else {
         Err(format_err!("Area light {} unknown", name))
@@ -1236,8 +1236,8 @@ fn make_float_texture(
     name: &str,
     transform: &Transform,
     tp: &TextureParams,
-) -> Result<Arc<Texture<f32>>, Error> {
-    let tex: Arc<Texture<f32>> = if name == "constant" {
+) -> Result<Arc<dyn Texture<f32>>, Error> {
+    let tex: Arc<dyn Texture<f32>> = if name == "constant" {
         Arc::new(ConstantTexture::create_float(transform, tp))
     } else if name == "scale" {
         Arc::new(ScaleTexture::<f32>::create(tp))
@@ -1258,8 +1258,8 @@ fn make_spectrum_texture(
     name: &str,
     transform: &Transform,
     tp: &TextureParams,
-) -> Result<Arc<Texture<Spectrum>>, Error> {
-    let tex: Arc<Texture<Spectrum>> = if name == "constant" {
+) -> Result<Arc<dyn Texture<Spectrum>>, Error> {
+    let tex: Arc<dyn Texture<Spectrum>> = if name == "constant" {
         Arc::new(ConstantTexture::create_spectrum(transform, tp))
     } else if name == "scale" {
         Arc::new(ScaleTexture::<Spectrum>::create(tp))

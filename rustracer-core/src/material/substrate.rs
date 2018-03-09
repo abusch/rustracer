@@ -20,7 +20,7 @@ pub struct SubstrateMaterial {
 }
 
 impl SubstrateMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<Material> {
+    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.5));
         let ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.5));
         let urough = mp.get_float_texture("uroughness", 0.1);

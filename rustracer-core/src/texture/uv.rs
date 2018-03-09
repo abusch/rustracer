@@ -6,7 +6,7 @@ use texture::{Texture, TextureMapping2D, UVMapping2D};
 
 #[derive(Debug)]
 pub struct UVTexture {
-    mapping: Box<TextureMapping2D>,
+    mapping: Box<dyn TextureMapping2D>,
 }
 
 impl UVTexture {

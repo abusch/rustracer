@@ -23,12 +23,12 @@ pub fn init_stats() {
 
 pub fn render(
     scene: Arc<Scene>,
-    integrator: &mut SamplerIntegrator,
-    camera: &Camera,
+    integrator: &mut dyn SamplerIntegrator,
+    camera: &dyn Camera,
     num_threads: usize,
-    sampler: &mut Box<Sampler>,
+    sampler: &mut Box<dyn Sampler>,
     block_size: i32,
-    mut _display: Box<DisplayUpdater + Send>,
+    mut _display: Box<dyn DisplayUpdater + Send>,
 ) -> Result<(), Error> {
     integrator.preprocess(Arc::clone(&scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();

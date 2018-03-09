@@ -86,7 +86,7 @@ pub trait Fresnel: Debug {
     fn evaluate(&self, cos_theta_i: f32) -> Spectrum;
 }
 
-impl Fresnel {
+impl dyn Fresnel {
     pub fn conductor(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
         FresnelConductor {
             eta_i: eta_i,
@@ -147,11 +147,11 @@ impl Fresnel for FresnelNoOp {
 #[derive(Copy, Clone, Debug)]
 pub struct SpecularReflection<'a> {
     r: Spectrum,
-    fresnel: &'a Fresnel,
+    fresnel: &'a dyn Fresnel,
 }
 
 impl<'a> SpecularReflection<'a> {
-    pub fn new(r: Spectrum, fresnel: &'a Fresnel) -> SpecularReflection<'a> {
+    pub fn new(r: Spectrum, fresnel: &'a dyn Fresnel) -> SpecularReflection<'a> {
         SpecularReflection {
             r: r,
             fresnel: fresnel,
@@ -363,11 +363,11 @@ impl BxDF for FresnelSpecular {
 pub struct FresnelBlend<'a> {
     rd: Spectrum,
     rs: Spectrum,
-    distrib: &'a MicrofacetDistribution,
+    distrib: &'a dyn MicrofacetDistribution,
 }
 
 impl<'a> FresnelBlend<'a> {
-    pub fn new(rs: Spectrum, rd: Spectrum, distrib: &MicrofacetDistribution) -> FresnelBlend {
+    pub fn new(rs: Spectrum, rd: Spectrum, distrib: &dyn MicrofacetDistribution) -> FresnelBlend {
         FresnelBlend { rd, rs, distrib }
     }
 

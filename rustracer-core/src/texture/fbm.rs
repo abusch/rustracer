@@ -9,7 +9,7 @@ use texture::{IdentityMapping3D, Texture, TextureMapping3D};
 
 #[derive(Debug)]
 pub struct FbmTexture<T> {
-    mapping: Box<TextureMapping3D>,
+    mapping: Box<dyn TextureMapping3D>,
     roughness: f32,
     octaves: u32,
     _phantom: PhantomData<T>,

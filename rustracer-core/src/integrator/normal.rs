@@ -21,7 +21,7 @@ impl SamplerIntegrator for Normal {
         &self,
         scene: &Scene,
         ray: &mut Ray,
-        _sampler: &mut Box<Sampler>,
+        _sampler: &mut Box<dyn Sampler>,
         _arena: &Allocator,
         _depth: u32,
     ) -> Spectrum {

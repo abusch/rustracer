@@ -32,25 +32,25 @@ bitflags! {
 
 /// Little helper class to facilitate a stack of `BxDF`s.
 pub struct BxDFHolder<'a> {
-    b: &'a mut [&'a BxDF],
+    b: &'a mut [&'a dyn BxDF],
     n: usize,
 }
 
 impl<'a> BxDFHolder<'a> {
     pub fn new(arena: &'a Allocator) -> BxDFHolder<'a> {
         BxDFHolder {
-            b: arena.alloc_slice::<&BxDF>(8),
+            b: arena.alloc_slice::<&dyn BxDF>(8),
             n: 0,
         }
     }
 
-    pub fn add(&mut self, bxdf: &'a BxDF) {
+    pub fn add(&mut self, bxdf: &'a dyn BxDF) {
         let n = self.n;
         self.b[n] = bxdf;
         self.n += 1;
     }
 
-    pub fn into_slice(self) -> &'a [&'a BxDF] {
+    pub fn into_slice(self) -> &'a [&'a dyn BxDF] {
         unsafe {
             let ptr = self.b.as_mut_ptr();
             ::std::slice::from_raw_parts_mut(ptr, self.n)
@@ -69,11 +69,11 @@ pub struct BSDF<'a> {
     ng: Normal3f,
     ss: Vector3f,
     ts: Vector3f,
-    pub bxdfs: &'a [&'a BxDF],
+    pub bxdfs: &'a [&'a dyn BxDF],
 }
 
 impl<'a> BSDF<'a> {
-    pub fn new<'b>(isect: &'b SurfaceInteraction, eta: f32, bxdfs: &'a [&'a BxDF]) -> BSDF<'a> {
+    pub fn new<'b>(isect: &'b SurfaceInteraction, eta: f32, bxdfs: &'a [&'a dyn BxDF]) -> BSDF<'a> {
         let ss = isect.shading.dpdu.normalize();
         BSDF {
             eta: eta,
@@ -139,7 +139,7 @@ impl<'a> BSDF<'a> {
         let matching_comps = self.bxdfs
             .iter()
             .filter(|b| b.matches(flags))
-            .collect::<Vec<&&BxDF>>();
+            .collect::<Vec<&&dyn BxDF>>();
         if matching_comps.is_empty() {
             return (
                 Spectrum::black(),

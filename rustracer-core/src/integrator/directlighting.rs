@@ -41,7 +41,7 @@ impl DirectLightingIntegrator {
         }
     }
 
-    pub fn create(ps: &ParamSet) -> Box<SamplerIntegrator> {
+    pub fn create(ps: &ParamSet) -> Box<dyn SamplerIntegrator> {
         let max_depth = ps.find_one_int("maxdepth", 5);
         let st = ps.find_one_string("strategy", "all".into());
         let strategy = if st == "one" {
@@ -65,7 +65,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
         &self.pixel_bounds
     }
 
-    fn preprocess(&mut self, scene: Arc<Scene>, sampler: &mut Box<Sampler>) {
+    fn preprocess(&mut self, scene: Arc<Scene>, sampler: &mut Box<dyn Sampler>) {
         info!("Preprocessing DirectLighting integrator");
         if self.light_strategy == LightStrategy::UniformSampleAll {
             // Compute number of samples to use for each light
@@ -88,7 +88,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
         &self,
         scene: &Scene,
         ray: &mut Ray,
-        sampler: &mut Box<Sampler>,
+        sampler: &mut Box<dyn Sampler>,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum {

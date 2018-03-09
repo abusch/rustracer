@@ -16,17 +16,17 @@ pub enum AAMethod {
 
 #[derive(Debug)]
 pub struct CheckerboardTexture<T> {
-    tex1: Arc<Texture<T>>,
-    tex2: Arc<Texture<T>>,
-    mapping: Box<TextureMapping2D>,
+    tex1: Arc<dyn Texture<T>>,
+    tex2: Arc<dyn Texture<T>>,
+    mapping: Box<dyn TextureMapping2D>,
     aa_method: AAMethod,
 }
 
 impl<T> CheckerboardTexture<T> {
     pub fn new(
-        tex1: Arc<Texture<T>>,
-        tex2: Arc<Texture<T>>,
-        mapping: Box<TextureMapping2D>,
+        tex1: Arc<dyn Texture<T>>,
+        tex2: Arc<dyn Texture<T>>,
+        mapping: Box<dyn TextureMapping2D>,
         aa_method: AAMethod,
     ) -> CheckerboardTexture<T> {
         CheckerboardTexture {
@@ -52,7 +52,7 @@ impl CheckerboardTexture<Spectrum> {
         if dim == 2 {
             // Initialize 2D texture mapping `map` from `tp`
             let typ = tp.find_string("mapping", "uv");
-            let map: Box<TextureMapping2D> = if typ == "uv" {
+            let map: Box<dyn TextureMapping2D> = if typ == "uv" {
                 let su = tp.find_float("uscale", 1.0);
                 let sv = tp.find_float("vscale", 1.0);
                 let du = tp.find_float("udelta", 0.0);

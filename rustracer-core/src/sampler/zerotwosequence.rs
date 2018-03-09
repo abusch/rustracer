@@ -54,7 +54,7 @@ impl ZeroTwoSequence {
         }
     }
 
-    pub fn create(ps: &ParamSet) -> Box<Sampler> {
+    pub fn create(ps: &ParamSet) -> Box<dyn Sampler> {
         let nsamples = ps.find_one_int("pixelsamples", 16);
         let sd = ps.find_one_int("dimensions", 4);
         // TODO quickrender
@@ -202,7 +202,7 @@ impl Sampler for ZeroTwoSequence {
         self.spp
     }
 
-    fn box_clone(&self) -> Box<Sampler> {
+    fn box_clone(&self) -> Box<dyn Sampler> {
         Box::new(self.clone())
     }
 

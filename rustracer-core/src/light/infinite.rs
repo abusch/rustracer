@@ -111,7 +111,7 @@ impl InfiniteAreaLight {
         }
     }
 
-    pub fn create(l2w: &Transform, params: &ParamSet) -> Arc<Light> {
+    pub fn create(l2w: &Transform, params: &ParamSet) -> Arc<dyn Light> {
         let L = params.find_one_spectrum("L", Spectrum::white());
         let scale = params.find_one_spectrum("scale", Spectrum::white());
         let mapname = params.find_one_filename("mapname", "".to_owned());

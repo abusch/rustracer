@@ -15,7 +15,7 @@ pub struct FourierMaterial {
 }
 
 impl FourierMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<Material> {
+    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
         let bump_map = mp.get_float_texture_or_none("bumpmap");
         let filename = mp.find_filename("bsdffile", "");
         let bsdf_table = Box::new(FourierBSDFTable::read(filename).unwrap()); // TODO error
