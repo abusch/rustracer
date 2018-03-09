@@ -32,13 +32,13 @@ pub fn init_stats() {
 pub trait SamplerIntegrator: Send + Sync {
     fn pixel_bounds(&self) -> &Bounds2i;
 
-    fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut Box<Sampler>) {}
+    fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut Box<dyn Sampler>) {}
 
     fn li(
         &self,
         scene: &Scene,
         ray: &mut Ray,
-        sampler: &mut Box<Sampler>,
+        sampler: &mut Box<dyn Sampler>,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum;
@@ -50,7 +50,7 @@ pub trait SamplerIntegrator: Send + Sync {
         isect: &SurfaceInteraction,
         scene: &Scene,
         bsdf: &bsdf::BSDF,
-        sampler: &mut Box<Sampler>,
+        sampler: &mut Box<dyn Sampler>,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum {
@@ -91,7 +91,7 @@ pub trait SamplerIntegrator: Send + Sync {
         isect: &SurfaceInteraction,
         scene: &Scene,
         bsdf: &bsdf::BSDF,
-        sampler: &mut Box<Sampler>,
+        sampler: &mut Box<dyn Sampler>,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum {
@@ -139,7 +139,7 @@ pub trait SamplerIntegrator: Send + Sync {
 pub fn uniform_sample_all_light(
     it: &SurfaceInteraction,
     scene: &Scene,
-    sampler: &mut Box<Sampler>,
+    sampler: &mut Box<dyn Sampler>,
     n_light_samples: &[usize],
 ) -> Spectrum {
     let mut L = Spectrum::black();
@@ -179,7 +179,7 @@ pub fn uniform_sample_all_light(
 pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
     it: &SurfaceInteraction,
     scene: &Scene,
-    sampler: &mut Box<Sampler>,
+    sampler: &mut Box<dyn Sampler>,
     distrib: D,
 ) -> Spectrum {
     let distrib = distrib.into();
@@ -215,10 +215,10 @@ pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
 pub fn estimate_direct(
     it: &SurfaceInteraction,
     u_scattering: &Point2f,
-    light: &Arc<Light>,
+    light: &Arc<dyn Light>,
     u_light: &Point2f,
     scene: &Scene,
-    _sampler: &mut Box<Sampler>,
+    _sampler: &mut Box<dyn Sampler>,
 ) -> Spectrum {
     let specular = false;
 

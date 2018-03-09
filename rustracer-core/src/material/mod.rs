@@ -47,7 +47,7 @@ pub trait Material: Debug + Send + Sync {
     );
 }
 
-pub fn bump(d: &Arc<Texture<f32>>, si: &mut SurfaceInteraction) {
+pub fn bump(d: &Arc<dyn Texture<f32>>, si: &mut SurfaceInteraction) {
     // Compute offset positions and evaluate displacement texture
     let mut si_eval = si.clone();
 

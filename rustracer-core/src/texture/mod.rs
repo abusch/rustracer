@@ -25,8 +25,8 @@ pub trait Texture<T>: Debug + Send + Sync {
 }
 
 // Some convenient aliases
-pub type TextureSpectrum = Texture<Spectrum>;
-pub type TextureFloat = Texture<f32>;
+pub type TextureSpectrum = dyn Texture<Spectrum>;
+pub type TextureFloat = dyn Texture<f32>;
 
 // Texture mappings
 

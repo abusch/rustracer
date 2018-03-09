@@ -12,15 +12,15 @@ use bsdf::fresnel::{Fresnel, FresnelDielectric};
 #[derive(Copy, Clone, Debug)]
 pub struct MicrofacetReflection<'a> {
     r: Spectrum,
-    distribution: &'a MicrofacetDistribution,
-    fresnel: &'a Fresnel,
+    distribution: &'a dyn MicrofacetDistribution,
+    fresnel: &'a dyn Fresnel,
 }
 
 impl<'a> MicrofacetReflection<'a> {
     pub fn new(
         r: Spectrum,
-        distribution: &'a MicrofacetDistribution,
-        fresnel: &'a Fresnel,
+        distribution: &'a dyn MicrofacetDistribution,
+        fresnel: &'a dyn Fresnel,
     ) -> MicrofacetReflection<'a> {
         MicrofacetReflection {
             r: r,
@@ -95,7 +95,7 @@ impl<'a> BxDF for MicrofacetReflection<'a> {
 #[derive(Copy, Clone, Debug)]
 pub struct MicrofacetTransmission<'a> {
     t: Spectrum,
-    distribution: &'a MicrofacetDistribution,
+    distribution: &'a dyn MicrofacetDistribution,
     eta_a: f32,
     eta_b: f32,
     fresnel: FresnelDielectric,
@@ -105,7 +105,7 @@ pub struct MicrofacetTransmission<'a> {
 impl<'a> MicrofacetTransmission<'a> {
     pub fn new(
         t: Spectrum,
-        distribution: &'a MicrofacetDistribution,
+        distribution: &'a dyn MicrofacetDistribution,
         eta_a: f32,
         eta_b: f32,
         mode: TransportMode,

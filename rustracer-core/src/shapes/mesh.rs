@@ -75,8 +75,8 @@ impl TriangleMesh {
         _w2o: &Transform,
         reverse_orientation: bool,
         params: &ParamSet,
-        float_textures: &HashMap<String, Arc<Texture<f32>>>,
-    ) -> Vec<Arc<Shape>> {
+        float_textures: &HashMap<String, Arc<dyn Texture<f32>>>,
+    ) -> Vec<Arc<dyn Shape>> {
         let vi: Vec<usize> = params
             .find_int("indices")
             .unwrap_or_default()
@@ -152,7 +152,7 @@ impl TriangleMesh {
             shadow_alpha_mask = Some(Arc::new(ConstantTexture::new(0.0)));
         }
 
-        let res: Vec<Arc<Shape>> = create_triangle_mesh(
+        let res: Vec<Arc<dyn Shape>> = create_triangle_mesh(
             o2w,
             reverse_orientation,
             &vi[..],
@@ -649,7 +649,7 @@ pub fn create_triangle_mesh(
     uv: Option<&[Point2f]>,
     alpha_mask: Option<Arc<TextureFloat>>,
     shadow_alpha_mask: Option<Arc<TextureFloat>>,
-) -> Vec<Arc<Shape>> {
+) -> Vec<Arc<dyn Shape>> {
     let mesh = Arc::new(TriangleMesh::new(
         object_to_world,
         vertex_indices,
@@ -662,7 +662,7 @@ pub fn create_triangle_mesh(
     ));
 
     let n_triangles = vertex_indices.len() / 3;
-    let mut tris: Vec<Arc<Shape>> = Vec::with_capacity(n_triangles);
+    let mut tris: Vec<Arc<dyn Shape>> = Vec::with_capacity(n_triangles);
 
     for i in 0..n_triangles {
         tris.push(Arc::new(Triangle::new(

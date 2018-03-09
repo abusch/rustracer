@@ -18,9 +18,9 @@ pub trait Primitive: Debug + Send + Sync {
 
     fn intersect_p(&self, ray: &Ray) -> bool;
 
-    fn area_light(&self) -> Option<Arc<AreaLight>>;
+    fn area_light(&self) -> Option<Arc<dyn AreaLight>>;
 
-    fn material(&self) -> Option<Arc<Material>>;
+    fn material(&self) -> Option<Arc<dyn Material>>;
     fn compute_scattering_functions<'a, 'b>(
         &self,
         isect: &mut SurfaceInteraction<'a, 'b>,
@@ -32,9 +32,9 @@ pub trait Primitive: Debug + Send + Sync {
 
 #[derive(Debug)]
 pub struct GeometricPrimitive {
-    pub shape: Arc<Shape>,
-    pub area_light: Option<Arc<AreaLight>>,
-    pub material: Option<Arc<Material>>,
+    pub shape: Arc<dyn Shape>,
+    pub area_light: Option<Arc<dyn AreaLight>>,
+    pub material: Option<Arc<dyn Material>>,
 }
 
 impl Primitive for GeometricPrimitive {
@@ -54,11 +54,11 @@ impl Primitive for GeometricPrimitive {
         self.shape.intersect_p(ray)
     }
 
-    fn area_light(&self) -> Option<Arc<AreaLight>> {
+    fn area_light(&self) -> Option<Arc<dyn AreaLight>> {
         self.area_light.clone()
     }
 
-    fn material(&self) -> Option<Arc<Material>> {
+    fn material(&self) -> Option<Arc<dyn Material>> {
         self.material.clone()
     }
 
@@ -77,7 +77,7 @@ impl Primitive for GeometricPrimitive {
 
 #[derive(Debug)]
 pub struct TransformedPrimitive {
-    pub primitive: Arc<Primitive>,
+    pub primitive: Arc<dyn Primitive>,
     pub primitive_to_world: Transform,
 }
 
@@ -99,11 +99,11 @@ impl Primitive for TransformedPrimitive {
         self.primitive.intersect_p(&r)
     }
 
-    fn area_light(&self) -> Option<Arc<AreaLight>> {
+    fn area_light(&self) -> Option<Arc<dyn AreaLight>> {
         None
     }
 
-    fn material(&self) -> Option<Arc<Material>> {
+    fn material(&self) -> Option<Arc<dyn Material>> {
         None
     }
     fn compute_scattering_functions<'a, 'b>(

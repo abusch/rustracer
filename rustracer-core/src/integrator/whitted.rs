@@ -26,7 +26,7 @@ impl Whitted {
         }
     }
 
-    pub fn create(ps: &ParamSet) -> Box<SamplerIntegrator> {
+    pub fn create(ps: &ParamSet) -> Box<dyn SamplerIntegrator> {
         let max_depth = ps.find_one_int("maxdepth", 5);
         // TODO pixel_bounds
         Box::new(Self::new(max_depth as u8))
@@ -42,7 +42,7 @@ impl SamplerIntegrator for Whitted {
         &self,
         scene: &Scene,
         ray: &mut Ray,
-        sampler: &mut Box<Sampler>,
+        sampler: &mut Box<dyn Sampler>,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum {

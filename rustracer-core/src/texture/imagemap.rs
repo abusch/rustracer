@@ -17,7 +17,7 @@ use transform::Transform;
 
 #[derive(Debug)]
 pub struct ImageTexture<T> {
-    mapping: Box<TextureMapping2D>,
+    mapping: Box<dyn TextureMapping2D>,
     mipmap: Arc<MIPMap<T>>,
 }
 
@@ -41,7 +41,7 @@ where
         max_aniso: f32,
         scale: f32,
         gamma: bool,
-        map: Box<TextureMapping2D>,
+        map: Box<dyn TextureMapping2D>,
         convert: F,
     ) -> ImageTexture<T> {
         debug!("Loading texture {}", path.display());

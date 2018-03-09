@@ -16,7 +16,7 @@ impl TriangleFilter {
         }
     }
 
-    pub fn create(ps: &ParamSet) -> Box<Filter> {
+    pub fn create(ps: &ParamSet) -> Box<dyn Filter> {
         let xw = ps.find_one_float("xwidth", 2.0);
         let yw = ps.find_one_float("ywidth", 2.0);
 

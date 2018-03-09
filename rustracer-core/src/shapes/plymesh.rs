@@ -18,8 +18,8 @@ pub fn create(
     _w2o: &Transform,
     reverse_orientation: bool,
     params: &ParamSet,
-    float_textures: &HashMap<String, Arc<Texture<f32>>>,
-) -> Vec<Arc<Shape>> {
+    float_textures: &HashMap<String, Arc<dyn Texture<f32>>>,
+) -> Vec<Arc<dyn Shape>> {
     let filename = params.find_one_filename("filename", "".into());
     let f = File::open(&filename).unwrap();
     let mut f = BufReader::new(f);

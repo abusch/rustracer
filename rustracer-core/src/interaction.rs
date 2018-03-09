@@ -94,9 +94,9 @@ pub struct SurfaceInteraction<'a, 'b> {
     pub dudy: f32,
     pub dvdy: f32,
     /// Hit shape
-    pub shape: &'a Shape,
+    pub shape: &'a dyn Shape,
     /// Hit primitive
-    pub primitive: Option<&'a Primitive>,
+    pub primitive: Option<&'a dyn Primitive>,
     /// Shading information
     pub shading: Shading,
     /// BSDF of the surface at the intersection point
@@ -113,7 +113,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         dpdv: Vector3f,
         dndu: Normal3f,
         dndv: Normal3f,
-        shape: &Shape,
+        shape: &dyn Shape,
     ) -> SurfaceInteraction {
         let mut n = Normal3f::from(dpdu.cross(&dpdv).normalize());
         if shape.reverse_orientation() ^ shape.transform_swaps_handedness() {

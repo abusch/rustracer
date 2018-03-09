@@ -10,8 +10,8 @@ use texture::{Texture, TextureFloat};
 
 #[derive(Debug)]
 pub struct MixTexture<T> {
-    tex1: Arc<Texture<T>>,
-    tex2: Arc<Texture<T>>,
+    tex1: Arc<dyn Texture<T>>,
+    tex2: Arc<dyn Texture<T>>,
     amount: Arc<TextureFloat>,
 }
 

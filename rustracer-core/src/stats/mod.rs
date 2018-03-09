@@ -196,7 +196,7 @@ impl StatAccumulator {
     }
 }
 
-type StatReporterFn = Box<Fn(&mut StatAccumulator) + Send>;
+type StatReporterFn = Box<dyn Fn(&mut StatAccumulator) + Send>;
 pub static STAT_REPORTERS: Storage<Mutex<Vec<StatReporterFn>>> = Storage::new();
 pub static STAT_ACCUMULATOR: Storage<Mutex<StatAccumulator>> = Storage::new();
 

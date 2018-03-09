@@ -192,7 +192,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
     (parsers, eof()).map(|(res, _)| res).parse(input)
 }
 
-fn param_list<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = ParamSet> + 'a>
+fn param_list<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = ParamSet> + 'a>
 {
     many(param_list_entry())
         .map(|x| {
@@ -203,7 +203,7 @@ fn param_list<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Outp
         .boxed()
 }
 
-fn param_type<'a, I: Stream<Item = char> + 'a>() -> Box<Parser<Input = I, Output = ParamType> + 'a>
+fn param_type<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, Output = ParamType> + 'a>
 {
     choice!(
         try(string("integer").with(value(ParamType::Int))),
@@ -227,7 +227,7 @@ fn param_type<'a, I: Stream<Item = char> + 'a>() -> Box<Parser<Input = I, Output
 }
 
 fn param_list_entry_header<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<Parser<Input = I, Output = (ParamType, String)> + 'a> {
+) -> Box<dyn Parser<Input = I, Output = (ParamType, String)> + 'a> {
     string_()
         .and_then(|s| match param_type().skip(spaces()).parse(&s[..]) {
             Ok((t, n)) => Ok((t, n.to_owned())),
@@ -239,13 +239,13 @@ fn param_list_entry_header<'a, I: Stream<Item = Tokens> + 'a>(
 }
 
 fn param_list_entry<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<Parser<Input = I, Output = ParamListEntry> + 'a> {
+) -> Box<dyn Parser<Input = I, Output = ParamListEntry> + 'a> {
     (param_list_entry_header(), array())
         .map(|(header, array)| ParamListEntry::new(header.0, header.1, array))
         .boxed()
 }
 
-fn array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = Array> + 'a> {
+fn array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = Array> + 'a> {
     choice!(
         try(string_array().map(Array::StrArray)),
         try(num_array().map(Array::NumArray))
@@ -253,7 +253,7 @@ fn array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = 
 }
 
 fn string_array<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<Parser<Input = I, Output = Vec<String>> + 'a> {
+) -> Box<dyn Parser<Input = I, Output = Vec<String>> + 'a> {
     choice!(
         try(between(
             token(Tokens::LBRACK),
@@ -264,7 +264,7 @@ fn string_array<'a, I: Stream<Item = Tokens> + 'a>(
     ).boxed()
 }
 
-fn num_array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = Vec<f32>> + 'a>
+fn num_array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = Vec<f32>> + 'a>
 {
     choice!(
         try(between(
@@ -276,14 +276,14 @@ fn num_array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Outpu
     ).boxed()
 }
 
-fn num<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = f32> + 'a> {
+fn num<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = f32> + 'a> {
     satisfy_map(|t| match t {
         Tokens::NUMBER(n) => Some(n),
         _ => None,
     }).boxed()
 }
 
-fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<Parser<Input = I, Output = String> + 'a> {
+fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = String> + 'a> {
     satisfy_map(|t| match t {
         Tokens::STR(s) => Some(s),
         _ => None,
