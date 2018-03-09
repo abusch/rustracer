@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::f32::consts::PI;
 
 use {find_interval, INV_2_PI};
@@ -270,7 +271,7 @@ pub fn fourier(a: &[f32], m: u32, cos_phi: f32) -> f32 {
         cos_k_minus_one_phi = cos_k_phi;
         cos_k_phi = cos_k_plus_one_phi;
     }
-    return value;
+    value
 }
 
 pub fn sample_fourier(ak: &[f32], recip: &[f32], m: u32, u: f32) -> (f32, f32, f32) {
@@ -345,5 +346,5 @@ pub fn sample_fourier(ak: &[f32], recip: &[f32], m: u32, u: f32) -> (f32, f32, f
     }
     let pdf = INV_2_PI * f / ak[0];
     let phiPtr = phi;
-    return (f, pdf, phiPtr);
+    (f, pdf, phiPtr)
 }

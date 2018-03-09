@@ -19,7 +19,7 @@ impl OrenNayar {
         let sigma2 = sigma_rad * sigma_rad;
 
         OrenNayar {
-            r: r,
+            r,
             a: 1.0 - (sigma2 / (2.0 * (sigma2 + 0.33))),
             b: 0.45 * sigma2 / (sigma2 + 0.09),
         }

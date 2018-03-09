@@ -23,9 +23,9 @@ impl<'a> MicrofacetReflection<'a> {
         fresnel: &'a dyn Fresnel,
     ) -> MicrofacetReflection<'a> {
         MicrofacetReflection {
-            r: r,
-            distribution: distribution,
-            fresnel: fresnel,
+            r,
+            distribution,
+            fresnel,
         }
     }
 }
@@ -112,7 +112,7 @@ impl<'a> MicrofacetTransmission<'a> {
     ) -> MicrofacetTransmission<'a> {
         MicrofacetTransmission {
             t,
-            distribution: distribution,
+            distribution,
             eta_a,
             eta_b,
             fresnel: Fresnel::dielectric(eta_a, eta_b),

@@ -99,14 +99,14 @@ impl StatAccumulator {
             if kb < 1024.0 {
                 to_print
                     .entry(category.to_owned())
-                    .or_insert(Vec::new())
+                    .or_insert_with(Vec::new)
                     .push(format!("    {:<42}                  {:9.2} kiB", title, kb));
             } else {
                 let mib = kb / 1024.0;
                 if mib < 1024.0 {
                     to_print
                         .entry(category.to_owned())
-                        .or_insert(Vec::new())
+                        .or_insert_with(Vec::new)
                         .push(format!(
                             "    {:<42}                  {:9.2} MiB",
                             title, mib
@@ -115,7 +115,7 @@ impl StatAccumulator {
                     let gib = mib / 1024.0;
                     to_print
                         .entry(category.to_owned())
-                        .or_insert(Vec::new())
+                        .or_insert_with(Vec::new)
                         .push(format!(
                             "    {:<42}                  {:9.2} GiB",
                             title, gib
@@ -125,20 +125,20 @@ impl StatAccumulator {
         }
         // Int distributions
         for (desc, sum) in &self.int_distribution_sums {
-            let count = self.int_distribution_counts.get(desc).unwrap();
-            if *count == 0 {
+            let count = self.int_distribution_counts[desc];
+            if count == 0 {
                 continue;
             }
-            let min = self.int_distribution_mins.get(desc).unwrap();
-            let max = self.int_distribution_maxs.get(desc).unwrap();
+            let min = self.int_distribution_mins[desc];
+            let max = self.int_distribution_maxs[desc];
             let (category, title) = self.get_category_and_title(desc);
-            let avg = (*sum as f64) / (*count as f64);
+            let avg = (*sum as f64) / (count as f64);
             to_print
                 .entry(category.to_owned())
                 .or_insert(Vec::new())
                 .push(format!(
                     "    {:<42}                      {:.3} avg [range {} - {}]",
-                    title, avg, *min, *max
+                    title, avg, min, max
                 ));
         }
         // Percentages
@@ -150,7 +150,7 @@ impl StatAccumulator {
             let (category, title) = self.get_category_and_title(desc);
             to_print
                 .entry(category.to_owned())
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(format!(
                     "    {:<42}{:12} / {:12} ({:.2}%)",
                     title,
@@ -168,7 +168,7 @@ impl StatAccumulator {
             let (category, title) = self.get_category_and_title(desc);
             to_print
                 .entry(category.to_owned())
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(format!(
                     "    {:<42}{:12} / {:12} ({:.2}x)",
                     title,

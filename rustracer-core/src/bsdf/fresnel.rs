@@ -89,16 +89,16 @@ pub trait Fresnel: Debug {
 impl dyn Fresnel {
     pub fn conductor(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
         FresnelConductor {
-            eta_i: eta_i,
-            eta_t: eta_t,
-            k: k,
+            eta_i,
+            eta_t,
+            k,
         }
     }
 
     pub fn dielectric(eta_i: f32, eta_t: f32) -> FresnelDielectric {
         FresnelDielectric {
-            eta_i: eta_i,
-            eta_t: eta_t,
+            eta_i,
+            eta_t,
         }
     }
 
@@ -153,8 +153,8 @@ pub struct SpecularReflection<'a> {
 impl<'a> SpecularReflection<'a> {
     pub fn new(r: Spectrum, fresnel: &'a dyn Fresnel) -> SpecularReflection<'a> {
         SpecularReflection {
-            r: r,
-            fresnel: fresnel,
+            r,
+            fresnel,
         }
     }
 }

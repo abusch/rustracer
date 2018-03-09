@@ -42,7 +42,7 @@ pub struct BVH {
 
 impl BVH {
     pub fn from_triangles(mut tris: Vec<Arc<dyn Shape>>, material: &Arc<dyn Material>) -> BVH {
-        let mut prims: Vec<Arc<dyn Primitive>> = tris.drain(..)
+        let prims: Vec<Arc<dyn Primitive>> = tris.drain(..)
             .map(|t| {
                 let prim = GeometricPrimitive {
                     shape: Arc::clone(&t),
@@ -54,7 +54,7 @@ impl BVH {
             })
             .collect();
 
-        BVH::new(1, &mut prims, SplitMethod::SAH)
+        BVH::new(1, &prims, SplitMethod::SAH)
     }
 
     pub fn create(prims: &[Arc<dyn Primitive>], ps: &ParamSet) -> BVH {

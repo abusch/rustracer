@@ -164,6 +164,7 @@ impl Spectrum {
     }
 }
 
+#[allow(non_upper_case_globals)]
 pub fn blackbody(lambda: &[f32], temp: f32) -> Vec<f32> {
     assert!(temp > 0.0);
 

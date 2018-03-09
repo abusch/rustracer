@@ -76,12 +76,12 @@ impl<'a> BSDF<'a> {
     pub fn new<'b>(isect: &'b SurfaceInteraction, eta: f32, bxdfs: &'a [&'a dyn BxDF]) -> BSDF<'a> {
         let ss = isect.shading.dpdu.normalize();
         BSDF {
-            eta: eta,
+            eta,
             ns: isect.shading.n,
             ng: isect.hit.n,
-            ss: ss,
+            ss,
             ts: Vector3f::from(isect.shading.n).cross(&ss),
-            bxdfs: bxdfs,
+            bxdfs,
         }
     }
 

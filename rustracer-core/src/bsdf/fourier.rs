@@ -104,7 +104,7 @@ impl BxDF for FourierBSDF {
             Spectrum::from(Y * scale)
         } else {
             // Compute and return RGB colors for tabulated BSDF
-            let R = fourier(&ak[1 * bsdf_table.m_max as usize..], m_max, cos_phi);
+            let R = fourier(&ak[bsdf_table.m_max as usize..], m_max, cos_phi);
             let B = fourier(&ak[2 * bsdf_table.m_max as usize..], m_max, cos_phi);
             let G = 1.39829 * Y - 0.100913 * B - 0.297375 * R;
             Spectrum::rgb(R * scale, G * scale, B * scale).clamp()
@@ -208,7 +208,7 @@ impl BxDF for FourierBSDF {
         if bsdf_table.n_channels == 1 {
             return (Spectrum::from(Y * scale), wi, pdf, self.get_type());
         }
-        let R = fourier(&ak[(1 * bsdf_table.m_max) as usize..], m_max, cosPhi);
+        let R = fourier(&ak[(bsdf_table.m_max) as usize..], m_max, cosPhi);
         let B = fourier(&ak[(2 * bsdf_table.m_max) as usize..], m_max, cosPhi);
         let G = 1.39829 * Y - 0.100913 * B - 0.297375 * R;
         return (
@@ -353,14 +353,14 @@ impl FourierBSDFTable {
         info!("Loading BSDF file \"{}\"", filename.display());
 
         const HEADER_EXP: [u8; 8] = [
-            'S' as u8,
-            'C' as u8,
-            'A' as u8,
-            'T' as u8,
-            'F' as u8,
-            'U' as u8,
-            'N' as u8,
-            '\x01' as u8,
+            b'S' as u8,
+            b'C' as u8,
+            b'A' as u8,
+            b'T' as u8,
+            b'F' as u8,
+            b'U' as u8,
+            b'N' as u8,
+            b'\x01' as u8,
         ];
         let mut header = [0; 8];
         f.read_exact(&mut header)?;

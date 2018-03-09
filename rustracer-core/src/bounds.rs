@@ -344,8 +344,8 @@ where
         );
 
         Bounds2 {
-            p_min: p_min,
-            p_max: p_max,
+            p_min,
+            p_max,
         }
     }
 

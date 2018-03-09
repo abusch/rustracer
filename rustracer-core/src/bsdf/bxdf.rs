@@ -53,8 +53,8 @@ pub struct ScaledBxDF<'a> {
 impl<'a> ScaledBxDF<'a> {
     pub fn new(bxdf: &'a dyn BxDF, scale: Spectrum) -> ScaledBxDF<'a> {
         ScaledBxDF {
-            bxdf: bxdf,
-            scale: scale,
+            bxdf,
+            scale,
         }
     }
 }

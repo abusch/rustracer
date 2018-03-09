@@ -144,7 +144,7 @@ impl ParamListEntry {
         ParamListEntry {
             param_type: t,
             param_name: name,
-            values: values,
+            values,
         }
     }
 }
@@ -310,7 +310,7 @@ pub struct GraphicsState {
 
 impl GraphicsState {
     pub fn create_material(&self, params: &ParamSet) -> Arc<dyn Material> {
-        let mut mp = TextureParams::new(
+        let mp = TextureParams::new(
             params,
             &self.material_param,
             &self.float_textures,
@@ -326,10 +326,10 @@ impl GraphicsState {
                         "No material named \"{}\". Using matte material instead.",
                         cur_mat_name
                     );
-                    make_material("matte", &mut mp, &self.named_material)
+                    make_material("matte", &mp, &self.named_material)
                 })
         } else {
-            make_material(&self.material, &mut mp, &self.named_material)
+            make_material(&self.material, &mp, &self.named_material)
         }
     }
 }
@@ -825,17 +825,17 @@ impl Api for RealApi {
         debug!("texture() called with {} and {} and {}", name, typ, texname);
         let state = &mut *self.state.borrow_mut();
         state.api_state.verify_world()?;
-        let mut empty_params = ParamSet::default();
+        let empty_params = ParamSet::default();
 
         if typ == "float" {
             let ft = {
                 let mut tp = TextureParams::new(
                     params,
-                    &mut empty_params, // was `params`
+                    &empty_params,
                     &state.graphics_state.float_textures,
                     &state.graphics_state.spectrum_textures,
                 );
-                make_float_texture(&texname, &state.cur_transform, &mut tp)
+                make_float_texture(&texname, &state.cur_transform, &tp)
             };
             if let Ok(ft) = ft {
                 if state
@@ -851,11 +851,11 @@ impl Api for RealApi {
             let ft = {
                 let mut tp = TextureParams::new(
                     params,
-                    &mut empty_params, // was `params`
+                    &empty_params,
                     &state.graphics_state.float_textures,
                     &state.graphics_state.spectrum_textures,
                 );
-                make_spectrum_texture(&texname, &state.cur_transform, &mut tp)
+                make_spectrum_texture(&texname, &state.cur_transform, &tp)
             };
             match ft {
                 Ok(ft) => {
@@ -989,7 +989,7 @@ impl Api for RealApi {
                 .render_options
                 .instances
                 .get_mut(name)
-                .ok_or(format_err!("Unable to find instance named {}", name))?;
+                .ok_or_else(|| format_err!("Unable to find instance named {}", name))?;
             inst.append(&mut prims);
         } else {
             state.render_options.primitives.append(&mut prims);
@@ -1098,7 +1098,7 @@ impl Api for RealApi {
             .render_options
             .instances
             .get_mut(&name)
-            .ok_or(format_err!("Unable to find instance named {}", name))?;
+            .ok_or_else(|| format_err!("Unable to find instance named {}", name))?;
         if inst.is_empty() {
             return Ok(());
         }
@@ -1108,14 +1108,14 @@ impl Api for RealApi {
             // Create aggregate for instance primitives
             let accel = make_accelerator(
                 &state.render_options.accelerator_name,
-                &inst,
+                inst,
                 &state.render_options.accelerator_params,
             );
             inst.clear();
             inst.push(accel);
         }
         let prim = Arc::new(TransformedPrimitive {
-            primitive: inst.get(0).unwrap().clone(),
+            primitive: inst[0].clone(),
             primitive_to_world: state.cur_transform.clone(),
         });
         state.render_options.primitives.push(prim);
