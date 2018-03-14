@@ -86,7 +86,7 @@ impl StatAccumulator {
             let (category, title) = self.get_category_and_title(desc);
             to_print
                 .entry(category.to_owned())
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(format!("    {:<42}               {:12}", title, value));
         }
         // Memory counters
@@ -135,7 +135,7 @@ impl StatAccumulator {
             let avg = (*sum as f64) / (count as f64);
             to_print
                 .entry(category.to_owned())
-                .or_insert(Vec::new())
+                .or_insert_with(Vec::new)
                 .push(format!(
                     "    {:<42}                      {:.3} avg [range {} - {}]",
                     title, avg, min, max

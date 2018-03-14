@@ -6,6 +6,9 @@
 #![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
 
+// Clippy config
+#![cfg_attr(feature = "cargo-clippy", allow(float_cmp,many_single_char_names,unreadable_literal,large_digit_groups))]
+
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;

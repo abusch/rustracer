@@ -211,12 +211,12 @@ impl BxDF for FourierBSDF {
         let R = fourier(&ak[(bsdf_table.m_max) as usize..], m_max, cosPhi);
         let B = fourier(&ak[(2 * bsdf_table.m_max) as usize..], m_max, cosPhi);
         let G = 1.39829 * Y - 0.100913 * B - 0.297375 * R;
-        return (
+        (
             Spectrum::rgb(R * scale, G * scale, B * scale).clamp(),
             wi,
             pdf,
             self.get_type(),
-        );
+        )
     }
 
     fn pdf(&self, wo: &Vector3f, wi: &Vector3f) -> f32 {
@@ -353,14 +353,14 @@ impl FourierBSDFTable {
         info!("Loading BSDF file \"{}\"", filename.display());
 
         const HEADER_EXP: [u8; 8] = [
-            b'S' as u8,
-            b'C' as u8,
-            b'A' as u8,
-            b'T' as u8,
-            b'F' as u8,
-            b'U' as u8,
-            b'N' as u8,
-            b'\x01' as u8,
+            b'S',
+            b'C',
+            b'A',
+            b'T',
+            b'F',
+            b'U',
+            b'N',
+            b'\x01',
         ];
         let mut header = [0; 8];
         f.read_exact(&mut header)?;
