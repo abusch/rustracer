@@ -1,14 +1,13 @@
 use std::f32::consts::{FRAC_1_PI, PI};
+use std::fmt;
 use std::path::Path;
 use std::sync::Arc;
-use std::fmt;
 
 use ndarray::prelude::*;
 use ndarray_parallel::prelude::*;
 use num::Zero;
 use parking_lot::RwLock;
 
-use {Point2f, Point2i, Point3f, Transform, Vector3f};
 use geometry::{spherical_phi, spherical_theta};
 use imageio::read_image;
 use interaction::Interaction;
@@ -19,6 +18,7 @@ use ray::Ray;
 use sampling::Distribution2D;
 use scene::Scene;
 use spectrum::Spectrum;
+use {Point2f, Point2i, Point3f, Transform, Vector3f};
 
 impl fmt::Debug for InfiniteAreaLight {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {

@@ -1,6 +1,6 @@
 use std::f32::INFINITY;
-use std::ops::Mul;
 use std::fmt;
+use std::ops::Mul;
 
 use num::zero;
 

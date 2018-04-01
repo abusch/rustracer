@@ -1,7 +1,7 @@
 use light_arena::Allocator;
 
-use bsdf;
 use bounds::Bounds2i;
+use bsdf;
 use integrator::SamplerIntegrator;
 use material::TransportMode;
 use paramset::ParamSet;

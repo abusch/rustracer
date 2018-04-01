@@ -1,8 +1,8 @@
-use {Point2f, Point2i};
 use camera::CameraSample;
+use {Point2f, Point2i};
 
-pub mod zerotwosequence;
 pub mod lowdiscrepancy;
+pub mod zerotwosequence;
 
 pub trait Sampler: Send + Sync {
     fn start_pixel(&mut self, p: &Point2i);

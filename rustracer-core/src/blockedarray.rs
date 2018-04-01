@@ -1,5 +1,5 @@
-use std::ops::{Index, IndexMut};
 use std::fmt::Debug;
+use std::ops::{Index, IndexMut};
 
 use num::{zero, Zero};
 

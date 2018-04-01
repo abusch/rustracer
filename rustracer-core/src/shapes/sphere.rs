@@ -1,8 +1,7 @@
-use std::sync::Arc;
 use std::f32;
 use std::f32::consts;
+use std::sync::Arc;
 
-use {clamp, coordinate_system, gamma, Normal3f, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use efloat::{self, EFloat};
 use geometry::{distance, distance_squared, offset_ray_origin, spherical_direction_vec};
@@ -11,6 +10,7 @@ use paramset::ParamSet;
 use ray::Ray;
 use sampling::{uniform_cone_pdf, uniform_sample_sphere};
 use shapes::Shape;
+use {clamp, coordinate_system, gamma, Normal3f, Point2f, Point3f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct Sphere {

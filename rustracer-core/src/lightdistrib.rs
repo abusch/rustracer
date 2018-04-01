@@ -1,15 +1,15 @@
+use std::num::Wrapping;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicPtr, AtomicU64, Ordering};
-use std::num::Wrapping;
 
 use num::Zero;
 
-use {clamp, Normal3f, Point2f, Point3f, Point3i, Vector3f};
 use bounds::Bounds3f;
 use interaction::Interaction;
 use sampler::lowdiscrepancy::radical_inverse;
 use sampling::Distribution1D;
 use scene::Scene;
+use {clamp, Normal3f, Point2f, Point3f, Point3i, Vector3f};
 
 stat_counter!("SpatialLightDistribution/Distributions created", n_created);
 stat_ratio!(

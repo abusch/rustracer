@@ -5,7 +5,6 @@ use std::sync::Arc;
 use it;
 use light_arena::Allocator;
 
-use {Point3f, Vector3f};
 use bounds::{Axis, Bounds3f};
 use interaction::SurfaceInteraction;
 use light::AreaLight;
@@ -14,6 +13,7 @@ use paramset::ParamSet;
 use primitive::{GeometricPrimitive, Primitive};
 use ray::Ray;
 use shapes::Shape;
+use {Point3f, Vector3f};
 
 stat_memory_counter!("Memory/BVH tree", tree_bytes);
 stat_ratio!("BVH/Primitives per leaf node", total_primitives_per_leaf);
@@ -238,10 +238,9 @@ impl BVH {
                                 b1 = Bounds3f::union(&b1, &buckets[j].bounds);
                                 count1 += buckets[j].count;
                             }
-                            cost[i] = 1.0
-                                + (count0 as f32 * b0.surface_area()
-                                    + count1 as f32 * b1.surface_area())
-                                    / bounds.surface_area();
+                            cost[i] = 1.0 + (count0 as f32 * b0.surface_area()
+                                + count1 as f32 * b1.surface_area())
+                                / bounds.surface_area();
                         }
 
                         // Find bucket to split at that minimizes SAH metric

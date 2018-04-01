@@ -1,11 +1,11 @@
 mod boxfilter;
-mod mitchell;
 mod gaussian;
+mod mitchell;
 mod triangle;
 
 pub use self::boxfilter::BoxFilter;
-pub use self::mitchell::MitchellNetravali;
 pub use self::gaussian::GaussianFilter;
+pub use self::mitchell::MitchellNetravali;
 pub use self::triangle::TriangleFilter;
 
 pub trait Filter: Send + Sync {

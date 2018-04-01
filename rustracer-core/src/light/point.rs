@@ -1,13 +1,13 @@
-use std::sync::Arc;
 use std::f32::consts::PI;
+use std::sync::Arc;
 
 use num::Zero;
 
-use {Point2f, Point3f, Transform, Vector3f};
 use interaction::Interaction;
 use light::{Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use spectrum::Spectrum;
+use {Point2f, Point3f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct PointLight {

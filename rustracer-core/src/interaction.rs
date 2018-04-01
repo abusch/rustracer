@@ -3,7 +3,6 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use num::zero;
 
-use {Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
 use bsdf::BSDF;
 use geometry::{face_forward_n, offset_ray_origin};
 use material::TransportMode;
@@ -12,6 +11,7 @@ use ray::Ray;
 use shapes::Shape;
 use spectrum::Spectrum;
 use transform;
+use {Normal3f, Point2f, Point3f, Transform, Vector2f, Vector3f};
 
 #[derive(Copy, Clone)]
 pub struct Interaction {

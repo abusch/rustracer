@@ -1,10 +1,8 @@
-use std::sync::Arc;
 use std::cmp;
+use std::sync::Arc;
 
-use {Point2f, Vector3f};
 use bounds::Bounds2i;
 use bsdf::{self, BxDFType};
-use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use light::{is_delta_light, Light};
 use light_arena::Allocator;
@@ -12,18 +10,20 @@ use ray::{Ray, RayDifferential};
 use sampler::Sampler;
 use sampling::{power_heuristic, Distribution1D};
 use scene::Scene;
+use spectrum::Spectrum;
+use {Point2f, Vector3f};
 
-mod whitted;
-mod directlighting;
-mod path;
 mod ao;
+mod directlighting;
 mod normal;
+mod path;
+mod whitted;
 
-pub use self::whitted::Whitted;
-pub use self::directlighting::{DirectLightingIntegrator, LightStrategy};
-pub use self::path::PathIntegrator;
 pub use self::ao::AmbientOcclusion;
+pub use self::directlighting::{DirectLightingIntegrator, LightStrategy};
 pub use self::normal::Normal;
+pub use self::path::PathIntegrator;
+pub use self::whitted::Whitted;
 
 pub fn init_stats() {
     path::init_stats();

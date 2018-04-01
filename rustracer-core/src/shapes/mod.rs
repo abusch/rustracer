@@ -1,9 +1,9 @@
 use std::fmt::Debug;
 
-use {Point2f, Vector3f};
-use ray::Ray;
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
+use ray::Ray;
+use {Point2f, Vector3f};
 
 mod cylinder;
 mod disk;

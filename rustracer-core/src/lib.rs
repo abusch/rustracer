@@ -1,13 +1,14 @@
 // Unstable features coming in next Epoch
-#![feature(match_default_bindings, universal_impl_trait, conservative_impl_trait, dyn_trait)]
+#![feature(match_default_bindings, dyn_trait)]
 // Unstable features needed for light_arena
 #![feature(placement_in_syntax, integer_atomics, vec_resize_default)]
 // Lints
 #![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
-
 // Clippy config
-#![cfg_attr(feature = "cargo-clippy", allow(float_cmp,many_single_char_names,unreadable_literal,large_digit_groups,ifs_same_cond,if_same_then_else,match_same_arms))]
+#![cfg_attr(feature = "cargo-clippy",
+            allow(float_cmp, many_single_char_names, unreadable_literal, large_digit_groups,
+                  ifs_same_cond, if_same_then_else, match_same_arms))]
 
 #[macro_use]
 extern crate bitflags;
@@ -65,10 +66,10 @@ pub mod film;
 pub mod filter;
 mod floatfile;
 mod geometry;
+pub mod imageio;
 pub mod integrator;
 mod interaction;
 mod interpolation;
-pub mod imageio;
 pub mod light;
 pub mod lightdistrib;
 pub mod material;
@@ -80,8 +81,8 @@ pub mod primitive;
 pub mod ray;
 pub mod renderer;
 pub mod rng;
-pub mod sampling;
 pub mod sampler;
+pub mod sampling;
 pub mod scene;
 pub mod shapes;
 pub mod spectrum;

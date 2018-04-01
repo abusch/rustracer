@@ -6,15 +6,14 @@ use failure::{err_msg, Error};
 use indicatif::HumanDuration;
 use num_cpus;
 
-use {PbrtOptions, Point3f, Transform, Vector3f};
 use bvh::BVH;
 use camera::{Camera, PerspectiveCamera};
 use display::NoopDisplayUpdater;
-use filter::{BoxFilter, Filter, GaussianFilter, MitchellNetravali, TriangleFilter};
 use film::Film;
+use filter::{BoxFilter, Filter, GaussianFilter, MitchellNetravali, TriangleFilter};
 use geometry::Matrix4x4;
-use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
+use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
 use material::{DisneyMaterial, FourierMaterial, GlassMaterial, Material, MatteMaterial, Metal,
                MirrorMaterial, MixMaterial, Plastic, SubstrateMaterial, TranslucentMaterial,
                UberMaterial};
@@ -24,12 +23,13 @@ use renderer;
 use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
 use scene::Scene;
-use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
 use shapes::plymesh;
+use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
 use spectrum::Spectrum;
 use stats;
 use texture::{CheckerboardTexture, ConstantTexture, FbmTexture, ImageTexture, MixTexture,
               ScaleTexture, Texture, UVTexture};
+use {PbrtOptions, Point3f, Transform, Vector3f};
 
 stat_counter!("Scene/Materials created", n_materials_created);
 stat_counter!("Scene/Object instances created", n_object_instances_created);
@@ -221,7 +221,10 @@ impl RenderOptions {
         Ok(camera)
     }
 
-    pub fn make_integrator(&self, camera: &dyn Camera) -> Result<Box<dyn SamplerIntegrator>, Error> {
+    pub fn make_integrator(
+        &self,
+        camera: &dyn Camera,
+    ) -> Result<Box<dyn SamplerIntegrator>, Error> {
         debug!("Making integrator");
         let integrator: Box<dyn SamplerIntegrator> = if self.integrator_name == "whitted" {
             Whitted::create(&self.integrator_params)

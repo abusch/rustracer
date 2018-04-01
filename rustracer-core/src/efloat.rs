@@ -1,9 +1,9 @@
-use std::ops::{Add, Div, Mul, Sub};
 use std::f32;
 use std::mem;
+use std::ops::{Add, Div, Mul, Sub};
 
-use {next_float_down, next_float_up};
 use super::MACHINE_EPSILON;
+use {next_float_down, next_float_up};
 
 #[derive(Debug, Clone, Copy)]
 pub struct EFloat {

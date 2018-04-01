@@ -1,13 +1,13 @@
-use std::sync::Arc;
 use std::f32::consts;
+use std::sync::Arc;
 
-use {clamp, Normal3f, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
 use ray::Ray;
 use sampling::concentric_sample_disk;
 use shapes::Shape;
+use {clamp, Normal3f, Point2f, Point3f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct Disk {

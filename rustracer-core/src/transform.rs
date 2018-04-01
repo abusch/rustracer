@@ -1,8 +1,8 @@
 use std::ops::Mul;
 
-use {gamma, Normal3f, Point3f, Vector2f, Vector3f};
 use bounds::Bounds3f;
 use geometry::Matrix4x4;
+use {gamma, Normal3f, Point3f, Vector2f, Vector3f};
 
 #[derive(Debug, Clone, Default)]
 pub struct Transform {

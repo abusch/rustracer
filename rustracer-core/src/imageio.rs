@@ -1,6 +1,6 @@
-use std::path::Path;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
+use std::path::Path;
 
 use failure::{Error, ResultExt};
 use img::{self, GenericImage};
@@ -8,10 +8,10 @@ use img::{self, GenericImage};
 use openexr::{FrameBuffer, FrameBufferMut, Header, InputFile, PixelType, ScanlineOutputFile};
 use rayon::prelude::*;
 
-use {clamp, Point2i};
 use bounds::Bounds2i;
 use fileutil::has_extension;
 use spectrum::{gamma_correct, Spectrum};
+use {clamp, Point2i};
 
 pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading image {}", path.as_ref().display());

@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use bounds::Bounds2i;
-use light_arena::Allocator;
 use integrator::{uniform_sample_all_light, uniform_sample_one_light, SamplerIntegrator};
+use light_arena::Allocator;
 use material::TransportMode;
 use paramset::ParamSet;
 use ray::Ray;

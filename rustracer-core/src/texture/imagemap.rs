@@ -1,19 +1,19 @@
-use std::sync::Arc;
-use std::path::Path;
-use std::fmt::Debug;
 use num::Zero;
+use std::fmt::Debug;
 use std::ops::{AddAssign, Div, Mul};
+use std::path::Path;
+use std::sync::Arc;
 
-use {Clampable, Point2i};
-use fileutil;
 use bounds::Bounds2i;
-use interaction::SurfaceInteraction;
+use fileutil;
 use imageio::read_image;
+use interaction::SurfaceInteraction;
 use mipmap::{MIPMap, WrapMode};
+use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::{Texture, TextureMapping2D, UVMapping2D};
-use paramset::TextureParams;
 use transform::Transform;
+use {Clampable, Point2i};
 
 #[derive(Debug)]
 pub struct ImageTexture<T> {

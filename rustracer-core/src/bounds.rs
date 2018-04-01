@@ -1,13 +1,13 @@
-use std::f32;
-use std::ops::{DivAssign, Index, SubAssign};
 use std::cmp::PartialOrd;
+use std::f32;
 use std::fmt;
+use std::ops::{DivAssign, Index, SubAssign};
 
 use num::{Bounded, Num, Signed};
 
-use {lerp, max, min, Point2f, Point2i, Point3f, Vector3f};
 use geometry::{Point2, Point3, Vector2, Vector3};
 use ray::Ray;
+use {lerp, max, min, Point2f, Point2i, Point3f, Vector3f};
 
 pub type Bounds3f = Bounds3<f32>;
 
@@ -343,10 +343,7 @@ where
             min(bbox1.p_max.y, bbox2.p_max.y),
         );
 
-        Bounds2 {
-            p_min,
-            p_max,
-        }
+        Bounds2 { p_min, p_max }
     }
 
     pub fn diagonal(&self) -> Vector2<T> {

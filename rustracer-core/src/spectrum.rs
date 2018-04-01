@@ -1,12 +1,12 @@
-use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, MulAssign, Sub};
-use std::fmt;
 use std::convert::From;
 use std::f32;
+use std::fmt;
+use std::ops::{Add, AddAssign, Div, Index, IndexMut, Mul, MulAssign, Sub};
 
 use num::{One, Zero};
 
-use {clamp, find_interval, lerp};
 use cie;
+use {clamp, find_interval, lerp};
 
 /// Represents a linear RGB spectrum.
 /// TODO Rename this to `RGBSpectrum` and make `Spectrum` a type alias to this so we can also support

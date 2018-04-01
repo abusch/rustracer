@@ -1,12 +1,12 @@
-use std::sync::Arc;
 use std::fmt::Debug;
 use std::ops::{Add, Mul};
+use std::sync::Arc;
 
-use {Transform, Vector3f};
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::{PlanarMapping2D, Texture, TextureMapping2D, UVMapping2D};
+use {Transform, Vector3f};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum AAMethod {

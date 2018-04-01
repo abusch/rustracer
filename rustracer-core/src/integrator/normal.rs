@@ -1,11 +1,11 @@
 use light_arena::Allocator;
 
 use bounds::Bounds2i;
-use spectrum::Spectrum;
 use integrator::SamplerIntegrator;
 use ray::Ray;
 use sampler::Sampler;
 use scene::Scene;
+use spectrum::Spectrum;
 
 #[derive(Default)]
 pub struct Normal {

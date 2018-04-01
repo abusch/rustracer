@@ -1,6 +1,6 @@
-use std::sync::Arc;
 use std::fmt::Debug;
 use std::ops::{Add, Mul};
+use std::sync::Arc;
 
 use Transform;
 use interaction::SurfaceInteraction;

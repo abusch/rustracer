@@ -3,30 +3,30 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use {Normal3f, Vector2f, Vector3f};
 use interaction::SurfaceInteraction;
 use texture::Texture;
+use {Normal3f, Vector2f, Vector3f};
 
 mod disney;
 mod fourier;
+mod glass;
 mod matte;
 mod metal;
+mod mirror;
 mod mixmat;
 mod plastic;
-mod glass;
-mod mirror;
 mod substrate;
 mod translucent;
 mod uber;
 
 pub use self::disney::DisneyMaterial;
 pub use self::fourier::FourierMaterial;
+pub use self::glass::GlassMaterial;
 pub use self::matte::MatteMaterial;
 pub use self::metal::Metal;
+pub use self::mirror::MirrorMaterial;
 pub use self::mixmat::MixMaterial;
 pub use self::plastic::Plastic;
-pub use self::glass::GlassMaterial;
-pub use self::mirror::MirrorMaterial;
 pub use self::substrate::SubstrateMaterial;
 pub use self::translucent::TranslucentMaterial;
 pub use self::uber::UberMaterial;

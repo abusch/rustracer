@@ -1,17 +1,17 @@
-use std::sync::Arc;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
-use std::collections::HashMap;
+use std::sync::Arc;
 
-use ply_rs::ply;
 use ply_rs::parser;
+use ply_rs::ply;
 
-use {Normal3f, Point2f, Point3f};
 use paramset::ParamSet;
 use shapes::Shape;
 use shapes::mesh::create_triangle_mesh;
 use texture::{ConstantTexture, Texture};
 use transform::Transform;
+use {Normal3f, Point2f, Point3f};
 
 pub fn create(
     o2w: &Transform,

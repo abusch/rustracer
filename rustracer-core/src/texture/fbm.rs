@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 
 use Transform;
 use interaction::SurfaceInteraction;
-use paramset::TextureParams;
 use noise;
+use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::{IdentityMapping3D, Texture, TextureMapping3D};
 

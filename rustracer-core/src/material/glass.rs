@@ -6,8 +6,8 @@ use bsdf::{BxDF, BxDFHolder, Fresnel, FresnelSpecular, MicrofacetReflection,
            MicrofacetTransmission, SpecularReflection, SpecularTransmission,
            TrowbridgeReitzDistribution, BSDF};
 use interaction::SurfaceInteraction;
-use paramset::TextureParams;
 use material::{Material, TransportMode};
+use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::{TextureFloat, TextureSpectrum};
 

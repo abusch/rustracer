@@ -1,10 +1,10 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub,
-               SubAssign};
 use std::convert::From;
 use std::fmt::{Display, Error, Formatter};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub,
+               SubAssign};
 
-use {Normal3, Point3};
 use num::{Num, Zero};
+use {Normal3, Point3};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vector2<T> {

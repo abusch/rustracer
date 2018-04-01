@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use num::zero;
 
-use {clamp, gamma, lerp, Normal3f, Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds3f;
 use efloat::{solve_quadratic, EFloat};
 use interaction::{Interaction, SurfaceInteraction};
 use paramset::ParamSet;
 use ray::Ray;
 use shapes::Shape;
+use {clamp, gamma, lerp, Normal3f, Point2f, Point3f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct Cylinder {

@@ -1,15 +1,15 @@
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::f32;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use failure::Error;
 use parking_lot::Mutex;
 
-use {clamp, Point2f, Point2i, Vector2f};
 use bounds::{Bounds2f, Bounds2i};
 use filter::Filter;
 use imageio;
 use paramset::ParamSet;
 use spectrum::Spectrum;
+use {clamp, Point2f, Point2i, Vector2f};
 
 const FILTER_SIZE: usize = 16;
 const FILTER_TABLE_SIZE: usize = FILTER_SIZE * FILTER_SIZE;

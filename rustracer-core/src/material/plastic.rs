@@ -4,10 +4,10 @@ use light_arena::Allocator;
 
 use bsdf::{BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection,
            TrowbridgeReitzDistribution, BSDF};
-use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
+use spectrum::Spectrum;
 use texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]

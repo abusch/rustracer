@@ -1,11 +1,11 @@
 use num::Zero;
 
-use {Point2f, Point3f, Transform, Vector3f};
 use bounds::Bounds2f;
 use film::Film;
 use paramset::ParamSet;
 use ray::{Ray, RayDifferential};
 use sampling;
+use {Point2f, Point3f, Transform, Vector3f};
 
 pub trait Camera: Send + Sync {
     fn get_film(&self) -> &Film;

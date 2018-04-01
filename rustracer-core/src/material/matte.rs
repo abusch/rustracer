@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use clamp;
 use bsdf::{BxDFHolder, LambertianReflection, OrenNayar, BSDF};
+use clamp;
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;

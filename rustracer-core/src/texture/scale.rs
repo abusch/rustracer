@@ -1,6 +1,6 @@
-use std::sync::Arc;
 use std::fmt::Debug;
 use std::ops::Mul;
+use std::sync::Arc;
 
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;

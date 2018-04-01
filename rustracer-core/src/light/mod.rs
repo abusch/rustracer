@@ -3,21 +3,21 @@ use std::fmt::Debug;
 
 use parking_lot::Mutex;
 
-use {Point2f, Vector3f};
 use interaction::Interaction;
 use ray::Ray;
 use scene::Scene;
 use spectrum::Spectrum;
+use {Point2f, Vector3f};
 
-mod point;
-mod distant;
 mod diffuse;
+mod distant;
 mod infinite;
+mod point;
 
-pub use self::point::PointLight;
-pub use self::distant::DistantLight;
 pub use self::diffuse::DiffuseAreaLight;
+pub use self::distant::DistantLight;
 pub use self::infinite::InfiniteAreaLight;
+pub use self::point::PointLight;
 
 bitflags! {
     pub struct LightFlags: u32 {

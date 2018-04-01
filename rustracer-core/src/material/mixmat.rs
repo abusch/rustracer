@@ -17,7 +17,11 @@ pub struct MixMaterial {
 }
 
 impl MixMaterial {
-    pub fn create(mp: &TextureParams, m1: Arc<dyn Material>, m2: Arc<dyn Material>) -> Arc<dyn Material> {
+    pub fn create(
+        mp: &TextureParams,
+        m1: Arc<dyn Material>,
+        m2: Arc<dyn Material>,
+    ) -> Arc<dyn Material> {
         Arc::new(MixMaterial {
             mat1: m1,
             mat2: m2,

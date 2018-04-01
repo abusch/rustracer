@@ -1,12 +1,12 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
 
-use {Point2f, Transform, Vector3f};
 use interaction::Interaction;
 use light::{AreaLight, Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use shapes::Shape;
 use spectrum::Spectrum;
+use {Point2f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct DiffuseAreaLight {

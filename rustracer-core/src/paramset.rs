@@ -1,18 +1,18 @@
 #![macro_use]
 
-use std::fmt::Debug;
-use std::collections::HashMap;
-use std::sync::Arc;
 use std::cell::Cell;
+use std::collections::HashMap;
+use std::fmt::Debug;
+use std::sync::Arc;
 
-use {Normal3f, Point2f, Point3f, Vector3f};
 use api::{ParamListEntry, ParamType};
 use cie::CIE_LAMBDA;
 use fileutil::resolve_filename;
 use floatfile::read_float_file;
 use spectrum::{blackbody_normalized, Spectrum};
-use texture::Texture;
 use texture::ConstantTexture;
+use texture::Texture;
+use {Normal3f, Point2f, Point3f, Vector3f};
 
 macro_rules! find_one(
     ($x:ident, $y:ident, $t:ty) => (

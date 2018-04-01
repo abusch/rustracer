@@ -4,12 +4,12 @@ use std::sync::Arc;
 use num::Zero;
 use parking_lot::RwLock;
 
-use {Point2f, Point3f, Transform, Vector3f};
 use interaction::Interaction;
 use light::{Light, LightFlags, VisibilityTester};
 use paramset::ParamSet;
 use scene::Scene;
 use spectrum::Spectrum;
+use {Point2f, Point3f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct DistantLight {

@@ -1,8 +1,8 @@
 use std::fmt;
 
+use combine::char::{char, digit, spaces, string};
 use combine::{between, choice, eof, many, none_of, optional, satisfy, skip_many, token, try,
               ParseError, Parser, Stream, many1};
-use combine::char::{char, digit, spaces, string};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Tokens {
@@ -125,7 +125,8 @@ fn token_parser<'a, I: Stream<Item = char> + 'a>(
     string(s).skip(spaces()).map(move |_| t.clone()).boxed()
 }
 
-fn float_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
+fn float_parser<'a, I: Stream<Item = char> + 'a>(
+) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
     (
         optional(char('-').or(char('+'))),
         optional(many::<Vec<_>, _>(digit())),
@@ -166,8 +167,8 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, 
         .boxed()
 }
 
-fn string_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, Output = Tokens> + 'a>
-{
+fn string_parser<'a, I: Stream<Item = char> + 'a>(
+) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
     between(
         token('"'),
         token('"'),
@@ -183,8 +184,8 @@ fn string_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I,
         .boxed()
 }
 
-fn comment_parser<'a, I: Stream<Item = char> + 'a>() -> Box<dyn Parser<Input = I, Output = Tokens> + 'a>
-{
+fn comment_parser<'a, I: Stream<Item = char> + 'a>(
+) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
     token('#')
         .and(skip_many(satisfy(|c| c != '\n')))
         .skip(spaces())
