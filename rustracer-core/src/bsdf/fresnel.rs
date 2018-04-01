@@ -1,14 +1,14 @@
-use std::mem;
-use std::fmt::Debug;
 use std::f32;
+use std::fmt::Debug;
+use std::mem;
 
-use {Point2f, Vector3f, ONE_MINUS_EPSILON};
 use bsdf::{BxDF, BxDFType, MicrofacetDistribution};
+use clamp;
 use geometry::*;
 use material::TransportMode;
 use sampling::cosine_sample_hemisphere;
 use spectrum::Spectrum;
-use clamp;
+use {Point2f, Vector3f, ONE_MINUS_EPSILON};
 
 /// Compute the reflection direction
 pub fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {
@@ -88,18 +88,11 @@ pub trait Fresnel: Debug {
 
 impl dyn Fresnel {
     pub fn conductor(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
-        FresnelConductor {
-            eta_i,
-            eta_t,
-            k,
-        }
+        FresnelConductor { eta_i, eta_t, k }
     }
 
     pub fn dielectric(eta_i: f32, eta_t: f32) -> FresnelDielectric {
-        FresnelDielectric {
-            eta_i,
-            eta_t,
-        }
+        FresnelDielectric { eta_i, eta_t }
     }
 
     pub fn no_op() -> FresnelNoOp {
@@ -152,10 +145,7 @@ pub struct SpecularReflection<'a> {
 
 impl<'a> SpecularReflection<'a> {
     pub fn new(r: Spectrum, fresnel: &'a dyn Fresnel) -> SpecularReflection<'a> {
-        SpecularReflection {
-            r,
-            fresnel,
-        }
+        SpecularReflection { r, fresnel }
     }
 }
 

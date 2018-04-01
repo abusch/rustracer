@@ -2,23 +2,23 @@ mod bxdf;
 mod fourier;
 mod fresnel;
 mod lambertian;
-mod oren_nayar;
 mod microfacet;
+mod oren_nayar;
 
 pub use self::bxdf::*;
 pub use self::fourier::*;
 pub use self::fresnel::*;
 pub use self::lambertian::*;
-pub use self::oren_nayar::*;
 pub use self::microfacet::*;
+pub use self::oren_nayar::*;
 
 use std::cmp;
 
 use light_arena::Allocator;
 
-use {Normal3f, Point2f, Vector3f, ONE_MINUS_EPSILON};
-use spectrum::Spectrum;
 use interaction::SurfaceInteraction;
+use spectrum::Spectrum;
+use {Normal3f, Point2f, Vector3f, ONE_MINUS_EPSILON};
 
 bitflags! {
     pub struct BxDFType: u32 {
@@ -220,7 +220,7 @@ impl<'a> BSDF<'a> {
         }
 
         // Compute value of BSDF for sampled direction
-        if !bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) && matching_comps.len() > 1 {
+        if !bxdf.get_type().contains(BxDFType::BSDF_SPECULAR) {
             let reflect = wi_w.dotn(&self.ng) * wo_w.dotn(&self.ng) > 0.0;
             f = matching_comps
                 .iter()

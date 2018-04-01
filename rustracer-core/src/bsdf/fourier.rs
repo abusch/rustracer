@@ -1,18 +1,18 @@
-use std::path::Path;
 use std::f32::consts::PI;
 use std::fs::File;
 use std::io::{BufReader, Read};
+use std::path::Path;
 
 use byteorder::{NativeEndian, ReadBytesExt};
 use failure::Error;
 use num::zero;
 
-use {clamp, Point2f, Vector3f};
 use bsdf::{BxDF, BxDFType};
 use geometry::{cos_theta, sin2_theta};
 use interpolation::{catmull_rom_weights, fourier, sample_fourier, sample_catmull_rom_2d};
 use material::TransportMode;
 use spectrum::Spectrum;
+use {clamp, Point2f, Vector3f};
 
 // This is ugly, but FourierBSDF has to be Copy, because it implements BxDF and needs to be
 // allocated from the arena, but I can't make it work with FourierBSDFTable... There must be a way
@@ -352,16 +352,7 @@ impl FourierBSDFTable {
 
         info!("Loading BSDF file \"{}\"", filename.display());
 
-        const HEADER_EXP: [u8; 8] = [
-            b'S',
-            b'C',
-            b'A',
-            b'T',
-            b'F',
-            b'U',
-            b'N',
-            b'\x01',
-        ];
+        const HEADER_EXP: [u8; 8] = [b'S', b'C', b'A', b'T', b'F', b'U', b'N', b'\x01'];
         let mut header = [0; 8];
         f.read_exact(&mut header)?;
         if header != HEADER_EXP {

@@ -1,7 +1,7 @@
 use std::f32::consts;
 
-use bsdf::{BxDF, BxDFType};
 use Vector3f;
+use bsdf::{BxDF, BxDFType};
 use spectrum::Spectrum;
 
 #[derive(Copy, Clone, Debug)]

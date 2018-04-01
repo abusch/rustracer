@@ -1,10 +1,10 @@
 use std::f32::consts;
 
 use Vector3f;
-use spectrum::Spectrum;
 use bsdf::BxDFType;
-use geometry::{abs_cos_theta, cos_phi, sin_phi, sin_theta};
 use bsdf::bxdf::BxDF;
+use geometry::{abs_cos_theta, cos_phi, sin_phi, sin_theta};
+use spectrum::Spectrum;
 
 #[derive(Copy, Clone, Debug)]
 pub struct OrenNayar {

@@ -1,13 +1,13 @@
 use std::f32::consts;
 use std::fmt::Debug;
 
-use {Point2f, Vector3f};
-use spectrum::Spectrum;
+use bsdf::fresnel::{Fresnel, FresnelDielectric};
 use bsdf::{reflect, refract, BxDF, BxDFType};
 use geometry::{abs_cos_theta, cos_phi, cos_theta, erf, erf_inv, same_hemisphere, sin_phi,
                spherical_direction, tan_theta, cos2_phi, cos2_theta, sin2_phi, tan2_theta};
 use material::TransportMode;
-use bsdf::fresnel::{Fresnel, FresnelDielectric};
+use spectrum::Spectrum;
+use {Point2f, Vector3f};
 
 #[derive(Copy, Clone, Debug)]
 pub struct MicrofacetReflection<'a> {

@@ -2,10 +2,10 @@ use std::f32::consts;
 use std::fmt::Debug;
 
 use super::BxDFType;
-use {Point2f, Vector3f};
 use geometry::{abs_cos_theta, same_hemisphere};
 use sampling::cosine_sample_hemisphere;
 use spectrum::Spectrum;
+use {Point2f, Vector3f};
 
 pub trait BxDF: Debug {
     /// Evaluate the BxDF for the given incoming and outgoing directions.
@@ -52,10 +52,7 @@ pub struct ScaledBxDF<'a> {
 
 impl<'a> ScaledBxDF<'a> {
     pub fn new(bxdf: &'a dyn BxDF, scale: Spectrum) -> ScaledBxDF<'a> {
-        ScaledBxDF {
-            bxdf,
-            scale,
-        }
+        ScaledBxDF { bxdf, scale }
     }
 }
 
