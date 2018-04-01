@@ -1,10 +1,9 @@
-use std::sync::Arc;
 use std::f32;
+use std::sync::Arc;
 
 use light_arena::Allocator;
 use num::zero;
 
-use {clamp, lerp, Point2f, Vector3f};
 use bsdf::{BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
            MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
            TrowbridgeReitzDistribution, BSDF};
@@ -13,8 +12,9 @@ use geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;
-use texture::{TextureFloat, TextureSpectrum};
 use spectrum::Spectrum;
+use texture::{TextureFloat, TextureSpectrum};
+use {clamp, lerp, Point2f, Vector3f};
 
 #[derive(Debug)]
 pub struct DisneyMaterial {
@@ -354,8 +354,7 @@ impl BxDF for DisneyClearCoat {
         // The geometric term always based on alpha = 0.25.
         let Gr = smithG_GGX(abs_cos_theta(wo), 0.25) * smithG_GGX(abs_cos_theta(wi), 0.25);
 
-        // Ad-hoc 0.25 term to match Disney implementation (unpublished, via Brent Burley)
-        Spectrum::from(0.25 * self.weight * Gr * Fr * Dr / (abs_cos_theta(wo) * abs_cos_theta(wi)))
+        Spectrum::from(self.weight * Gr * Fr * Dr / 4.0)
     }
 
     fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
