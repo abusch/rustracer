@@ -1,6 +1,6 @@
 use super::Filter;
-use Vector2f;
 use paramset::ParamSet;
+use Vector2f;
 
 pub struct GaussianFilter {
     radius: (f32, f32),

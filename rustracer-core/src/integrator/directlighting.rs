@@ -125,13 +125,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
                     colour +=
                         self.specular_reflection(ray, &isect, scene, &bsdf, sampler, arena, depth);
                     colour += self.specular_transmission(
-                        ray,
-                        &isect,
-                        scene,
-                        &bsdf,
-                        sampler,
-                        arena,
-                        depth,
+                        ray, &isect, scene, &bsdf, sampler, arena, depth,
                     );
                 }
             }

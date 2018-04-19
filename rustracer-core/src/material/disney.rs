@@ -4,10 +4,10 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use num::zero;
 
+use bsdf::{fr_dielectric, reflect, Fresnel};
 use bsdf::{BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
            MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
            TrowbridgeReitzDistribution, BSDF};
-use bsdf::{fr_dielectric, reflect, Fresnel};
 use geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
@@ -120,30 +120,36 @@ impl Material for DisneyMaterial {
                 let flat = self.flatness.evaluate(si);
                 // Blend between DisneyDiffuse and fake subsurface based on flatness. Additionally,
                 // weight using diff_trans.
-                bxdfs.add(
-                    arena <- DisneyDiffuse::new(diffuse_weight * (1.0 - flat) * (1.0 - dt) * c),
-                );
-                bxdfs
-                    .add(arena <- DisneyFakeSS::new(diffuse_weight * flat * (1.0 - dt) * c, rough));
+                bxdfs.add(arena.alloc(DisneyDiffuse::new(
+                    diffuse_weight * (1.0 - flat) * (1.0 - dt) * c,
+                )));
+                bxdfs.add(arena.alloc(DisneyFakeSS::new(
+                    diffuse_weight * flat * (1.0 - dt) * c,
+                    rough,
+                )));
             } else {
                 let sd = self.scatter_distance.evaluate(si);
                 if sd.is_black() {
                     // No subsurface scattering; use regular (Fresnel modified) diffuse.
-                    bxdfs.add(arena <- DisneyDiffuse::new(diffuse_weight * c));
+                    bxdfs.add(arena.alloc(DisneyDiffuse::new(diffuse_weight * c)));
                 } else {
                     // Use a BSSRDF instead.
-                    bxdfs
-                        .add(arena <- SpecularTransmission::new(Spectrum::from(1.0), 1.0, e, mode));
+                    bxdfs.add(arena.alloc(SpecularTransmission::new(
+                        Spectrum::from(1.0),
+                        1.0,
+                        e,
+                        mode,
+                    )));
                     // TODO: BSSRDF
                 }
             }
 
             // Retro-reflection.
-            bxdfs.add(arena <- DisneyRetro::new(diffuse_weight * c, rough));
+            bxdfs.add(arena.alloc(DisneyRetro::new(diffuse_weight * c, rough)));
 
             // Sheen (if enabled).
             if sheen_weight > 0.0 {
-                bxdfs.add(arena <- DisneySheen::new(diffuse_weight * sheen_weight * c_sheen));
+                bxdfs.add(arena.alloc(DisneySheen::new(diffuse_weight * sheen_weight * c_sheen)));
             }
         }
 
@@ -151,7 +157,7 @@ impl Material for DisneyMaterial {
         let aspect = f32::sqrt(1.0 - self.anisotropic.evaluate(si) * 0.9);
         let ax = f32::max(0.001, sqr(rough) / aspect);
         let ay = f32::max(0.001, sqr(rough) * aspect);
-        let distrib = arena <- DisneyMicrofacetDistribution::new(ax, ay);
+        let distrib = arena.alloc(DisneyMicrofacetDistribution::new(ax, ay));
 
         // Specular is Trowbridge-Reitz with a modified Fresnel function
         let spec_tint = self.specular_tint.evaluate(si);
@@ -160,15 +166,16 @@ impl Material for DisneyMaterial {
             schlick_r0_from_eta(e) * lerp(spec_tint, Spectrum::white(), c_tint),
             c,
         );
-        let fresnel = arena <- DisneyFresnel::new(cspec0, metallic_weight, e);
-        bxdfs.add(arena <- MicrofacetReflection::new(c, distrib, fresnel));
+        let fresnel = arena.alloc(DisneyFresnel::new(cspec0, metallic_weight, e));
+        bxdfs.add(arena.alloc(MicrofacetReflection::new(c, distrib, fresnel)));
 
         // Clearcoat
         let cc = self.clearcoat.evaluate(si);
         if cc > 0.0 {
-            bxdfs.add(
-                arena <- DisneyClearCoat::new(cc, lerp(self.clearcoat_gloss.evaluate(si), 0.1, 0.001)),
-            );
+            bxdfs.add(arena.alloc(DisneyClearCoat::new(
+                cc,
+                lerp(self.clearcoat_gloss.evaluate(si), 0.1, 0.001),
+            )));
         }
 
         // BTDF
@@ -181,16 +188,22 @@ impl Material for DisneyMaterial {
                 let rscaled = (0.65 * e - 0.35) * rough;
                 let ax = f32::max(0.001, sqr(rscaled) / aspect);
                 let ay = f32::max(0.001, sqr(rscaled) * aspect);
-                let scaled_distrib = arena <- TrowbridgeReitzDistribution::new(ax, ay);
-                bxdfs.add(arena <- MicrofacetTransmission::new(t, scaled_distrib, 1.0, e, mode));
+                let scaled_distrib = arena.alloc(TrowbridgeReitzDistribution::new(ax, ay));
+                bxdfs.add(arena.alloc(MicrofacetTransmission::new(
+                    t,
+                    scaled_distrib,
+                    1.0,
+                    e,
+                    mode,
+                )));
             } else {
-                bxdfs.add(arena <- MicrofacetTransmission::new(t, distrib, 1.0, e, mode));
+                bxdfs.add(arena.alloc(MicrofacetTransmission::new(t, distrib, 1.0, e, mode)));
             }
         }
 
         if self.thin {
             // Lambertian, weighted by (1.0 - diff_trans}
-            bxdfs.add(arena <- LambertianTransmission::new(dt * c));
+            bxdfs.add(arena.alloc(LambertianTransmission::new(dt * c)));
         }
 
         si.bsdf = Some(Arc::new(BSDF::new(si, 1.0, bxdfs.into_slice())));

@@ -20,8 +20,8 @@ use material::{DisneyMaterial, FourierMaterial, GlassMaterial, Material, MatteMa
 use paramset::{ParamSet, TextureParams};
 use primitive::{GeometricPrimitive, Primitive, TransformedPrimitive};
 use renderer;
-use sampler::Sampler;
 use sampler::zerotwosequence::ZeroTwoSequence;
+use sampler::Sampler;
 use scene::Scene;
 use shapes::plymesh;
 use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
@@ -583,22 +583,8 @@ impl Api for RealApi {
         let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let mat = Matrix4x4::from_elements(
-            tr00,
-            tr04,
-            tr08,
-            tr12,
-            tr01,
-            tr05,
-            tr09,
-            tr13,
-            tr02,
-            tr06,
-            tr10,
-            tr14,
-            tr03,
-            tr07,
-            tr11,
-            tr15,
+            tr00, tr04, tr08, tr12, tr01, tr05, tr09, tr13, tr02, tr06, tr10, tr14, tr03, tr07,
+            tr11, tr15,
         );
         state.cur_transform = &state.cur_transform * &Transform {
             m: mat,
@@ -629,22 +615,8 @@ impl Api for RealApi {
         let state = &mut *self.state.borrow_mut();
         state.api_state.verify_initialized()?;
         let mat = Matrix4x4::from_elements(
-            tr00,
-            tr04,
-            tr08,
-            tr12,
-            tr01,
-            tr05,
-            tr09,
-            tr13,
-            tr02,
-            tr06,
-            tr10,
-            tr14,
-            tr03,
-            tr07,
-            tr11,
-            tr15,
+            tr00, tr04, tr08, tr12, tr01, tr05, tr09, tr13, tr02, tr06, tr10, tr14, tr03, tr07,
+            tr11, tr15,
         );
         state.cur_transform = Transform {
             m: mat,

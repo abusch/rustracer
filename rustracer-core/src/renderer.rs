@@ -5,7 +5,6 @@ use failure::Error;
 use indicatif;
 use parking_lot::Mutex;
 
-use Point2i;
 use bounds::Bounds2i;
 use camera::Camera;
 use display::DisplayUpdater;
@@ -15,6 +14,7 @@ use sampler::Sampler;
 use scene::Scene;
 use spectrum::Spectrum;
 use stats;
+use Point2i;
 
 stat_counter!("Integrator/Camera rays traced", n_camera_ray);
 pub fn init_stats() {

@@ -3,14 +3,14 @@ use std::f32;
 use std::fmt::{self, Debug};
 use std::ops::{AddAssign, Div, Mul};
 
-use ndarray::Zip;
 use ndarray::prelude::*;
+use ndarray::Zip;
 use ndarray_parallel::prelude::*;
 use num::{zero, Zero};
 
 use blockedarray::BlockedArray;
+use {clamp, is_power_of_2, lerp, round_up_pow_2};
 use {Clampable, Point2f, Point2i, Vector2f};
-use {clamp, lerp, is_power_of_2, round_up_pow_2};
 
 stat_counter!("Texture/EWA lookups", n_ewa_lookups);
 stat_counter!("Texture/Trilinear lookups", n_trilerp_lookups);

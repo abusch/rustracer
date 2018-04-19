@@ -8,9 +8,9 @@ use std::path::Path;
 use combine::State;
 use failure::*;
 
-use PbrtOptions;
 use api::{Api, RealApi};
 use fileutil;
+use PbrtOptions;
 
 pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<(), Error> {
     let filename = filename.as_ref();

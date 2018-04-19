@@ -3,13 +3,13 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use Transform;
 use bounds::Bounds3f;
 use interaction::SurfaceInteraction;
 use light::AreaLight;
 use material::{Material, TransportMode};
 use ray::Ray;
 use shapes::Shape;
+use Transform;
 
 pub trait Primitive: Debug + Send + Sync {
     fn world_bounds(&self) -> Bounds3f;

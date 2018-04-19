@@ -3,8 +3,8 @@ use num::Zero;
 use camera::CameraSample;
 use paramset::ParamSet;
 use rng::RNG;
+use sampler::lowdiscrepancy::{sobol_2d, van_der_corput};
 use sampler::Sampler;
-use sampler::lowdiscrepancy::{van_der_corput, sobol_2d};
 use {Point2f, Point2i};
 
 #[derive(Clone)]

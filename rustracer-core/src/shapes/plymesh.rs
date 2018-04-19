@@ -7,8 +7,8 @@ use ply_rs::parser;
 use ply_rs::ply;
 
 use paramset::ParamSet;
-use shapes::Shape;
 use shapes::mesh::create_triangle_mesh;
+use shapes::Shape;
 use texture::{ConstantTexture, Texture};
 use transform::Transform;
 use {Normal3f, Point2f, Point3f};

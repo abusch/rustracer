@@ -20,7 +20,7 @@ image = "0.18"
 indicatif = "0.9"
 itertools = "0.7"
 lazy_static = "1.0"
-light_arena = "0.1"
+light_arena = { version="0.1", path="../../light_arena" }
 log = "0.4"
 minifb = { version = "0.10", optional = true }
 ndarray = "0.11"

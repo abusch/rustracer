@@ -1,8 +1,8 @@
-use Transform;
 use interaction::SurfaceInteraction;
 use paramset::TextureParams;
 use spectrum::Spectrum;
 use texture::{Texture, TextureMapping2D, UVMapping2D};
+use Transform;
 
 #[derive(Debug)]
 pub struct UVTexture {

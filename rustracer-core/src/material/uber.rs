@@ -77,17 +77,17 @@ impl Material for UberMaterial {
         let mut eta = e;
         if !t.is_black() {
             eta = 1.0;
-            bxdfs.add(arena <- SpecularTransmission::new(t, 1.0, 1.0, mode));
+            bxdfs.add(arena.alloc(SpecularTransmission::new(t, 1.0, 1.0, mode)));
         }
 
         let kd = op * self.kd.evaluate(si).clamp();
         if !kd.is_black() {
-            bxdfs.add(arena <- LambertianReflection::new(kd));
+            bxdfs.add(arena.alloc(LambertianReflection::new(kd)));
         }
 
         let ks = op * self.ks.evaluate(si).clamp();
         if !ks.is_black() {
-            let fresnel = arena <- Fresnel::dielectric(1.0, e);
+            let fresnel = arena.alloc(Fresnel::dielectric(1.0, e));
             let mut roughu = self.roughnessu
                 .as_ref()
                 .unwrap_or(&self.roughness)
@@ -100,19 +100,19 @@ impl Material for UberMaterial {
                 roughu = TrowbridgeReitzDistribution::roughness_to_alpha(roughu);
                 roughv = TrowbridgeReitzDistribution::roughness_to_alpha(roughv);
             }
-            let distrib = arena <- TrowbridgeReitzDistribution::new(roughu, roughv);
-            bxdfs.add(arena <- MicrofacetReflection::new(ks, distrib, fresnel));
+            let distrib = arena.alloc(TrowbridgeReitzDistribution::new(roughu, roughv));
+            bxdfs.add(arena.alloc(MicrofacetReflection::new(ks, distrib, fresnel)));
         }
 
         let kr = op * self.kr.evaluate(si).clamp();
         if !kr.is_black() {
-            let fresnel = arena <- Fresnel::dielectric(1.0, e);
-            bxdfs.add(arena <-SpecularReflection::new(kr, fresnel));
+            let fresnel = arena.alloc(Fresnel::dielectric(1.0, e));
+            bxdfs.add(arena.alloc(SpecularReflection::new(kr, fresnel)));
         }
 
         let kt = op * self.kt.evaluate(si).clamp();
         if !kt.is_black() {
-            bxdfs.add(arena <- SpecularTransmission::new(kt, 1.0, e, mode));
+            bxdfs.add(arena.alloc(SpecularTransmission::new(kt, 1.0, e, mode)));
         }
 
         let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.into_slice());

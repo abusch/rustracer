@@ -1,7 +1,7 @@
 use combine::char::{spaces, string};
 use combine::primitives::Error;
-use combine::{between, eof, many, satisfy_map, token, try, value, ParseError, Parser, Stream,
-              many1};
+use combine::{between, eof, many, many1, satisfy_map, token, try, value, ParseError, Parser,
+              Stream};
 
 use super::lexer::Tokens;
 use api::{Api, Array, ParamListEntry, ParamType};
@@ -113,43 +113,15 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
     let concat_transform =
         (token::<I>(Tokens::CONCATTRANSFORM), num_array()).and_then(|(_, nums)| {
             api.concat_transform(
-                nums[0],
-                nums[1],
-                nums[2],
-                nums[3],
-                nums[4],
-                nums[5],
-                nums[6],
-                nums[7],
-                nums[8],
-                nums[9],
-                nums[10],
-                nums[11],
-                nums[12],
-                nums[13],
-                nums[14],
-                nums[15],
+                nums[0], nums[1], nums[2], nums[3], nums[4], nums[5], nums[6], nums[7], nums[8],
+                nums[9], nums[10], nums[11], nums[12], nums[13], nums[14], nums[15],
             ).map_err(|e| e.compat())
         });
 
     let transform = (token::<I>(Tokens::TRANSFORM), num_array()).and_then(|(_, nums)| {
         api.transform(
-            nums[0],
-            nums[1],
-            nums[2],
-            nums[3],
-            nums[4],
-            nums[5],
-            nums[6],
-            nums[7],
-            nums[8],
-            nums[9],
-            nums[10],
-            nums[11],
-            nums[12],
-            nums[13],
-            nums[14],
-            nums[15],
+            nums[0], nums[1], nums[2], nums[3], nums[4], nums[5], nums[6], nums[7], nums[8],
+            nums[9], nums[10], nums[11], nums[12], nums[13], nums[14], nums[15],
         ).map_err(|e| e.compat())
     });
 

@@ -67,40 +67,12 @@ impl Transform {
 
     pub fn translate(delta: &Vector3f) -> Transform {
         let m = Matrix4x4::from_elements(
-            1.0,
-            0.0,
-            0.0,
-            delta.x,
-            0.0,
-            1.0,
-            0.0,
-            delta.y,
-            0.0,
-            0.0,
-            1.0,
-            delta.z,
-            0.0,
-            0.0,
-            0.0,
+            1.0, 0.0, 0.0, delta.x, 0.0, 1.0, 0.0, delta.y, 0.0, 0.0, 1.0, delta.z, 0.0, 0.0, 0.0,
             1.0,
         );
         let minv = Matrix4x4::from_elements(
-            1.0,
-            0.0,
-            0.0,
-            -delta.x,
-            0.0,
-            1.0,
-            0.0,
-            -delta.y,
-            0.0,
-            0.0,
-            1.0,
-            -delta.z,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
+            1.0, 0.0, 0.0, -delta.x, 0.0, 1.0, 0.0, -delta.y, 0.0, 0.0, 1.0, -delta.z, 0.0, 0.0,
+            0.0, 1.0,
         );
         Transform { m: m, m_inv: minv }
     }
@@ -119,22 +91,7 @@ impl Transform {
 
     pub fn scale(sx: f32, sy: f32, sz: f32) -> Transform {
         let m = Matrix4x4::from_elements(
-            sx,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            sy,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            sz,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
+            sx, 0.0, 0.0, 0.0, 0.0, sy, 0.0, 0.0, 0.0, 0.0, sz, 0.0, 0.0, 0.0, 0.0, 1.0,
         );
         let minv = Matrix4x4::from_elements(
             1.0 / sx,

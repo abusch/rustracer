@@ -9,7 +9,7 @@ use num::zero;
 
 use bsdf::{BxDF, BxDFType};
 use geometry::{cos_theta, sin2_theta};
-use interpolation::{catmull_rom_weights, fourier, sample_fourier, sample_catmull_rom_2d};
+use interpolation::{catmull_rom_weights, fourier, sample_catmull_rom_2d, sample_fourier};
 use material::TransportMode;
 use spectrum::Spectrum;
 use {clamp, Point2f, Vector3f};

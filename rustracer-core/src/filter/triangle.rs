@@ -1,6 +1,6 @@
-use Vector2f;
 use filter::Filter;
 use paramset::ParamSet;
+use Vector2f;
 
 #[derive(Debug)]
 pub struct TriangleFilter {

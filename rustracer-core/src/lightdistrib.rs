@@ -1,6 +1,6 @@
 use std::num::Wrapping;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicPtr, AtomicU64, Ordering};
+use std::sync::Arc;
 
 use num::Zero;
 

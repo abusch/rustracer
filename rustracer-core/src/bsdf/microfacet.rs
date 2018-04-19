@@ -3,8 +3,8 @@ use std::fmt::Debug;
 
 use bsdf::fresnel::{Fresnel, FresnelDielectric};
 use bsdf::{reflect, refract, BxDF, BxDFType};
-use geometry::{abs_cos_theta, cos_phi, cos_theta, erf, erf_inv, same_hemisphere, sin_phi,
-               spherical_direction, tan_theta, cos2_phi, cos2_theta, sin2_phi, tan2_theta};
+use geometry::{abs_cos_theta, cos2_phi, cos2_theta, cos_phi, cos_theta, erf, erf_inv,
+               same_hemisphere, sin2_phi, sin_phi, spherical_direction, tan2_theta, tan_theta};
 use material::TransportMode;
 use spectrum::Spectrum;
 use {Point2f, Vector3f};

@@ -54,16 +54,16 @@ impl Material for Plastic {
 
         let mut bxdfs = BxDFHolder::new(arena);
         if !kd.is_black() {
-            bxdfs.add(arena <- LambertianReflection::new(kd));
+            bxdfs.add(arena.alloc(LambertianReflection::new(kd)));
         }
         if !ks.is_black() {
-            let fresnel = arena <- Fresnel::dielectric(1.5, 1.0);
+            let fresnel = arena.alloc(Fresnel::dielectric(1.5, 1.0));
             let mut roughness = self.roughness.evaluate(si);
             if self.remap_roughness {
                 roughness = TrowbridgeReitzDistribution::roughness_to_alpha(roughness);
             }
-            let distrib = arena <- TrowbridgeReitzDistribution::new(roughness, roughness);
-            bxdfs.add(arena <- MicrofacetReflection::new(ks, distrib, fresnel));
+            let distrib = arena.alloc(TrowbridgeReitzDistribution::new(roughness, roughness));
+            bxdfs.add(arena.alloc(MicrofacetReflection::new(ks, distrib, fresnel)));
         }
 
         let bsdf: BSDF<'b> = BSDF::new(si, 1.0, bxdfs.into_slice());

@@ -39,7 +39,7 @@ impl Material for FourierMaterial {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);
         }
-        bxdfs.add(arena <- FourierBSDF::new(&self.bsdf_table, mode));
+        bxdfs.add(arena.alloc(FourierBSDF::new(&self.bsdf_table, mode)));
         let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
