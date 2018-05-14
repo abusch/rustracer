@@ -1,7 +1,8 @@
 use std::convert::From;
 use std::fmt::{Display, Error, Formatter};
-use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub,
-               SubAssign};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 
 use num::{Num, Zero};
 use {Normal3, Point3};

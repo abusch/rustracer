@@ -14,9 +14,10 @@ use filter::{BoxFilter, Filter, GaussianFilter, MitchellNetravali, TriangleFilte
 use geometry::Matrix4x4;
 use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
 use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
-use material::{DisneyMaterial, FourierMaterial, GlassMaterial, Material, MatteMaterial, Metal,
-               MirrorMaterial, MixMaterial, Plastic, SubstrateMaterial, TranslucentMaterial,
-               UberMaterial};
+use material::{
+    DisneyMaterial, FourierMaterial, GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial,
+    MixMaterial, Plastic, SubstrateMaterial, TranslucentMaterial, UberMaterial,
+};
 use paramset::{ParamSet, TextureParams};
 use primitive::{GeometricPrimitive, Primitive, TransformedPrimitive};
 use renderer;
@@ -27,8 +28,10 @@ use shapes::plymesh;
 use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
 use spectrum::Spectrum;
 use stats;
-use texture::{CheckerboardTexture, ConstantTexture, FbmTexture, ImageTexture, MixTexture,
-              ScaleTexture, Texture, UVTexture};
+use texture::{
+    CheckerboardTexture, ConstantTexture, FbmTexture, ImageTexture, MixTexture, ScaleTexture,
+    Texture, UVTexture,
+};
 use {PbrtOptions, Point3f, Transform, Vector3f};
 
 stat_counter!("Scene/Materials created", n_materials_created);

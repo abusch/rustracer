@@ -5,9 +5,11 @@ use light_arena::Allocator;
 use num::zero;
 
 use bsdf::{fr_dielectric, reflect, Fresnel};
-use bsdf::{BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
-           MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
-           TrowbridgeReitzDistribution, BSDF};
+use bsdf::{
+    BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
+    MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
+    TrowbridgeReitzDistribution, BSDF,
+};
 use geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};

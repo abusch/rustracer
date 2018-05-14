@@ -1,8 +1,10 @@
 use std::fmt;
 
 use combine::char::{char, digit, spaces, string};
-use combine::{between, choice, eof, many, many1, none_of, optional, satisfy, skip_many, token,
-              try, ParseError, Parser, Stream};
+use combine::{
+    between, choice, eof, many, many1, none_of, optional, satisfy, skip_many, token, try,
+    ParseError, Parser, Stream,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Tokens {

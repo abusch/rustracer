@@ -12,8 +12,10 @@ use ray::Ray;
 use sampling;
 use shapes::Shape;
 use texture::{ConstantTexture, Texture, TextureFloat};
-use {coordinate_system, gamma, max_component, max_dimension, permute_p, permute_v, Normal3f,
-     Point2f, Point3f, Transform, Vector3f};
+use {
+    coordinate_system, gamma, max_component, max_dimension, permute_p, permute_v, Normal3f,
+    Point2f, Point3f, Transform, Vector3f,
+};
 
 stat_percent!("Intersections/Ray-triangle intersection tests", n_hits);
 stat_memory_counter!("Memory/Triangle meshes", tri_mesh_bytes);

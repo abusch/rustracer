@@ -1,7 +1,8 @@
 use combine::char::{spaces, string};
 use combine::primitives::Error;
-use combine::{between, eof, many, many1, satisfy_map, token, try, value, ParseError, Parser,
-              Stream};
+use combine::{
+    between, eof, many, many1, satisfy_map, token, try, value, ParseError, Parser, Stream,
+};
 
 use super::lexer::Tokens;
 use api::{Api, Array, ParamListEntry, ParamType};

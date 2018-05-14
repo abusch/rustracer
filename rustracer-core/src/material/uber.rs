@@ -2,8 +2,10 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection, SpecularReflection,
-           SpecularTransmission, TrowbridgeReitzDistribution, BSDF};
+use bsdf::{
+    BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection, SpecularReflection,
+    SpecularTransmission, TrowbridgeReitzDistribution, BSDF,
+};
 use interaction::SurfaceInteraction;
 use material::{Material, TransportMode};
 use paramset::TextureParams;

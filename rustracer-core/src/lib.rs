@@ -1,5 +1,3 @@
-// Unstable features coming in next Epoch
-#![feature(dyn_trait)]
 // Unstable features needed for light_arena
 #![feature(integer_atomics, vec_resize_default)]
 // Lints
