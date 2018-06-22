@@ -103,7 +103,7 @@ fn write_image_exr<P: AsRef<Path>>(
     // RGB data.
     let data: Vec<_> = rgb.chunks(3).map(|p| (p[0], p[1], p[2])).collect();
     {
-        let mut fb = FrameBuffer::new(resolution.x as usize, resolution.y as usize);
+        let mut fb = FrameBuffer::new(resolution.x as u32, resolution.y as u32);
         fb.insert_channels(&["R", "G", "B"], &data[..]);
 
         // Write pixel data to the file.
@@ -169,7 +169,7 @@ fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     {
         let mut fb = {
             // Create the frame buffer
-            let mut fb = FrameBufferMut::new(width as usize, height as usize);
+            let mut fb = FrameBufferMut::new(width as u32, height as u32);
             fb.insert_channels(&[("R", 0.0), ("G", 0.0), ("B", 0.0)], &mut pixel_data);
             fb
         };

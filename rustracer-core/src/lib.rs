@@ -1,4 +1,3 @@
-// Unstable features needed for light_arena
 #![feature(integer_atomics, vec_resize_default)]
 // Lints
 #![deny(unused_qualifications, unused_must_use)]
