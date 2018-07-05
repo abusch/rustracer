@@ -79,7 +79,9 @@ impl EFloat {
         assert!(!self.v.is_nan());
         assert!(!self.low.is_nan());
         assert!(!self.high.is_nan());
-        if !self.low.is_infinite() && !self.low.is_nan() && !self.high.is_infinite()
+        if !self.low.is_infinite()
+            && !self.low.is_nan()
+            && !self.high.is_infinite()
             && !self.high.is_nan()
         {
             assert!(self.low <= self.high);

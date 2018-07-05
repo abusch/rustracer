@@ -368,7 +368,9 @@ impl<'a> FresnelBlend<'a> {
 
 impl<'a> BxDF for FresnelBlend<'a> {
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
-        let diffuse = (28.0 / (23.0 * f32::consts::PI)) * self.rd * (Spectrum::white() - self.rs)
+        let diffuse = (28.0 / (23.0 * f32::consts::PI))
+            * self.rd
+            * (Spectrum::white() - self.rs)
             * (1.0 - pow5(1.0 - 0.5 * abs_cos_theta(wi)))
             * (1.0 - pow5(1.0 - 0.5 * abs_cos_theta(wo)));
 

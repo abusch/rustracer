@@ -158,8 +158,14 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
 
         (Spectrum::white() - f) * self.t
             * f32::abs(
-                self.distribution.d(&wh) * self.distribution.g(wo, wi) * eta * eta
-                    * wi.dot(&wh).abs() * wo.dot(&wh).abs() * factor * factor
+                self.distribution.d(&wh)
+                    * self.distribution.g(wo, wi)
+                    * eta
+                    * eta
+                    * wi.dot(&wh).abs()
+                    * wo.dot(&wh).abs()
+                    * factor
+                    * factor
                     / (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom),
             )
     }
@@ -481,7 +487,10 @@ impl TrowbridgeReitzDistribution {
     pub fn roughness_to_alpha(roughness: f32) -> f32 {
         let roughness = roughness.max(1e-3);
         let x = roughness.ln();
-        1.62142 + 0.819955 * x + 0.1734 * x * x + 0.0171201 * x * x * x
+        1.62142
+            + 0.819955 * x
+            + 0.1734 * x * x
+            + 0.0171201 * x * x * x
             + 0.000640711 * x * x * x * x
     }
 

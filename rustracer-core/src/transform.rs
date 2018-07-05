@@ -194,17 +194,20 @@ impl Transform {
         let tp = self * p;
         let m = self.m.m;
         let x_abs_err = (gamma(3) + 1.0)
-            * ((m[0][0] * p_error.x).abs() + (m[0][1] * p_error.y).abs()
+            * ((m[0][0] * p_error.x).abs()
+                + (m[0][1] * p_error.y).abs()
                 + (m[0][2] * p_error.z).abs())
             + gamma(3)
                 * ((m[0][0] * x).abs() + (m[0][1] * y).abs() + (m[0][2] * z).abs() + m[0][3].abs());
         let y_abs_err = (gamma(3) + 1.0)
-            * ((m[1][0] * p_error.x).abs() + (m[1][1] * p_error.y).abs()
+            * ((m[1][0] * p_error.x).abs()
+                + (m[1][1] * p_error.y).abs()
                 + (m[1][2] * p_error.z).abs())
             + gamma(3)
                 * ((m[1][0] * x).abs() + (m[1][1] * y).abs() + (m[1][2] * z).abs() + m[1][3].abs());
         let z_abs_err = (gamma(3) + 1.0)
-            * ((m[2][0] * p_error.x).abs() + (m[2][1] * p_error.y).abs()
+            * ((m[2][0] * p_error.x).abs()
+                + (m[2][1] * p_error.y).abs()
                 + (m[2][2] * p_error.z).abs())
             + gamma(3)
                 * ((m[2][0] * x).abs() + (m[2][1] * y).abs() + (m[2][2] * z).abs() + m[2][3].abs());
@@ -219,11 +222,17 @@ impl Transform {
         let (x, y, z) = (v.x, v.y, v.z);
         let tv = self * v;
         let m = self.m.m;
-        let x_abs_sum = f32::abs(m[0][0] * x) + f32::abs(m[0][1] * y) + f32::abs(m[0][2] * z)
+        let x_abs_sum = f32::abs(m[0][0] * x)
+            + f32::abs(m[0][1] * y)
+            + f32::abs(m[0][2] * z)
             + f32::abs(m[0][3]);
-        let y_abs_sum = f32::abs(m[1][0] * x) + f32::abs(m[1][1] * y) + f32::abs(m[1][2] * z)
+        let y_abs_sum = f32::abs(m[1][0] * x)
+            + f32::abs(m[1][1] * y)
+            + f32::abs(m[1][2] * z)
             + f32::abs(m[1][3]);
-        let z_abs_sum = f32::abs(m[2][0] * x) + f32::abs(m[2][1] * y) + f32::abs(m[2][2] * z)
+        let z_abs_sum = f32::abs(m[2][0] * x)
+            + f32::abs(m[2][1] * y)
+            + f32::abs(m[2][2] * z)
             + f32::abs(m[2][3]);
         let v_err = gamma(3) * Vector3f::new(x_abs_sum, y_abs_sum, z_abs_sum);
 

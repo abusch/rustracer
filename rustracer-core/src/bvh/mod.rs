@@ -42,7 +42,8 @@ pub struct BVH {
 
 impl BVH {
     pub fn from_triangles(mut tris: Vec<Arc<dyn Shape>>, material: &Arc<dyn Material>) -> BVH {
-        let prims: Vec<Arc<dyn Primitive>> = tris.drain(..)
+        let prims: Vec<Arc<dyn Primitive>> = tris
+            .drain(..)
             .map(|t| {
                 let prim = GeometricPrimitive {
                     shape: Arc::clone(&t),
@@ -118,7 +119,8 @@ impl BVH {
             nodes: nodes,
         };
         tree_bytes::add(
-            (total_nodes * ::std::mem::size_of::<LinearBVHNode>() + ::std::mem::size_of_val(&bvh)
+            (total_nodes * ::std::mem::size_of::<LinearBVHNode>()
+                + ::std::mem::size_of_val(&bvh)
                 + prims.len() * ::std::mem::size_of_val(&prims[0])) as u64,
         );
         info!(

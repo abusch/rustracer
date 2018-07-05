@@ -166,8 +166,12 @@ where
     }
 
     pub fn inside(&self, p: &Point3<T>) -> bool {
-        p.x >= self.p_min.x && p.x <= self.p_max.x && p.y >= self.p_min.y && p.y <= self.p_max.y
-            && p.z >= self.p_min.z && p.z <= self.p_max.z
+        p.x >= self.p_min.x
+            && p.x <= self.p_max.x
+            && p.y >= self.p_min.y
+            && p.y <= self.p_max.y
+            && p.z >= self.p_min.z
+            && p.z <= self.p_max.z
     }
 
     pub fn offset(&self, p: &Point3<T>) -> Vector3<T> {

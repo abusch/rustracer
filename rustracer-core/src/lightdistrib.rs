@@ -1,7 +1,8 @@
 use std::num::Wrapping;
-use std::sync::atomic::{AtomicPtr, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicPtr, Ordering};
 use std::sync::Arc;
 
+use atomic::Atomic;
 use num::Zero;
 
 use bounds::Bounds3f;
@@ -25,6 +26,8 @@ pub fn init_stats() {
     n_lookups_per_distribution::init();
     n_probes_per_lookup::init();
 }
+
+type AtomicU64 = Atomic<u64>;
 
 pub trait LightDistribution: Send + Sync {
     fn lookup<'a>(&'a self, p: &Point3f) -> &'a Distribution1D;

@@ -10,6 +10,7 @@ exr = ["openexr"]
 
 [dependencies]
 approx = "0.2"
+atomic = "0.4"
 bitflags = "1"
 byteorder = "1.2"
 chrono = "0.4"

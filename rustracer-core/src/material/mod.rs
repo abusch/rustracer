@@ -80,9 +80,11 @@ pub fn bump(d: &Arc<dyn Texture<f32>>, si: &mut SurfaceInteraction) {
     let displace = d.evaluate(si);
 
     // Compute bump-mapped differential geometry
-    let dpdu = si.shading.dpdu + (u_displace - displace) / du * Vector3f::from(si.shading.n)
+    let dpdu = si.shading.dpdu
+        + (u_displace - displace) / du * Vector3f::from(si.shading.n)
         + displace * Vector3f::from(si.shading.dndu);
-    let dpdv = si.shading.dpdv + (v_displace - displace) / dv * Vector3f::from(si.shading.n)
+    let dpdv = si.shading.dpdv
+        + (v_displace - displace) / dv * Vector3f::from(si.shading.n)
         + displace * Vector3f::from(si.shading.dndv);
     let dndu = si.shading.dndu;
     let dndv = si.shading.dndv;

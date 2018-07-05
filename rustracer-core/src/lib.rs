@@ -1,4 +1,4 @@
-#![feature(integer_atomics, vec_resize_default)]
+#![feature(vec_resize_default)]
 // Lints
 #![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
@@ -11,6 +11,7 @@
     )
 )]
 
+extern crate atomic;
 #[macro_use]
 extern crate bitflags;
 extern crate byteorder;

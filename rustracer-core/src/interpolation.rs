@@ -81,8 +81,8 @@ pub fn sample_catmull_rom_2d(
         Fhat = t * (f0 + t * (0.5 * d0
             + t * ((1.0 / 3.0) * (-2.0 * d0 - d1) + f1 - f0
                 + t * (0.25 * (d0 + d1) + 0.5 * (f0 - f1)))));
-        fhat = f0 + t * (d0 + t * (-2.0 * d0 - d1 + 3.0 * (f1 - f0)
-            + t * (d0 + d1 + 2.0 * (f0 - f1))));
+        fhat = f0
+            + t * (d0 + t * (-2.0 * d0 - d1 + 3.0 * (f1 - f0) + t * (d0 + d1 + 2.0 * (f0 - f1))));
 
         // Stop the iteration if converged
         if f32::abs(Fhat - u) < 1e-6 || b - a < 1e-6 {
@@ -230,12 +230,16 @@ pub fn invert_catmull_rom(n: usize, x: &[f32], values: &[f32], u: f32) -> f32 {
         let t3 = t2 * t;
 
         // Set _Fhat_ using Equation (8.27)
-        Fhat = (2.0 * t3 - 3.0 * t2 + 1.0) * f0 + (-2.0 * t3 + 3.0 * t2) * f1
-            + (t3 - 2.0 * t2 + t) * d0 + (t3 - t2) * d1;
+        Fhat = (2.0 * t3 - 3.0 * t2 + 1.0) * f0
+            + (-2.0 * t3 + 3.0 * t2) * f1
+            + (t3 - 2.0 * t2 + t) * d0
+            + (t3 - t2) * d1;
 
         // Set _fhat_ using Equation (not present)
-        fhat = (6.0 * t2 - 6.0 * t) * f0 + (-6.0 * t2 + 6.0 * t) * f1
-            + (3.0 * t2 - 4.0 * t + 1.0) * d0 + (3.0 * t2 - 2.0 * t) * d1;
+        fhat = (6.0 * t2 - 6.0 * t) * f0
+            + (-6.0 * t2 + 6.0 * t) * f1
+            + (3.0 * t2 - 4.0 * t + 1.0) * d0
+            + (3.0 * t2 - 2.0 * t) * d1;
 
         // Stop the iteration if converged
         if f32::abs(Fhat - u) < 1e-6 || b - a < 1e-6 {

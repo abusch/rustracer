@@ -247,7 +247,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             // Estimate screen space change in p and (u,v)
 
             // Compute auxiliary intersection points with plane
-            let d = self.hit
+            let d = self
+                .hit
                 .n
                 .dot(&Vector3f::new(self.hit.p.x, self.hit.p.y, self.hit.p.z));
             let tx = -(self.hit.n.dot(&Vector3f::from(diff.rx_origin)) - d)

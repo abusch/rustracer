@@ -29,7 +29,8 @@ impl MitchellNetravali {
                 + (-18.0 + 12.0 * self.b + 6.0 * self.c) * fx * fx
                 + (6.0 - 2.0 * self.b)) * (1.0 / 6.0)
         } else if fx < 2.0 {
-            ((-self.b - 6.0 * self.c) * fx * fx * fx + (6.0 * self.b + 30.0 * self.c) * fx * fx
+            ((-self.b - 6.0 * self.c) * fx * fx * fx
+                + (6.0 * self.b + 30.0 * self.c) * fx * fx
                 + (-12.0 * self.b - 48.0 * self.c) * fx
                 + (8.0 * self.b + 24.0 * self.c)) * (1.0 / 6.0)
         } else {

@@ -37,7 +37,8 @@ pub fn create(
     for (key, elem) in &header.elements {
         if key == "vertex" {
             vertex_count = elem.count;
-            if !elem.properties.contains_key("x") || !elem.properties.contains_key("y")
+            if !elem.properties.contains_key("x")
+                || !elem.properties.contains_key("y")
                 || !elem.properties.contains_key("z")
             {
                 error!(
@@ -46,7 +47,8 @@ pub fn create(
                 );
                 return Vec::new();
             }
-            if elem.properties.contains_key("nx") && elem.properties.contains_key("ny")
+            if elem.properties.contains_key("nx")
+                && elem.properties.contains_key("ny")
                 && elem.properties.contains_key("nz")
             {
                 has_normals = true;
