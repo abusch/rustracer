@@ -6,7 +6,9 @@ macro_rules! stat_counter(
             use state::LocalStorage;
             use stats::StatAccumulator;
 
-            static VALUE: LocalStorage<Cell<u64>> = LocalStorage::new();
+            lazy_static! {
+                static ref VALUE: LocalStorage<Cell<u64>> = LocalStorage::new();
+            }
 
             pub fn init() {
                 VALUE.set(|| Cell::new(0));
@@ -37,7 +39,9 @@ macro_rules! stat_memory_counter(
             use state::LocalStorage;
             use stats::StatAccumulator;
 
-            static VALUE: LocalStorage<Cell<u64>> = LocalStorage::new();
+            lazy_static! {
+                static ref VALUE: LocalStorage<Cell<u64>> = LocalStorage::new();
+            }
 
             pub fn init() {
                 VALUE.set(|| Cell::new(0));
@@ -69,10 +73,12 @@ macro_rules! stat_int_distribution(
             use state::LocalStorage;
             use stats::StatAccumulator;
 
-            static SUM: LocalStorage<Cell<u64>> = LocalStorage::new();
-            static COUNT: LocalStorage<Cell<u64>> = LocalStorage::new();
-            static MIN: LocalStorage<Cell<u64>> = LocalStorage::new();
-            static MAX: LocalStorage<Cell<u64>> = LocalStorage::new();
+            lazy_static! {
+                static ref SUM: LocalStorage<Cell<u64>> = LocalStorage::new();
+                static ref COUNT: LocalStorage<Cell<u64>> = LocalStorage::new();
+                static ref MIN: LocalStorage<Cell<u64>> = LocalStorage::new();
+                static ref MAX: LocalStorage<Cell<u64>> = LocalStorage::new();
+            }
 
             pub fn init() {
                 SUM.set(|| Cell::new(0));
@@ -117,8 +123,10 @@ macro_rules! stat_percent(
             use state::LocalStorage;
             use stats::StatAccumulator;
 
-            static NUM: LocalStorage<Cell<u64>> = LocalStorage::new();
-            static DENOM: LocalStorage<Cell<u64>> = LocalStorage::new();
+            lazy_static! {
+                static ref NUM: LocalStorage<Cell<u64>> = LocalStorage::new();
+                static ref DENOM: LocalStorage<Cell<u64>> = LocalStorage::new();
+            }
 
             pub fn init() {
                 NUM.set(|| Cell::new(0));
@@ -157,8 +165,10 @@ macro_rules! stat_ratio(
             use state::LocalStorage;
             use stats::StatAccumulator;
 
-            static NUM: LocalStorage<Cell<u64>> = LocalStorage::new();
-            static DENOM: LocalStorage<Cell<u64>> = LocalStorage::new();
+            lazy_static! {
+                static ref NUM: LocalStorage<Cell<u64>> = LocalStorage::new();
+                static ref DENOM: LocalStorage<Cell<u64>> = LocalStorage::new();
+            }
 
             pub fn init() {
                 NUM.set(|| Cell::new(0));

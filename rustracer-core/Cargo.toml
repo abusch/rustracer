@@ -29,11 +29,11 @@ ndarray-parallel = "0.8"
 num = "0.2"
 num_cpus = "1"
 openexr = { version = "0.6", optional = true }
-parking_lot = {version = "0.6", features = ["nightly"]}
+parking_lot = {version = "0.6"}
 # ply-rs = "0.1"
 ply-rs = { git = "https://github.com/abusch/ply-rs/" }
 rayon = "1"
-state = { version = "0.4", features = ["tls", "const_fn"]}
+state = { version = "0.4", features = ["tls"]}
 thread-id = "3"
 
 [dev-dependencies]

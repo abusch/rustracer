@@ -1,5 +1,4 @@
 use std::f32;
-use std::iter;
 use std::sync::atomic::Ordering;
 
 use atomic::Atomic;
@@ -79,11 +78,14 @@ impl Film {
             "Created film with full resolution {}. Crop window of {} -> cropped_pixel_bounds {}",
             resolution, cropwindow, cropped_pixel_bounds
         );
-        let mut pixels = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
+        // let mut pixels = Vec::with_capacity(cropped_pixel_bounds.area() as usize);
         // pixels.resize_default(cropped_pixel_bounds.area() as usize);
-        pixels.extend(
-            iter::repeat_with(|| Pixel::default()).take(cropped_pixel_bounds.area() as usize),
-        );
+
+        let pixels = (0..cropped_pixel_bounds.area())
+            .into_iter()
+            .map(|_| Pixel::default())
+            .collect::<Vec<_>>();
+
         film_pixel_memory::add(
             cropped_pixel_bounds.area() as u64 * ::std::mem::size_of::<Pixel>() as u64,
         );

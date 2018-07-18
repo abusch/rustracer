@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use parking_lot::Mutex;
 
-static SEARCH_DIR: Mutex<Option<PathBuf>> = Mutex::new(None);
+lazy_static! {
+    static ref SEARCH_DIR: Mutex<Option<PathBuf>> = Mutex::new(None);
+}
 
 pub fn set_search_directory<P: AsRef<Path>>(d: P) {
     let d = d.as_ref();

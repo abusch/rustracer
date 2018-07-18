@@ -28,7 +28,9 @@ bitflags! {
     }
 }
 
-static COUNTER: Mutex<u32> = Mutex::new(0);
+lazy_static! {
+    static ref COUNTER: Mutex<u32> = Mutex::new(0);
+}
 
 #[inline]
 pub fn is_delta_light(flags: LightFlags) -> bool {
