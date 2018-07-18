@@ -26,7 +26,7 @@ log = "0.4"
 minifb = { version = "0.10", optional = true }
 ndarray = "0.11"
 ndarray-parallel = "0.8"
-num = "0.1"
+num = "0.2"
 num_cpus = "1"
 openexr = { version = "0.6", optional = true }
 parking_lot = {version = "0.6", features = ["nightly"]}
