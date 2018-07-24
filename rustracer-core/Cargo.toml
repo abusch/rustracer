@@ -9,7 +9,7 @@ display = ["minifb"]
 exr = ["openexr"]
 
 [dependencies]
-approx = "0.2"
+approx = "0.3"
 atomic = "0.4"
 bitflags = "1"
 byteorder = "1.2"
