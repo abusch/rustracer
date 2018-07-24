@@ -51,21 +51,21 @@ pub enum ApiState {
 }
 
 impl ApiState {
-    pub fn verify_uninitialized(&self) -> Result<(), Error> {
+    pub fn verify_uninitialized(self) -> Result<(), Error> {
         match self {
             ApiState::Uninitialized => Ok(()),
             _ => Err(err_msg("Api::init() has already been called!")),
         }
     }
 
-    pub fn verify_initialized(&self) -> Result<(), Error> {
+    pub fn verify_initialized(self) -> Result<(), Error> {
         match self {
             ApiState::Uninitialized => Err(err_msg("Api::init() has not been called!")),
             _ => Ok(()),
         }
     }
 
-    pub fn verify_options(&self) -> Result<(), Error> {
+    pub fn verify_options(self) -> Result<(), Error> {
         self.verify_initialized()?;
         match self {
             ApiState::WorldBlock => Err(err_msg("Options cannot be set inside world block.")),
@@ -73,7 +73,7 @@ impl ApiState {
         }
     }
 
-    pub fn verify_world(&self) -> Result<(), Error> {
+    pub fn verify_world(self) -> Result<(), Error> {
         self.verify_initialized()?;
         match self {
             ApiState::OptionsBlock => Err(err_msg("Scene description must be inside world block.")),
@@ -188,7 +188,7 @@ impl RenderOptions {
         Ok(filter)
     }
 
-    pub fn make_film(&self, filter: Box<dyn Filter>) -> Result<Box<Film>, Error> {
+    pub fn make_film(&self, filter: &dyn Filter) -> Result<Box<Film>, Error> {
         debug!("Making film");
         let film = if self.film_name == "image" {
             Film::create(&self.film_params, filter)
@@ -213,7 +213,7 @@ impl RenderOptions {
     pub fn make_camera(&self) -> Result<Box<dyn Camera>, Error> {
         debug!("Making camera");
         let filter = self.make_filter()?;
-        let film = self.make_film(filter)?;
+        let film = self.make_film(filter.as_ref())?;
 
         let camera = if self.camera_name == "perspective" {
             PerspectiveCamera::create(&self.camera_params, &self.camera_to_world, film)
@@ -1012,11 +1012,11 @@ impl Api for RealApi {
         };
         let start_time = ::std::time::Instant::now();
         renderer::render(
-            scene,
+            &scene,
             &mut *integrator,
             &*camera,
             nthreads,
-            &mut sampler,
+            sampler.as_mut(),
             16,
             Box::new(NoopDisplayUpdater {}),
         )?;

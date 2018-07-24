@@ -21,7 +21,7 @@ pub struct Spectrum {
 impl Spectrum {
     /// Create an RGB spectrum from its components
     pub fn rgb(r: f32, g: f32, b: f32) -> Spectrum {
-        Spectrum { r: r, g: g, b: b }
+        Spectrum { r, g, b }
     }
 
     /// Create an RGB spectrum where all the components have the same value.
@@ -67,7 +67,7 @@ impl Spectrum {
     }
 
     /// Convert a non-linear sRGB value to a linear RGB spectrum.
-    pub fn from_srgb(rgb: &[u8; 3]) -> Spectrum {
+    pub fn from_srgb(rgb: [u8; 3]) -> Spectrum {
         fn as_float(v: u8) -> f32 {
             f32::from(v) / 255.0
         }

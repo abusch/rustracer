@@ -81,7 +81,7 @@ where
             .collect();
 
         let mipmap = Arc::new(MIPMap::new(
-            &res,
+            res,
             &converted_texels[..],
             trilerp,
             max_aniso,
@@ -89,7 +89,7 @@ where
         ));
         ImageTexture {
             mapping: map,
-            mipmap: mipmap,
+            mipmap,
         }
     }
 }
@@ -156,7 +156,7 @@ impl ImageTexture<Spectrum> {
                     format!("mipmap_level_{}.png", i),
                     &buf[..],
                     &Bounds2i::from_elements(0, 0, level.u_size() as i32, level.v_size() as i32),
-                    &Point2i::new(level.u_size() as i32, level.v_size() as i32),
+                    Point2i::new(level.u_size() as i32, level.v_size() as i32),
                 ).unwrap();
             });
     }
@@ -228,6 +228,6 @@ where
 {
     fn evaluate(&self, si: &SurfaceInteraction) -> T {
         let (st, dstdx, dstdy) = self.mapping.map(si);
-        self.mipmap.lookup_diff(&st, &dstdx, &dstdy)
+        self.mipmap.lookup_diff(st, dstdx, dstdy)
     }
 }

@@ -17,7 +17,7 @@ pub struct AmbientOcclusion {
 impl AmbientOcclusion {
     pub fn new(n_samples: usize) -> AmbientOcclusion {
         AmbientOcclusion {
-            n_samples: n_samples,
+            n_samples,
             pixel_bounds: Bounds2i::new(),
         }
     }
@@ -32,7 +32,7 @@ impl SamplerIntegrator for AmbientOcclusion {
         &self,
         scene: &Scene,
         ray: &mut Ray,
-        sampler: &mut Box<dyn Sampler>,
+        sampler: &mut dyn Sampler,
         _arena: &Allocator,
         _depth: u32,
     ) -> Spectrum {
@@ -42,7 +42,7 @@ impl SamplerIntegrator for AmbientOcclusion {
             let n = intersection.hit.n;
             for _ in 0..self.n_samples {
                 let s = sampler.get_2d();
-                let mut w = uniform_sample_sphere(&s);
+                let mut w = uniform_sample_sphere(s);
                 if w.dotn(&n) < 0.0 {
                     w = -w;
                 }

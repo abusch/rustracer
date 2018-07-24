@@ -402,7 +402,7 @@ impl<'a> BxDF for FresnelBlend<'a> {
         if u[0] < 0.5 {
             u[0] = f32::min(2.0 * u[0], ONE_MINUS_EPSILON);
             // Cosine-sample the hemisphere, flipping the direction if necessary
-            wi = cosine_sample_hemisphere(&u);
+            wi = cosine_sample_hemisphere(u);
             if wo.z < 0.0 {
                 wi.z *= -1.0;
             }

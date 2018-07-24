@@ -33,12 +33,12 @@ impl Disk {
         assert!(radius > 0.0 && inner_radius >= 0.0 && phi_max > 0.0);
         let transform_swaps_handedness = object_to_world.swaps_handedness();
         Disk {
-            height: height,
-            radius: radius,
-            inner_radius: inner_radius,
+            height,
+            radius,
+            inner_radius,
             phi_max: clamp(phi_max, 0.0, 360.0).to_radians(),
             world_to_object: object_to_world.inverse(),
-            object_to_world: object_to_world,
+            object_to_world,
             reverse_orientation,
             transform_swaps_handedness,
         }
@@ -136,15 +136,14 @@ impl Shape for Disk {
     }
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
-        let pd = concentric_sample_disk(u);
+        let pd = concentric_sample_disk(*u);
         let p_obj = Point3f::new(pd.x * self.radius, pd.y * self.radius, self.height);
         let mut it = Interaction::empty();
         it.n = (&self.object_to_world * &Normal3f::new(0.0, 0.0, 1.0)).normalize();
         if self.reverse_orientation {
             it.n = -it.n;
         }
-        let (p, p_err) = self
-            .object_to_world
+        let (p, p_err) = self.object_to_world
             .transform_point_with_error(&p_obj, &Vector3f::new(0.0, 0.0, 0.0));
         it.p = p;
         it.p_error = p_err;

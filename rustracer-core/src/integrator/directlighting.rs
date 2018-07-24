@@ -65,7 +65,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
         &self.pixel_bounds
     }
 
-    fn preprocess(&mut self, scene: Arc<Scene>, sampler: &mut Box<dyn Sampler>) {
+    fn preprocess(&mut self, scene: Arc<Scene>, sampler: &mut dyn Sampler) {
         info!("Preprocessing DirectLighting integrator");
         if self.light_strategy == LightStrategy::UniformSampleAll {
             // Compute number of samples to use for each light
@@ -88,7 +88,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
         &self,
         scene: &Scene,
         ray: &mut Ray,
-        sampler: &mut Box<dyn Sampler>,
+        sampler: &mut dyn Sampler,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum {
@@ -124,8 +124,9 @@ impl SamplerIntegrator for DirectLightingIntegrator {
                 if depth + 1 < u32::from(self.max_depth) {
                     colour +=
                         self.specular_reflection(ray, &isect, scene, &bsdf, sampler, arena, depth);
-                    colour += self
-                        .specular_transmission(ray, &isect, scene, &bsdf, sampler, arena, depth);
+                    colour += self.specular_transmission(
+                        ray, &isect, scene, &bsdf, sampler, arena, depth,
+                    );
                 }
             }
             None => {

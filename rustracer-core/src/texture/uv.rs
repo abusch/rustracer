@@ -39,6 +39,12 @@ impl UVTexture {
     }
 }
 
+impl Default for UVTexture {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Texture<Spectrum> for UVTexture {
     fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum {
         let (st, _dstdx, _dstdy) = self.mapping.map(si);

@@ -20,15 +20,15 @@ impl<T> Vector2<T> {
 }
 
 impl Vector2<f32> {
-    pub fn has_nan(&self) -> bool {
+    pub fn has_nan(self) -> bool {
         self.x.is_nan() || self.y.is_nan()
     }
 
-    pub fn length_squared(&self) -> f32 {
+    pub fn length_squared(self) -> f32 {
         self.x * self.x + self.y * self.y
     }
 
-    pub fn length(&self) -> f32 {
+    pub fn length(self) -> f32 {
         f32::sqrt(self.length_squared())
     }
 }

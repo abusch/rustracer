@@ -17,8 +17,8 @@ impl MitchellNetravali {
             height: h,
             inv_width: 1.0 / w,
             inv_height: 1.0 / h,
-            b: b,
-            c: c,
+            b,
+            c,
         }
     }
 

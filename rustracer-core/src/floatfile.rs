@@ -12,7 +12,7 @@ pub fn read_float_file<P: AsRef<Path>>(filename: P) -> Result<Vec<f32>, Error> {
 
     for (line_num, line) in reader.lines().enumerate() {
         let line = line?;
-        if line.starts_with("#") {
+        if line.starts_with('#') {
             continue;
         }
         for token in line.split_whitespace() {

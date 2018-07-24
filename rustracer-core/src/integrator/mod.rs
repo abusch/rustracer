@@ -32,13 +32,13 @@ pub fn init_stats() {
 pub trait SamplerIntegrator: Send + Sync {
     fn pixel_bounds(&self) -> &Bounds2i;
 
-    fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut Box<dyn Sampler>) {}
+    fn preprocess(&mut self, _scene: Arc<Scene>, _sampler: &mut dyn Sampler) {}
 
     fn li(
         &self,
         scene: &Scene,
         ray: &mut Ray,
-        sampler: &mut Box<dyn Sampler>,
+        sampler: &mut dyn Sampler,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum;
@@ -50,7 +50,7 @@ pub trait SamplerIntegrator: Send + Sync {
         isect: &SurfaceInteraction,
         scene: &Scene,
         bsdf: &bsdf::BSDF,
-        sampler: &mut Box<dyn Sampler>,
+        sampler: &mut dyn Sampler,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum {
@@ -91,7 +91,7 @@ pub trait SamplerIntegrator: Send + Sync {
         isect: &SurfaceInteraction,
         scene: &Scene,
         bsdf: &bsdf::BSDF,
-        sampler: &mut Box<dyn Sampler>,
+        sampler: &mut dyn Sampler,
         arena: &Allocator,
         depth: u32,
     ) -> Spectrum {
@@ -139,13 +139,12 @@ pub trait SamplerIntegrator: Send + Sync {
 pub fn uniform_sample_all_light(
     it: &SurfaceInteraction,
     scene: &Scene,
-    sampler: &mut Box<dyn Sampler>,
+    sampler: &mut dyn Sampler,
     n_light_samples: &[usize],
 ) -> Spectrum {
     let mut L = Spectrum::black();
-    for j in 0..scene.lights.len() {
+    for (j, light) in scene.lights.iter().enumerate() {
         // Accumulate contribution of j_th light to L
-        let light = &scene.lights[j];
         let n_samples = n_light_samples[j];
         // FIXME find a way to not copy the arrays into a vec...
         let u_light_array = sampler.get_2d_array(n_samples).map(|a| a.to_vec());
@@ -154,7 +153,7 @@ pub fn uniform_sample_all_light(
             // Use a single sample for illumination from light
             let u_light = sampler.get_2d();
             let u_scattering = sampler.get_2d();
-            L += estimate_direct(it, &u_scattering, light, &u_light, scene, sampler);
+            L += estimate_direct(it, u_scattering, light, u_light, scene, sampler);
         } else {
             let u_light_array = u_light_array.unwrap();
             let u_scattering_array = u_scattering_array.unwrap();
@@ -162,9 +161,9 @@ pub fn uniform_sample_all_light(
             for k in 0..n_samples {
                 Ld += estimate_direct(
                     it,
-                    &u_scattering_array[k],
+                    u_scattering_array[k],
                     light,
-                    &u_light_array[k],
+                    u_light_array[k],
                     scene,
                     sampler,
                 );
@@ -179,7 +178,7 @@ pub fn uniform_sample_all_light(
 pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
     it: &SurfaceInteraction,
     scene: &Scene,
-    sampler: &mut Box<dyn Sampler>,
+    sampler: &mut dyn Sampler,
     distrib: D,
 ) -> Spectrum {
     let distrib = distrib.into();
@@ -208,17 +207,17 @@ pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
         let light = &scene.lights[light_num];
         let u_light = sampler.get_2d();
         let u_scattering = sampler.get_2d();
-        estimate_direct(it, &u_scattering, light, &u_light, scene, sampler) / light_pdf
+        estimate_direct(it, u_scattering, light, u_light, scene, sampler) / light_pdf
     }
 }
 
 pub fn estimate_direct(
     it: &SurfaceInteraction,
-    u_scattering: &Point2f,
+    u_scattering: Point2f,
     light: &Arc<dyn Light>,
-    u_light: &Point2f,
+    u_light: Point2f,
     scene: &Scene,
-    _sampler: &mut Box<dyn Sampler>,
+    _sampler: &mut dyn Sampler,
 ) -> Spectrum {
     let specular = false;
 
@@ -233,7 +232,7 @@ pub fn estimate_direct(
         .bsdf
         .as_ref()
         .expect("There should be a BSDF set at this point!");
-    let (mut li, wi, light_pdf, vis) = light.sample_li(it.into(), u_light);
+    let (mut li, wi, light_pdf, vis) = light.sample_li(it.into(), &u_light);
     // info!(
     //     "EstimateDirect u_light: {} -> Li: {}, wi: {}, pdf: {}",
     //     u_light,
@@ -264,7 +263,7 @@ pub fn estimate_direct(
     // Sample BSDF with multiple importance sampling
     if !is_delta_light(light.flags()) {
         let (mut f, wi, scattering_pdf, sampled_type) =
-            bsdf.sample_f(&it.hit.wo, u_scattering, bsdf_flags);
+            bsdf.sample_f(&it.hit.wo, &u_scattering, bsdf_flags);
         f *= wi.dotn(&it.shading.n).abs();
         let sampled_specular = sampled_type.contains(BxDFType::BSDF_SPECULAR);
         // TODO compute medium interaction when supported

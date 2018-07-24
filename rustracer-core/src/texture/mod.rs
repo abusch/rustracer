@@ -44,12 +44,7 @@ pub struct UVMapping2D {
 
 impl UVMapping2D {
     pub fn new(su: f32, sv: f32, du: f32, dv: f32) -> UVMapping2D {
-        UVMapping2D {
-            su: su,
-            sv: sv,
-            du: du,
-            dv: dv,
-        }
+        UVMapping2D { su, sv, du, dv }
     }
 }
 

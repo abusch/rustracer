@@ -68,7 +68,7 @@ impl InfiniteAreaLight {
         };
         //
         let l_map = Box::new(MIPMap::new(
-            &resolution,
+            resolution,
             &texels[..],
             false,
             0.0,
@@ -86,9 +86,9 @@ impl InfiniteAreaLight {
             .for_each(|(v, mut row)| {
                 let vp = (v as f32 + 0.5) / height as f32;
                 let sin_theta = (PI * (v as f32 + 0.5) / height as f32).sin();
-                for u in 0..width {
+                for (u, pixel) in row.iter_mut().enumerate() {
                     let up = (u as f32 + 0.5) / width as f32;
-                    row[u] = l_map.lookup(&Point2f::new(up, vp), filter).y() * sin_theta;
+                    *pixel = l_map.lookup(Point2f::new(up, vp), filter).y() * sin_theta;
                 }
             });
 
@@ -103,11 +103,11 @@ impl InfiniteAreaLight {
             id: super::get_next_id(),
             world_to_light: l2w.inverse(),
             light_to_world: l2w,
-            n_samples: n_samples,
-            l_map: l_map,
+            n_samples,
+            l_map,
             world_center: RwLock::new(Point3f::zero()),
             world_radius: RwLock::new(0.0),
-            distribution: distribution,
+            distribution,
         }
     }
 
@@ -145,7 +145,7 @@ impl Light for InfiniteAreaLight {
         u: &Point2f,
     ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         // Find (u, v) sample coordinates in infinite light texture
-        let (uv, map_pdf) = self.distribution.sample_continuous(u);
+        let (uv, map_pdf) = self.distribution.sample_continuous(*u);
         if map_pdf == 0.0 {
             return (
                 Spectrum::black(),
@@ -176,7 +176,7 @@ impl Light for InfiniteAreaLight {
         let world_radius = self.world_radius.read();
         let target = isect.p + wi * (2.0 * *world_radius);
         let vis = VisibilityTester::new(*isect, Interaction::from_point(&target));
-        (self.l_map.lookup(&uv, 0.0), wi, pdf, vis)
+        (self.l_map.lookup(uv, 0.0), wi, pdf, vis)
     }
 
     fn pdf_li(&self, _si: &Interaction, w: &Vector3f) -> f32 {
@@ -189,7 +189,7 @@ impl Light for InfiniteAreaLight {
             0.0
         } else {
             self.distribution
-                .pdf(&Point2f::new(phi * FRAC_1_PI * 0.5, theta * FRAC_1_PI))
+                .pdf(Point2f::new(phi * FRAC_1_PI * 0.5, theta * FRAC_1_PI))
                 / (2.0 * PI * PI * sin_theta)
         }
     }
@@ -204,7 +204,7 @@ impl Light for InfiniteAreaLight {
 
     fn power(&self) -> Spectrum {
         let world_radius = self.world_radius.read();
-        PI * *world_radius * *world_radius * self.l_map.lookup(&Point2f::new(0.5, 0.5), 0.5)
+        PI * *world_radius * *world_radius * self.l_map.lookup(Point2f::new(0.5, 0.5), 0.5)
     }
 
     fn le(&self, ray: &Ray) -> Spectrum {
@@ -214,6 +214,6 @@ impl Light for InfiniteAreaLight {
             spherical_theta(&w) * FRAC_1_PI,
         );
 
-        self.l_map.lookup(&st, 0.0)
+        self.l_map.lookup(st, 0.0)
     }
 }

@@ -82,7 +82,7 @@ impl SamplerIntegrator for PathIntegrator {
         &self.pixel_bounds
     }
 
-    fn preprocess(&mut self, scene: Arc<Scene>, _sampler: &mut Box<dyn Sampler>) {
+    fn preprocess(&mut self, scene: Arc<Scene>, _sampler: &mut dyn Sampler) {
         // TODO create correct distribution based on strategy
         self.light_distribution =
             if self.light_sampling_strategy == "uniform" || scene.lights.len() == 1 {
@@ -96,7 +96,7 @@ impl SamplerIntegrator for PathIntegrator {
         &self,
         scene: &Scene,
         r: &mut Ray,
-        sampler: &mut Box<dyn Sampler>,
+        sampler: &mut dyn Sampler,
         arena: &Allocator,
         _depth: u32,
     ) -> Spectrum {
@@ -150,8 +150,7 @@ impl SamplerIntegrator for PathIntegrator {
                 continue;
             }
             let bsdf = isect.bsdf.clone().unwrap();
-            let distrib = self
-                .light_distribution
+            let distrib = self.light_distribution
                 .as_ref()
                 .unwrap()
                 .lookup(&isect.hit.p);
@@ -209,7 +208,7 @@ impl SamplerIntegrator for PathIntegrator {
             bounces += 1;
         }
 
-        path_length::report_value(bounces as u64);
+        path_length::report_value(u64::from(bounces));
         l
     }
 }

@@ -225,16 +225,14 @@ impl Shape for Sphere {
     }
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
-        let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
+        let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(*u);
         let mut it = Interaction::empty();
-        it.n = self
-            .object_to_world
+        it.n = self.object_to_world
             .transform_normal(&Normal3f::new(p_obj.x, p_obj.y, p_obj.z))
             .normalize();
         p_obj = p_obj * self.radius / distance(&p_obj, &Point3f::new(0.0, 0.0, 0.0));
         let p_obj_error = gamma(5) * Vector3f::from(p_obj).abs();
-        let (p, p_err) = self
-            .object_to_world
+        let (p, p_err) = self.object_to_world
             .transform_point_with_error(&p_obj, &p_obj_error);
         it.p = p;
         it.p_error = p_err;

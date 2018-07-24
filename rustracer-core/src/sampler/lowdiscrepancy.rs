@@ -40,7 +40,7 @@ pub fn sobol_2d(
         &CSOBOL[0],
         &CSOBOL[1],
         n_samples_per_pixel_sample * n_pixel_samples,
-        &scramble,
+        scramble,
         &mut samples[..],
     );
     // Randomly shuffle 2D points
@@ -85,7 +85,7 @@ fn reverse_bits_32(n: u32) -> u32 {
 fn reverse_bits_64(n: u64) -> u64 {
     let n0 = reverse_bits_32(n as u32);
     let n1 = reverse_bits_32((n >> 32) as u32);
-    ((n0 as u64) << 32) | (n1 as u64)
+    (u64::from(n0) << 32) | u64::from(n1)
 }
 
 fn radical_inverse_specialized(base: u32, a: u64) -> f32 {
@@ -94,9 +94,9 @@ fn radical_inverse_specialized(base: u32, a: u64) -> f32 {
     let mut reversed_digits: u64 = 0;
     let mut inv_base_n = 1.0;
     while a != 0 {
-        let next = a / base as u64;
-        let digit = a - next * base as u64;
-        reversed_digits = reversed_digits * base as u64 + digit;
+        let next = a / u64::from(base);
+        let digit = a - next * u64::from(base);
+        reversed_digits = reversed_digits * u64::from(base) + digit;
         inv_base_n *= inv_base;
         a = next;
     }
@@ -112,7 +112,7 @@ fn gray_code_sample(c: &[u32], n: u32, scramble: u32, p: &mut [f32]) {
     }
 }
 
-fn gray_code_sample_2d(c0: &[u32], c1: &[u32], n: u32, scramble: &Point2i, p: &mut [Point2f]) {
+fn gray_code_sample_2d(c0: &[u32], c1: &[u32], n: u32, scramble: Point2i, p: &mut [Point2f]) {
     let mut v = [scramble.x as u32, scramble.y as u32];
     for i in 0..n {
         p[i as usize].x = (v[0] as f32 * 2.3283064365386963e-10f32).min(ONE_MINUS_EPSILON);

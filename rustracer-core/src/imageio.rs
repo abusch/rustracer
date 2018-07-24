@@ -16,9 +16,8 @@ use {clamp, Point2i};
 pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading image {}", path.as_ref().display());
     let path = path.as_ref();
-    let extension = path
-        .extension()
-        .ok_or(format_err!("Texture filename doesn't have an extension"))?;
+    let extension = path.extension()
+        .ok_or_else(|| format_err!("Texture filename doesn't have an extension"))?;
     if extension == "tga" || extension == "TGA" || extension == "png" || extension == "PNG" {
         read_image_tga_png(path)
     } else if extension == "exr" || extension == "EXR" {
@@ -36,7 +35,7 @@ pub fn write_image<P: AsRef<Path>>(
     name: P,
     rgb: &[f32],
     output_bounds: &Bounds2i,
-    total_resolution: &Point2i,
+    total_resolution: Point2i,
 ) -> Result<(), Error> {
     let path = name.as_ref();
 
@@ -53,12 +52,11 @@ fn write_image_png<P: AsRef<Path>>(
     name: P,
     rgb: &[f32],
     output_bounds: &Bounds2i,
-    _total_resolution: &Point2i,
+    _total_resolution: Point2i,
 ) -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
-    let rgb8: Vec<_> = rgb
-        .iter()
+    let rgb8: Vec<_> = rgb.iter()
         .map(|v| clamp(255.0 * gamma_correct(*v) + 0.5, 0.0, 255.0) as u8)
         .collect();
 
@@ -77,7 +75,7 @@ fn write_image_exr<P: AsRef<Path>>(
     name: P,
     rgb: &[f32],
     output_bounds: &Bounds2i,
-    total_resolution: &Point2i,
+    total_resolution: Point2i,
 ) -> Result<(), Error> {
     panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
 }
@@ -87,7 +85,7 @@ fn write_image_exr<P: AsRef<Path>>(
     name: P,
     rgb: &[f32],
     output_bounds: &Bounds2i,
-    _total_resolution: &Point2i,
+    _total_resolution: Point2i,
 ) -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
@@ -122,8 +120,7 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
 
     let rgb = buf.to_rgb().into_raw();
     let res = Point2i::new(width as i32, height as i32);
-    let pixels: Vec<Spectrum> = rgb
-        .par_chunks(3)
+    let pixels: Vec<Spectrum> = rgb.par_chunks(3)
         .map(|p| {
             let r = f32::from(p[0]) / 255.0;
             let g = f32::from(p[1]) / 255.0;

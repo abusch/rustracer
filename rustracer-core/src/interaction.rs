@@ -37,10 +37,10 @@ impl Interaction {
 
     pub fn new(p: Point3f, p_error: Vector3f, wo: Vector3f, n: Normal3f) -> Interaction {
         Interaction {
-            p: p,
-            p_error: p_error,
+            p,
+            p_error,
             wo: wo.normalize(),
-            n: n,
+            n,
         }
     }
 
@@ -132,15 +132,15 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             dvdx: 0.0,
             dudy: 0.0,
             dvdy: 0.0,
-            shape: shape,
+            shape,
             primitive: None,
             // Initialize shading geometry from true geometry
             shading: Shading {
-                n: n,
-                dpdu: dpdu,
-                dpdv: dpdv,
-                dndu: dndu,
-                dndv: dndv,
+                n,
+                dpdu,
+                dpdv,
+                dndu,
+                dndv,
             },
             bsdf: None,
         }
@@ -247,8 +247,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
             // Estimate screen space change in p and (u,v)
 
             // Compute auxiliary intersection points with plane
-            let d = self
-                .hit
+            let d = self.hit
                 .n
                 .dot(&Vector3f::new(self.hit.p.x, self.hit.p.y, self.hit.p.z));
             let tx = -(self.hit.n.dot(&Vector3f::from(diff.rx_origin)) - d)
@@ -297,8 +296,8 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
                 py[dim[1]] - self.hit.p[dim[1]],
             );
 
-            let (dudx, dvdx) = transform::solve_linear_system2x2(&A, &Bx).unwrap_or((0.0, 0.0));
-            let (dudy, dvdy) = transform::solve_linear_system2x2(&A, &By).unwrap_or((0.0, 0.0));
+            let (dudx, dvdx) = transform::solve_linear_system2x2(&A, Bx).unwrap_or((0.0, 0.0));
+            let (dudy, dvdy) = transform::solve_linear_system2x2(&A, By).unwrap_or((0.0, 0.0));
             self.dudx = dudx;
             self.dvdx = dvdx;
             self.dudy = dudy;

@@ -32,10 +32,10 @@ const WEIGHT_LUT_SIZE: usize = 128;
 lazy_static! {
     static ref WEIGHT_LUT: [f32; WEIGHT_LUT_SIZE] = {
         let mut w: [f32; WEIGHT_LUT_SIZE] = [0.0; WEIGHT_LUT_SIZE];
-        for i in 0..WEIGHT_LUT_SIZE {
+        for (i, w_i) in w.iter_mut().enumerate() {
             let alpha = 2.0;
             let r2 = i as f32 / (WEIGHT_LUT_SIZE as f32 - 1.0);
-            w[i] = f32::exp(-alpha * r2) - f32::exp(-alpha);
+            *w_i = f32::exp(-alpha * r2) - f32::exp(-alpha);
         }
         w
     };
@@ -63,7 +63,7 @@ where
     T: Send + Sync,
 {
     pub fn new(
-        res: &Point2i,
+        res: Point2i,
         img: &[T],
         do_trilinear: bool,
         max_anisotropy: f32,
@@ -137,7 +137,7 @@ where
             (res_pow2, resampled_img)
         } else {
             (
-                *res,
+                res,
                 ArrayView2::from_shape((res.x as usize, res.y as usize), img)
                     .unwrap()
                     .to_owned(),
@@ -145,10 +145,10 @@ where
         };
 
         let mut mipmap = MIPMap {
-            do_trilinear: do_trilinear,
-            max_anisotropy: max_anisotropy,
-            wrap_mode: wrap_mode,
-            resolution: resolution,
+            do_trilinear,
+            max_anisotropy,
+            wrap_mode,
+            resolution,
             pyramid: Vec::new(),
             black: zero(),
         };
@@ -221,7 +221,7 @@ where
         &l[(ss, tt)]
     }
 
-    pub fn lookup(&self, st: &Point2f, width: f32) -> T {
+    pub fn lookup(&self, st: Point2f, width: f32) -> T {
         n_trilerp_lookups::inc();
         // Compute MIPMap-level for trilinear filtering
         let level = self.levels() as f32 - 1.0 + width.max(1e-8).log2();
@@ -241,10 +241,7 @@ where
         }
     }
 
-    pub fn lookup_diff(&self, st: &Point2f, dst0: &Vector2f, dst1: &Vector2f) -> T {
-        let mut dst0 = *dst0;
-        let mut dst1 = *dst1;
-
+    pub fn lookup_diff(&self, st: Point2f, mut dst0: Vector2f, mut dst1: Vector2f) -> T {
         if self.do_trilinear {
             let width = f32::max(
                 f32::max(f32::abs(dst0[0]), f32::abs(dst0[1])),
@@ -277,12 +274,12 @@ where
 
         lerp(
             lod - ilod as f32,
-            self.EWA(ilod, st, &dst0, &dst1),
-            self.EWA(ilod + 1, st, &dst0, &dst1),
+            self.EWA(ilod, st, dst0, dst1),
+            self.EWA(ilod + 1, st, dst0, dst1),
         )
     }
 
-    pub fn triangle(&self, level: usize, st: &Point2f) -> T {
+    pub fn triangle(&self, level: usize, st: Point2f) -> T {
         let level = clamp(level, 0, self.levels() - 1);
         let s = st.x * self.pyramid[level].u_size() as f32 - 0.5;
         let t = st.y * self.pyramid[level].v_size() as f32 - 0.5;
@@ -307,11 +304,7 @@ where
             + *self.texel(level, s0 + 1, t0 + 1) * ds * dt
     }
 
-    fn EWA(&self, level: usize, st: &Point2f, dst0: &Vector2f, dst1: &Vector2f) -> T {
-        let mut st = *st;
-        let mut dst0 = *dst0;
-        let mut dst1 = *dst1;
-
+    fn EWA(&self, level: usize, mut st: Point2f, mut dst0: Vector2f, mut dst1: Vector2f) -> T {
         if level >= self.levels() {
             return *self.texel(self.levels() - 1, 0, 0);
         }
@@ -372,18 +365,18 @@ where
             // compute image resampling weights for ith texel
             let center = (i as f32 + 0.5) * old_res as f32 / new_res as f32;
             let first_texel = f32::floor((center - filter_width) + 0.5);
-            for j in 0..4 {
+            for (j, w_j) in w.iter_mut().enumerate() {
                 let pos = first_texel + j as f32 + 0.5;
-                w[j] = Self::lanczos((pos - center) / filter_width);
+                *w_j = Self::lanczos((pos - center) / filter_width);
             }
             // Normalize filter weights for texel resampling
             let inv_sum_weights = 1.0 / (w[0] + w[1] + w[2] + w[3]);
-            for j in 0..4 {
-                w[j] *= inv_sum_weights;
+            for w_j in &mut w {
+                *w_j *= inv_sum_weights;
                 assert!(
-                    w[j] <= 1.0,
+                    *w_j <= 1.0,
                     "w[j]={}, inv_sum_weights={}",
-                    w[j],
+                    w_j,
                     inv_sum_weights
                 );
             }

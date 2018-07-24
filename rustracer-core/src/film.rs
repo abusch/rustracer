@@ -57,7 +57,7 @@ impl Film {
     pub fn new(
         resolution: Point2i,
         cropwindow: Bounds2f,
-        filter: Box<dyn Filter>,
+        filter: &dyn Filter,
         diagonal: f32,
         filename: &str,
         scale: f32,
@@ -106,7 +106,7 @@ impl Film {
             pixels: Mutex::new(pixels),
             filter_table,
             filter_radius: Vector2f::new(xwidth, ywidth),
-            cropped_pixel_bounds: cropped_pixel_bounds,
+            cropped_pixel_bounds,
             scale,
             _diagonal: diagonal * 0.001,
             filename: filename.to_owned(),
@@ -114,7 +114,7 @@ impl Film {
         }
     }
 
-    pub fn create(ps: &ParamSet, filter: Box<dyn Filter>) -> Box<Film> {
+    pub fn create(ps: &ParamSet, filter: &dyn Filter) -> Box<Film> {
         let mut filename = ps.find_one_string("filename", "".into());
         if filename == "" {
             filename = "image.png".into();
@@ -168,16 +168,16 @@ impl Film {
 
         FilmTile::new(
             &tile_pixel_bounds,
-            &self.filter_radius,
+            self.filter_radius,
             &self.filter_table,
             self.max_sample_luminance,
         )
     }
 
-    pub fn merge_film_tile(&self, tile: FilmTile) {
+    pub fn merge_film_tile(&self, tile: &FilmTile) {
         let mut pixels = self.pixels.lock();
         for pixel in &tile.get_pixel_bounds() {
-            let tile_pixel = tile.get_pixel(&pixel);
+            let tile_pixel = tile.get_pixel(pixel);
             let pidx = {
                 let width = self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x;
                 ((pixel.y - self.cropped_pixel_bounds.p_min.y) * width
@@ -198,7 +198,7 @@ impl Film {
         let mut rgb = Vec::with_capacity(3 * self.cropped_pixel_bounds.area() as usize);
         for p in &self.cropped_pixel_bounds {
             // Convert pixel XYZ color to RGB
-            let pixel_idx = self.get_pixel_idx(&p);
+            let pixel_idx = self.get_pixel_idx(p);
             let pixel = &pixels[pixel_idx];
             let mut rgb_pixel = Spectrum::from_xyz(&pixel.xyz);
 
@@ -240,7 +240,7 @@ impl Film {
             &self.filename,
             &rgb[..],
             &self.cropped_pixel_bounds,
-            &self.full_resolution,
+            self.full_resolution,
         )
     }
 
@@ -254,8 +254,8 @@ impl Film {
         float_bounds.into()
     }
 
-    fn get_pixel_idx(&self, p: &Point2i) -> usize {
-        assert!(self.cropped_pixel_bounds.inside_exclusive(p));
+    fn get_pixel_idx(&self, p: Point2i) -> usize {
+        assert!(self.cropped_pixel_bounds.inside_exclusive(&p));
         let width = self.cropped_pixel_bounds.p_max.x - self.cropped_pixel_bounds.p_min.x;
         let offset = (p.x - self.cropped_pixel_bounds.p_min.x)
             + (p.y - self.cropped_pixel_bounds.p_min.y) * width;
@@ -275,7 +275,7 @@ pub struct FilmTile {
 impl FilmTile {
     pub fn new(
         pixel_bounds: &Bounds2i,
-        filter_radius: &Vector2f,
+        filter_radius: Vector2f,
         filter: &[f32],
         max_sample_luminance: f32,
     ) -> FilmTile {
@@ -283,7 +283,7 @@ impl FilmTile {
         filter_table.extend_from_slice(filter);
         FilmTile {
             pixel_bounds: *pixel_bounds,
-            filter_radius: *filter_radius,
+            filter_radius,
             inv_filter_radius: Vector2f::new(1.0 / filter_radius.x, 1.0 / filter_radius.y),
             // Duplicating the filter table in every table is wasteful, but keeping a reference to
             // the data from Film leads to all kind of lifetime issues...
@@ -293,7 +293,7 @@ impl FilmTile {
         }
     }
 
-    pub fn add_sample(&mut self, p_film: &Point2f, colour: Spectrum) {
+    pub fn add_sample(&mut self, p_film: Point2f, colour: Spectrum) {
         if colour.has_nan() {
             warn!("colour has NaNs! Ignoring");
             return;
@@ -305,7 +305,7 @@ impl FilmTile {
         };
         let float_pixel_bounds: Bounds2f = self.pixel_bounds.into();
         // Convert to discrete pixel space
-        let p_film_discrete = *p_film - Vector2f::new(0.5, 0.5);
+        let p_film_discrete = p_film - Vector2f::new(0.5, 0.5);
         // compute sample raster extent (i.e. how many pixels are affected)
         // (x0, y0) -> (x1, y1) is the zone of the image affected by the sample
         let p0_f = ceil(p_film_discrete - self.filter_radius);
@@ -349,7 +349,7 @@ impl FilmTile {
             for x in p0.x..p1.x {
                 let offset = ify[(y - p0.y) as usize] * FILTER_SIZE + ifx[(x - p0.x) as usize];
                 let filter_weight = &self.filter_table[offset];
-                let idx = self.get_pixel_index(&Point2i::new(x, y));
+                let idx = self.get_pixel_index(Point2i::new(x, y));
                 let pixel = &mut self.pixels[idx];
                 pixel.contrib_sum += L * *filter_weight;
                 pixel.filter_weight_sum += *filter_weight;
@@ -357,7 +357,7 @@ impl FilmTile {
         }
     }
 
-    pub fn get_pixel<'a>(&'a self, p: &Point2i) -> &'a FilmTilePixel {
+    pub fn get_pixel(&self, p: Point2i) -> &FilmTilePixel {
         &self.pixels[self.get_pixel_index(p)]
     }
 
@@ -365,7 +365,7 @@ impl FilmTile {
         self.pixel_bounds
     }
 
-    fn get_pixel_index(&self, p: &Point2i) -> usize {
+    fn get_pixel_index(&self, p: Point2i) -> usize {
         let width = self.pixel_bounds.p_max.x - self.pixel_bounds.p_min.x;
         let pidx = (p.y - self.pixel_bounds.p_min.y) * width + (p.x - self.pixel_bounds.p_min.x);
         pidx as usize

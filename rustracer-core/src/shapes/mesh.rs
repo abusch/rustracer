@@ -182,10 +182,10 @@ impl Triangle {
     pub fn new(mesh: Arc<TriangleMesh>, tri_number: usize, reverse_orientation: bool) -> Triangle {
         let swaps_handedness = mesh.object_to_world.swaps_handedness();
         let tri = Triangle {
-            mesh: mesh,
+            mesh,
             v_start_index: tri_number * 3,
-            reverse_orientation: reverse_orientation,
-            swaps_handedness: swaps_handedness,
+            reverse_orientation,
+            swaps_handedness,
         };
         tri_mesh_bytes::add(::std::mem::size_of_val(&tri) as u64);
 
@@ -607,7 +607,7 @@ impl Shape for Triangle {
     }
 
     fn sample(&self, u: &Point2f) -> (Interaction, f32) {
-        let b = sampling::uniform_sample_triangle(u);
+        let b = sampling::uniform_sample_triangle(*u);
         let p0 = &self.mesh.p[self.v(0)];
         let p1 = &self.mesh.p[self.v(1)];
         let p2 = &self.mesh.p[self.v(2)];

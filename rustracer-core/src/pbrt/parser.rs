@@ -13,7 +13,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
     api: &A,
 ) -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
     let accelerator = (token(Tokens::ACCELERATOR), string_(), param_list())
-        .and_then(|(_, typ, mut params)| api.accelerator(typ, &mut params).map_err(|e| e.compat()));
+        .and_then(|(_, typ, params)| api.accelerator(typ, &params).map_err(|e| e.compat()));
     let attribute_begin =
         token(Tokens::ATTRIBUTEBEGIN).and_then(|_| api.attribute_begin().map_err(|e| e.compat()));
     let attribute_end =
@@ -51,9 +51,9 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
     let coord_sys_transform = (token(Tokens::COORDSYSTRANSFORM), string_())
         .and_then(|(_, name)| api.coord_sys_transform(name).map_err(|e| e.compat()));
     let camera = (token(Tokens::CAMERA), string_(), param_list())
-        .and_then(|(_, name, mut params)| api.camera(name, &mut params).map_err(|e| e.compat()));
+        .and_then(|(_, name, params)| api.camera(name, &params).map_err(|e| e.compat()));
     let film = (token(Tokens::FILM), string_(), param_list())
-        .and_then(|(_, name, mut params)| api.film(name, &mut params).map_err(|e| e.compat()));
+        .and_then(|(_, name, params)| api.film(name, &params).map_err(|e| e.compat()));
     let include = (token(Tokens::INCLUDE), string_()).and_then(|(_, name)| {
         info!("Parsing included file: {}", name);
         super::tokenize_file(&name)
@@ -64,38 +64,31 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
             })
             .map_err(|e| e.compat())
     });
-    let integrator = (token(Tokens::INTEGRATOR), string_(), param_list()).and_then(
-        |(_, name, mut params)| api.integrator(name, &mut params).map_err(|e| e.compat()),
-    );
-    let arealightsource = (token(Tokens::AREALIGHTSOURCE), string_(), param_list()).and_then(
-        |(_, name, mut params)| {
-            api.arealightsource(name, &mut params)
-                .map_err(|e| e.compat())
-        },
-    );
-    let lightsource = (token(Tokens::LIGHTSOURCE), string_(), param_list()).and_then(
-        |(_, name, mut params)| api.lightsource(name, &mut params).map_err(|e| e.compat()),
-    );
+    let integrator = (token(Tokens::INTEGRATOR), string_(), param_list())
+        .and_then(|(_, name, params)| api.integrator(name, &params).map_err(|e| e.compat()));
+    let arealightsource = (token(Tokens::AREALIGHTSOURCE), string_(), param_list())
+        .and_then(|(_, name, params)| api.arealightsource(name, &params).map_err(|e| e.compat()));
+    let lightsource = (token(Tokens::LIGHTSOURCE), string_(), param_list())
+        .and_then(|(_, name, params)| api.lightsource(name, &params).map_err(|e| e.compat()));
     let material = (token(Tokens::MATERIAL), string_(), param_list())
-        .and_then(|(_, name, mut params)| api.material(name, &mut params).map_err(|e| e.compat()));
+        .and_then(|(_, name, params)| api.material(name, &params).map_err(|e| e.compat()));
     let make_named_material = (token(Tokens::MAKENAMEDMATERIAL), string_(), param_list()).and_then(
-        |(_, name, mut params)| {
-            api.make_named_material(name, &mut params)
+        |(_, name, params)| {
+            api.make_named_material(name, &params)
                 .map_err(|e| e.compat())
         },
     );
     let named_material = (token(Tokens::NAMEDMATERIAL), string_())
         .and_then(|(_, name)| api.named_material(name).map_err(|e| e.compat()));
     let sampler = (token(Tokens::SAMPLER), string_(), param_list())
-        .and_then(|(_, name, mut params)| api.sampler(name, &mut params).map_err(|e| e.compat()));
+        .and_then(|(_, name, params)| api.sampler(name, &params).map_err(|e| e.compat()));
     let shape = (token(Tokens::SHAPE), string_(), param_list())
-        .and_then(|(_, name, mut params)| api.shape(name, &mut params).map_err(|e| e.compat()));
+        .and_then(|(_, name, params)| api.shape(name, &params).map_err(|e| e.compat()));
 
     let reverse_orientation = token(Tokens::REVERSEORIENTATION)
         .and_then(|_| api.reverse_orientation().map_err(|e| e.compat()));
-    let filter = (token(Tokens::PIXELFILTER), string_(), param_list()).and_then(
-        |(_, name, mut params)| api.pixel_filter(name, &mut params).map_err(|e| e.compat()),
-    );
+    let filter = (token(Tokens::PIXELFILTER), string_(), param_list())
+        .and_then(|(_, name, params)| api.pixel_filter(name, &params).map_err(|e| e.compat()));
     let scale = (token(Tokens::SCALE), num(), num(), num())
         .and_then(|(_, sx, sy, sz)| api.scale(sx, sy, sz).map_err(|e| e.compat()));
     let rotate = (token(Tokens::ROTATE), num(), num(), num(), num())
@@ -107,8 +100,8 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
         string_(),
         string_(),
         param_list(),
-    ).and_then(|(_, name, typ, texname, mut params)| {
-        api.texture(name, typ, texname, &mut params)
+    ).and_then(|(_, name, typ, texname, params)| {
+        api.texture(name, typ, texname, &params)
             .map_err(|e| e.compat())
     });
     let concat_transform =

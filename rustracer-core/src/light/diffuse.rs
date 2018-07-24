@@ -28,11 +28,11 @@ impl DiffuseAreaLight {
         let area = shape.area();
         DiffuseAreaLight {
             id: super::get_next_id(),
-            l_emit: l_emit,
-            shape: shape,
-            n_samples: n_samples,
-            two_sided: two_sided,
-            area: area,
+            l_emit,
+            shape,
+            n_samples,
+            two_sided,
+            area,
         }
     }
 

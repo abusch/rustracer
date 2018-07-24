@@ -61,14 +61,14 @@ impl PerspectiveCamera {
             - (&raster_to_camera * &Point3f::new(0.0, 0.0, 0.0));
 
         PerspectiveCamera {
-            film: film,
-            camera_to_world: camera_to_world,
+            film,
+            camera_to_world,
             // camera_to_screen: camera_to_screen,
-            raster_to_camera: raster_to_camera,
-            lens_radius: lens_radius,
-            focal_distance: focal_distance,
-            dx_camera: dx_camera,
-            dy_camera: dy_camera,
+            raster_to_camera,
+            lens_radius,
+            focal_distance,
+            dx_camera,
+            dy_camera,
         }
     }
 
@@ -137,7 +137,7 @@ impl Camera for PerspectiveCamera {
         // modify ray for depth of field
         if self.lens_radius > 0.0 {
             // Sample point on lens
-            let p_lens = self.lens_radius * sampling::concentric_sample_disk(&sample.p_lens);
+            let p_lens = self.lens_radius * sampling::concentric_sample_disk(sample.p_lens);
             // Compute point on plane of focus
             let ft = self.focal_distance / ray.d.z;
             let p_focus = ray.at(ft);
@@ -156,7 +156,7 @@ impl Camera for PerspectiveCamera {
         // modify ray for depth of field
         if self.lens_radius > 0.0 {
             // Sample point on lens
-            let p_lens = self.lens_radius * sampling::concentric_sample_disk(&sample.p_lens);
+            let p_lens = self.lens_radius * sampling::concentric_sample_disk(sample.p_lens);
             // Compute point on plane of focus
             let ft = self.focal_distance / ray.d.z;
             let p_focus = ray.at(ft);
@@ -167,7 +167,7 @@ impl Camera for PerspectiveCamera {
         // compute offset rays for PerspectiveCamera ray differentials
         let diff = if self.lens_radius > 0.0 {
             // Sample point on lens
-            let p_lens = self.lens_radius * sampling::concentric_sample_disk(&sample.p_lens);
+            let p_lens = self.lens_radius * sampling::concentric_sample_disk(sample.p_lens);
             let origin = Point3f::new(p_lens.x, p_lens.y, 0.0);
 
             // ray differential in x direction

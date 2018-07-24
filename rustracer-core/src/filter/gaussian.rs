@@ -11,11 +11,11 @@ pub struct GaussianFilter {
 }
 
 impl GaussianFilter {
-    pub fn new(radius: &Vector2f, alpha: f32) -> GaussianFilter {
+    pub fn new(radius: Vector2f, alpha: f32) -> GaussianFilter {
         GaussianFilter {
             radius: (radius.x, radius.y),
             inv_radius: (1.0 / radius.x, 1.0 / radius.y),
-            alpha: alpha,
+            alpha,
             expx: (-alpha * radius.x * radius.x).exp(),
             expy: (-alpha * radius.y * radius.y).exp(),
         }
@@ -29,7 +29,7 @@ impl GaussianFilter {
         let xw = ps.find_one_float("xwidth", 2.0);
         let yw = ps.find_one_float("ywidth", 2.0);
         let alpha = ps.find_one_float("alpha", 2.0);
-        Box::new(GaussianFilter::new(&Vector2f::new(xw, yw), alpha))
+        Box::new(GaussianFilter::new(Vector2f::new(xw, yw), alpha))
     }
 }
 

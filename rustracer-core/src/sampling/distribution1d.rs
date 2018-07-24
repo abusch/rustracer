@@ -20,19 +20,24 @@ impl Distribution1D {
         // transform step function integral into CDF
         let func_int = cdf[n];
         if func_int == 0.0 {
-            for i in 1..(n + 1) {
-                cdf[i] = i as f32 / n as f32;
-            }
+            cdf.iter_mut()
+                .enumerate()
+                .skip(1)
+                .for_each(|(i, v)| *v = i as f32 / n as f32);
+        // for i in 1..(n + 1) {
+        //     cdf[i] = i as f32 / n as f32;
+        // }
         } else {
-            for i in 1..(n + 1) {
-                cdf[i] /= func_int;
-            }
+            cdf.iter_mut().skip(1).for_each(|v| *v /= func_int);
+            // for i in 1..(n + 1) {
+            //     cdf[i] /= func_int;
+            // }
         }
 
         Distribution1D {
-            cdf: cdf,
-            func: func,
-            func_int: func_int,
+            cdf,
+            func,
+            func_int,
         }
     }
 

@@ -27,7 +27,7 @@ where
 }
 
 impl Point2<f32> {
-    pub fn has_nan(&self) -> bool {
+    pub fn has_nan(self) -> bool {
         self.x.is_nan() || self.y.is_nan()
     }
 }

@@ -22,15 +22,15 @@ pub fn init_stats() {
 }
 
 pub fn render(
-    scene: Arc<Scene>,
+    scene: &Arc<Scene>,
     integrator: &mut dyn SamplerIntegrator,
     camera: &dyn Camera,
     num_threads: usize,
-    sampler: &mut Box<dyn Sampler>,
+    sampler: &mut dyn Sampler,
     block_size: i32,
     mut _display: Box<dyn DisplayUpdater + Send>,
 ) -> Result<(), Error> {
-    integrator.preprocess(Arc::clone(&scene), sampler);
+    integrator.preprocess(Arc::clone(scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
     let sample_extent = sample_bounds.diagonal();
     let pixel_bounds = integrator.pixel_bounds();
@@ -58,14 +58,13 @@ pub fn render(
 
     crossbeam::scope(|scope| {
         // We only want to use references to these in the thread, not move the structs themselves...
-        let scene = &scene;
         let integrator = &integrator;
         let camera = &camera;
         let pb = &pb;
 
         // Spawn worker threads
         for _ in 0..num_threads {
-            let mut sampler = sampler.clone();
+            let mut sampler = sampler.box_clone();
             let tiles_iter = Arc::clone(&tiles_iter);
             scope.spawn(move || {
                 loop {
@@ -115,7 +114,7 @@ pub fn render(
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
                             n_camera_ray::inc();
                             let mut sample_colour =
-                                integrator.li(scene, &mut ray, &mut sampler, &alloc, 0);
+                                integrator.li(scene, &mut ray, sampler.as_mut(), &alloc, 0);
                             if sample_colour.has_nan() {
                                 error!("Not-a-number radiance value returned for pixel {}, sample {}. Setting to black.", p, sampler.current_sample_number());
                                 sample_colour = Spectrum::black();
@@ -128,13 +127,13 @@ pub fn render(
                                 error!("Infinite luminance value returned for pixel {}, sample {}. Setting to black.", p, sampler.current_sample_number());
                                 sample_colour = Spectrum::black();
                             }
-                            film_tile.add_sample(&s.p_film, sample_colour);
+                            film_tile.add_sample(s.p_film, sample_colour);
                             if !sampler.start_next_sample() {
                                 break;
                             }
                         }
                     }
-                    camera.get_film().merge_film_tile(film_tile);
+                    camera.get_film().merge_film_tile(&film_tile);
                     pb.inc(1);
                 }
                 stats::report_stats();

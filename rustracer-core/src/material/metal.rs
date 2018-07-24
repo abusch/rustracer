@@ -35,7 +35,7 @@ impl Metal {
         let remap_roughness = mp.find_bool("remaproughness", true);
 
         Arc::new(Metal {
-            eta: eta,
+            eta,
             k,
             rough,
             bump,

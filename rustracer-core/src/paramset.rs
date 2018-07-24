@@ -145,7 +145,7 @@ impl ParamSet {
                 ParamType::Blackbody => {
                     self.add_blackbody_spectrum(
                         entry.param_name.clone(),
-                        entry.values.as_num_array(),
+                        &entry.values.as_num_array(),
                     );
                 }
                 ParamType::Vector2 => error!(
@@ -171,80 +171,80 @@ impl ParamSet {
 
     fn add_bool(&mut self, name: String, values: Vec<bool>) {
         self.bools.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_int(&mut self, name: String, values: Vec<i32>) {
         self.ints.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_float(&mut self, name: String, values: Vec<f32>) {
         self.floats.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_string(&mut self, name: String, values: Vec<String>) {
         self.strings.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_rgb_spectrum(&mut self, name: String, values: Vec<Spectrum>) {
         self.spectra.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_point2f(&mut self, name: String, values: Vec<Point2f>) {
         self.point2fs.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_point3f(&mut self, name: String, values: Vec<Point3f>) {
         self.point3fs.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_vector3f(&mut self, name: String, values: Vec<Vector3f>) {
         self.vector3fs.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_normal3f(&mut self, name: String, values: Vec<Normal3f>) {
         self.normal3fs.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
 
     fn add_texture(&mut self, name: String, values: Vec<String>) {
         self.textures.push(ParamSetItem {
-            name: name,
-            values: values,
+            name,
+            values,
             looked_up: Cell::new(false),
         });
     }
@@ -286,7 +286,7 @@ impl ParamSet {
         });
     }
 
-    fn add_blackbody_spectrum(&mut self, name: String, values: Vec<f32>) {
+    fn add_blackbody_spectrum(&mut self, name: String, values: &[f32]) {
         let spectra = values
             .chunks(2)
             .filter(|s| s.len() == 2)

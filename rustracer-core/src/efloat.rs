@@ -20,11 +20,7 @@ impl EFloat {
             (next_float_down(v - err), next_float_up(v + err))
         };
 
-        let r = EFloat {
-            v: v,
-            low: low,
-            high: high,
-        };
+        let r = EFloat { v, low, high };
         r.check();
         r
     }
@@ -205,8 +201,8 @@ impl Div<EFloat> for EFloat {
         };
         let r = EFloat {
             v: self.v / f.v,
-            low: low,
-            high: high,
+            low,
+            high,
         };
         r.check();
         r

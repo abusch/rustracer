@@ -44,7 +44,7 @@ pub struct VisibilityTester {
 
 impl VisibilityTester {
     pub fn new(p0: Interaction, p1: Interaction) -> VisibilityTester {
-        VisibilityTester { p0: p0, p1: p1 }
+        VisibilityTester { p0, p1}
     }
 
     pub fn unoccluded(&self, scene: &Scene) -> bool {

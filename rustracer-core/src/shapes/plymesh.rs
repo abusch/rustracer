@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
+use std::hash::BuildHasher;
 use std::io::BufReader;
 use std::sync::Arc;
 
@@ -13,12 +14,12 @@ use texture::{ConstantTexture, Texture};
 use transform::Transform;
 use {Normal3f, Point2f, Point3f};
 
-pub fn create(
+pub fn create<S: BuildHasher>(
     o2w: &Transform,
     _w2o: &Transform,
     reverse_orientation: bool,
     params: &ParamSet,
-    float_textures: &HashMap<String, Arc<dyn Texture<f32>>>,
+    float_textures: &HashMap<String, Arc<dyn Texture<f32>>, S>,
 ) -> Vec<Arc<dyn Shape>> {
     let filename = params.find_one_filename("filename", "".into());
     let f = File::open(&filename).unwrap();

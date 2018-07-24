@@ -19,12 +19,12 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
     path.canonicalize()
         .unwrap()
         .parent()
-        .expect(
-            format!(
+        .unwrap_or_else(|| {
+            panic!(format!(
                 "Failed to get the parent directory of the input file {}",
                 path.display()
-            ).as_ref(),
-        )
+            ))
+        })
         .to_owned()
 }
 

@@ -21,7 +21,7 @@ impl Transform {
     pub fn from_matrix(m: Matrix4x4) -> Transform {
         Transform {
             m_inv: m.inverse(),
-            m: m,
+            m,
         }
     }
 
@@ -48,7 +48,7 @@ impl Transform {
         m.m[2][3] = 0.0;
 
         Transform {
-            m: m,
+            m,
             m_inv: m.transpose(),
         }
     }
@@ -70,11 +70,11 @@ impl Transform {
             1.0, 0.0, 0.0, delta.x, 0.0, 1.0, 0.0, delta.y, 0.0, 0.0, 1.0, delta.z, 0.0, 0.0, 0.0,
             1.0,
         );
-        let minv = Matrix4x4::from_elements(
+        let m_inv = Matrix4x4::from_elements(
             1.0, 0.0, 0.0, -delta.x, 0.0, 1.0, 0.0, -delta.y, 0.0, 0.0, 1.0, -delta.z, 0.0, 0.0,
             0.0, 1.0,
         );
-        Transform { m: m, m_inv: minv }
+        Transform { m, m_inv }
     }
 
     pub fn translate_x(t: f32) -> Transform {
@@ -93,7 +93,7 @@ impl Transform {
         let m = Matrix4x4::from_elements(
             sx, 0.0, 0.0, 0.0, 0.0, sy, 0.0, 0.0, 0.0, 0.0, sz, 0.0, 0.0, 0.0, 0.0, 1.0,
         );
-        let minv = Matrix4x4::from_elements(
+        let m_inv = Matrix4x4::from_elements(
             1.0 / sx,
             0.0,
             0.0,
@@ -111,7 +111,7 @@ impl Transform {
             0.0,
             1.0,
         );
-        Transform { m: m, m_inv: minv }
+        Transform { m, m_inv }
     }
 
     pub fn look_at(pos: &Point3f, look: &Point3f, up: &Vector3f) -> Transform {
@@ -262,6 +262,7 @@ impl Transform {
 impl<'a, 'b> Mul<&'a Point3f> for &'b Transform {
     type Output = Point3f;
 
+    #[cfg_attr(feature = "cargo-clippy", allow(suspicious_arithmetic_impl))]
     fn mul(self, p: &'a Point3f) -> Point3f {
         let x = p.x;
         let y = p.y;
@@ -376,7 +377,7 @@ impl<'a, 'b> Mul<&'a Bounds3f> for &'b Transform {
 }
 
 #[allow(non_snake_case)]
-pub fn solve_linear_system2x2(A: &[[f32; 2]; 2], B: &Vector2f) -> Option<(f32, f32)> {
+pub fn solve_linear_system2x2(A: &[[f32; 2]; 2], B: Vector2f) -> Option<(f32, f32)> {
     let det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
     if det.abs() < 1e-10 {
         return None;

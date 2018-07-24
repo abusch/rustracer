@@ -11,7 +11,7 @@ pub use self::distribution2d::Distribution2D;
 const FRAC_PI_4: f32 = consts::FRAC_PI_2 / 2.0;
 
 // Inline functions
-pub fn uniform_sample_sphere(u: &Point2f) -> Vector3f {
+pub fn uniform_sample_sphere(u: Point2f) -> Vector3f {
     let z = 1.0 - 2.0 * u.x;
     let r = (1.0 - z * z).max(0.0).sqrt();
     let phi = 2.0 * consts::PI * u.y;
@@ -19,15 +19,15 @@ pub fn uniform_sample_sphere(u: &Point2f) -> Vector3f {
     Vector3f::new(r * phi.cos(), r * phi.sin(), z)
 }
 
-pub fn cosine_sample_hemisphere(u: &Point2f) -> Vector3f {
+pub fn cosine_sample_hemisphere(u: Point2f) -> Vector3f {
     let d = concentric_sample_disk(u);
     let z = (1.0 - d.x * d.x - d.y * d.y).max(0.0).sqrt();
     Vector3f::new(d.x, d.y, z)
 }
 
-pub fn concentric_sample_disk(u: &Point2f) -> Point2f {
+pub fn concentric_sample_disk(u: Point2f) -> Point2f {
     // Map uniform random numbers to `[-1, 1]^2`
-    let u_offset = 2.0 * *u - Vector2f::new(1.0, 1.0);
+    let u_offset = 2.0 * u - Vector2f::new(1.0, 1.0);
 
     // Handle degeneracy at the origin
     if u_offset.x == 0.0 && u_offset.y == 0.0 {
@@ -46,7 +46,7 @@ pub fn concentric_sample_disk(u: &Point2f) -> Point2f {
     r * Point2f::new(theta.cos(), theta.sin())
 }
 
-pub fn uniform_sample_triangle(u: &Point2f) -> Point2f {
+pub fn uniform_sample_triangle(u: Point2f) -> Point2f {
     let su0 = u[0].sqrt();
     Point2f::new(1.0 - su0, u[1] * su0)
 }

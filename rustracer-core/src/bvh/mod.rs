@@ -42,8 +42,7 @@ pub struct BVH {
 
 impl BVH {
     pub fn from_triangles(mut tris: Vec<Arc<dyn Shape>>, material: &Arc<dyn Material>) -> BVH {
-        let prims: Vec<Arc<dyn Primitive>> = tris
-            .drain(..)
+        let prims: Vec<Arc<dyn Primitive>> = tris.drain(..)
             .map(|t| {
                 let prim = GeometricPrimitive {
                     shape: Arc::clone(&t),
@@ -116,7 +115,7 @@ impl BVH {
         let bvh = BVH {
             max_prims_per_node: min(max_prims_per_node, 255),
             primitives: ordered_prims,
-            nodes: nodes,
+            nodes,
         };
         tree_bytes::add(
             (total_nodes * ::std::mem::size_of::<LinearBVHNode>()
@@ -318,7 +317,7 @@ impl BVH {
                 let linear_node = LinearBVHNode {
                     bounds: *node.bounds(),
                     data: LinearBVHNodeData::Leaf {
-                        num_prims: num_prims,
+                        num_prims,
                         primitives_offset: first_prim_offset,
                     },
                 };
@@ -560,8 +559,8 @@ impl BVHBuildNode {
         total_primitives_per_leaf::inc_total();
         BVHBuildNode::Leaf {
             bounds: bbox,
-            first_prim_offset: first_prim_offset,
-            num_prims: num_prims,
+            first_prim_offset,
+            num_prims,
         }
     }
 

@@ -508,8 +508,8 @@ impl TrowbridgeReitzDistribution {
         slope_x = tmp;
 
         // 4. unstretch
-        slope_x = self.alpha_x * slope_x;
-        slope_y = self.alpha_y * slope_y;
+        slope_x *= self.alpha_x;
+        slope_y *= self.alpha_y;
 
         // 5. compute normal
         Vector3f::new(-slope_x, -slope_y, 1.0).normalize()

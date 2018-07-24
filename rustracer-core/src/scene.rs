@@ -30,7 +30,7 @@ impl Scene {
         let mut scene = Scene {
             lights: Vec::new(),
             infinite_lights: Vec::new(),
-            aggregate: aggregate,
+            aggregate,
         };
 
         let mut infinite_lights = Vec::new();

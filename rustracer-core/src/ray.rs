@@ -20,8 +20,8 @@ impl Ray {
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
         assert_ne!(d.length_squared(), 0.0);
         Ray {
-            o: o,
-            d: d,
+            o,
+            d,
             t_max: INFINITY,
             differential: None,
         }
@@ -32,8 +32,8 @@ impl Ray {
         assert!(!d.x.is_nan() && !d.y.is_nan() && !d.z.is_nan());
         assert_ne!(d.length_squared(), 0.0);
         Ray {
-            o: o,
-            d: d,
+            o,
+            d,
             t_max: tmax,
             differential: None,
         }
@@ -62,9 +62,9 @@ impl Ray {
         });
 
         let r = Ray {
-            o: o,
-            d: d,
-            t_max: t_max,
+            o,
+            d,
+            t_max,
             differential: diff,
         };
         (r, o_error, d_error)

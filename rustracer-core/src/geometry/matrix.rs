@@ -133,9 +133,7 @@ impl Matrix4x4 {
         for j in (0..4).rev() {
             if indxr[j] != indxc[j] {
                 for k in 0..4 {
-                    let tmp = minv[k][indxr[j]];
-                    minv[k][indxr[j]] = minv[k][indxc[j]];
-                    minv[k][indxc[j]] = tmp;
+                    minv[k].swap(indxr[j], indxc[j]);
                 }
             }
         }

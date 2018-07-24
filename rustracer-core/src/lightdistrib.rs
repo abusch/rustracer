@@ -141,8 +141,8 @@ impl SpatialLightDistribution {
             // Use the next two Halton dimensions to sample a point on the
             // light source.
             let u = Point2f::new(radical_inverse(3, i), radical_inverse(4, i));
-            for j in 0..self.scene.lights.len() {
-                let (li, _wi, pdf, _vis) = self.scene.lights[j].sample_li(&intr, &u);
+            for (j, light) in self.scene.lights.iter().enumerate() {
+                let (li, _wi, pdf, _vis) = light.sample_li(&intr, &u);
                 if pdf > 0.0 {
                     // TODO: look at tracing shadow rays / computing beam
                     // transmittance.  Probably shouldn't give those full weight
@@ -165,8 +165,8 @@ impl SpatialLightDistribution {
         } else {
             1.0
         };
-        for i in 0..light_contrib.len() {
-            light_contrib[i] = f32::max(light_contrib[i], min_contrib);
+        for c in &mut light_contrib {
+            *c = f32::max(*c, min_contrib);
         }
 
         info!(

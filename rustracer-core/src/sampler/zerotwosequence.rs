@@ -37,7 +37,7 @@ impl ZeroTwoSequence {
         }
 
         ZeroTwoSequence {
-            spp: spp,
+            spp,
             current_pixel: Point2i::new(0, 0),
             current_pixel_sample_index: 0,
             sample_1d_array_sizes: Vec::new(),
@@ -184,9 +184,9 @@ impl Sampler for ZeroTwoSequence {
         let p_lens = self.get_2d();
 
         CameraSample {
-            p_film: p_film,
-            p_lens: p_lens,
-            time: time,
+            p_film,
+            p_lens,
+            time,
         }
     }
 

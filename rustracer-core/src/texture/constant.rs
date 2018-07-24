@@ -13,7 +13,7 @@ pub struct ConstantTexture<T> {
 
 impl<T: Copy> ConstantTexture<T> {
     pub fn new(value: T) -> ConstantTexture<T> {
-        ConstantTexture { value: value }
+        ConstantTexture { value }
     }
 }
 

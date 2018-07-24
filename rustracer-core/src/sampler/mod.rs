@@ -20,9 +20,3 @@ pub trait Sampler: Send + Sync {
     fn box_clone(&self) -> Box<dyn Sampler>;
     fn current_sample_number(&self) -> usize;
 }
-
-impl Clone for Box<dyn Sampler> {
-    fn clone(&self) -> Box<dyn Sampler> {
-        self.box_clone()
-    }
-}
