@@ -36,8 +36,7 @@ impl UberMaterial {
         let roughness = mp.get_float_texture("roughness", 0.1);
         let uroughness = mp.get_float_texture_or_none("uroughness");
         let vroughness = mp.get_float_texture_or_none("vroughness");
-        let eta = mp
-            .get_float_texture_or_none("eta")
+        let eta = mp.get_float_texture_or_none("eta")
             .unwrap_or_else(|| mp.get_float_texture("index", 1.5));
         let opacity = mp.get_spectrum_texture("opacity", &Spectrum::from(1.0));
         let bumpmap = mp.get_float_texture_or_none("bumpmap");
@@ -91,13 +90,11 @@ impl Material for UberMaterial {
         let ks = op * self.ks.evaluate(si).clamp();
         if !ks.is_black() {
             let fresnel = arena.alloc(Fresnel::dielectric(1.0, e));
-            let mut roughu = self
-                .roughnessu
+            let mut roughu = self.roughnessu
                 .as_ref()
                 .unwrap_or(&self.roughness)
                 .evaluate(si);
-            let mut roughv = self
-                .roughnessv
+            let mut roughv = self.roughnessv
                 .as_ref()
                 .unwrap_or(&self.roughness)
                 .evaluate(si);

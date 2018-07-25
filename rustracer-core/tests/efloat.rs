@@ -3,8 +3,8 @@ extern crate rustracer_core as rt;
 
 use rand::{Rng, SeedableRng, StdRng};
 
-use rt::{next_float_up, next_float_down};
 use rt::efloat::EFloat;
+use rt::{next_float_down, next_float_up};
 
 const NUM_ITER: usize = 10_000;
 

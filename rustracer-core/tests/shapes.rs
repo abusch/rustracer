@@ -1,14 +1,14 @@
 extern crate rand;
 extern crate rustracer_core as rt;
 
-use std::f32;
-use rand::{Rng, SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
+use rand::{Rng, SeedableRng, StdRng};
+use std::f32;
 
-use rt::{Point2f, Point3f, Transform};
 use rt::ray::Ray;
 use rt::sampling;
 use rt::shapes::{Shape, Sphere};
+use rt::{Point2f, Point3f, Transform};
 
 fn pexp<T: Rng>(rng: &mut T, exp: f32) -> f32 {
     let range = Range::new(-exp, exp);

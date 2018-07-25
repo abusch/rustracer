@@ -136,8 +136,7 @@ impl<'a> BSDF<'a> {
         u: &Point2f,
         flags: BxDFType,
     ) -> (Spectrum, Vector3f, f32, BxDFType) {
-        let matching_comps = self
-            .bxdfs
+        let matching_comps = self.bxdfs
             .iter()
             .filter(|b| b.matches(flags))
             .collect::<Vec<&&dyn BxDF>>();

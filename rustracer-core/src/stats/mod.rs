@@ -38,29 +38,25 @@ impl StatAccumulator {
         max: u64,
     ) {
         {
-            let s = self
-                .int_distribution_sums
+            let s = self.int_distribution_sums
                 .entry(name.to_owned())
                 .or_insert(0);
             *s += sum;
         }
         {
-            let c = self
-                .int_distribution_counts
+            let c = self.int_distribution_counts
                 .entry(name.to_owned())
                 .or_insert(0);
             *c += count;
         }
         {
-            let m = self
-                .int_distribution_mins
+            let m = self.int_distribution_mins
                 .entry(name.to_owned())
                 .or_insert(min);
             *m = u64::min(*m, min);
         }
         {
-            let m = self
-                .int_distribution_maxs
+            let m = self.int_distribution_maxs
                 .entry(name.to_owned())
                 .or_insert(max);
             *m = u64::max(*m, max);
