@@ -143,7 +143,8 @@ impl Shape for Disk {
         if self.reverse_orientation {
             it.n = -it.n;
         }
-        let (p, p_err) = self.object_to_world
+        let (p, p_err) = self
+            .object_to_world
             .transform_point_with_error(&p_obj, &Vector3f::new(0.0, 0.0, 0.0));
         it.p = p;
         it.p_error = p_err;

@@ -78,9 +78,11 @@ pub fn sample_catmull_rom_2d(
         }
 
         // Evaluate target function and its derivative in Horner form
-        Fhat = t * (f0 + t * (0.5 * d0
-            + t * ((1.0 / 3.0) * (-2.0 * d0 - d1) + f1 - f0
-                + t * (0.25 * (d0 + d1) + 0.5 * (f0 - f1)))));
+        Fhat = t
+            * (f0
+                + t * (0.5 * d0
+                    + t * ((1.0 / 3.0) * (-2.0 * d0 - d1) + f1 - f0
+                        + t * (0.25 * (d0 + d1) + 0.5 * (f0 - f1)))));
         fhat = f0
             + t * (d0 + t * (-2.0 * d0 - d1 + 3.0 * (f1 - f0) + t * (d0 + d1 + 2.0 * (f0 - f1))));
 

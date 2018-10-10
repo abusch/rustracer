@@ -180,8 +180,7 @@ pub fn blackbody(lambda: &[f32], temp: f32) -> Vec<f32> {
             let Le_i = (2.0 * h * c * c) / (lambda5 * (f32::exp((h * c) / (l * kb * temp)) - 1.0));
             assert!(!Le_i.is_infinite());
             Le_i
-        })
-        .collect()
+        }).collect()
 }
 
 pub fn blackbody_normalized(lambda: &[f32], temp: f32) -> Vec<f32> {

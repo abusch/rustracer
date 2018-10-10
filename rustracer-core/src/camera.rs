@@ -39,17 +39,15 @@ impl PerspectiveCamera {
             film.full_resolution.x as f32,
             film.full_resolution.y as f32,
             1.0,
-        )
-            * Transform::scale(
-                1.0 / (screen_window.p_max.x - screen_window.p_min.x),
-                1.0 / (screen_window.p_min.y - screen_window.p_max.y),
-                1.0,
-            )
-            * Transform::translate(&Vector3f::new(
-                -screen_window.p_min.x,
-                -screen_window.p_max.y,
-                0.0,
-            ));
+        ) * Transform::scale(
+            1.0 / (screen_window.p_max.x - screen_window.p_min.x),
+            1.0 / (screen_window.p_min.y - screen_window.p_max.y),
+            1.0,
+        ) * Transform::translate(&Vector3f::new(
+            -screen_window.p_min.x,
+            -screen_window.p_max.y,
+            0.0,
+        ));
 
         let raster_to_screen = screen_to_raster.inverse();
         let raster_to_camera = camera_to_screen.inverse() * raster_to_screen;

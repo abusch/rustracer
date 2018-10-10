@@ -24,8 +24,7 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
                 "Failed to get the parent directory of the input file {}",
                 path.display()
             ))
-        })
-        .to_owned()
+        }).to_owned()
 }
 
 pub fn resolve_filename(filename: &str) -> String {

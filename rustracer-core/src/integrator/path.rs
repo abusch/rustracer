@@ -150,7 +150,8 @@ impl SamplerIntegrator for PathIntegrator {
                 continue;
             }
             let bsdf = isect.bsdf.clone().unwrap();
-            let distrib = self.light_distribution
+            let distrib = self
+                .light_distribution
                 .as_ref()
                 .unwrap()
                 .lookup(&isect.hit.p);

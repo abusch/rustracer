@@ -42,10 +42,11 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
         num(),
         num(),
         num(),
-    ).and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
-        api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
-            .map_err(|e| e.compat())
-    });
+    )
+        .and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
+            api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
+                .map_err(|e| e.compat())
+        });
     let coordinate_system = (token(Tokens::COORDINATESYSTEM), string_())
         .and_then(|(_, name)| api.coordinate_system(name).map_err(|e| e.compat()));
     let coord_sys_transform = (token(Tokens::COORDSYSTRANSFORM), string_())
@@ -61,8 +62,7 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
                 parse(&tokens[..], api)
                     .map(|_| ())
                     .map_err(|e| format_err!("Failed to parse included file: {:?}", e))
-            })
-            .map_err(|e| e.compat())
+            }).map_err(|e| e.compat())
     });
     let integrator = (token(Tokens::INTEGRATOR), string_(), param_list())
         .and_then(|(_, name, params)| api.integrator(name, &params).map_err(|e| e.compat()));
@@ -100,10 +100,11 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
         string_(),
         string_(),
         param_list(),
-    ).and_then(|(_, name, typ, texname, params)| {
-        api.texture(name, typ, texname, &params)
-            .map_err(|e| e.compat())
-    });
+    )
+        .and_then(|(_, name, typ, texname, params)| {
+            api.texture(name, typ, texname, &params)
+                .map_err(|e| e.compat())
+        });
     let concat_transform =
         (token::<I>(Tokens::CONCATTRANSFORM), num_array()).and_then(|(_, nums)| {
             api.concat_transform(
@@ -166,8 +167,7 @@ fn param_list<'a, I: Stream<Item = Tokens> + 'a>(
             let mut ps = ParamSet::default();
             ps.init(x);
             ps
-        })
-        .boxed()
+        }).boxed()
 }
 
 fn param_type<'a, I: Stream<Item = char> + 'a>(
@@ -201,8 +201,7 @@ fn param_list_entry_header<'a, I: Stream<Item = Tokens> + 'a>(
             Err(error) => Err(Error::Message(
                 format!("Invalid param list entry: {}", error).into(),
             )),
-        })
-        .boxed()
+        }).boxed()
 }
 
 fn param_list_entry<'a, I: Stream<Item = Tokens> + 'a>(

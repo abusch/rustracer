@@ -174,7 +174,8 @@ where
                 *p = (*mipmap.texel(i - 1, 2 * si, 2 * ti)
                     + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti)
                     + *mipmap.texel(i - 1, 2 * si, 2 * ti + 1)
-                    + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti + 1)) * 0.25;
+                    + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti + 1))
+                    * 0.25;
             });
             mipmap.pyramid.push(BlockedArray::new_from(
                 s_res,

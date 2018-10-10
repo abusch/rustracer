@@ -28,7 +28,8 @@ impl GlassMaterial {
         info!("Creating Glass material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::white());
         let Kt = mp.get_spectrum_texture("Kt", &Spectrum::white());
-        let eta = mp.get_float_texture_or_none("eta")
+        let eta = mp
+            .get_float_texture_or_none("eta")
             .unwrap_or_else(|| mp.get_float_texture("index", 1.5));
         let rough_u = mp.get_float_texture("uroughness", 0.0);
         let rough_v = mp.get_float_texture("vroughness", 0.0);

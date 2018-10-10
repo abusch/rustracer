@@ -295,8 +295,7 @@ impl ParamSet {
                 let scale = v[1];
                 let Le = blackbody_normalized(&CIE_LAMBDA, temp);
                 scale * Spectrum::from_sampled(&CIE_LAMBDA, &Le, CIE_LAMBDA.len())
-            })
-            .collect();
+            }).collect();
 
         self.spectra.push(ParamSetItem {
             name,

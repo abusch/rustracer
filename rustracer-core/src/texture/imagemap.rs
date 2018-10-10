@@ -77,8 +77,7 @@ where
                     scale * *p
                 };
                 convert(&s)
-            })
-            .collect();
+            }).collect();
 
         let mipmap = Arc::new(MIPMap::new(
             res,

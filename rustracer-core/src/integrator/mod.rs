@@ -228,7 +228,8 @@ pub fn estimate_direct(
     };
     let mut ld = Spectrum::black();
     // Sample light with multiple importance sampling
-    let bsdf = it.bsdf
+    let bsdf = it
+        .bsdf
         .as_ref()
         .expect("There should be a BSDF set at this point!");
     let (mut li, wi, light_pdf, vis) = light.sample_li(it.into(), &u_light);

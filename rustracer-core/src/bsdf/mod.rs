@@ -101,8 +101,7 @@ impl<'a> BSDF<'a> {
                 b.matches(flags)
                     && ((reflect && (b.get_type().contains(BxDFType::BSDF_REFLECTION)))
                         || (!reflect && (b.get_type().contains(BxDFType::BSDF_TRANSMISSION))))
-            })
-            .fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
+            }).fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
     }
 
     pub fn pdf(&self, wo_w: &Vector3f, wi_w: &Vector3f, flags: BxDFType) -> f32 {
@@ -136,7 +135,8 @@ impl<'a> BSDF<'a> {
         u: &Point2f,
         flags: BxDFType,
     ) -> (Spectrum, Vector3f, f32, BxDFType) {
-        let matching_comps = self.bxdfs
+        let matching_comps = self
+            .bxdfs
             .iter()
             .filter(|b| b.matches(flags))
             .collect::<Vec<&&dyn BxDF>>();
@@ -227,8 +227,7 @@ impl<'a> BSDF<'a> {
                 .filter(|b| {
                     (reflect && b.get_type().contains(BxDFType::BSDF_REFLECTION))
                         || (!reflect && b.get_type().contains(BxDFType::BSDF_TRANSMISSION))
-                })
-                .fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
+                }).fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
         }
 
         // debug!(

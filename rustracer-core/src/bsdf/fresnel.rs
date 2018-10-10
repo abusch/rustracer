@@ -203,16 +203,8 @@ impl BxDF for SpecularTransmission {
     fn sample_f(&self, wo: &Vector3f, _sample: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         // Figure out which $\eta$ is incident and which is transmitted
         let entering = cos_theta(wo) > 0.0;
-        let eta_i = if entering {
-            self.eta_a
-        } else {
-            self.eta_b
-        };
-        let eta_t = if entering {
-            self.eta_b
-        } else {
-            self.eta_a
-        };
+        let eta_i = if entering { self.eta_a } else { self.eta_b };
+        let eta_t = if entering { self.eta_b } else { self.eta_a };
 
         // Compute ray direction for specular transmission
         if let Some(wi) = refract(
@@ -300,16 +292,8 @@ impl BxDF for FresnelSpecular {
 
             // Figure out which $\eta$ is incident and which is transmitted
             let entering = cos_theta(wo) > 0.0;
-            let eta_i = if entering {
-                self.eta_a
-            } else {
-                self.eta_b
-            };
-            let eta_t = if entering {
-                self.eta_b
-            } else {
-                self.eta_a
-            };
+            let eta_i = if entering { self.eta_a } else { self.eta_b };
+            let eta_t = if entering { self.eta_b } else { self.eta_a };
 
             // Compute ray direction for specular transmission
             if let Some(wi) = refract(

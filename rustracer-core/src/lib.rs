@@ -5,8 +5,15 @@
 #![cfg_attr(
     feature = "cargo-clippy",
     allow(
-        float_cmp, many_single_char_names, unreadable_literal, large_digit_groups, ifs_same_cond,
-        if_same_then_else, match_same_arms, excessive_precision, too_many_arguments
+        float_cmp,
+        many_single_char_names,
+        unreadable_literal,
+        large_digit_groups,
+        ifs_same_cond,
+        if_same_then_else,
+        match_same_arms,
+        excessive_precision,
+        too_many_arguments
     )
 )]
 

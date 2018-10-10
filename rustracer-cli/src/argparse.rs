@@ -11,28 +11,23 @@ pub fn parse_args<'a>() -> ArgMatches<'a> {
                 .short("o")
                 .help("Output file name")
                 .default_value("image.png"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("nthreads")
                 .long("nthreads")
                 .short("t")
                 .help("Number of worker threads")
                 .takes_value(true),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("verbose")
                 .short("v")
                 .help("log debug information"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("display")
                 .short("p")
                 .help("Display image as it is rendered"),
-        )
-        .arg(
+        ).arg(
             Arg::with_name("INPUT")
                 .required(true)
                 .help("PBRT scene file to render"),
-        )
-        .get_matches()
+        ).get_matches()
 }

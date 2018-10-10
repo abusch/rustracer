@@ -269,7 +269,8 @@ impl Shape for Cylinder {
         p_obj.x *= self.radius / hit_rad;
         p_obj.y *= self.radius / hit_rad;
         let p_obj_error = gamma(3) * Vector3f::new(p_obj.x.abs(), p_obj.y.abs(), 0.0);
-        let (p, p_error) = self.object_to_world
+        let (p, p_error) = self
+            .object_to_world
             .transform_point_with_error(&p_obj, &p_obj_error);
 
         let it = Interaction::new(p, p_error, zero(), n);

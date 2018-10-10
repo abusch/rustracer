@@ -42,7 +42,8 @@ pub struct BVH {
 
 impl BVH {
     pub fn from_triangles(mut tris: Vec<Arc<dyn Shape>>, material: &Arc<dyn Material>) -> BVH {
-        let prims: Vec<Arc<dyn Primitive>> = tris.drain(..)
+        let prims: Vec<Arc<dyn Primitive>> = tris
+            .drain(..)
             .map(|t| {
                 let prim = GeometricPrimitive {
                     shape: Arc::clone(&t),
@@ -51,8 +52,7 @@ impl BVH {
                 };
                 let b: Arc<dyn Primitive> = Arc::new(prim);
                 b
-            })
-            .collect();
+            }).collect();
 
         BVH::new(1, &prims, SplitMethod::SAH)
     }
@@ -180,9 +180,11 @@ impl BVH {
                 SplitMethod::Middle => {
                     let pmid =
                         0.5 * (centroids_bounds[0][dimension] + centroids_bounds[1][dimension]);
-                    mid = start + it::partition(primitive_info[start..end].iter_mut(), |pi| {
-                        pi.centroid[dimension] < pmid
-                    }) + start;
+                    mid = start
+                        + it::partition(primitive_info[start..end].iter_mut(), |pi| {
+                            pi.centroid[dimension] < pmid
+                        })
+                        + start;
                     if mid == start || mid == end {
                         // If partition failed, used Split Equal method
                         primitive_info[start..end].sort_by(|p1, p2| {
@@ -212,8 +214,8 @@ impl BVH {
 
                         // Initialize `BucketInfo` for SAH partition buckets
                         for i in start..end {
-                            let mut b = (N_BUCKETS as f32
-                                * centroids_bounds.offset(&primitive_info[i].centroid)[dimension])
+                            let mut b = (N_BUCKETS as f32 * centroids_bounds
+                                .offset(&primitive_info[i].centroid)[dimension])
                                 as usize;
                             if b == N_BUCKETS {
                                 b = N_BUCKETS - 1;
@@ -239,9 +241,10 @@ impl BVH {
                                 b1 = Bounds3f::union(&b1, &buckets[j].bounds);
                                 count1 += buckets[j].count;
                             }
-                            cost[i] = 1.0 + (count0 as f32 * b0.surface_area()
-                                + count1 as f32 * b1.surface_area())
-                                / bounds.surface_area();
+                            cost[i] = 1.0
+                                + (count0 as f32 * b0.surface_area()
+                                    + count1 as f32 * b1.surface_area())
+                                    / bounds.surface_area();
                         }
 
                         // Find bucket to split at that minimizes SAH metric
@@ -257,8 +260,9 @@ impl BVH {
                         // Either create leaf of split primitives at selected SAH bucket
                         let leaf_cost = n_primitives as f32;
                         if n_primitives > max_prims_per_node || min_cost < leaf_cost {
-                            mid = start
-                                + it::partition(primitive_info[start..end].iter_mut(), |pi| {
+                            mid = start + it::partition(
+                                primitive_info[start..end].iter_mut(),
+                                |pi| {
                                     let mut b = (N_BUCKETS as f32
                                         * centroids_bounds.offset(&pi.centroid)[dimension])
                                         as usize;
@@ -267,7 +271,8 @@ impl BVH {
                                     }
                                     assert!(b < N_BUCKETS);
                                     b <= min_cost_split_bucket
-                                });
+                                },
+                            );
                         } else {
                             // Create leaf `BVHBuildNode`
                             let first_prim_offset = ordered_prims.len();

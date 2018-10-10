@@ -107,8 +107,8 @@ pub fn tokenize<I: Stream<Item = char>>(input: I) -> Result<(Vec<Tokens>, I), Pa
         token_parser("[", Tokens::LBRACK),
         token_parser("]", Tokens::RBRACK),
     ].into_iter()
-        .map(try)
-        .collect::<Vec<_>>();
+    .map(try)
+    .collect::<Vec<_>>();
 
     // Add parsers from num, strings, etc...
     parsers.push(try(float_parser()));
@@ -137,7 +137,8 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>(
             optional(char('-').or(char('+'))),
             many1::<Vec<_>, _>(digit()),
         ))),
-    ).skip(spaces())
+    )
+        .skip(spaces())
         .and_then(|(sign, int_part, frac_part, mantissa)| {
             let mut buf = String::new();
             if let Some(s) = sign {
@@ -165,8 +166,7 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>(
             }
 
             buf.parse::<f32>().map(Tokens::NUMBER)
-        })
-        .boxed()
+        }).boxed()
 }
 
 fn string_parser<'a, I: Stream<Item = char> + 'a>(
@@ -176,14 +176,13 @@ fn string_parser<'a, I: Stream<Item = char> + 'a>(
         token('"'),
         many::<Vec<_>, _>(none_of("\"".chars())),
     ).skip(spaces())
-        .map(|chars| {
-            let mut buf = String::new();
-            for c in chars {
-                buf.push(c);
-            }
-            Tokens::STR(buf)
-        })
-        .boxed()
+    .map(|chars| {
+        let mut buf = String::new();
+        for c in chars {
+            buf.push(c);
+        }
+        Tokens::STR(buf)
+    }).boxed()
 }
 
 fn comment_parser<'a, I: Stream<Item = char> + 'a>(
