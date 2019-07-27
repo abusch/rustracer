@@ -216,7 +216,7 @@ impl Film {
                 pixel.splat_xyz[1].as_float(),
                 pixel.splat_xyz[2].as_float(),
             ];
-            let mut splat_rgb = Spectrum::from_xyz(&splat_xyz);
+            let splat_rgb = Spectrum::from_xyz(&splat_xyz);
             rgb_pixel[0] += splat_scale * splat_rgb[0];
             rgb_pixel[1] += splat_scale * splat_rgb[1];
             rgb_pixel[2] += splat_scale * splat_rgb[2];

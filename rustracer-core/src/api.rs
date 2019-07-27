@@ -589,10 +589,11 @@ impl Api for RealApi {
             tr00, tr04, tr08, tr12, tr01, tr05, tr09, tr13, tr02, tr06, tr10, tr14, tr03, tr07,
             tr11, tr15,
         );
-        state.cur_transform = &state.cur_transform * &Transform {
-            m: mat,
-            m_inv: mat.inverse(),
-        };
+        state.cur_transform = &state.cur_transform
+            * &Transform {
+                m: mat,
+                m_inv: mat.inverse(),
+            };
         Ok(())
     }
 
@@ -807,7 +808,7 @@ impl Api for RealApi {
 
         if typ == "float" {
             let ft = {
-                let mut tp = TextureParams::new(
+                let tp = TextureParams::new(
                     params,
                     &empty_params,
                     &state.graphics_state.float_textures,
@@ -827,7 +828,7 @@ impl Api for RealApi {
             }
         } else if typ == "color" || typ == "spectrum" {
             let ft = {
-                let mut tp = TextureParams::new(
+                let tp = TextureParams::new(
                     params,
                     &empty_params,
                     &state.graphics_state.float_textures,
@@ -862,8 +863,8 @@ impl Api for RealApi {
         let state = &mut *self.state.borrow_mut();
 
         let mtl = {
-            let mut empty_params = ParamSet::default();
-            let mut mp = TextureParams::new(
+            let empty_params = ParamSet::default();
+            let mp = TextureParams::new(
                 params,
                 &empty_params,
                 &state.graphics_state.float_textures,
@@ -963,7 +964,7 @@ impl Api for RealApi {
             prims.push(prim);
         }
         if let Some(name) = &state.render_options.current_instance {
-            let mut inst = state
+            let inst = state
                 .render_options
                 .instances
                 .get_mut(name)
