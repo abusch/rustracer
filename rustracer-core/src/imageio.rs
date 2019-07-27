@@ -68,7 +68,8 @@ fn write_image_png<P: AsRef<Path>>(
         resolution.x as u32,
         resolution.y as u32,
         img::RGB(8),
-    ).context(format!("Failed to save image file {}", path.display()))?;
+    )
+    .context(format!("Failed to save image file {}", path.display()))?;
     Ok(())
 }
 
@@ -129,7 +130,8 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
             let g = f32::from(p[1]) / 255.0;
             let b = f32::from(p[2]) / 255.0;
             Spectrum::rgb(r, g, b)
-        }).collect();
+        })
+        .collect();
 
     Ok((pixels, res))
 }
@@ -141,10 +143,15 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     let hdr = img::hdr::HDRDecoder::with_strictness(reader, false)?;
 
     let meta = hdr.metadata();
-    let data = hdr.read_image_transform(|p| {
-        let rgb = p.to_hdr();
-        Spectrum::rgb(rgb[0], rgb[1], rgb[2])
-    })?;
+    let data = hdr.read_image_hdr()?;
+
+    let data = data
+        .into_iter()
+        .map(|p| {
+            let rgb = p.0;
+            Spectrum::rgb(rgb[0], rgb[1], rgb[2])
+        })
+        .collect();
 
     Ok((data, Point2i::new(meta.width as i32, meta.height as i32)))
 }

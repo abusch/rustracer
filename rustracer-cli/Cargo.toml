@@ -7,7 +7,7 @@ authors = ["Antoine Büsch <antoine.busch@gmail.com>"]
 rustracer-core = { path = "../rustracer-core/"}
 clap = "2"
 failure = "0.1"
-indicatif = "0.9"
+indicatif = "0.11"
 log = "0.4"
-flexi_logger = "0.9"
+flexi_logger = "0.14"
 num_cpus = "1"

@@ -1,3 +1,4 @@
+#![recursion_limit="128"]
 // Lints
 #![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]

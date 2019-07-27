@@ -1,3 +1,4 @@
+#![recursion_limit="128"]
 extern crate clap;
 extern crate failure;
 extern crate flexi_logger;

@@ -66,7 +66,7 @@ pub fn render(
         for _ in 0..num_threads {
             let mut sampler = sampler.box_clone();
             let tiles_iter = Arc::clone(&tiles_iter);
-            scope.spawn(move || {
+            scope.spawn(move |_| {
                 loop {
                     let maybe_tile = {
                         let mut iter = tiles_iter.lock();
@@ -139,7 +139,7 @@ pub fn render(
                 stats::report_stats();
             });
         }
-    });
+    }).unwrap();
     pb.finish();
 
     camera.get_film().write_image()
