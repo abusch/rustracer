@@ -7,12 +7,12 @@ use byteorder::{NativeEndian, ReadBytesExt};
 use failure::Error;
 use num::zero;
 
-use bsdf::{BxDF, BxDFType};
-use geometry::{cos_theta, sin2_theta};
-use interpolation::{catmull_rom_weights, fourier, sample_catmull_rom_2d, sample_fourier};
-use material::TransportMode;
-use spectrum::Spectrum;
-use {clamp, Point2f, Vector3f};
+use crate::bsdf::{BxDF, BxDFType};
+use crate::geometry::{cos_theta, sin2_theta};
+use crate::interpolation::{catmull_rom_weights, fourier, sample_catmull_rom_2d, sample_fourier};
+use crate::material::TransportMode;
+use crate::spectrum::Spectrum;
+use crate::{clamp, Point2f, Vector3f};
 
 // This is ugly, but FourierBSDF has to be Copy, because it implements BxDF and needs to be
 // allocated from the arena, but I can't make it work with FourierBSDFTable... There must be a way
@@ -86,7 +86,7 @@ impl BxDF for FourierBSDF {
         // Evaluate Fourier expansion for angle $\phi$
         let Y = f32::max(0.0, fourier(&ak, m_max, cos_phi));
         let mut scale = if muI != 0.0 {
-            (1.0 / f32::abs(muI))
+            1.0 / f32::abs(muI)
         } else {
             0.0
         };
@@ -192,7 +192,7 @@ impl BxDF for FourierBSDF {
 
         // Evaluate remaining Fourier expansions for angle $\phi$
         let mut scale = if muI != 0.0 {
-            (1.0 / f32::abs(muI))
+            1.0 / f32::abs(muI)
         } else {
             0.0
         };

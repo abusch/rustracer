@@ -1,14 +1,14 @@
 use light_arena::Allocator;
 
-use bounds::Bounds2i;
-use bsdf;
-use integrator::SamplerIntegrator;
-use material::TransportMode;
-use paramset::ParamSet;
-use ray::Ray;
-use sampler::Sampler;
-use scene::Scene;
-use spectrum::Spectrum;
+use crate::bounds::Bounds2i;
+use crate::bsdf;
+use crate::integrator::SamplerIntegrator;
+use crate::material::TransportMode;
+use crate::paramset::ParamSet;
+use crate::ray::Ray;
+use crate::sampler::Sampler;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
 
 /// Simple integrator using the original Whitted recursive algorithm. Only handles direct illumination. See
 /// ```DirectLightingIntegrator``` for a slighly better integrator that uses better light sampling.

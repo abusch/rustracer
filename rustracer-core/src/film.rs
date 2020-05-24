@@ -5,12 +5,12 @@ use atomic::Atomic;
 use failure::Error;
 use parking_lot::Mutex;
 
-use bounds::{Bounds2f, Bounds2i};
-use filter::Filter;
-use imageio;
-use paramset::ParamSet;
-use spectrum::Spectrum;
-use {clamp, Point2f, Point2i, Vector2f};
+use crate::bounds::{Bounds2f, Bounds2i};
+use crate::filter::Filter;
+use crate::imageio;
+use crate::paramset::ParamSet;
+use crate::spectrum::Spectrum;
+use crate::{clamp, Point2f, Point2i, Vector2f};
 
 const FILTER_SIZE: usize = 16;
 const FILTER_TABLE_SIZE: usize = FILTER_SIZE * FILTER_SIZE;

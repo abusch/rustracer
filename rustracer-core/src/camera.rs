@@ -1,11 +1,11 @@
 use num::Zero;
 
-use bounds::Bounds2f;
-use film::Film;
-use paramset::ParamSet;
-use ray::{Ray, RayDifferential};
-use sampling;
-use {Point2f, Point3f, Transform, Vector3f};
+use crate::bounds::Bounds2f;
+use crate::film::Film;
+use crate::paramset::ParamSet;
+use crate::ray::{Ray, RayDifferential};
+use crate::sampling;
+use crate::{Point2f, Point3f, Transform, Vector3f};
 
 pub trait Camera: Send + Sync {
     fn get_film(&self) -> &Film;

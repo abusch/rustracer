@@ -6,33 +6,33 @@ use failure::{err_msg, Error};
 use indicatif::HumanDuration;
 use num_cpus;
 
-use bvh::BVH;
-use camera::{Camera, PerspectiveCamera};
-use display::NoopDisplayUpdater;
-use film::Film;
-use filter::{BoxFilter, Filter, GaussianFilter, MitchellNetravali, TriangleFilter};
-use geometry::Matrix4x4;
-use integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
-use light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
-use material::{
+use crate::bvh::BVH;
+use crate::camera::{Camera, PerspectiveCamera};
+use crate::display::NoopDisplayUpdater;
+use crate::film::Film;
+use crate::filter::{BoxFilter, Filter, GaussianFilter, MitchellNetravali, TriangleFilter};
+use crate::geometry::Matrix4x4;
+use crate::integrator::{DirectLightingIntegrator, Normal, PathIntegrator, SamplerIntegrator, Whitted};
+use crate::light::{AreaLight, DiffuseAreaLight, DistantLight, InfiniteAreaLight, Light, PointLight};
+use crate::material::{
     DisneyMaterial, FourierMaterial, GlassMaterial, Material, MatteMaterial, Metal, MirrorMaterial,
     MixMaterial, Plastic, SubstrateMaterial, TranslucentMaterial, UberMaterial,
 };
-use paramset::{ParamSet, TextureParams};
-use primitive::{GeometricPrimitive, Primitive, TransformedPrimitive};
-use renderer;
-use sampler::zerotwosequence::ZeroTwoSequence;
-use sampler::Sampler;
-use scene::Scene;
-use shapes::plymesh;
-use shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
-use spectrum::Spectrum;
-use stats;
-use texture::{
+use crate::paramset::{ParamSet, TextureParams};
+use crate::primitive::{GeometricPrimitive, Primitive, TransformedPrimitive};
+use crate::renderer;
+use crate::sampler::zerotwosequence::ZeroTwoSequence;
+use crate::sampler::Sampler;
+use crate::scene::Scene;
+use crate::shapes::plymesh;
+use crate::shapes::{Cylinder, Disk, Shape, Sphere, TriangleMesh};
+use crate::spectrum::Spectrum;
+use crate::stat_counter;
+use crate::texture::{
     CheckerboardTexture, ConstantTexture, FbmTexture, ImageTexture, MixTexture, ScaleTexture,
     Texture, UVTexture,
 };
-use {PbrtOptions, Point3f, Transform, Vector3f};
+use crate::{PbrtOptions, Point3f, Transform, Vector3f};
 
 stat_counter!("Scene/Materials created", n_materials_created);
 stat_counter!("Scene/Object instances created", n_object_instances_created);
@@ -1021,10 +1021,10 @@ impl Api for RealApi {
             16,
             Box::new(NoopDisplayUpdater {}),
         )?;
-        stats::report_stats();
+        crate::stats::report_stats();
         let duration = start_time.elapsed();
         println!("Render time: {}", HumanDuration(duration));
-        stats::print_stats();
+        crate::stats::print_stats();
 
         Ok(())
     }

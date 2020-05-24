@@ -2,10 +2,10 @@ use std::f32::consts;
 use std::fmt::Debug;
 
 use super::BxDFType;
-use geometry::{abs_cos_theta, same_hemisphere};
-use sampling::cosine_sample_hemisphere;
-use spectrum::Spectrum;
-use {Point2f, Vector3f};
+use crate::geometry::{abs_cos_theta, same_hemisphere};
+use crate::sampling::cosine_sample_hemisphere;
+use crate::spectrum::Spectrum;
+use crate::{Point2f, Vector3f};
 
 pub trait BxDF: Debug {
     /// Evaluate the BxDF for the given incoming and outgoing directions.

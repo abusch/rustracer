@@ -36,7 +36,6 @@ extern crate light_arena;
 #[macro_use]
 extern crate log;
 extern crate ndarray;
-extern crate ndarray_parallel;
 extern crate num;
 extern crate num_cpus;
 #[cfg(feature = "exr")]

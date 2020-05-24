@@ -2,7 +2,7 @@ use std::fmt;
 
 use combine::char::{char, digit, spaces, string};
 use combine::{
-    between, choice, eof, many, many1, none_of, optional, satisfy, skip_many, token, try,
+    between, choice, eof, many, many1, none_of, optional, satisfy, skip_many, token, r#try,
     ParseError, Parser, Stream,
 };
 
@@ -107,13 +107,13 @@ pub fn tokenize<I: Stream<Item = char>>(input: I) -> Result<(Vec<Tokens>, I), Pa
         token_parser("[", Tokens::LBRACK),
         token_parser("]", Tokens::RBRACK),
     ].into_iter()
-    .map(try)
+    .map(r#try)
     .collect::<Vec<_>>();
 
     // Add parsers from num, strings, etc...
-    parsers.push(try(float_parser()));
-    parsers.push(try(string_parser()));
-    parsers.push(try(comment_parser()));
+    parsers.push(r#try(float_parser()));
+    parsers.push(r#try(string_parser()));
+    parsers.push(r#try(comment_parser()));
 
     (spaces().with(many::<Vec<_>, _>(choice(parsers))), eof())
         .map(|(res, _)| res)

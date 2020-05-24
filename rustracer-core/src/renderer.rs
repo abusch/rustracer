@@ -5,16 +5,16 @@ use failure::Error;
 use indicatif;
 use parking_lot::Mutex;
 
-use bounds::Bounds2i;
-use camera::Camera;
-use display::DisplayUpdater;
-use integrator::SamplerIntegrator;
-use light_arena::MemoryArena;
-use sampler::Sampler;
-use scene::Scene;
-use spectrum::Spectrum;
-use stats;
-use Point2i;
+use crate::bounds::Bounds2i;
+use crate::camera::Camera;
+use crate::display::DisplayUpdater;
+use crate::integrator::SamplerIntegrator;
+use crate::light_arena::MemoryArena;
+use crate::sampler::Sampler;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
+use crate::stats;
+use crate::Point2i;
 
 stat_counter!("Integrator/Camera rays traced", n_camera_ray);
 pub fn init_stats() {

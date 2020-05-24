@@ -7,12 +7,12 @@ use std::sync::Arc;
 use ply_rs::parser;
 use ply_rs::ply;
 
-use paramset::ParamSet;
-use shapes::mesh::create_triangle_mesh;
-use shapes::Shape;
-use texture::{ConstantTexture, Texture};
-use transform::Transform;
-use {Normal3f, Point2f, Point3f};
+use crate::paramset::ParamSet;
+use crate::shapes::mesh::create_triangle_mesh;
+use crate::shapes::Shape;
+use crate::texture::{ConstantTexture, Texture};
+use crate::transform::Transform;
+use crate::{Normal3f, Point2f, Point3f};
 
 pub fn create<S: BuildHasher>(
     o2w: &Transform,

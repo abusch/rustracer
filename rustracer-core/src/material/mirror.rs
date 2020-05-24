@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDFHolder, Fresnel, SpecularReflection, BSDF};
-use interaction::SurfaceInteraction;
-use material::{Material, TransportMode};
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::{TextureFloat, TextureSpectrum};
+use crate::bsdf::{BxDFHolder, Fresnel, SpecularReflection, BSDF};
+use crate::interaction::SurfaceInteraction;
+use crate::material::{Material, TransportMode};
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]
 pub struct MirrorMaterial {

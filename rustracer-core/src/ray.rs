@@ -4,7 +4,7 @@ use std::ops::Mul;
 
 use num::zero;
 
-use {Point3f, Transform, Vector3f};
+use crate::{Point3f, Transform, Vector3f};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {

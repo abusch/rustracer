@@ -1,8 +1,8 @@
 use std::f32::consts;
 
-use bsdf::{BxDF, BxDFType};
-use spectrum::Spectrum;
-use Vector3f;
+use crate::bsdf::{BxDF, BxDFType};
+use crate::spectrum::Spectrum;
+use crate::Vector3f;
 
 #[derive(Copy, Clone, Debug)]
 pub struct LambertianReflection {

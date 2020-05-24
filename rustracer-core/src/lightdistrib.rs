@@ -5,12 +5,12 @@ use std::sync::Arc;
 use atomic::Atomic;
 use num::Zero;
 
-use bounds::Bounds3f;
-use interaction::Interaction;
-use sampler::lowdiscrepancy::radical_inverse;
-use sampling::Distribution1D;
-use scene::Scene;
-use {clamp, Normal3f, Point2f, Point3f, Point3i, Vector3f};
+use crate::bounds::Bounds3f;
+use crate::interaction::Interaction;
+use crate::sampler::lowdiscrepancy::radical_inverse;
+use crate::sampling::Distribution1D;
+use crate::scene::Scene;
+use crate::{clamp, Normal3f, Point2f, Point3f, Point3i, Vector3f};
 
 stat_counter!("SpatialLightDistribution/Distributions created", n_created);
 stat_ratio!(

@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
-use bounds::Bounds2i;
-use integrator::{uniform_sample_all_light, uniform_sample_one_light, SamplerIntegrator};
-use light_arena::Allocator;
-use material::TransportMode;
-use paramset::ParamSet;
-use ray::Ray;
-use sampler::Sampler;
-use scene::Scene;
-use spectrum::Spectrum;
+use crate::bounds::Bounds2i;
+use crate::integrator::{uniform_sample_all_light, uniform_sample_one_light, SamplerIntegrator};
+use crate::light_arena::Allocator;
+use crate::material::TransportMode;
+use crate::paramset::ParamSet;
+use crate::ray::Ray;
+use crate::sampler::Sampler;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
 
 /// Strategy to use for sampling lights
 #[derive(PartialEq, Eq)]

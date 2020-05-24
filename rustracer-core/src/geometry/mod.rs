@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use {clamp, next_float_down, next_float_up, Normal3f, Point3f, Vector3f};
+use crate::{clamp, next_float_down, next_float_up, Normal3f, Point3f, Vector3f};
 
 mod matrix;
 pub use self::matrix::*;

@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use interaction::SurfaceInteraction;
-use texture::Texture;
-use {Normal3f, Vector2f, Vector3f};
+use crate::interaction::SurfaceInteraction;
+use crate::texture::Texture;
+use crate::{Normal3f, Vector2f, Vector3f};
 
 mod disney;
 mod fourier;

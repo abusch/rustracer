@@ -5,9 +5,9 @@ use std::ops::{DivAssign, Index, SubAssign};
 
 use num::{Bounded, Num, Signed};
 
-use geometry::{Point2, Point3, Vector2, Vector3};
-use ray::Ray;
-use {lerp, max, min, Point2f, Point2i, Point3f, Vector3f};
+use crate::geometry::{Point2, Point3, Vector2, Vector3};
+use crate::ray::Ray;
+use crate::{lerp, max, min, Point2f, Point2i, Point3f, Vector3f};
 
 pub type Bounds3f = Bounds3<f32>;
 

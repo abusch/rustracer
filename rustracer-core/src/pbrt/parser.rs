@@ -1,12 +1,12 @@
 use combine::char::{spaces, string};
 use combine::primitives::Error;
 use combine::{
-    between, eof, many, many1, satisfy_map, token, try, value, ParseError, Parser, Stream,
+    between, eof, many, many1, satisfy_map, token, r#try, value, ParseError, Parser, Stream,
 };
 
 use super::lexer::Tokens;
-use api::{Api, Array, ParamListEntry, ParamType};
-use paramset::ParamSet;
+use crate::api::{Api, Array, ParamListEntry, ParamType};
+use crate::paramset::ParamSet;
 
 pub fn parse<I: Stream<Item = Tokens>, A: Api>(
     input: I,
@@ -124,38 +124,38 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
         .and_then(|(_, dx, dy, dz)| api.translate(dx, dy, dz).map_err(|e| e.compat()));
 
     let parsers = many1::<Vec<_>, _>(choice!(
-        try(accelerator),
-        try(attribute_begin),
-        try(attribute_end),
-        try(transform_begin),
-        try(transform_end),
-        try(object_begin),
-        try(object_end),
-        try(object_instance),
-        try(world_begin),
-        try(world_end),
-        try(look_at),
-        try(coordinate_system),
-        try(coord_sys_transform),
-        try(camera),
-        try(film),
-        try(filter),
-        try(include),
-        try(integrator),
-        try(arealightsource),
-        try(lightsource),
-        try(material),
-        try(texture),
-        try(make_named_material),
-        try(named_material),
-        try(sampler),
-        try(shape),
-        try(reverse_orientation),
-        try(scale),
-        try(rotate),
-        try(translate),
-        try(concat_transform),
-        try(transform)
+        r#try(accelerator),
+        r#try(attribute_begin),
+        r#try(attribute_end),
+        r#try(transform_begin),
+        r#try(transform_end),
+        r#try(object_begin),
+        r#try(object_end),
+        r#try(object_instance),
+        r#try(world_begin),
+        r#try(world_end),
+        r#try(look_at),
+        r#try(coordinate_system),
+        r#try(coord_sys_transform),
+        r#try(camera),
+        r#try(film),
+        r#try(filter),
+        r#try(include),
+        r#try(integrator),
+        r#try(arealightsource),
+        r#try(lightsource),
+        r#try(material),
+        r#try(texture),
+        r#try(make_named_material),
+        r#try(named_material),
+        r#try(sampler),
+        r#try(shape),
+        r#try(reverse_orientation),
+        r#try(scale),
+        r#try(rotate),
+        r#try(translate),
+        r#try(concat_transform),
+        r#try(transform)
     ));
     (parsers, eof()).map(|(res, _)| res).parse(input)
 }
@@ -173,23 +173,23 @@ fn param_list<'a, I: Stream<Item = Tokens> + 'a>(
 fn param_type<'a, I: Stream<Item = char> + 'a>(
 ) -> Box<dyn Parser<Input = I, Output = ParamType> + 'a> {
     choice!(
-        try(string("integer").with(value(ParamType::Int))),
-        try(string("bool").with(value(ParamType::Bool))),
-        try(string("float").with(value(ParamType::Float))),
-        try(string("point2").with(value(ParamType::Point2))),
-        try(string("vector2").with(value(ParamType::Vector2))),
-        try(string("point3").with(value(ParamType::Point3))),
-        try(string("vector3").with(value(ParamType::Vector3))),
-        try(string("point").with(value(ParamType::Point3))),
-        try(string("vector").with(value(ParamType::Vector3))),
-        try(string("normal").with(value(ParamType::Normal))),
-        try(string("color").with(value(ParamType::Rgb))),
-        try(string("rgb").with(value(ParamType::Rgb))),
-        try(string("xyz").with(value(ParamType::Xyz))),
-        try(string("blackbody").with(value(ParamType::Blackbody))),
-        try(string("spectrum").with(value(ParamType::Spectrum))),
-        try(string("string").with(value(ParamType::String))),
-        try(string("texture").with(value(ParamType::Texture)))
+        r#try(string("integer").with(value(ParamType::Int))),
+        r#try(string("bool").with(value(ParamType::Bool))),
+        r#try(string("float").with(value(ParamType::Float))),
+        r#try(string("point2").with(value(ParamType::Point2))),
+        r#try(string("vector2").with(value(ParamType::Vector2))),
+        r#try(string("point3").with(value(ParamType::Point3))),
+        r#try(string("vector3").with(value(ParamType::Vector3))),
+        r#try(string("point").with(value(ParamType::Point3))),
+        r#try(string("vector").with(value(ParamType::Vector3))),
+        r#try(string("normal").with(value(ParamType::Normal))),
+        r#try(string("color").with(value(ParamType::Rgb))),
+        r#try(string("rgb").with(value(ParamType::Rgb))),
+        r#try(string("xyz").with(value(ParamType::Xyz))),
+        r#try(string("blackbody").with(value(ParamType::Blackbody))),
+        r#try(string("spectrum").with(value(ParamType::Spectrum))),
+        r#try(string("string").with(value(ParamType::String))),
+        r#try(string("texture").with(value(ParamType::Texture)))
     ).boxed()
 }
 
@@ -213,32 +213,32 @@ fn param_list_entry<'a, I: Stream<Item = Tokens> + 'a>(
 
 fn array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = Array> + 'a> {
     choice!(
-        try(string_array().map(Array::StrArray)),
-        try(num_array().map(Array::NumArray))
+        r#try(string_array().map(Array::StrArray)),
+        r#try(num_array().map(Array::NumArray))
     ).boxed()
 }
 
 fn string_array<'a, I: Stream<Item = Tokens> + 'a>(
 ) -> Box<dyn Parser<Input = I, Output = Vec<String>> + 'a> {
     choice!(
-        try(between(
+        r#try(between(
             token(Tokens::LBRACK),
             token(Tokens::RBRACK),
             many1::<Vec<_>, _>(string_())
         )),
-        try(string_().map(|x| vec![x]))
+        r#try(string_().map(|x| vec![x]))
     ).boxed()
 }
 
 fn num_array<'a, I: Stream<Item = Tokens> + 'a>(
 ) -> Box<dyn Parser<Input = I, Output = Vec<f32>> + 'a> {
     choice!(
-        try(between(
+        r#try(between(
             token(Tokens::LBRACK),
             token(Tokens::RBRACK),
             many1::<Vec<_>, _>(num())
         )),
-        try(num().map(|x| vec![x]))
+        r#try(num().map(|x| vec![x]))
     ).boxed()
 }
 

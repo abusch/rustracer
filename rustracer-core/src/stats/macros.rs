@@ -4,7 +4,7 @@ macro_rules! stat_counter(
         mod $x {
             use std::cell::Cell;
             use state::LocalStorage;
-            use stats::StatAccumulator;
+            use crate::stats::StatAccumulator;
 
             lazy_static! {
                 static ref VALUE: LocalStorage<Cell<u64>> = LocalStorage::new();
@@ -37,7 +37,7 @@ macro_rules! stat_memory_counter(
         mod $x {
             use std::cell::Cell;
             use state::LocalStorage;
-            use stats::StatAccumulator;
+            use crate::stats::StatAccumulator;
 
             lazy_static! {
                 static ref VALUE: LocalStorage<Cell<u64>> = LocalStorage::new();
@@ -71,7 +71,7 @@ macro_rules! stat_int_distribution(
             use std::cell::Cell;
             use std::u64;
             use state::LocalStorage;
-            use stats::StatAccumulator;
+            use crate::stats::StatAccumulator;
 
             lazy_static! {
                 static ref SUM: LocalStorage<Cell<u64>> = LocalStorage::new();
@@ -121,7 +121,7 @@ macro_rules! stat_percent(
         mod $x {
             use std::cell::Cell;
             use state::LocalStorage;
-            use stats::StatAccumulator;
+            use crate::stats::StatAccumulator;
 
             lazy_static! {
                 static ref NUM: LocalStorage<Cell<u64>> = LocalStorage::new();
@@ -163,7 +163,7 @@ macro_rules! stat_ratio(
         mod $x {
             use std::cell::Cell;
             use state::LocalStorage;
-            use stats::StatAccumulator;
+            use crate::stats::StatAccumulator;
 
             lazy_static! {
                 static ref NUM: LocalStorage<Cell<u64>> = LocalStorage::new();

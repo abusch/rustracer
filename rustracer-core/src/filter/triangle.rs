@@ -1,6 +1,6 @@
-use filter::Filter;
-use paramset::ParamSet;
-use Vector2f;
+use crate::filter::Filter;
+use crate::paramset::ParamSet;
+use crate::Vector2f;
 
 #[derive(Debug)]
 pub struct TriangleFilter {

@@ -1,6 +1,5 @@
-use rng::RNG;
-
-use {Point2f, Point2i, ONE_MINUS_EPSILON};
+use crate::rng::RNG;
+use crate::{Point2f, Point2i, ONE_MINUS_EPSILON};
 
 pub fn van_der_corput(
     n_samples_per_pixel_sample: u32,

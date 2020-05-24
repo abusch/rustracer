@@ -5,7 +5,7 @@ use std::ops::{
 };
 
 use num::{Num, Zero};
-use {Normal3, Point3};
+use crate::{Normal3, Point3};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vector2<T> {

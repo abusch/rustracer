@@ -1,11 +1,11 @@
 use num::Zero;
 
-use camera::CameraSample;
-use paramset::ParamSet;
-use rng::RNG;
-use sampler::lowdiscrepancy::{sobol_2d, van_der_corput};
-use sampler::Sampler;
-use {Point2f, Point2i};
+use crate::camera::CameraSample;
+use crate::paramset::ParamSet;
+use crate::rng::RNG;
+use crate::sampler::lowdiscrepancy::{sobol_2d, van_der_corput};
+use crate::sampler::Sampler;
+use crate::{Point2f, Point2i};
 
 #[derive(Clone)]
 pub struct ZeroTwoSequence {

@@ -1,5 +1,5 @@
-use filter::Filter;
-use paramset::ParamSet;
+use crate::filter::Filter;
+use crate::paramset::ParamSet;
 
 pub struct MitchellNetravali {
     width: f32,

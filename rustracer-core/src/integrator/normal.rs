@@ -1,11 +1,11 @@
 use light_arena::Allocator;
 
-use bounds::Bounds2i;
-use integrator::SamplerIntegrator;
-use ray::Ray;
-use sampler::Sampler;
-use scene::Scene;
-use spectrum::Spectrum;
+use crate::bounds::Bounds2i;
+use crate::integrator::SamplerIntegrator;
+use crate::ray::Ray;
+use crate::sampler::Sampler;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
 
 #[derive(Default)]
 pub struct Normal {

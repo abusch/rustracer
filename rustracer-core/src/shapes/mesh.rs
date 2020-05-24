@@ -4,15 +4,15 @@ use std::sync::Arc;
 
 use num::zero;
 
-use bounds::Bounds3f;
-use geometry;
-use interaction::{Interaction, SurfaceInteraction};
-use paramset::ParamSet;
-use ray::Ray;
-use sampling;
-use shapes::Shape;
-use texture::{ConstantTexture, Texture, TextureFloat};
-use {
+use crate::bounds::Bounds3f;
+use crate::geometry;
+use crate::interaction::{Interaction, SurfaceInteraction};
+use crate::paramset::ParamSet;
+use crate::ray::Ray;
+use crate::sampling;
+use crate::shapes::Shape;
+use crate::texture::{ConstantTexture, Texture, TextureFloat};
+use crate::{
     coordinate_system, gamma, max_component, max_dimension, permute_p, permute_v, Normal3f,
     Point2f, Point3f, Transform, Vector3f,
 };

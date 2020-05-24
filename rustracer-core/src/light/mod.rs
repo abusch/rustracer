@@ -3,11 +3,11 @@ use std::fmt::Debug;
 
 use parking_lot::Mutex;
 
-use interaction::Interaction;
-use ray::Ray;
-use scene::Scene;
-use spectrum::Spectrum;
-use {Point2f, Vector3f};
+use crate::interaction::Interaction;
+use crate::ray::Ray;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
+use crate::{Point2f, Vector3f};
 
 mod diffuse;
 mod distant;

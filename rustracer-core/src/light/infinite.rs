@@ -4,21 +4,21 @@ use std::path::Path;
 use std::sync::Arc;
 
 use ndarray::prelude::*;
-use ndarray_parallel::prelude::*;
+use ndarray::parallel::prelude::*;
 use num::Zero;
 use parking_lot::RwLock;
 
-use geometry::{spherical_phi, spherical_theta};
-use imageio::read_image;
-use interaction::Interaction;
-use light::{Light, LightFlags, VisibilityTester};
-use mipmap::{MIPMap, WrapMode};
-use paramset::ParamSet;
-use ray::Ray;
-use sampling::Distribution2D;
-use scene::Scene;
-use spectrum::Spectrum;
-use {Point2f, Point2i, Point3f, Transform, Vector3f};
+use crate::geometry::{spherical_phi, spherical_theta};
+use crate::imageio::read_image;
+use crate::interaction::Interaction;
+use crate::light::{Light, LightFlags, VisibilityTester};
+use crate::mipmap::{MIPMap, WrapMode};
+use crate::paramset::ParamSet;
+use crate::ray::Ray;
+use crate::sampling::Distribution2D;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
+use crate::{Point2f, Point2i, Point3f, Transform, Vector3f};
 
 impl fmt::Debug for InfiniteAreaLight {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
@@ -94,7 +94,7 @@ impl InfiniteAreaLight {
 
         // - compute sampling distributions for rows and columns of image
         let distribution = Box::new(Distribution2D::new(
-            img.view().into_slice().unwrap(),
+            img.view().to_slice().unwrap(),
             width,
             height,
         ));

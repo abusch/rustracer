@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 
-use interaction::SurfaceInteraction;
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::Texture;
-use Transform;
+use crate::interaction::SurfaceInteraction;
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::Texture;
+use crate::Transform;
 
 #[derive(Debug)]
 pub struct ConstantTexture<T> {

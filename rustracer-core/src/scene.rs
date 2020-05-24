@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use bounds::Bounds3f;
-use interaction::SurfaceInteraction;
-use light::{Light, LightFlags};
-use primitive::Primitive;
-use ray::Ray;
+use crate::bounds::Bounds3f;
+use crate::interaction::SurfaceInteraction;
+use crate::light::{Light, LightFlags};
+use crate::primitive::Primitive;
+use crate::ray::Ray;
 
 stat_counter!(
     "Intersections/Regular ray intersection tests",

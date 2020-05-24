@@ -1,6 +1,6 @@
 use std::f32::consts;
 
-use {Point2f, Vector2f, Vector3f};
+use crate::{Point2f, Vector2f, Vector3f};
 
 mod distribution1d;
 mod distribution2d;

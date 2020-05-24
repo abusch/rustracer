@@ -5,7 +5,7 @@ use std::ops::{
 
 use num::{abs, Num, Signed, Zero};
 
-use geometry::{Vector2, Vector3};
+use crate::geometry::{Vector2, Vector3};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Point2<T> {

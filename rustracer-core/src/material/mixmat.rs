@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDFHolder, ScaledBxDF};
-use interaction::SurfaceInteraction;
-use material::{Material, TransportMode};
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::TextureSpectrum;
+use crate::bsdf::{BxDFHolder, ScaledBxDF};
+use crate::interaction::SurfaceInteraction;
+use crate::material::{Material, TransportMode};
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::TextureSpectrum;
 
 #[derive(Debug)]
 pub struct MixMaterial {

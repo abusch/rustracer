@@ -16,9 +16,9 @@ use std::cmp;
 
 use light_arena::Allocator;
 
-use interaction::SurfaceInteraction;
-use spectrum::Spectrum;
-use {Normal3f, Point2f, Vector3f, ONE_MINUS_EPSILON};
+use crate::interaction::SurfaceInteraction;
+use crate::spectrum::Spectrum;
+use crate::{Normal3f, Point2f, Vector3f, ONE_MINUS_EPSILON};
 
 bitflags! {
     pub struct BxDFType: u32 {

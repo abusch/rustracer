@@ -4,19 +4,19 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use num::zero;
 
-use bsdf::{fr_dielectric, reflect, Fresnel};
-use bsdf::{
+use crate::bsdf::{fr_dielectric, reflect, Fresnel};
+use crate::bsdf::{
     BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
     MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
     TrowbridgeReitzDistribution, BSDF,
 };
-use geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
-use interaction::SurfaceInteraction;
-use material::{Material, TransportMode};
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::{TextureFloat, TextureSpectrum};
-use {clamp, lerp, Point2f, Vector3f};
+use crate::geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
+use crate::interaction::SurfaceInteraction;
+use crate::material::{Material, TransportMode};
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::{TextureFloat, TextureSpectrum};
+use crate::{clamp, lerp, Point2f, Vector3f};
 
 #[derive(Debug)]
 pub struct DisneyMaterial {

@@ -1,4 +1,4 @@
-use find_interval;
+use crate::find_interval;
 
 #[derive(Debug)]
 pub struct Distribution1D {

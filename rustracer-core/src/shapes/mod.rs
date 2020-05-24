@@ -1,9 +1,9 @@
 use std::fmt::Debug;
 
-use bounds::Bounds3f;
-use interaction::{Interaction, SurfaceInteraction};
-use ray::Ray;
-use {Point2f, Vector3f};
+use crate::bounds::Bounds3f;
+use crate::interaction::{Interaction, SurfaceInteraction};
+use crate::ray::Ray;
+use crate::{Point2f, Vector3f};
 
 mod cylinder;
 mod disk;
@@ -42,7 +42,7 @@ pub trait Shape: Debug + Send + Sync {
             pdf = 0.0;
         } else {
             wi = wi.normalize();
-            pdf *= ::geometry::distance_squared(&si.p, &intr.p) / (intr.n.dot(&(-wi)).abs());
+            pdf *= crate::geometry::distance_squared(&si.p, &intr.p) / (intr.n.dot(&(-wi)).abs());
             if pdf.is_infinite() {
                 pdf = 0.0;
             }
@@ -59,7 +59,7 @@ pub trait Shape: Debug + Send + Sync {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            ::geometry::distance_squared(&si.p, &isect_light.hit.p)
+            crate::geometry::distance_squared(&si.p, &isect_light.hit.p)
                 / (isect_light.hit.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0

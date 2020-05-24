@@ -2,15 +2,15 @@ use std::f32;
 use std::f32::consts;
 use std::sync::Arc;
 
-use bounds::Bounds3f;
-use efloat::{self, EFloat};
-use geometry::{distance, distance_squared, offset_ray_origin, spherical_direction_vec};
-use interaction::{Interaction, SurfaceInteraction};
-use paramset::ParamSet;
-use ray::Ray;
-use sampling::{uniform_cone_pdf, uniform_sample_sphere};
-use shapes::Shape;
-use {clamp, coordinate_system, gamma, Normal3f, Point2f, Point3f, Transform, Vector3f};
+use crate::bounds::Bounds3f;
+use crate::efloat::{self, EFloat};
+use crate::geometry::{distance, distance_squared, offset_ray_origin, spherical_direction_vec};
+use crate::interaction::{Interaction, SurfaceInteraction};
+use crate::paramset::ParamSet;
+use crate::ray::Ray;
+use crate::sampling::{uniform_cone_pdf, uniform_sample_sphere};
+use crate::shapes::Shape;
+use crate::{clamp, coordinate_system, gamma, Normal3f, Point2f, Point3f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct Sphere {
@@ -317,7 +317,7 @@ impl Shape for Sphere {
             let ray = si.spawn_ray(wi);
 
             return if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-                ::geometry::distance_squared(&si.p, &isect_light.hit.p)
+                distance_squared(&si.p, &isect_light.hit.p)
                     / (isect_light.hit.n.dot(&(-(*wi))).abs() * self.area())
             } else {
                 0.0

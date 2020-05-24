@@ -4,16 +4,16 @@ use std::ops::{AddAssign, Div, Mul};
 use std::path::Path;
 use std::sync::Arc;
 
-use bounds::Bounds2i;
-use fileutil;
-use imageio::read_image;
-use interaction::SurfaceInteraction;
-use mipmap::{MIPMap, WrapMode};
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::{Texture, TextureMapping2D, UVMapping2D};
-use transform::Transform;
-use {Clampable, Point2i};
+use crate::bounds::Bounds2i;
+use crate::fileutil;
+use crate::imageio::read_image;
+use crate::interaction::SurfaceInteraction;
+use crate::mipmap::{MIPMap, WrapMode};
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::{Texture, TextureMapping2D, UVMapping2D};
+use crate::transform::Transform;
+use crate::{Clampable, Point2i};
 
 #[derive(Debug)]
 pub struct ImageTexture<T> {
@@ -151,7 +151,7 @@ impl ImageTexture<Spectrum> {
                         buf.push(p[2]);
                     }
                 }
-                ::imageio::write_image(
+                crate::imageio::write_image(
                     format!("mipmap_level_{}.png", i),
                     &buf[..],
                     &Bounds2i::from_elements(0, 0, level.u_size() as i32, level.v_size() as i32),

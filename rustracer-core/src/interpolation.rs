@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::f32::consts::PI;
 
-use {find_interval, INV_2_PI};
+use crate::{find_interval, INV_2_PI};
 
 pub fn sample_catmull_rom_2d(
     nodes1: &[f32],

@@ -4,13 +4,13 @@ use std::fmt::{self, Debug};
 use std::ops::{AddAssign, Div, Mul};
 
 use ndarray::prelude::*;
+use ndarray::parallel::prelude::*;
 use ndarray::Zip;
-use ndarray_parallel::prelude::*;
 use num::{zero, Zero};
 
-use blockedarray::BlockedArray;
-use {clamp, is_power_of_2, lerp, round_up_pow_2};
-use {Clampable, Point2f, Point2i, Vector2f};
+use crate::blockedarray::BlockedArray;
+use crate::{clamp, is_power_of_2, lerp, round_up_pow_2};
+use crate::{Clampable, Point2f, Point2i, Vector2f};
 
 stat_counter!("Texture/EWA lookups", n_ewa_lookups);
 stat_counter!("Texture/Trilinear lookups", n_trilerp_lookups);
@@ -161,7 +161,7 @@ where
         mipmap.pyramid.push(BlockedArray::new_from(
             resolution.x as usize,
             resolution.y as usize,
-            img_data.view().into_slice().unwrap(),
+            img_data.view().to_slice().unwrap(),
         ));
         for i in 1..n_levels {
             // initialize ith level of the pyramid
@@ -180,7 +180,7 @@ where
             mipmap.pyramid.push(BlockedArray::new_from(
                 s_res,
                 t_res,
-                buf.view().into_slice().unwrap(),
+                buf.view().to_slice().unwrap(),
             ));
         }
 
@@ -473,7 +473,7 @@ fn test_array2_mut() {
         assert!(row_iter.next().is_none());
     }
 
-    assert_eq!(&image, image_array.view().into_slice().unwrap());
+    assert_eq!(&image, image_array.view().to_slice().unwrap());
 }
 
 #[test]
@@ -502,7 +502,7 @@ fn test_array2_blockedarray() {
         assert!(row_iter.next().is_none());
     }
 
-    let ba = BlockedArray::new_from(5, 3, image_array.view().into_slice().unwrap());
+    let ba = BlockedArray::new_from(5, 3, image_array.view().to_slice().unwrap());
 
     assert_eq!(ba[(0, 0)], 00);
     assert_eq!(ba[(2, 0)], 02);

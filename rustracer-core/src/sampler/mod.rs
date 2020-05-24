@@ -1,5 +1,5 @@
-use camera::CameraSample;
-use {Point2f, Point2i};
+use crate::camera::CameraSample;
+use crate::{Point2f, Point2i};
 
 pub mod lowdiscrepancy;
 pub mod zerotwosequence;

@@ -8,10 +8,10 @@ use img::{self, GenericImageView};
 use openexr::{FrameBuffer, FrameBufferMut, Header, InputFile, PixelType, ScanlineOutputFile};
 use rayon::prelude::*;
 
-use bounds::Bounds2i;
-use fileutil::has_extension;
-use spectrum::{gamma_correct, Spectrum};
-use {clamp, Point2i};
+use crate::bounds::Bounds2i;
+use crate::fileutil::has_extension;
+use crate::spectrum::{gamma_correct, Spectrum};
+use crate::{clamp, Point2i};
 
 pub fn read_image<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading image {}", path.as_ref().display());
@@ -67,7 +67,7 @@ fn write_image_png<P: AsRef<Path>>(
         &rgb8,
         resolution.x as u32,
         resolution.y as u32,
-        img::RGB(8),
+        img::ColorType::Rgb8,
     )
     .context(format!("Failed to save image file {}", path.display()))?;
     Ok(())
@@ -140,7 +140,7 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     info!("Loading HDR image {}", path.as_ref().display());
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
-    let hdr = img::hdr::HDRDecoder::with_strictness(reader, false)?;
+    let hdr = img::hdr::HdrDecoder::with_strictness(reader, false)?;
 
     let meta = hdr.metadata();
     let data = hdr.read_image_hdr()?;

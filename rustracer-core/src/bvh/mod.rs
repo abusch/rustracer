@@ -5,15 +5,15 @@ use std::sync::Arc;
 use it;
 use light_arena::Allocator;
 
-use bounds::{Axis, Bounds3f};
-use interaction::SurfaceInteraction;
-use light::AreaLight;
-use material::{Material, TransportMode};
-use paramset::ParamSet;
-use primitive::{GeometricPrimitive, Primitive};
-use ray::Ray;
-use shapes::Shape;
-use {Point3f, Vector3f};
+use crate::bounds::{Axis, Bounds3f};
+use crate::interaction::SurfaceInteraction;
+use crate::light::AreaLight;
+use crate::material::{Material, TransportMode};
+use crate::paramset::ParamSet;
+use crate::primitive::{GeometricPrimitive, Primitive};
+use crate::ray::Ray;
+use crate::shapes::Shape;
+use crate::{Point3f, Vector3f};
 
 stat_memory_counter!("Memory/BVH tree", tree_bytes);
 stat_ratio!("BVH/Primitives per leaf node", total_primitives_per_leaf);

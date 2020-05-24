@@ -1,8 +1,8 @@
 #[cfg(feature = "display")]
 extern crate minifb;
 
-use film::Film;
-use Point2i;
+use crate::film::Film;
+use crate::Point2i;
 
 pub trait DisplayUpdater {
     fn update(&mut self, film: &Film);

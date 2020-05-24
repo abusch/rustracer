@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDFHolder, LambertianReflection, OrenNayar, BSDF};
-use clamp;
-use interaction::SurfaceInteraction;
-use material::{Material, TransportMode};
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::{TextureFloat, TextureSpectrum};
+use crate::bsdf::{BxDFHolder, LambertianReflection, OrenNayar, BSDF};
+use crate::clamp;
+use crate::interaction::SurfaceInteraction;
+use crate::material::{Material, TransportMode};
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::{TextureFloat, TextureSpectrum};
 
 #[derive(Debug)]
 pub struct MatteMaterial {

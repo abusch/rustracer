@@ -2,13 +2,13 @@ use std::f32;
 use std::fmt::Debug;
 use std::mem;
 
-use bsdf::{BxDF, BxDFType, MicrofacetDistribution};
-use clamp;
-use geometry::*;
-use material::TransportMode;
-use sampling::cosine_sample_hemisphere;
-use spectrum::Spectrum;
-use {Point2f, Vector3f, ONE_MINUS_EPSILON};
+use crate::bsdf::{BxDF, BxDFType, MicrofacetDistribution};
+use crate::clamp;
+use crate::geometry::*;
+use crate::material::TransportMode;
+use crate::sampling::cosine_sample_hemisphere;
+use crate::spectrum::Spectrum;
+use crate::{Point2f, Vector3f, ONE_MINUS_EPSILON};
 
 /// Compute the reflection direction
 pub fn reflect(wo: &Vector3f, n: &Vector3f) -> Vector3f {

@@ -3,7 +3,7 @@ use std::mem;
 use std::ops::{Add, Div, Mul, Sub};
 
 use super::MACHINE_EPSILON;
-use {next_float_down, next_float_up};
+use crate::{next_float_down, next_float_up};
 
 #[derive(Debug, Clone, Copy)]
 pub struct EFloat {

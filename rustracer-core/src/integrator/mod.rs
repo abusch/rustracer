@@ -1,17 +1,17 @@
 use std::cmp;
 use std::sync::Arc;
 
-use bounds::Bounds2i;
-use bsdf::{self, BxDFType};
-use interaction::SurfaceInteraction;
-use light::{is_delta_light, Light};
-use light_arena::Allocator;
-use ray::{Ray, RayDifferential};
-use sampler::Sampler;
-use sampling::{power_heuristic, Distribution1D};
-use scene::Scene;
-use spectrum::Spectrum;
-use {Point2f, Vector3f};
+use crate::bounds::Bounds2i;
+use crate::bsdf::{self, BxDFType};
+use crate::interaction::SurfaceInteraction;
+use crate::light::{is_delta_light, Light};
+use crate::light_arena::Allocator;
+use crate::ray::{Ray, RayDifferential};
+use crate::sampler::Sampler;
+use crate::sampling::{power_heuristic, Distribution1D};
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
+use crate::{Point2f, Vector3f};
 
 mod ao;
 mod directlighting;

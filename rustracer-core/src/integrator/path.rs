@@ -2,17 +2,17 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bounds::Bounds2i;
-use bsdf::BxDFType;
-use camera::Camera;
-use integrator::{uniform_sample_one_light, SamplerIntegrator};
-use lightdistrib::{LightDistribution, SpatialLightDistribution, UniformLightDistribution};
-use material::TransportMode;
-use paramset::ParamSet;
-use ray::Ray;
-use sampler::Sampler;
-use scene::Scene;
-use spectrum::Spectrum;
+use crate::bounds::Bounds2i;
+use crate::bsdf::BxDFType;
+use crate::camera::Camera;
+use crate::integrator::{uniform_sample_one_light, SamplerIntegrator};
+use crate::lightdistrib::{LightDistribution, SpatialLightDistribution, UniformLightDistribution};
+use crate::material::TransportMode;
+use crate::paramset::ParamSet;
+use crate::ray::Ray;
+use crate::sampler::Sampler;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
 
 stat_percent!("Integrator/Zero-radiance paths", zero_radiance_paths);
 stat_int_distribution!("Integrator/Path length", path_length);

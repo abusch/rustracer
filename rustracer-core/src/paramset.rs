@@ -5,14 +5,14 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
 
-use api::{ParamListEntry, ParamType};
-use cie::CIE_LAMBDA;
-use fileutil::resolve_filename;
-use floatfile::read_float_file;
-use spectrum::{blackbody_normalized, Spectrum};
-use texture::ConstantTexture;
-use texture::Texture;
-use {Normal3f, Point2f, Point3f, Vector3f};
+use crate::api::{ParamListEntry, ParamType};
+use crate::cie::CIE_LAMBDA;
+use crate::fileutil::resolve_filename;
+use crate::floatfile::read_float_file;
+use crate::spectrum::{blackbody_normalized, Spectrum};
+use crate::texture::ConstantTexture;
+use crate::texture::Texture;
+use crate::{Normal3f, Point2f, Point3f, Vector3f};
 
 macro_rules! find_one(
     ($x:ident, $y:ident, $t:ty) => (

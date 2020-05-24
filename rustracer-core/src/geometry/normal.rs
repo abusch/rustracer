@@ -6,7 +6,7 @@ use std::ops::{
 
 use num::{Num, Zero};
 
-use geometry::Vector3;
+use crate::geometry::Vector3;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Normal3<T> {

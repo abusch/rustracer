@@ -1,4 +1,4 @@
-use {clamp, lerp, Point3f, Vector3f};
+use crate::{clamp, lerp, Point3f, Vector3f};
 
 /// Perlin noise
 pub fn noise3(p: &Point3f) -> f32 {

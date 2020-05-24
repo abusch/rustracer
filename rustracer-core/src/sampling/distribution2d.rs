@@ -1,5 +1,5 @@
-use sampling::Distribution1D;
-use {clamp, Point2f};
+use crate::sampling::Distribution1D;
+use crate::{clamp, Point2f};
 
 #[derive(Debug)]
 pub struct Distribution2D {

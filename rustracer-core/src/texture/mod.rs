@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 
-use interaction::SurfaceInteraction;
-use spectrum::Spectrum;
-use {Point2f, Point3f, Transform, Vector2f, Vector3f};
+use crate::interaction::SurfaceInteraction;
+use crate::spectrum::Spectrum;
+use crate::{Point2f, Point3f, Transform, Vector2f, Vector3f};
 
 mod checkerboard;
 mod constant;

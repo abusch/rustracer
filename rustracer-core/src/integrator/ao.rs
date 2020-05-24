@@ -1,13 +1,13 @@
 use std::f32;
 
-use bounds::Bounds2i;
-use integrator::SamplerIntegrator;
-use light_arena::Allocator;
-use ray::Ray;
-use sampler::Sampler;
-use sampling::uniform_sample_sphere;
-use scene::Scene;
-use spectrum::Spectrum;
+use crate::bounds::Bounds2i;
+use crate::integrator::SamplerIntegrator;
+use crate::light_arena::Allocator;
+use crate::ray::Ray;
+use crate::sampler::Sampler;
+use crate::sampling::uniform_sample_sphere;
+use crate::scene::Scene;
+use crate::spectrum::Spectrum;
 
 pub struct AmbientOcclusion {
     pixel_bounds: Bounds2i,

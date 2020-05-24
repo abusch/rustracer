@@ -1,6 +1,6 @@
 use std::num::Wrapping;
 
-use ONE_MINUS_EPSILON;
+use crate::ONE_MINUS_EPSILON;
 
 const PCG32_DEFAULT_STATE: Wrapping<u64> = Wrapping(0x853c49e6748fea9b);
 const PCG32_DEFAULT_STREAM: Wrapping<u64> = Wrapping(0xda3e39cb94b95bdb);
@@ -26,7 +26,7 @@ impl RNG {
         let xorshifted = Wrapping((((oldstate >> 18) ^ oldstate) >> 27).0 as u32);
         let rot = (oldstate >> 59).0 as u32;
 
-        ((xorshifted.0 >> rot) | (xorshifted.0 << ((!Wrapping(rot) + Wrapping(1)).0 & 31)))
+        (xorshifted.0 >> rot) | (xorshifted.0 << ((!Wrapping(rot) + Wrapping(1)).0 & 31))
     }
 
     pub fn uniform_u32_bounded(&mut self, b: u32) -> u32 {

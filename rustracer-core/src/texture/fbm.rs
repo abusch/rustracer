@@ -1,11 +1,11 @@
 use std::marker::PhantomData;
 
-use interaction::SurfaceInteraction;
-use noise;
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::{IdentityMapping3D, Texture, TextureMapping3D};
-use Transform;
+use crate::interaction::SurfaceInteraction;
+use crate::noise;
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::{IdentityMapping3D, Texture, TextureMapping3D};
+use crate::Transform;
 
 #[derive(Debug)]
 pub struct FbmTexture<T> {

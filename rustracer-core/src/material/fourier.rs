@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use bsdf::{BxDFHolder, FourierBSDF, FourierBSDFTable, BSDF};
-use interaction::SurfaceInteraction;
-use material::{Material, TransportMode};
-use paramset::TextureParams;
-use texture::TextureFloat;
+use crate::bsdf::{BxDFHolder, FourierBSDF, FourierBSDFTable, BSDF};
+use crate::interaction::SurfaceInteraction;
+use crate::material::{Material, TransportMode};
+use crate::paramset::TextureParams;
+use crate::texture::TextureFloat;
 
 #[derive(Debug)]
 pub struct FourierMaterial {

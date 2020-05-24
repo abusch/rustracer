@@ -1,13 +1,13 @@
 use std::f32::consts;
 use std::sync::Arc;
 
-use bounds::Bounds3f;
-use interaction::{Interaction, SurfaceInteraction};
-use paramset::ParamSet;
-use ray::Ray;
-use sampling::concentric_sample_disk;
-use shapes::Shape;
-use {clamp, Normal3f, Point2f, Point3f, Transform, Vector3f};
+use crate::bounds::Bounds3f;
+use crate::interaction::{Interaction, SurfaceInteraction};
+use crate::paramset::ParamSet;
+use crate::ray::Ray;
+use crate::sampling::concentric_sample_disk;
+use crate::shapes::Shape;
+use crate::{clamp, Normal3f, Point2f, Point3f, Transform, Vector3f};
 
 #[derive(Debug)]
 pub struct Disk {

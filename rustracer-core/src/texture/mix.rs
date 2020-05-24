@@ -2,11 +2,11 @@ use std::fmt::Debug;
 use std::ops::{Add, Mul};
 use std::sync::Arc;
 
-use interaction::SurfaceInteraction;
-use paramset::TextureParams;
-use spectrum::Spectrum;
-use texture::{Texture, TextureFloat};
-use Transform;
+use crate::interaction::SurfaceInteraction;
+use crate::paramset::TextureParams;
+use crate::spectrum::Spectrum;
+use crate::texture::{Texture, TextureFloat};
+use crate::Transform;
 
 #[derive(Debug)]
 pub struct MixTexture<T> {
