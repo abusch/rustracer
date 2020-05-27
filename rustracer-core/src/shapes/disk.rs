@@ -135,8 +135,8 @@ impl Shape for Disk {
         Bounds3f::from_points(&p_min, &p_max)
     }
 
-    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
-        let pd = concentric_sample_disk(*u);
+    fn sample(&self, u: Point2f) -> (Interaction, f32) {
+        let pd = concentric_sample_disk(u);
         let p_obj = Point3f::new(pd.x * self.radius, pd.y * self.radius, self.height);
         let mut it = Interaction::empty();
         it.n = (&self.object_to_world * &Normal3f::new(0.0, 0.0, 1.0)).normalize();

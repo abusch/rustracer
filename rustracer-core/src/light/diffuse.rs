@@ -59,7 +59,7 @@ impl Light for DiffuseAreaLight {
     fn sample_li(
         &self,
         si: &Interaction,
-        u: &Point2f,
+        u: Point2f,
     ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let (p_shape, pdf) = self.shape.sample_si(si, u);
         assert!(!p_shape.p.x.is_nan() && !p_shape.p.y.is_nan() && !p_shape.p.z.is_nan());

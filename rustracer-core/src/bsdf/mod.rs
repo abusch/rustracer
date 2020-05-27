@@ -138,7 +138,7 @@ impl<'a> BSDF<'a> {
     pub fn sample_f(
         &self,
         wo_w: &Vector3f,
-        u: &Point2f,
+        u: Point2f,
         flags: BxDFType,
     ) -> (Spectrum, Vector3f, f32, BxDFType) {
         let matching_comps = self
@@ -186,7 +186,7 @@ impl<'a> BSDF<'a> {
                 bxdf.get_type(),
             );
         }
-        let (mut f, wi, mut pdf, sampled_type) = bxdf.sample_f(&wo, &u_remapped);
+        let (mut f, wi, mut pdf, sampled_type) = bxdf.sample_f(&wo, u_remapped);
         // debug!(
         //     "For wo = {:?}, sampled f = {}, pdf = {}, ratio = {}, wi = {:?}",
         //     wo,

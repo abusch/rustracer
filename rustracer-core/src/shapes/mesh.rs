@@ -607,8 +607,8 @@ impl Shape for Triangle {
         Bounds3f::union_point(&Bounds3f::from_points(&p0, &p1), &p2)
     }
 
-    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
-        let b = sampling::uniform_sample_triangle(*u);
+    fn sample(&self, u: Point2f) -> (Interaction, f32) {
+        let b = sampling::uniform_sample_triangle(u);
         let p0 = &self.mesh.p[self.v(0)];
         let p1 = &self.mesh.p[self.v(1)];
         let p2 = &self.mesh.p[self.v(2)];

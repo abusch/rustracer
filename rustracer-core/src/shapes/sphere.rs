@@ -224,8 +224,8 @@ impl Shape for Sphere {
         bounds
     }
 
-    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
-        let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(*u);
+    fn sample(&self, u: Point2f) -> (Interaction, f32) {
+        let mut p_obj = Point3f::new(0.0, 0.0, 0.0) + self.radius * uniform_sample_sphere(u);
         let mut it = Interaction::empty();
         it.n = self
             .object_to_world
@@ -242,7 +242,7 @@ impl Shape for Sphere {
         (it, pdf)
     }
 
-    fn sample_si(&self, si: &Interaction, u: &Point2f) -> (Interaction, f32) {
+    fn sample_si(&self, si: &Interaction, u: Point2f) -> (Interaction, f32) {
         let p_center = &self.object_to_world * &Point3f::new(0.0, 0.0, 0.0);
 
         // Sample uniformly on sphere if `pt` is inside it

@@ -69,7 +69,7 @@ impl SamplerIntegrator for Whitted {
                 // Add contribution of each light source
                 for light in &scene.lights {
                     let (li, wi, pdf, visibility_tester) =
-                        light.sample_li(&isect.hit, &sampler.get_2d());
+                        light.sample_li(&isect.hit, sampler.get_2d());
                     if li.is_black() || pdf == 0.0 {
                         continue;
                     }

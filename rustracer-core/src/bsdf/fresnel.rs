@@ -156,7 +156,7 @@ impl<'a> BxDF for SpecularReflection<'a> {
         Spectrum::black()
     }
 
-    fn sample_f(&self, wo: &Vector3f, _sample: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, _sample: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         // There's only one possible wi for a given wo, so we always return it with a pdf of 1.
         let wi = Vector3f::new(-wo.x, -wo.y, wo.z);
         let spectrum = self.fresnel.evaluate(cos_theta(&wi)) * self.r / abs_cos_theta(&wi);
@@ -200,7 +200,7 @@ impl BxDF for SpecularTransmission {
         Spectrum::black()
     }
 
-    fn sample_f(&self, wo: &Vector3f, _sample: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, _sample: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         // Figure out which $\eta$ is incident and which is transmitted
         let entering = cos_theta(wo) > 0.0;
         let eta_i = if entering { self.eta_a } else { self.eta_b };
@@ -219,14 +219,14 @@ impl BxDF for SpecularTransmission {
                 ft = ft * (eta_i * eta_i) / (eta_t * eta_t);
             }
 
-            return (ft / abs_cos_theta(&wi), wi, 1.0, self.get_type());
+            (ft / abs_cos_theta(&wi), wi, 1.0, self.get_type())
         } else {
-            return (
+            (
                 Spectrum::white(),
                 Vector3f::new(0.0, 0.0, 0.0),
                 0.0,
                 BxDFType::empty(),
-            );
+            )
         }
     }
 
@@ -273,7 +273,7 @@ impl BxDF for FresnelSpecular {
         Spectrum::black()
     }
 
-    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, u: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         let fr = fr_dielectric(cos_theta(wo), self.eta_a, self.eta_b);
         if u[0] < fr {
             // Compute specular reflection for FresnelSpecular
@@ -384,8 +384,8 @@ impl<'a> BxDF for FresnelBlend<'a> {
         0.5 * (abs_cos_theta(wi) * f32::consts::FRAC_1_PI + pdf_wh / (4.0 * wo.dot(&wh)))
     }
 
-    fn sample_f(&self, wo: &Vector3f, u_orig: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
-        let mut u = *u_orig;
+    fn sample_f(&self, wo: &Vector3f, u_orig: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+        let mut u = u_orig;
         let mut wi;
         if u[0] < 0.5 {
             u[0] = f32::min(2.0 * u[0], ONE_MINUS_EPSILON);
@@ -397,7 +397,7 @@ impl<'a> BxDF for FresnelBlend<'a> {
         } else {
             u[0] = f32::min(2.0 * (u[0] - 0.5), ONE_MINUS_EPSILON);
             // Sample microfacet orientation `wh` and reflected direction `wi`
-            let wh = self.distrib.sample_wh(wo, &u);
+            let wh = self.distrib.sample_wh(wo, u);
             wi = reflect(wo, &wh);
             if !same_hemisphere(wo, &wi) {
                 return (0.0.into(), wi, 0.0, self.get_type());

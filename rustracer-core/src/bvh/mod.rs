@@ -215,9 +215,9 @@ impl BVH {
                         let mut buckets = [BucketInfo::default(); 12];
 
                         // Initialize `BucketInfo` for SAH partition buckets
-                        for i in start..end {
+                        for prim_inf in primitive_info.iter().take(end).skip(start) {
                             let mut b = (N_BUCKETS as f32
-                                * centroids_bounds.offset(&primitive_info[i].centroid)[dimension])
+                                * centroids_bounds.offset(&prim_inf.centroid)[dimension])
                                 as usize;
                             if b == N_BUCKETS {
                                 b = N_BUCKETS - 1;
@@ -225,25 +225,25 @@ impl BVH {
                             assert!(b < N_BUCKETS);
                             buckets[b].count += 1;
                             buckets[b].bounds =
-                                Bounds3f::union(&buckets[b].bounds, &primitive_info[i].bounds);
+                                Bounds3f::union(&buckets[b].bounds, &prim_inf.bounds);
                         }
 
                         // Compute costs for splitting after each bucket
                         let mut cost = [0.0; N_BUCKETS - 1];
-                        for i in 0..(N_BUCKETS - 1) {
+                        for (i, cost_i) in cost.iter_mut().enumerate().take(N_BUCKETS - 1) {
                             let mut b0 = Bounds3f::new();
                             let mut b1 = Bounds3f::new();
                             let mut count0 = 0;
                             let mut count1 = 0;
-                            for j in 0..(i + 1) {
-                                b0 = Bounds3f::union(&b0, &buckets[j].bounds);
-                                count0 += buckets[j].count;
+                            for bucket in buckets.iter().take(i + 1) {
+                                b0 = Bounds3f::union(&b0, &bucket.bounds);
+                                count0 += bucket.count;
                             }
-                            for j in (i + 1)..N_BUCKETS {
-                                b1 = Bounds3f::union(&b1, &buckets[j].bounds);
-                                count1 += buckets[j].count;
+                            for bucket in buckets.iter().take(N_BUCKETS).skip(i + 1) {
+                                b1 = Bounds3f::union(&b1, &bucket.bounds);
+                                count1 += bucket.count;
                             }
-                            cost[i] = 1.0
+                            *cost_i = 1.0
                                 + (count0 as f32 * b0.surface_area()
                                     + count1 as f32 * b1.surface_area())
                                     / bounds.surface_area();
@@ -252,9 +252,9 @@ impl BVH {
                         // Find bucket to split at that minimizes SAH metric
                         let mut min_cost = cost[0];
                         let mut min_cost_split_bucket = 0;
-                        for i in 1..(N_BUCKETS - 1) {
-                            if cost[i] < min_cost {
-                                min_cost = cost[i];
+                        for (i, cost_i) in cost.iter().enumerate().take(N_BUCKETS - 1).skip(1) {
+                            if *cost_i < min_cost {
+                                min_cost = *cost_i;
                                 min_cost_split_bucket = i;
                             }
                         }
@@ -276,8 +276,8 @@ impl BVH {
                         } else {
                             // Create leaf `BVHBuildNode`
                             let first_prim_offset = ordered_prims.len();
-                            for i in start..end {
-                                let prim_num = primitive_info[i].prim_number;
+                            for prim_inf in primitive_info.iter().take(end).skip(start) {
+                                let prim_num = prim_inf.prim_number;
                                 ordered_prims.push(Arc::clone(&primitives[prim_num]));
                             }
                             return BVHBuildNode::leaf(first_prim_offset, n_primitives, bounds);
@@ -343,7 +343,7 @@ impl BVH {
                 nodes.push(linear_node);
                 BVH::flatten_bvh(&*children[0], nodes);
                 let second_offset = BVH::flatten_bvh(&*children[1], nodes);
-                replace(
+                let _prev = replace(
                     &mut nodes[offset].data,
                     LinearBVHNodeData::Interior {
                         axis: split_axis,

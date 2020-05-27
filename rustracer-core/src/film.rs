@@ -83,7 +83,6 @@ impl Film {
         // pixels.resize_default(cropped_pixel_bounds.area() as usize);
 
         let pixels = (0..cropped_pixel_bounds.area())
-            .into_iter()
             .map(|_| Pixel::default())
             .collect::<Vec<_>>();
 
@@ -185,9 +184,11 @@ impl Film {
                     + (pixel.x - self.cropped_pixel_bounds.p_min.x)) as usize
             };
             let xyz = tile_pixel.contrib_sum.to_xyz();
-            for i in 0..3 {
-                pixels[pidx].xyz[i] += xyz[i];
-            }
+            pixels[pidx]
+                .xyz
+                .iter_mut()
+                .zip(&xyz)
+                .for_each(|(a, b)| *a += b);
             pixels[pidx].filter_weight_sum += tile_pixel.filter_weight_sum;
         }
     }

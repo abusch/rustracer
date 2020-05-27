@@ -5,7 +5,6 @@ use std::sync::Arc;
 use anyhow::*;
 use indicatif::HumanDuration;
 use log::{debug, error, info, warn};
-use num_cpus;
 
 use crate::bvh::BVH;
 use crate::camera::{Camera, PerspectiveCamera};
@@ -1194,7 +1193,7 @@ fn make_area_light(
     if name == "area" || name == "diffuse" {
         let l = DiffuseAreaLight::create(light2world, params, shape);
         let light: Arc<dyn Light> = l.clone();
-        let area_light: Arc<dyn AreaLight> = l.clone();
+        let area_light: Arc<dyn AreaLight> = l;
         Ok((area_light, light))
     } else {
         Err(format_err!("Area light {} unknown", name))

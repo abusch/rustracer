@@ -143,10 +143,10 @@ impl Light for InfiniteAreaLight {
     fn sample_li(
         &self,
         isect: &Interaction,
-        u: &Point2f,
+        u: Point2f,
     ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         // Find (u, v) sample coordinates in infinite light texture
-        let (uv, map_pdf) = self.distribution.sample_continuous(*u);
+        let (uv, map_pdf) = self.distribution.sample_continuous(u);
         if map_pdf == 0.0 {
             return (
                 Spectrum::black(),

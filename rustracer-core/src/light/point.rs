@@ -43,7 +43,7 @@ impl Light for PointLight {
     fn sample_li(
         &self,
         isect: &Interaction,
-        _u: &Point2f,
+        _u: Point2f,
     ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let wi = self.pos - isect.p;
         let r2 = wi.length_squared();

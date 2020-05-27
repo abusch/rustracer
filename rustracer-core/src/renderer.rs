@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use crossbeam;
-use indicatif;
 use light_arena::MemoryArena;
 use log::{error, info};
 use parking_lot::Mutex;
@@ -98,7 +96,7 @@ pub fn render(
 
                     let mut film_tile = camera.get_film().get_film_tile(&tile_bounds);
                     for p in &tile_bounds {
-                        sampler.start_pixel(&p);
+                        sampler.start_pixel(p);
 
                         // Do this check after the start_pixel() call; this keeps
                         // the usage of RNG values from (most) Samplers that use
@@ -110,7 +108,7 @@ pub fn render(
 
                         loop {
                             let alloc = arena.allocator();
-                            let s = sampler.get_camera_sample(&p);
+                            let s = sampler.get_camera_sample(p);
                             let mut ray = camera.generate_ray_differential(&s);
                             ray.scale_differentials(1.0 / (sampler.spp() as f32).sqrt());
                             n_camera_ray::inc();

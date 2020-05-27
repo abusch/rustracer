@@ -67,10 +67,10 @@ impl BxDF for FourierBSDF {
 
         // Accumulate weighted sums of nearby $a_k$ coefficients
         let mut m_max = 0;
-        for b in 0..4 {
-            for a in 0..4 {
+        for (b, w_o) in weightsO.iter().enumerate() {
+            for (a, w_i) in weightsI.iter().enumerate() {
                 // Add contribution of _(a, b)_ to $a_k$ values
-                let weight = weightsI[a] * weightsO[b];
+                let weight = w_i * w_o;
                 if weight != 0.0 {
                     let (ap, m) = bsdf_table.get_ak(offsetI + a, offsetO + b);
                     m_max = u32::max(m_max, m);
@@ -108,7 +108,7 @@ impl BxDF for FourierBSDF {
         }
     }
 
-    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, u: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         let bsdf_table = unsafe { &*self.bsdf_table };
         // Sample zenith angle component for _FourierBSDF_
         let muO = cos_theta(wo);
@@ -140,10 +140,10 @@ impl BxDF for FourierBSDF {
 
         // Accumulate weighted sums of nearby $a_k$ coefficients
         let mut m_max = 0;
-        for b in 0..4 {
-            for a in 0..4 {
+        for (b, w_o) in weightsO.iter().enumerate() {
+            for (a, w_i) in weightsI.iter().enumerate() {
                 // Add contribution of _(a, b)_ to $a_k$ values
-                let weight = weightsI[a] * weightsO[b];
+                let weight = w_i * w_o;
                 if weight != 0.0 {
                     let (ap, m) = bsdf_table.get_ak(offsetI + a, offsetO + b);
                     m_max = u32::max(m_max, m);
@@ -235,9 +235,9 @@ impl BxDF for FourierBSDF {
         let mut ak = vec![0.0; (bsdf_table.m_max * bsdf_table.n_channels) as usize];
 
         let mut mMax = 0;
-        for o in 0..4 {
-            for i in 0..4 {
-                let weight = weightsI[i] * weightsO[o];
+        for (o, w_o) in weightsO.iter().enumerate() {
+            for (i, w_i) in weightsI.iter().enumerate() {
+                let weight = w_i * w_o;
                 if weight == 0.0 {
                     continue;
                 }
@@ -253,11 +253,11 @@ impl BxDF for FourierBSDF {
 
         // Evaluate probability of sampling _wi_
         let mut rho = 0.0;
-        for o in 0..4 {
-            if weightsO[o] == 0.0 {
+        for (o, w_o) in weightsO.iter().enumerate() {
+            if *w_o == 0.0 {
                 continue;
             }
-            rho += weightsO[o]
+            rho += w_o
                 * bsdf_table.cdf
                     [(offsetO + o) * bsdf_table.n_mu as usize + bsdf_table.n_mu as usize - 1]
                 * (2.0 * PI);

@@ -372,7 +372,7 @@ impl BxDF for DisneyClearCoat {
         Spectrum::from(self.weight * Gr * Fr * Dr / 4.0)
     }
 
-    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, u: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         if wo.z == 0.0 {
             return (Spectrum::black(), zero(), 0.0, self.get_type());
         }
@@ -477,7 +477,7 @@ impl MicrofacetDistribution for DisneyMicrofacetDistribution {
         self.g1(wi) * self.g1(wo)
     }
 
-    fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
+    fn sample_wh(&self, wo: &Vector3f, u: Point2f) -> Vector3f {
         self.inner.sample_wh(wo, u)
     }
 

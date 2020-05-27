@@ -64,7 +64,7 @@ impl ZeroTwoSequence {
 }
 
 impl Sampler for ZeroTwoSequence {
-    fn start_pixel(&mut self, p: &Point2i) {
+    fn start_pixel(&mut self, p: Point2i) {
         // Generate 1D and 2D pixel sample components using (0, 2)-sequence
         for i in 0..self.samples_1d.len() {
             van_der_corput(
@@ -101,7 +101,7 @@ impl Sampler for ZeroTwoSequence {
             );
         }
 
-        self.current_pixel = *p;
+        self.current_pixel = p;
         self.current_pixel_sample_index = 0;
         self.array_1d_offset = 0;
         self.array_2d_offset = 0;
@@ -179,8 +179,8 @@ impl Sampler for ZeroTwoSequence {
         }
     }
 
-    fn get_camera_sample(&mut self, p_raster: &Point2i) -> CameraSample {
-        let p_film = Point2f::from(*p_raster) + self.get_2d();
+    fn get_camera_sample(&mut self, p_raster: Point2i) -> CameraSample {
+        let p_film = Point2f::from(p_raster) + self.get_2d();
         let time = self.get_1d();
         let p_lens = self.get_2d();
 

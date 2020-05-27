@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use crate::bounds::Bounds3f;
+use crate::geometry;
 use crate::interaction::{Interaction, SurfaceInteraction};
 use crate::ray::Ray;
 use crate::{Point2f, Vector3f};
@@ -33,16 +34,16 @@ pub trait Shape: Debug + Send + Sync {
 
     fn world_bounds(&self) -> Bounds3f;
 
-    fn sample(&self, u: &Point2f) -> (Interaction, f32);
+    fn sample(&self, u: Point2f) -> (Interaction, f32);
 
-    fn sample_si(&self, si: &Interaction, u: &Point2f) -> (Interaction, f32) {
+    fn sample_si(&self, si: &Interaction, u: Point2f) -> (Interaction, f32) {
         let (intr, mut pdf) = self.sample(u);
         let mut wi = intr.p - si.p;
         if wi.length_squared() == 0.0 {
             pdf = 0.0;
         } else {
             wi = wi.normalize();
-            pdf *= crate::geometry::distance_squared(&si.p, &intr.p) / (intr.n.dot(&(-wi)).abs());
+            pdf *= geometry::distance_squared(&si.p, &intr.p) / (intr.n.dot(&(-wi)).abs());
             if pdf.is_infinite() {
                 pdf = 0.0;
             }
@@ -59,7 +60,7 @@ pub trait Shape: Debug + Send + Sync {
         let ray = si.spawn_ray(wi);
 
         if let Some((isect_light, _t_hit)) = self.intersect(&ray) {
-            crate::geometry::distance_squared(&si.p, &isect_light.hit.p)
+            geometry::distance_squared(&si.p, &isect_light.hit.p)
                 / (isect_light.hit.n.dot(&(-(*wi))).abs() * self.area())
         } else {
             0.0

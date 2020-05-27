@@ -143,7 +143,7 @@ impl SpatialLightDistribution {
             // light source.
             let u = Point2f::new(radical_inverse(3, i), radical_inverse(4, i));
             for (j, light) in self.scene.lights.iter().enumerate() {
-                let (li, _wi, pdf, _vis) = light.sample_li(&intr, &u);
+                let (li, _wi, pdf, _vis) = light.sample_li(&intr, u);
                 if pdf > 0.0 {
                     // TODO: look at tracing shadow rays / computing beam
                     // transmittance.  Probably shouldn't give those full weight

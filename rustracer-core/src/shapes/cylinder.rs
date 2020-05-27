@@ -256,7 +256,7 @@ impl Shape for Cylinder {
         (self.z_max - self.z_min) * self.radius * self.phi_max
     }
 
-    fn sample(&self, u: &Point2f) -> (Interaction, f32) {
+    fn sample(&self, u: Point2f) -> (Interaction, f32) {
         let z = lerp(u[0], self.z_min, self.z_max);
         let phi = u[1] * self.phi_max;
         let mut p_obj = Point3f::new(self.radius * phi.cos(), self.radius * phi.sin(), z);

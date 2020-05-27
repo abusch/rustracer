@@ -153,7 +153,7 @@ impl Transform {
         }
     }
 
-    #[cfg_attr(rustfmt, rustfmt_skip)]
+    #[rustfmt::skip]
     pub fn perspective(fov: f32, n: f32, f: f32) -> Transform {
         let persp = Matrix4x4::from_elements(1.0, 0.0, 0.0, 0.0,
                                              0.0, 1.0, 0.0, 0.0,
@@ -264,7 +264,7 @@ impl Transform {
 impl<'a, 'b> Mul<&'a Point3f> for &'b Transform {
     type Output = Point3f;
 
-    #[cfg_attr(feature = "cargo-clippy", allow(suspicious_arithmetic_impl))]
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, p: &'a Point3f) -> Point3f {
         let x = p.x;
         let y = p.y;

@@ -15,8 +15,8 @@ pub trait BxDF: Debug {
     ///
     /// The default implementation uses importance sampling by using a cosine-weighted
     /// distribution.
-    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
-        let mut wi = cosine_sample_hemisphere(*u);
+    fn sample_f(&self, wo: &Vector3f, u: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+        let mut wi = cosine_sample_hemisphere(u);
         if wo.z < 0.0 {
             wi.z *= -1.0;
         }
@@ -60,7 +60,7 @@ impl<'a> BxDF for ScaledBxDF<'a> {
     fn f(&self, wo: &Vector3f, wi: &Vector3f) -> Spectrum {
         self.bxdf.f(wo, wi) * self.scale
     }
-    fn sample_f(&self, wo: &Vector3f, sample: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, sample: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         let (spectrum, wi, pdf, bxdftype) = self.bxdf.sample_f(wo, sample);
         (spectrum * self.scale, wi, pdf, bxdftype)
     }

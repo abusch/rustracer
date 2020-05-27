@@ -170,7 +170,7 @@ impl SamplerIntegrator for PathIntegrator {
 
             // Sample BSDF to get new path direction
             let wo = -ray.d;
-            let (f, wi, pdf, flags) = bsdf.sample_f(&wo, &sampler.get_2d(), BxDFType::all());
+            let (f, wi, pdf, flags) = bsdf.sample_f(&wo, sampler.get_2d(), BxDFType::all());
             if f.is_black() || pdf <= 0.0 {
                 break;
             }

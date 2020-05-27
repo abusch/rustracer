@@ -5,10 +5,10 @@ pub mod lowdiscrepancy;
 pub mod zerotwosequence;
 
 pub trait Sampler: Send + Sync {
-    fn start_pixel(&mut self, p: &Point2i);
+    fn start_pixel(&mut self, p: Point2i);
     fn get_1d(&mut self) -> f32;
     fn get_2d(&mut self) -> Point2f;
-    fn get_camera_sample(&mut self, p_raster: &Point2i) -> CameraSample;
+    fn get_camera_sample(&mut self, p_raster: Point2i) -> CameraSample;
     fn request_1d_array(&mut self, n: usize);
     fn request_2d_array(&mut self, n: usize);
     fn round_count(&self, count: usize) -> usize;

@@ -4,19 +4,16 @@
 #![warn(rust_2018_idioms)]
 #![allow(non_snake_case)]
 // Clippy config
-#![cfg_attr(
-    feature = "cargo-clippy",
-    allow(
-        float_cmp,
-        many_single_char_names,
-        unreadable_literal,
-        large_digit_groups,
-        ifs_same_cond,
-        if_same_then_else,
-        match_same_arms,
-        excessive_precision,
-        too_many_arguments
-    )
+#![allow(
+    clippy::float_cmp,
+    clippy::many_single_char_names,
+    clippy::unreadable_literal,
+    clippy::large_digit_groups,
+    clippy::ifs_same_cond,
+    clippy::if_same_then_else,
+    clippy::match_same_arms,
+    clippy::excessive_precision,
+    clippy::too_many_arguments
 )]
 
 use std::f32;

@@ -187,9 +187,9 @@ pub fn integrate_catmull_rom(n: usize, x: &[f32], values: &[f32], cdf: &mut [f32
 
 pub fn invert_catmull_rom(n: usize, x: &[f32], values: &[f32], u: f32) -> f32 {
     // Stop when _u_ is out of bounds
-    if !(u > values[0]) {
+    if u <= values[0] {
         return x[0];
-    } else if !(u < values[n - 1]) {
+    } else if u >= values[n - 1] {
         return x[n - 1];
     }
 

@@ -58,7 +58,7 @@ impl<'a> BxDF for MicrofacetReflection<'a> {
 
     /// Override sample_f() to use a better importance sampling method than weighted cosine based
     /// on the microface distribution
-    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, u: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         if wo.z == 0.0 {
             return (
                 Spectrum::black(),
@@ -177,7 +177,7 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
 
     /// Override sample_f() to use a better importance sampling method than weighted cosine based
     /// on the microface distribution
-    fn sample_f(&self, wo: &Vector3f, u: &Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
+    fn sample_f(&self, wo: &Vector3f, u: Point2f) -> (Spectrum, Vector3f, f32, BxDFType) {
         if wo.z == 0.0 {
             return (
                 Spectrum::black(),
@@ -248,7 +248,7 @@ pub trait MicrofacetDistribution: Debug {
         }
     }
 
-    fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f;
+    fn sample_wh(&self, wo: &Vector3f, u: Point2f) -> Vector3f;
 
     fn sample_visible_area(&self) -> bool;
 }
@@ -413,7 +413,7 @@ impl MicrofacetDistribution for BeckmannDistribution {
         }
     }
 
-    fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
+    fn sample_wh(&self, wo: &Vector3f, u: Point2f) -> Vector3f {
         if !self.sample_visible_area {
             // Sample full distribution of normals
             let (tan_2_theta, phi) = if self.alpha_x == self.alpha_y {
@@ -605,7 +605,7 @@ impl MicrofacetDistribution for TrowbridgeReitzDistribution {
         (-1.0 + (1.0 + alpha2tan2theta).sqrt()) / 2.0
     }
 
-    fn sample_wh(&self, wo: &Vector3f, u: &Point2f) -> Vector3f {
+    fn sample_wh(&self, wo: &Vector3f, u: Point2f) -> Vector3f {
         let mut wh;
 
         if !self.sample_visible_area {

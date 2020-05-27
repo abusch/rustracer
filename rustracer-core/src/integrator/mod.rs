@@ -57,7 +57,7 @@ pub trait SamplerIntegrator: Send + Sync {
         depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
-        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.hit.wo, &sampler.get_2d(), flags);
+        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.hit.wo, sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
@@ -98,7 +98,7 @@ pub trait SamplerIntegrator: Send + Sync {
         depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
-        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.hit.wo, &sampler.get_2d(), flags);
+        let (f, wi, pdf, _bsdf_type) = bsdf.sample_f(&isect.hit.wo, sampler.get_2d(), flags);
         let ns = &isect.shading.n;
         if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
@@ -151,26 +151,28 @@ pub fn uniform_sample_all_light(
         // FIXME find a way to not copy the arrays into a vec...
         let u_light_array = sampler.get_2d_array(n_samples).map(|a| a.to_vec());
         let u_scattering_array = sampler.get_2d_array(n_samples).map(|a| a.to_vec());
-        if u_scattering_array.is_none() || u_light_array.is_none() {
-            // Use a single sample for illumination from light
-            let u_light = sampler.get_2d();
-            let u_scattering = sampler.get_2d();
-            L += estimate_direct(it, u_scattering, light, u_light, scene, sampler);
-        } else {
-            let u_light_array = u_light_array.unwrap();
-            let u_scattering_array = u_scattering_array.unwrap();
-            let mut Ld = Spectrum::black();
-            for k in 0..n_samples {
-                Ld += estimate_direct(
-                    it,
-                    u_scattering_array[k],
-                    light,
-                    u_light_array[k],
-                    scene,
-                    sampler,
-                );
+
+        match (u_scattering_array, u_light_array) {
+            (Some(u_scattering_array), Some(u_light_array)) => {
+                let mut Ld = Spectrum::black();
+                for k in 0..n_samples {
+                    Ld += estimate_direct(
+                        it,
+                        u_scattering_array[k],
+                        light,
+                        u_light_array[k],
+                        scene,
+                        sampler,
+                    );
+                }
+                L += Ld / n_samples as f32;
             }
-            L += Ld / n_samples as f32;
+            _ => {
+                // Use a single sample for illumination from light
+                let u_light = sampler.get_2d();
+                let u_scattering = sampler.get_2d();
+                L += estimate_direct(it, u_scattering, light, u_light, scene, sampler);
+            }
         }
     }
 
@@ -234,7 +236,7 @@ pub fn estimate_direct(
         .bsdf
         .as_ref()
         .expect("There should be a BSDF set at this point!");
-    let (mut li, wi, light_pdf, vis) = light.sample_li(it.into(), &u_light);
+    let (mut li, wi, light_pdf, vis) = light.sample_li(it.into(), u_light);
     // info!(
     //     "EstimateDirect u_light: {} -> Li: {}, wi: {}, pdf: {}",
     //     u_light,
@@ -265,7 +267,7 @@ pub fn estimate_direct(
     // Sample BSDF with multiple importance sampling
     if !is_delta_light(light.flags()) {
         let (mut f, wi, scattering_pdf, sampled_type) =
-            bsdf.sample_f(&it.hit.wo, &u_scattering, bsdf_flags);
+            bsdf.sample_f(&it.hit.wo, u_scattering, bsdf_flags);
         f *= wi.dotn(&it.shading.n).abs();
         let sampled_specular = sampled_type.contains(BxDFType::BSDF_SPECULAR);
         // TODO compute medium interaction when supported

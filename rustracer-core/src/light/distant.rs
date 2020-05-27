@@ -57,7 +57,7 @@ impl Light for DistantLight {
     fn sample_li(
         &self,
         isect: &Interaction,
-        _u: &Point2f,
+        _u: Point2f,
     ) -> (Spectrum, Vector3f, f32, VisibilityTester) {
         let wr = self.w_radius.read();
         let p_outside = isect.p + self.dir * (2.0 * *wr);
