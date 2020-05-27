@@ -25,7 +25,7 @@ pub struct GlassMaterial {
 }
 
 impl GlassMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         info!("Creating Glass material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::white());
         let Kt = mp.get_spectrum_texture("Kt", &Spectrum::white());
@@ -55,7 +55,7 @@ impl Material for GlassMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);

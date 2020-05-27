@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
 
-use log::{error, warn};
+use log::error;
 use num::zero;
 
 use crate::bounds::Bounds3f;
@@ -40,7 +40,7 @@ pub struct TriangleMesh {
 }
 
 impl fmt::Debug for TriangleMesh {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(fmt, "TriangleMesh {{...}}")
     }
 }
@@ -212,7 +212,7 @@ impl Triangle {
 }
 
 impl Shape for Triangle {
-    fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
+    fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction<'_, '_>, f32)> {
         n_hits::inc_total();
 
         let p0 = &self.mesh.p[self.v(0)];

@@ -38,7 +38,7 @@ pub struct BxDFHolder<'a> {
 }
 
 impl<'a> BxDFHolder<'a> {
-    pub fn new(arena: &'a Allocator) -> BxDFHolder<'a> {
+    pub fn new(arena: &'a Allocator<'_>) -> BxDFHolder<'a> {
         BxDFHolder {
             b: arena.alloc_slice::<&dyn BxDF>(8),
             n: 0,
@@ -74,7 +74,11 @@ pub struct BSDF<'a> {
 }
 
 impl<'a> BSDF<'a> {
-    pub fn new<'b>(isect: &'b SurfaceInteraction, eta: f32, bxdfs: &'a [&'a dyn BxDF]) -> BSDF<'a> {
+    pub fn new<'b>(
+        isect: &'b SurfaceInteraction<'_, '_>,
+        eta: f32,
+        bxdfs: &'a [&'a dyn BxDF],
+    ) -> BSDF<'a> {
         let ss = isect.shading.dpdu.normalize();
         BSDF {
             eta,

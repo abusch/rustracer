@@ -5,7 +5,6 @@ use rustracer_core::{next_float_down, next_float_up};
 
 const NUM_ITER: usize = 10_000;
 
-
 /// Return an exponentially distributed floating-point value
 fn get_float<T: Rng>(rng: &mut T, min_exp: f32, max_exp: f32) -> EFloat {
     let logu: f32 = rng.gen_range(min_exp, max_exp);

@@ -18,7 +18,7 @@ impl UVTexture {
         }
     }
 
-    pub fn create_spectrum(_tex2world: &Transform, tp: &TextureParams) -> UVTexture {
+    pub fn create_spectrum(_tex2world: &Transform, tp: &TextureParams<'_>) -> UVTexture {
         let typ = tp.find_string("mapping", "uv");
         let mapping = if typ == "uv" {
             let su = tp.find_float("uscale", 1.0);
@@ -48,7 +48,7 @@ impl Default for UVTexture {
 }
 
 impl Texture<Spectrum> for UVTexture {
-    fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum {
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> Spectrum {
         let (st, _dstdx, _dstdy) = self.mapping.map(si);
         Spectrum::rgb(st[0] - st[0].floor(), st[1] - st[1].floor(), 0.0)
     }

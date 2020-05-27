@@ -23,7 +23,7 @@ pub struct Plastic {
 }
 
 impl Plastic {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         info!("Creating Plastic material");
         let Kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.25));
         let Ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.25));
@@ -47,7 +47,7 @@ impl Material for Plastic {
         si: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);

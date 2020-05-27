@@ -18,7 +18,7 @@ pub struct MixMaterial {
 
 impl MixMaterial {
     pub fn create(
-        mp: &TextureParams,
+        mp: &TextureParams<'_>,
         m1: Arc<dyn Material>,
         m2: Arc<dyn Material>,
     ) -> Arc<dyn Material> {
@@ -36,7 +36,7 @@ impl Material for MixMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         let s1 = self.scale.evaluate(si).clamp();
         let s2 = (Spectrum::white() - s1).clamp();

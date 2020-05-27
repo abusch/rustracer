@@ -10,6 +10,7 @@ pub trait DisplayUpdater {
 
 pub struct MinifbDisplayUpdater {
     #[cfg(feature = "display")]
+    #[allow(dead_code)]
     window: minifb::Window,
 }
 

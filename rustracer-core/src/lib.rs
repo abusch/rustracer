@@ -1,6 +1,7 @@
 #![recursion_limit = "128"]
 // Lints
 #![deny(unused_qualifications, unused_must_use)]
+#![warn(rust_2018_idioms)]
 #![allow(non_snake_case)]
 // Clippy config
 #![cfg_attr(
@@ -17,9 +18,6 @@
         too_many_arguments
     )
 )]
-
-#[cfg(feature = "exr")]
-extern crate openexr;
 
 use std::f32;
 use std::ops::{Add, Mul, Sub};
@@ -295,9 +293,9 @@ impl Clampable for f32 {
 impl Clampable for Spectrum {
     fn clamp(self, min: f32, max: f32) -> Spectrum {
         Spectrum::rgb(
-            self.r.clamp(min, max),
-            self.g.clamp(min, max),
-            self.b.clamp(min, max),
+            Clampable::clamp(self.r, min, max),
+            Clampable::clamp(self.g, min, max),
+            Clampable::clamp(self.b, min, max),
         )
     }
 }

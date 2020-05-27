@@ -341,7 +341,11 @@ pub struct FresnelBlend<'a> {
 }
 
 impl<'a> FresnelBlend<'a> {
-    pub fn new(rs: Spectrum, rd: Spectrum, distrib: &dyn MicrofacetDistribution) -> FresnelBlend {
+    pub fn new(
+        rs: Spectrum,
+        rd: Spectrum,
+        distrib: &dyn MicrofacetDistribution,
+    ) -> FresnelBlend<'_> {
         FresnelBlend { rd, rs, distrib }
     }
 
@@ -416,10 +420,10 @@ fn pow5(v: f32) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use quickcheck::quickcheck;
     use crate::bsdf::TrowbridgeReitzDistribution;
     use crate::spectrum::Spectrum;
     use crate::Vector3f;
+    use quickcheck::quickcheck;
 
     quickcheck! {
         fn pdf_should_be_positive(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32) -> bool {

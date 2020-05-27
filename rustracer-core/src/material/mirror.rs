@@ -17,7 +17,7 @@ pub struct MirrorMaterial {
 }
 
 impl MirrorMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         info!("Creating Mirror material");
         let Kr = mp.get_spectrum_texture("Kr", &Spectrum::grey(0.9));
         let bump_map = mp.get_float_texture_or_none("bumpmap");
@@ -32,7 +32,7 @@ impl Material for MirrorMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);

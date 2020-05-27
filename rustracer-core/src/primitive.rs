@@ -14,7 +14,7 @@ use crate::Transform;
 pub trait Primitive: Debug + Send + Sync {
     fn world_bounds(&self) -> Bounds3f;
 
-    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction>;
+    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction<'_, '_>>;
 
     fn intersect_p(&self, ray: &Ray) -> bool;
 
@@ -26,7 +26,7 @@ pub trait Primitive: Debug + Send + Sync {
         isect: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     );
 }
 
@@ -42,7 +42,7 @@ impl Primitive for GeometricPrimitive {
         self.shape.world_bounds()
     }
 
-    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction<'_, '_>> {
         self.shape.intersect(ray).map(|(mut isect, t_hit)| {
             isect.primitive = Some(self);
             ray.t_max = t_hit;
@@ -67,7 +67,7 @@ impl Primitive for GeometricPrimitive {
         isect: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         if let Some(ref material) = self.material() {
             material.compute_scattering_functions(isect, mode, allow_multiple_lobes, arena);
@@ -86,7 +86,7 @@ impl Primitive for TransformedPrimitive {
         &self.primitive_to_world * &self.primitive.world_bounds()
     }
 
-    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction<'_, '_>> {
         let mut r = self.primitive_to_world.inverse() * *ray;
         self.primitive.intersect(&mut r).map(|isect| {
             ray.t_max = r.t_max;
@@ -111,7 +111,7 @@ impl Primitive for TransformedPrimitive {
         _isect: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
-        _arena: &'b Allocator,
+        _arena: &'b Allocator<'_>,
     ) {
         panic!("TransformedPrimitive::compute_scattering_functions() should not be called!");
     }

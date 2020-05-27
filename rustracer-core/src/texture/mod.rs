@@ -21,7 +21,7 @@ pub use self::scale::ScaleTexture;
 pub use self::uv::UVTexture;
 
 pub trait Texture<T>: Debug + Send + Sync {
-    fn evaluate(&self, si: &SurfaceInteraction) -> T;
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> T;
 }
 
 // Some convenient aliases
@@ -31,7 +31,7 @@ pub type TextureFloat = dyn Texture<f32>;
 // Texture mappings
 
 pub trait TextureMapping2D: Debug + Send + Sync {
-    fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f);
+    fn map(&self, si: &SurfaceInteraction<'_, '_>) -> (Point2f, Vector2f, Vector2f);
 }
 
 #[derive(Debug)]
@@ -49,7 +49,7 @@ impl UVMapping2D {
 }
 
 impl TextureMapping2D for UVMapping2D {
-    fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f) {
+    fn map(&self, si: &SurfaceInteraction<'_, '_>) -> (Point2f, Vector2f, Vector2f) {
         (
             Point2f::new(self.su * si.uv.x + self.du, self.sv * si.uv.y + self.dv),
             // dstdx
@@ -75,7 +75,7 @@ impl PlanarMapping2D {
 }
 
 impl TextureMapping2D for PlanarMapping2D {
-    fn map(&self, si: &SurfaceInteraction) -> (Point2f, Vector2f, Vector2f) {
+    fn map(&self, si: &SurfaceInteraction<'_, '_>) -> (Point2f, Vector2f, Vector2f) {
         let vec = Vector3f::from(si.hit.p);
         (
             Point2f::new(self.ds + vec.dot(&self.vs), self.dt + vec.dot(&self.vt)),
@@ -86,7 +86,7 @@ impl TextureMapping2D for PlanarMapping2D {
 }
 
 pub trait TextureMapping3D: Debug + Send + Sync {
-    fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f);
+    fn map(&self, si: &SurfaceInteraction<'_, '_>) -> (Point3f, Vector3f, Vector3f);
 }
 
 #[derive(Debug, Default)]
@@ -103,7 +103,7 @@ impl IdentityMapping3D {
 }
 
 impl TextureMapping3D for IdentityMapping3D {
-    fn map(&self, si: &SurfaceInteraction) -> (Point3f, Vector3f, Vector3f) {
+    fn map(&self, si: &SurfaceInteraction<'_, '_>) -> (Point3f, Vector3f, Vector3f) {
         let dpdx = &self.world_to_texture * &si.dpdx;
         let dpdy = &self.world_to_texture * &si.dpdy;
         let p = &self.world_to_texture * &si.hit.p;

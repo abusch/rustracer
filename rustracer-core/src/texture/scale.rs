@@ -20,13 +20,13 @@ where
     T: Sync,
     T: Mul<Output = T>,
 {
-    fn evaluate(&self, si: &SurfaceInteraction) -> T {
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> T {
         self.tex1.evaluate(si) * self.tex2.evaluate(si)
     }
 }
 
 impl ScaleTexture<Spectrum> {
-    pub fn create(tp: &TextureParams) -> ScaleTexture<Spectrum> {
+    pub fn create(tp: &TextureParams<'_>) -> ScaleTexture<Spectrum> {
         let tex1 = tp.get_spectrum_texture("tex1", &Spectrum::white());
         let tex2 = tp.get_spectrum_texture("tex2", &Spectrum::white());
 
@@ -35,7 +35,7 @@ impl ScaleTexture<Spectrum> {
 }
 
 impl ScaleTexture<f32> {
-    pub fn create(tp: &TextureParams) -> ScaleTexture<f32> {
+    pub fn create(tp: &TextureParams<'_>) -> ScaleTexture<f32> {
         let tex1 = tp.get_float_texture("tex1", 1.0);
         let tex2 = tp.get_float_texture("tex2", 1.0);
 

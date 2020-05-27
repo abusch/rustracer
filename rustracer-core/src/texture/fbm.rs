@@ -16,14 +16,14 @@ pub struct FbmTexture<T> {
 }
 
 impl<T> FbmTexture<T> {
-    fn evaluate_as_float(&self, si: &SurfaceInteraction) -> f32 {
+    fn evaluate_as_float(&self, si: &SurfaceInteraction<'_, '_>) -> f32 {
         let (p, dpdx, dpdy) = self.mapping.map(si);
         noise::fbm(&p, &dpdx, &dpdy, self.roughness, self.octaves)
     }
 }
 
 impl FbmTexture<f32> {
-    pub fn create_float(tex2world: &Transform, tp: &TextureParams) -> FbmTexture<f32> {
+    pub fn create_float(tex2world: &Transform, tp: &TextureParams<'_>) -> FbmTexture<f32> {
         FbmTexture {
             mapping: Box::new(IdentityMapping3D::new(tex2world.clone())),
             roughness: tp.find_float("omega", 0.5),
@@ -34,7 +34,7 @@ impl FbmTexture<f32> {
 }
 
 impl FbmTexture<Spectrum> {
-    pub fn create_spectrum(tex2world: &Transform, tp: &TextureParams) -> FbmTexture<Spectrum> {
+    pub fn create_spectrum(tex2world: &Transform, tp: &TextureParams<'_>) -> FbmTexture<Spectrum> {
         FbmTexture {
             mapping: Box::new(IdentityMapping3D::new(tex2world.clone())),
             roughness: tp.find_float("omega", 0.5),
@@ -45,13 +45,13 @@ impl FbmTexture<Spectrum> {
 }
 
 impl Texture<f32> for FbmTexture<f32> {
-    fn evaluate(&self, si: &SurfaceInteraction) -> f32 {
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> f32 {
         self.evaluate_as_float(si)
     }
 }
 
 impl Texture<Spectrum> for FbmTexture<Spectrum> {
-    fn evaluate(&self, si: &SurfaceInteraction) -> Spectrum {
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> Spectrum {
         Spectrum::from(self.evaluate_as_float(si))
     }
 }

@@ -22,7 +22,7 @@ use crate::spectrum::Spectrum;
 use crate::{Point2f, Point2i, Point3f, Transform, Vector3f};
 
 impl fmt::Debug for InfiniteAreaLight {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("InifiniteAreaLight")
             .field("id", &self.id)
             .field("n_samples", &self.n_samples)

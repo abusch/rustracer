@@ -19,7 +19,7 @@ pub struct MatteMaterial {
 }
 
 impl MatteMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         info!("Creating Matte material");
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.5));
         let sigma = mp.get_float_texture("sigma", 0.0);
@@ -39,7 +39,7 @@ impl Material for MatteMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         let mut bxdfs = BxDFHolder::new(arena);
 

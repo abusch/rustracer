@@ -68,7 +68,7 @@ impl Sphere {
 }
 
 impl Shape for Sphere {
-    fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction, f32)> {
+    fn intersect(&self, ray: &Ray) -> Option<(SurfaceInteraction<'_, '_>, f32)> {
         // Transform ray into object space
         let (r, o_err, d_err) = ray.transform(&self.world_to_object);
 

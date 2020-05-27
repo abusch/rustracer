@@ -365,7 +365,7 @@ impl One for Spectrum {
 }
 
 impl fmt::Display for Spectrum {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[ {}, {}, {} ]", self.r, self.g, self.b)
     }
 }

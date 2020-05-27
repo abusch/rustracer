@@ -22,7 +22,7 @@ impl SamplerIntegrator for Normal {
         scene: &Scene,
         ray: &mut Ray,
         _sampler: &mut dyn Sampler,
-        _arena: &Allocator,
+        _arena: &Allocator<'_>,
         _depth: u32,
     ) -> Spectrum {
         if let Some(intersection) = scene.intersect(ray) {

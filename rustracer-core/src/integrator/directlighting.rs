@@ -91,7 +91,7 @@ impl SamplerIntegrator for DirectLightingIntegrator {
         scene: &Scene,
         ray: &mut Ray,
         sampler: &mut dyn Sampler,
-        arena: &Allocator,
+        arena: &Allocator<'_>,
         depth: u32,
     ) -> Spectrum {
         let mut colour = Spectrum::black();

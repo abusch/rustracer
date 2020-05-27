@@ -472,7 +472,7 @@ impl<T> fmt::Display for Bounds2<T>
 where
     T: fmt::Display + Num,
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} → {}", self.p_min, self.p_max)
     }
 }
@@ -481,7 +481,7 @@ impl<T> fmt::Display for Bounds3<T>
 where
     T: fmt::Display + Num,
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} → {}", self.p_min, self.p_max)
     }
 }

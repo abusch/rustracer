@@ -40,7 +40,7 @@ pub struct DisneyMaterial {
 }
 
 impl DisneyMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         let color = mp.get_spectrum_texture("color", &Spectrum::from(0.5));
         let metallic = mp.get_float_texture("metallic", 0.0);
         let eta = mp.get_float_texture("eta", 1.5);
@@ -85,7 +85,7 @@ impl Material for DisneyMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         if let Some(ref bump) = self.bumpmap {
             super::bump(bump, si);

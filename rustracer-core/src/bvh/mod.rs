@@ -362,7 +362,7 @@ impl Primitive for BVH {
         self.nodes[0].bounds
     }
 
-    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+    fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction<'_, '_>> {
         if self.nodes.is_empty() {
             return None;
         }
@@ -512,7 +512,7 @@ impl Primitive for BVH {
         _isect: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
-        _arena: &'b Allocator,
+        _arena: &'b Allocator<'_>,
     ) {
         panic!("compute_scattering_functions() should not be called on an Aggregate Primitive!");
     }

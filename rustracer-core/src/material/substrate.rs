@@ -20,7 +20,7 @@ pub struct SubstrateMaterial {
 }
 
 impl SubstrateMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::grey(0.5));
         let ks = mp.get_spectrum_texture("Ks", &Spectrum::grey(0.5));
         let urough = mp.get_float_texture("uroughness", 0.1);
@@ -45,7 +45,7 @@ impl Material for SubstrateMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         if let Some(ref bump) = self.bump_map {
             super::bump(bump, si);

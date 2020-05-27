@@ -1,11 +1,11 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 
 mod argparse;
 
 use anyhow::Result;
 use clap::ArgMatches;
 
-use rustracer_core::{pbrt, init_stats, PbrtOptions};
+use rustracer_core::{init_stats, pbrt, PbrtOptions};
 
 fn main() {
     println!("Rustracer 0.1 [Detected {} cores]", num_cpus::get());

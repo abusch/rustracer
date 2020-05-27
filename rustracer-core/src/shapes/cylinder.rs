@@ -59,7 +59,7 @@ impl Shape for Cylinder {
     }
 
     #[allow(non_snake_case)]
-    fn intersect(&self, r: &Ray) -> Option<(SurfaceInteraction, f32)> {
+    fn intersect(&self, r: &Ray) -> Option<(SurfaceInteraction<'_, '_>, f32)> {
         // Transform ray to object space
         let (ray, o_err, d_err) = r.transform(&self.world_to_object);
 

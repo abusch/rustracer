@@ -43,7 +43,7 @@ impl SamplerIntegrator for Whitted {
         scene: &Scene,
         ray: &mut Ray,
         sampler: &mut dyn Sampler,
-        arena: &Allocator,
+        arena: &Allocator<'_>,
         depth: u32,
     ) -> Spectrum {
         let mut colour = Spectrum::black();

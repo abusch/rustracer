@@ -48,7 +48,7 @@ impl Scene {
         scene
     }
 
-    pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction> {
+    pub fn intersect(&self, ray: &mut Ray) -> Option<SurfaceInteraction<'_, '_>> {
         n_intersection_tests::inc();
         self.aggregate.intersect(ray)
     }

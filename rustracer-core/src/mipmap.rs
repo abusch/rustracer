@@ -409,7 +409,7 @@ where
 }
 
 impl<T: Debug> Debug for MIPMap<T> {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("MIPMap")
             .field("do_trilinear", &self.do_trilinear)
             .field("max_anisotropy", &self.max_anisotropy)

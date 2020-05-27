@@ -21,7 +21,7 @@ where
     T: Mul<f32, Output = T>,
     T: Add<Output = T>,
 {
-    fn evaluate(&self, si: &SurfaceInteraction) -> T {
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> T {
         let t1 = self.tex1.evaluate(si);
         let t2 = self.tex2.evaluate(si);
         let amt = self.amount.evaluate(si);
@@ -31,7 +31,7 @@ where
 }
 
 impl MixTexture<f32> {
-    pub fn create_float(_tex2world: &Transform, tp: &TextureParams) -> MixTexture<f32> {
+    pub fn create_float(_tex2world: &Transform, tp: &TextureParams<'_>) -> MixTexture<f32> {
         MixTexture {
             tex1: tp.get_float_texture("tex1", 0.0),
             tex2: tp.get_float_texture("tex2", 1.0),
@@ -41,7 +41,7 @@ impl MixTexture<f32> {
 }
 
 impl MixTexture<Spectrum> {
-    pub fn create_spectrum(_tex2world: &Transform, tp: &TextureParams) -> MixTexture<Spectrum> {
+    pub fn create_spectrum(_tex2world: &Transform, tp: &TextureParams<'_>) -> MixTexture<Spectrum> {
         MixTexture {
             tex1: tp.get_spectrum_texture("tex1", &Spectrum::black()),
             tex2: tp.get_spectrum_texture("tex2", &Spectrum::white()),

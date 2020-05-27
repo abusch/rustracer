@@ -62,7 +62,7 @@ impl Disk {
 }
 
 impl Shape for Disk {
-    fn intersect(&self, r: &Ray) -> Option<(SurfaceInteraction, f32)> {
+    fn intersect(&self, r: &Ray) -> Option<(SurfaceInteraction<'_, '_>, f32)> {
         // Transform ray to object space
         let (ray, _o_err, _d_err) = r.transform(&self.world_to_object);
         // Compute plane intersection for disk

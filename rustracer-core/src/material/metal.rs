@@ -21,7 +21,7 @@ pub struct Metal {
 }
 
 impl Metal {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         let copper_eta =
             Spectrum::from_sampled(&COPPER_WAVELENGTHS[..], &COPPER_N[..], COPPER_SAMPLES);
         let eta = mp.get_spectrum_texture("eta", &copper_eta);
@@ -52,7 +52,7 @@ impl Material for Metal {
         si: &mut SurfaceInteraction<'a, 'b>,
         _mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         if let Some(ref bump) = self.bump {
             material::bump(bump, si);

@@ -24,7 +24,7 @@ pub struct TranslucentMaterial {
 }
 
 impl TranslucentMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         let kd = mp.get_spectrum_texture("Kd", &Spectrum::from(0.25));
         let ks = mp.get_spectrum_texture("Ks", &Spectrum::from(0.25));
         let reflect = mp.get_spectrum_texture("reflect", &Spectrum::from(0.5));
@@ -51,7 +51,7 @@ impl Material for TranslucentMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         let mut bxdfs = BxDFHolder::new(arena);
         let eta = 1.5;

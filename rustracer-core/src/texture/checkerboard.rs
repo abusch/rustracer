@@ -43,7 +43,7 @@ impl<T> CheckerboardTexture<T> {
 impl CheckerboardTexture<Spectrum> {
     pub fn create_spectrum(
         _tex2world: &Transform,
-        tp: &TextureParams,
+        tp: &TextureParams<'_>,
     ) -> CheckerboardTexture<Spectrum> {
         let dim = tp.find_int("dimension", 2);
         if dim != 2 && dim != 3 {
@@ -99,7 +99,7 @@ where
     T: Mul<f32, Output = T>,
     T: Add<Output = T>,
 {
-    fn evaluate(&self, si: &SurfaceInteraction) -> T {
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> T {
         let (st, dstdx, dstdy) = self.mapping.map(si);
         match self.aa_method {
             AAMethod::None => {

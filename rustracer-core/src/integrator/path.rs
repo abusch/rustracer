@@ -98,7 +98,7 @@ impl SamplerIntegrator for PathIntegrator {
         scene: &Scene,
         r: &mut Ray,
         sampler: &mut dyn Sampler,
-        arena: &Allocator,
+        arena: &Allocator<'_>,
         _depth: u32,
     ) -> Spectrum {
         let mut l = Spectrum::black();

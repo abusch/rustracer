@@ -15,7 +15,7 @@ pub struct FourierMaterial {
 }
 
 impl FourierMaterial {
-    pub fn create(mp: &TextureParams) -> Arc<dyn Material> {
+    pub fn create(mp: &TextureParams<'_>) -> Arc<dyn Material> {
         let bump_map = mp.get_float_texture_or_none("bumpmap");
         let filename = mp.find_filename("bsdffile", "");
         let bsdf_table = Box::new(FourierBSDFTable::read(filename).unwrap()); // TODO error
@@ -32,7 +32,7 @@ impl Material for FourierMaterial {
         si: &mut SurfaceInteraction<'a, 'b>,
         mode: TransportMode,
         _allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         let mut bxdfs = BxDFHolder::new(arena);
 

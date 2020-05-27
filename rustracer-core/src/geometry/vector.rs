@@ -219,7 +219,7 @@ impl<T> Display for Vector2<T>
 where
     T: Display,
 {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "[{}, {}]", self.x, self.y)
     }
 }
@@ -512,7 +512,7 @@ impl<T> Display for Vector3<T>
 where
     T: Display,
 {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "[{}, {}, {}]", self.x, self.y, self.z)
     }
 }

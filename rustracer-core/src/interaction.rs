@@ -114,7 +114,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         dndu: Normal3f,
         dndv: Normal3f,
         shape: &dyn Shape,
-    ) -> SurfaceInteraction {
+    ) -> SurfaceInteraction<'_, '_> {
         let mut n = Normal3f::from(dpdu.cross(&dpdv).normalize());
         if shape.reverse_orientation() ^ shape.transform_swaps_handedness() {
             n *= -1.0;
@@ -194,7 +194,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
         ray: &Ray,
         transport: TransportMode,
         allow_multiple_lobes: bool,
-        arena: &'b Allocator,
+        arena: &'b Allocator<'_>,
     ) {
         self.compute_differential(ray);
         if let Some(primitive) = self.primitive {
@@ -315,7 +315,7 @@ impl<'a, 'b> SurfaceInteraction<'a, 'b> {
 }
 
 impl<'a, 'b> From<SurfaceInteraction<'a, 'b>> for Interaction {
-    fn from(si: SurfaceInteraction) -> Interaction {
+    fn from(si: SurfaceInteraction<'_, '_>) -> Interaction {
         si.hit
     }
 }

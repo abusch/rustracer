@@ -41,7 +41,7 @@ pub trait SamplerIntegrator: Send + Sync {
         scene: &Scene,
         ray: &mut Ray,
         sampler: &mut dyn Sampler,
-        arena: &Allocator,
+        arena: &Allocator<'_>,
         depth: u32,
     ) -> Spectrum;
 
@@ -49,11 +49,11 @@ pub trait SamplerIntegrator: Send + Sync {
     fn specular_reflection(
         &self,
         ray: &mut Ray,
-        isect: &SurfaceInteraction,
+        isect: &SurfaceInteraction<'_, '_>,
         scene: &Scene,
-        bsdf: &bsdf::BSDF,
+        bsdf: &bsdf::BSDF<'_>,
         sampler: &mut dyn Sampler,
-        arena: &Allocator,
+        arena: &Allocator<'_>,
         depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_REFLECTION | BxDFType::BSDF_SPECULAR;
@@ -90,11 +90,11 @@ pub trait SamplerIntegrator: Send + Sync {
     fn specular_transmission(
         &self,
         ray: &mut Ray,
-        isect: &SurfaceInteraction,
+        isect: &SurfaceInteraction<'_, '_>,
         scene: &Scene,
-        bsdf: &bsdf::BSDF,
+        bsdf: &bsdf::BSDF<'_>,
         sampler: &mut dyn Sampler,
-        arena: &Allocator,
+        arena: &Allocator<'_>,
         depth: u32,
     ) -> Spectrum {
         let flags = BxDFType::BSDF_TRANSMISSION | BxDFType::BSDF_SPECULAR;
@@ -139,7 +139,7 @@ pub trait SamplerIntegrator: Send + Sync {
 }
 
 pub fn uniform_sample_all_light(
-    it: &SurfaceInteraction,
+    it: &SurfaceInteraction<'_, '_>,
     scene: &Scene,
     sampler: &mut dyn Sampler,
     n_light_samples: &[usize],
@@ -178,7 +178,7 @@ pub fn uniform_sample_all_light(
 }
 
 pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
-    it: &SurfaceInteraction,
+    it: &SurfaceInteraction<'_, '_>,
     scene: &Scene,
     sampler: &mut dyn Sampler,
     distrib: D,
@@ -214,7 +214,7 @@ pub fn uniform_sample_one_light<'a, D: Into<Option<&'a Distribution1D>>>(
 }
 
 pub fn estimate_direct(
-    it: &SurfaceInteraction,
+    it: &SurfaceInteraction<'_, '_>,
     u_scattering: Point2f,
     light: &Arc<dyn Light>,
     u_light: Point2f,

@@ -97,7 +97,7 @@ where
 }
 
 impl ImageTexture<Spectrum> {
-    pub fn create(_tex2world: &Transform, tp: &TextureParams) -> ImageTexture<Spectrum> {
+    pub fn create(_tex2world: &Transform, tp: &TextureParams<'_>) -> ImageTexture<Spectrum> {
         let typ = tp.find_string("mapping", "uv");
         let map = if typ == "uv" {
             let su = tp.find_float("uscale", 1.0);
@@ -166,7 +166,7 @@ impl ImageTexture<Spectrum> {
 }
 
 impl ImageTexture<f32> {
-    pub fn create(_tex2world: &Transform, tp: &TextureParams) -> ImageTexture<f32> {
+    pub fn create(_tex2world: &Transform, tp: &TextureParams<'_>) -> ImageTexture<f32> {
         let typ = tp.find_string("mapping", "uv");
         let map = if typ == "uv" {
             let su = tp.find_float("uscale", 1.0);
@@ -229,7 +229,7 @@ where
     T: Div<f32, Output = T>,
     T: Sized,
 {
-    fn evaluate(&self, si: &SurfaceInteraction) -> T {
+    fn evaluate(&self, si: &SurfaceInteraction<'_, '_>) -> T {
         let (st, dstdx, dstdy) = self.mapping.map(si);
         self.mipmap.lookup_diff(st, dstdx, dstdy)
     }

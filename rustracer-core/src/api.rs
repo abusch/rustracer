@@ -1143,7 +1143,7 @@ fn make_shapes(
 
 fn make_material(
     name: &str,
-    mp: &TextureParams,
+    mp: &TextureParams<'_>,
     named_materials: &HashMap<String, Arc<dyn Material>>,
 ) -> Arc<dyn Material> {
     n_materials_created::inc();
@@ -1204,7 +1204,7 @@ fn make_area_light(
 fn make_float_texture(
     name: &str,
     transform: &Transform,
-    tp: &TextureParams,
+    tp: &TextureParams<'_>,
 ) -> Result<Arc<dyn Texture<f32>>> {
     let tex: Arc<dyn Texture<f32>> = if name == "constant" {
         Arc::new(ConstantTexture::create_float(transform, tp))
@@ -1226,7 +1226,7 @@ fn make_float_texture(
 fn make_spectrum_texture(
     name: &str,
     transform: &Transform,
-    tp: &TextureParams,
+    tp: &TextureParams<'_>,
 ) -> Result<Arc<dyn Texture<Spectrum>>> {
     let tex: Arc<dyn Texture<Spectrum>> = if name == "constant" {
         Arc::new(ConstantTexture::create_spectrum(transform, tp))
