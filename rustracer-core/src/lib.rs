@@ -1,4 +1,4 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 // Lints
 #![deny(unused_qualifications, unused_must_use)]
 #![allow(non_snake_case)]
@@ -18,39 +18,8 @@
     )
 )]
 
-extern crate atomic;
-#[macro_use]
-extern crate bitflags;
-extern crate byteorder;
-#[macro_use]
-extern crate combine;
-extern crate crossbeam;
-#[macro_use]
-extern crate failure;
-extern crate image as img;
-extern crate indicatif;
-extern crate itertools as it;
-#[macro_use]
-extern crate lazy_static;
-extern crate light_arena;
-#[macro_use]
-extern crate log;
-extern crate ndarray;
-extern crate num;
-extern crate num_cpus;
 #[cfg(feature = "exr")]
 extern crate openexr;
-extern crate parking_lot;
-extern crate ply_rs;
-extern crate rayon;
-extern crate state;
-
-#[cfg(test)]
-#[macro_use]
-extern crate approx;
-#[cfg(test)]
-#[macro_use]
-extern crate quickcheck;
 
 use std::f32;
 use std::ops::{Add, Mul, Sub};

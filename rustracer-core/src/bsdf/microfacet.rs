@@ -156,17 +156,19 @@ impl<'a> BxDF for MicrofacetTransmission<'a> {
             _ => 1.0,
         };
 
-        (Spectrum::white() - f) * self.t * f32::abs(
-            self.distribution.d(&wh)
-                * self.distribution.g(wo, wi)
-                * eta
-                * eta
-                * wi.dot(&wh).abs()
-                * wo.dot(&wh).abs()
-                * factor
-                * factor
-                / (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom),
-        )
+        (Spectrum::white() - f)
+            * self.t
+            * f32::abs(
+                self.distribution.d(&wh)
+                    * self.distribution.g(wo, wi)
+                    * eta
+                    * eta
+                    * wi.dot(&wh).abs()
+                    * wo.dot(&wh).abs()
+                    * factor
+                    * factor
+                    / (cos_theta_i * cos_theta_o * sqrt_denom * sqrt_denom),
+            )
     }
 
     fn get_type(&self) -> BxDFType {
@@ -430,7 +432,8 @@ impl MicrofacetDistribution for BeckmannDistribution {
                     log_sample = 0.0;
                 }
                 let mut phi = (self.alpha_y / self.alpha_x
-                    * (2.0 * consts::PI * u[1] + consts::FRAC_PI_2).tan()).atan();
+                    * (2.0 * consts::PI * u[1] + consts::FRAC_PI_2).tan())
+                .atan();
                 if u[1] > 0.5 {
                     phi += consts::PI;
                 }

@@ -1,3 +1,4 @@
+use log::{error, warn};
 use num::Zero;
 
 use crate::bounds::Bounds2f;

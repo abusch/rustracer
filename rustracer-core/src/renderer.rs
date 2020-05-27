@@ -1,15 +1,16 @@
 use std::sync::Arc;
 
+use anyhow::Result;
 use crossbeam;
-use failure::Error;
 use indicatif;
+use light_arena::MemoryArena;
+use log::{error, info};
 use parking_lot::Mutex;
 
 use crate::bounds::Bounds2i;
 use crate::camera::Camera;
 use crate::display::DisplayUpdater;
 use crate::integrator::SamplerIntegrator;
-use crate::light_arena::MemoryArena;
 use crate::sampler::Sampler;
 use crate::scene::Scene;
 use crate::spectrum::Spectrum;
@@ -29,7 +30,7 @@ pub fn render(
     sampler: &mut dyn Sampler,
     block_size: i32,
     mut _display: Box<dyn DisplayUpdater + Send>,
-) -> Result<(), Error> {
+) -> Result<()> {
     integrator.preprocess(Arc::clone(scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();
     let sample_extent = sample_bounds.diagonal();

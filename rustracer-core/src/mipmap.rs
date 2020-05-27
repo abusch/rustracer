@@ -3,8 +3,10 @@ use std::f32;
 use std::fmt::{self, Debug};
 use std::ops::{AddAssign, Div, Mul};
 
-use ndarray::prelude::*;
+use lazy_static::lazy_static;
+use log::{debug, info, trace};
 use ndarray::parallel::prelude::*;
+use ndarray::prelude::*;
 use ndarray::Zip;
 use num::{zero, Zero};
 

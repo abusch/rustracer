@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
 
+use log::{error, warn};
 use num::zero;
 
 use crate::bounds::Bounds3f;

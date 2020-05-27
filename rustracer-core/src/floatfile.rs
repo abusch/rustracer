@@ -2,9 +2,10 @@ use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use failure::Error;
+use anyhow::Result;
+use log::warn;
 
-pub fn read_float_file<P: AsRef<Path>>(filename: P) -> Result<Vec<f32>, Error> {
+pub fn read_float_file<P: AsRef<Path>>(filename: P) -> Result<Vec<f32>> {
     let mut values = Vec::new();
 
     let file = fs::File::open(filename.as_ref())?;

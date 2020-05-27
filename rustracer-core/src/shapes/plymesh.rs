@@ -4,6 +4,7 @@ use std::hash::BuildHasher;
 use std::io::BufReader;
 use std::sync::Arc;
 
+use log::{debug, error, info, warn};
 use ply_rs::parser;
 use ply_rs::ply;
 

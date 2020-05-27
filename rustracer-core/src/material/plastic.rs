@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use light_arena::Allocator;
+use log::info;
 
 use crate::bsdf::{
     BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection, TrowbridgeReitzDistribution,

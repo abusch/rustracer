@@ -2,8 +2,9 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
 
-use failure::{Error, ResultExt};
-use img::{self, GenericImageView};
+use anyhow::*;
+use image::{self, hdr::HdrDecoder, GenericImageView};
+use log::info;
 #[cfg(feature = "exr")]
 use openexr::{FrameBuffer, FrameBufferMut, Header, InputFile, PixelType, ScanlineOutputFile};
 use rayon::prelude::*;
@@ -62,12 +63,12 @@ fn write_image_png<P: AsRef<Path>>(
         .map(|v| clamp(255.0 * gamma_correct(*v) + 0.5, 0.0, 255.0) as u8)
         .collect();
 
-    img::save_buffer(
+    image::save_buffer(
         path,
         &rgb8,
         resolution.x as u32,
         resolution.y as u32,
-        img::ColorType::Rgb8,
+        image::ColorType::Rgb8,
     )
     .context(format!("Failed to save image file {}", path.display()))?;
     Ok(())
@@ -118,7 +119,7 @@ fn write_image_exr<P: AsRef<Path>>(
 
 fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading texture {}", path.as_ref().display());
-    let buf = img::open(path)?;
+    let buf = image::open(path)?;
     let (width, height) = buf.dimensions();
 
     let rgb = buf.to_rgb().into_raw();
@@ -140,7 +141,7 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     info!("Loading HDR image {}", path.as_ref().display());
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
-    let hdr = img::hdr::HdrDecoder::with_strictness(reader, false)?;
+    let hdr = HdrDecoder::with_strictness(reader, false)?;
 
     let meta = hdr.metadata();
     let data = hdr.read_image_hdr()?;

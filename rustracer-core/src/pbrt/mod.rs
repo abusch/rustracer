@@ -5,14 +5,14 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
+use anyhow::*;
 use combine::State;
-use failure::*;
 
 use crate::api::{Api, RealApi};
 use crate::fileutil;
 use crate::PbrtOptions;
 
-pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<(), Error> {
+pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<()> {
     let filename = filename.as_ref();
     let tokens = tokenize_file(filename)?;
     fileutil::set_search_directory(fileutil::directory_containing(filename));
@@ -24,7 +24,7 @@ pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<(),
     Ok(())
 }
 
-pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Tokens>, Error> {
+pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Tokens>> {
     let resolved_filename = fileutil::resolve_filename(filename.as_ref().to_str().unwrap());
     let mut file = File::open(&resolved_filename).context("Failed to open scene file")?;
     let mut file_content = String::new();

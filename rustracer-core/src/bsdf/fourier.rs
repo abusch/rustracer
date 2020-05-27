@@ -3,8 +3,9 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 
+use anyhow::*;
 use byteorder::{NativeEndian, ReadBytesExt};
-use failure::Error;
+use log::info;
 use num::zero;
 
 use crate::bsdf::{BxDF, BxDFType};
@@ -85,11 +86,7 @@ impl BxDF for FourierBSDF {
 
         // Evaluate Fourier expansion for angle $\phi$
         let Y = f32::max(0.0, fourier(&ak, m_max, cos_phi));
-        let mut scale = if muI != 0.0 {
-            1.0 / f32::abs(muI)
-        } else {
-            0.0
-        };
+        let mut scale = if muI != 0.0 { 1.0 / f32::abs(muI) } else { 0.0 };
 
         // Update _scale_ to account for adjoint light transport
         if self.mode == TransportMode::RADIANCE && muI * muO > 0.0 {
@@ -191,11 +188,7 @@ impl BxDF for FourierBSDF {
         let wi = wi.normalize();
 
         // Evaluate remaining Fourier expansions for angle $\phi$
-        let mut scale = if muI != 0.0 {
-            1.0 / f32::abs(muI)
-        } else {
-            0.0
-        };
+        let mut scale = if muI != 0.0 { 1.0 / f32::abs(muI) } else { 0.0 };
         if self.mode == TransportMode::RADIANCE && muI * muO > 0.0 {
             let eta = if muI > 0.0 {
                 1.0 / bsdf_table.eta
@@ -345,7 +338,7 @@ impl FourierBSDFTable {
     //  namely texturing and harmonic extrapolation (though it would be
     // straightforward
     //  to port them from Mitsuba.)
-    pub fn read<P: AsRef<Path>>(filename: P) -> Result<FourierBSDFTable, Error> {
+    pub fn read<P: AsRef<Path>>(filename: P) -> Result<FourierBSDFTable> {
         let filename = filename.as_ref();
         let file = File::open(filename)?;
         let mut f = BufReader::new(file);
@@ -356,10 +349,10 @@ impl FourierBSDFTable {
         let mut header = [0; 8];
         f.read_exact(&mut header)?;
         if header != HEADER_EXP {
-            bail!(
+            return Err(anyhow!(
                 "BSDF file \"{}\" has an invalid header!",
                 filename.display()
-            );
+            ));
         }
         let flags = f.read_u32::<NativeEndian>()?;
         let n_mu = f.read_u32::<NativeEndian>()?;

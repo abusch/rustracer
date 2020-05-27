@@ -1,27 +1,22 @@
-extern crate rand;
-extern crate rustracer_core as rt;
-
-use rand::distributions::{IndependentSample, Range};
-use rand::{Rng, SeedableRng, StdRng};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 use std::f32;
 
-use rt::ray::Ray;
-use rt::sampling;
-use rt::shapes::{Shape, Sphere};
-use rt::{Point2f, Point3f, Transform};
+use rustracer_core::ray::Ray;
+use rustracer_core::sampling;
+use rustracer_core::shapes::{Shape, Sphere};
+use rustracer_core::{Point2f, Point3f, Transform};
 
 fn pexp<T: Rng>(rng: &mut T, exp: f32) -> f32 {
-    let range = Range::new(-exp, exp);
-    let logu: f32 = range.ind_sample(rng);
+    // let range = Range::new(-exp, exp);
+    let logu: f32 = rng.gen_range(-exp, exp); // range.ind_sample(rng);
     let base = 10.0_f32;
     base.powf(logu)
 }
 
 #[test]
 fn full_sphere_reintersect() {
-    let mut rng = StdRng::from_seed(&[0]);
     for i in 0..1000 {
-        rng.reseed(&[i]);
+        let mut rng = StdRng::seed_from_u64(i as u64);
         let radius = pexp(&mut rng, 4.0);
         let sphere = Sphere::new(Transform::default(), radius, -radius, radius, 360.0, false);
         test_reintersection_convex(&sphere, &mut rng);
@@ -34,10 +29,10 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
 
     // Destination
     let bounds = shape.world_bounds();
-    let t = Point3f::new(rng.next_f32(), rng.next_f32(), rng.next_f32());
+    let t = Point3f::new(rng.gen(), rng.gen(), rng.gen());
     let p = bounds.lerp(&t);
     let mut ray = Ray::new(o, p - o);
-    if rng.next_f32() < 0.5 {
+    if rng.gen::<f32>() < 0.5 {
         ray.d = ray.d.normalize();
     }
 
@@ -46,8 +41,8 @@ fn test_reintersection_convex<T: Shape>(shape: &T, rng: &mut StdRng) {
         // Now trace a bunch of rays leaving the intersection point
         for _ in 0..1000 {
             // Random direction leaving the intersection point
-            let u = Point2f::new(rng.next_f32(), rng.next_f32());
-            let mut w = sampling::uniform_sample_sphere(&u);
+            let u = Point2f::new(rng.gen(), rng.gen());
+            let mut w = sampling::uniform_sample_sphere(u);
             if w.dotn(&isect.hit.n) < 0.0 {
                 w = -w;
             }

@@ -416,9 +416,10 @@ fn pow5(v: f32) -> f32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bsdf::TrowbridgeReitzDistribution;
-    use spectrum::Spectrum;
-    use Vector3f;
+    use quickcheck::quickcheck;
+    use crate::bsdf::TrowbridgeReitzDistribution;
+    use crate::spectrum::Spectrum;
+    use crate::Vector3f;
 
     quickcheck! {
         fn pdf_should_be_positive(x1: f32, y1: f32, z1: f32, x2: f32, y2: f32, z2: f32) -> bool {

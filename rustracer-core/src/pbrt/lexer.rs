@@ -2,7 +2,7 @@ use std::fmt;
 
 use combine::char::{char, digit, spaces, string};
 use combine::{
-    between, choice, eof, many, many1, none_of, optional, satisfy, skip_many, token, r#try,
+    between, choice, eof, many, many1, none_of, optional, r#try, satisfy, skip_many, token,
     ParseError, Parser, Stream,
 };
 
@@ -106,7 +106,8 @@ pub fn tokenize<I: Stream<Item = char>>(input: I) -> Result<(Vec<Tokens>, I), Pa
         token_parser("WorldEnd", Tokens::WORLDEND),
         token_parser("[", Tokens::LBRACK),
         token_parser("]", Tokens::RBRACK),
-    ].into_iter()
+    ]
+    .into_iter()
     .map(r#try)
     .collect::<Vec<_>>();
 
@@ -166,7 +167,8 @@ fn float_parser<'a, I: Stream<Item = char> + 'a>(
             }
 
             buf.parse::<f32>().map(Tokens::NUMBER)
-        }).boxed()
+        })
+        .boxed()
 }
 
 fn string_parser<'a, I: Stream<Item = char> + 'a>(
@@ -175,14 +177,16 @@ fn string_parser<'a, I: Stream<Item = char> + 'a>(
         token('"'),
         token('"'),
         many::<Vec<_>, _>(none_of("\"".chars())),
-    ).skip(spaces())
+    )
+    .skip(spaces())
     .map(|chars| {
         let mut buf = String::new();
         for c in chars {
             buf.push(c);
         }
         Tokens::STR(buf)
-    }).boxed()
+    })
+    .boxed()
 }
 
 fn comment_parser<'a, I: Stream<Item = char> + 'a>(

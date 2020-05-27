@@ -1,5 +1,7 @@
 use std::ops::Mul;
 
+use log::error;
+
 use crate::bounds::Bounds3f;
 use crate::geometry::Matrix4x4;
 use crate::{gamma, Normal3f, Point3f, Vector2f, Vector3f};
@@ -391,18 +393,24 @@ pub fn solve_linear_system2x2(A: &[[f32; 2]; 2], B: Vector2f) -> Option<(f32, f3
     Some((x0, x1))
 }
 
-#[test]
-fn test_normal_transform() {
-    let t = Transform::rotate(36.0, Vector3f::new(4.0, 5.0, 6.0));
-    let t_inv = t.inverse();
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use approx::relative_eq;
 
-    let v = Vector3f::x();
-    let n = Vector3f::y();
-    println!("v = {}, n = {}", v, n);
-    assert_eq!(v.dot(&n), 0.0);
+    #[test]
+    fn test_normal_transform() {
+        let t = Transform::rotate(36.0, Vector3f::new(4.0, 5.0, 6.0));
+        let t_inv = t.inverse();
 
-    let v2 = &t * &v;
-    let n2 = t_inv.transform_normal(&Normal3f::from(n));
-    println!("v = {}, n = {}", v2, n2);
-    relative_eq!(v2.dotn(&n2), 0.0);
+        let v = Vector3f::x();
+        let n = Vector3f::y();
+        println!("v = {}, n = {}", v, n);
+        assert_eq!(v.dot(&n), 0.0);
+
+        let v2 = &t * &v;
+        let n2 = t_inv.transform_normal(&Normal3f::from(n));
+        println!("v = {}, n = {}", v2, n2);
+        relative_eq!(v2.dotn(&n2), 0.0);
+    }
 }

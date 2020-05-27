@@ -152,11 +152,12 @@ impl Shape for Sphere {
             let cos_phi = p_hit.x * inv_z_radius;
             let sin_phi = p_hit.y * inv_z_radius;
             let dpdu = Vector3f::new(-self.phi_max * p_hit.y, self.phi_max * p_hit.x, 0.0);
-            let dpdv = (self.theta_max - self.theta_min) * Vector3f::new(
-                p_hit.z * cos_phi,
-                p_hit.z * sin_phi,
-                -self.radius * theta.sin(),
-            );
+            let dpdv = (self.theta_max - self.theta_min)
+                * Vector3f::new(
+                    p_hit.z * cos_phi,
+                    p_hit.z * sin_phi,
+                    -self.radius * theta.sin(),
+                );
             // Compute dndu and dndv
             let d2Pduu = -self.phi_max * self.phi_max * Vector3f::new(p_hit.x, p_hit.y, 0.0);
             let d2Pduv = (self.theta_max - self.theta_min)
@@ -278,10 +279,11 @@ impl Shape for Sphere {
 
         // Compute angle `alpha` from center of sphere to sampled point on surface
         let dc = distance(&si.p, &p_center);
-        let ds = dc * cos_theta - f32::sqrt(f32::max(
-            0.0,
-            self.radius * self.radius - dc * dc * sin_theta * sin_theta,
-        ));
+        let ds = dc * cos_theta
+            - f32::sqrt(f32::max(
+                0.0,
+                self.radius * self.radius - dc * dc * sin_theta * sin_theta,
+            ));
         let cos_alpha = (dc * dc + self.radius * self.radius - ds * ds) / (2.0 * dc * self.radius);
         let sin_alpha = f32::sqrt(f32::max(0.0, 1.0 - cos_alpha * cos_alpha));
 

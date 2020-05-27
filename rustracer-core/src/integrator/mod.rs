@@ -1,11 +1,13 @@
 use std::cmp;
 use std::sync::Arc;
 
+use light_arena::Allocator;
+use log::debug;
+
 use crate::bounds::Bounds2i;
 use crate::bsdf::{self, BxDFType};
 use crate::interaction::SurfaceInteraction;
 use crate::light::{is_delta_light, Light};
-use crate::light_arena::Allocator;
 use crate::ray::{Ray, RayDifferential};
 use crate::sampler::Sampler;
 use crate::sampling::{power_heuristic, Distribution1D};

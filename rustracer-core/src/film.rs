@@ -1,8 +1,9 @@
 use std::f32;
 use std::sync::atomic::Ordering;
 
+use anyhow::Result;
 use atomic::Atomic;
-use failure::Error;
+use log::{info, warn};
 use parking_lot::Mutex;
 
 use crate::bounds::{Bounds2f, Bounds2i};
@@ -191,7 +192,7 @@ impl Film {
         }
     }
 
-    pub fn write_image(&self) -> Result<(), Error> {
+    pub fn write_image(&self) -> Result<()> {
         info!("Converting image to RGB and computing final weighted pixel values");
         let splat_scale = 1.0; // TODO
         let pixels = self.pixels.lock();

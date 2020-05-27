@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use lazy_static::lazy_static;
+use log::debug;
 use parking_lot::Mutex;
 
 lazy_static! {
@@ -24,7 +26,8 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
                 "Failed to get the parent directory of the input file {}",
                 path.display()
             ))
-        }).to_owned()
+        })
+        .to_owned()
 }
 
 pub fn resolve_filename(filename: &str) -> String {

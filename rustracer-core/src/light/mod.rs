@@ -1,6 +1,8 @@
 use std::f32;
 use std::fmt::Debug;
 
+use bitflags::bitflags;
+use lazy_static::lazy_static;
 use parking_lot::Mutex;
 
 use crate::interaction::Interaction;

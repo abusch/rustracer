@@ -4,6 +4,8 @@ use std::ops::{AddAssign, Div, Mul};
 use std::path::Path;
 use std::sync::Arc;
 
+use log::{debug, info, warn};
+
 use crate::bounds::Bounds2i;
 use crate::fileutil;
 use crate::imageio::read_image;
@@ -77,7 +79,8 @@ where
                     scale * *p
                 };
                 convert(&s)
-            }).collect();
+            })
+            .collect();
 
         let mipmap = Arc::new(MIPMap::new(
             res,
@@ -156,7 +159,8 @@ impl ImageTexture<Spectrum> {
                     &buf[..],
                     &Bounds2i::from_elements(0, 0, level.u_size() as i32, level.v_size() as i32),
                     Point2i::new(level.u_size() as i32, level.v_size() as i32),
-                ).unwrap();
+                )
+                .unwrap();
             });
     }
 }

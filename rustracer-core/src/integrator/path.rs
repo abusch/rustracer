@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use light_arena::Allocator;
+use log::{debug, error};
 
 use crate::bounds::Bounds2i;
 use crate::bsdf::BxDFType;

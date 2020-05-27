@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
+use light_arena::Allocator;
+use log::{info, warn};
+
 use crate::bounds::Bounds2i;
 use crate::integrator::{uniform_sample_all_light, uniform_sample_one_light, SamplerIntegrator};
-use crate::light_arena::Allocator;
 use crate::material::TransportMode;
 use crate::paramset::ParamSet;
 use crate::ray::Ray;

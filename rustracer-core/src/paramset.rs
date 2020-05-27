@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
 
+use log::{error, warn};
+
 use crate::api::{ParamListEntry, ParamType};
 use crate::cie::CIE_LAMBDA;
 use crate::fileutil::resolve_filename;
@@ -295,7 +297,8 @@ impl ParamSet {
                 let scale = v[1];
                 let Le = blackbody_normalized(&CIE_LAMBDA, temp);
                 scale * Spectrum::from_sampled(&CIE_LAMBDA, &Le, CIE_LAMBDA.len())
-            }).collect();
+            })
+            .collect();
 
         self.spectra.push(ParamSetItem {
             name,

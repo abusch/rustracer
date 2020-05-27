@@ -1,3 +1,4 @@
+use log::info;
 use num::Zero;
 
 use crate::camera::CameraSample;

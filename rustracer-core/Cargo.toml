@@ -10,6 +10,7 @@ display = ["minifb"]
 exr = ["openexr"]
 
 [dependencies]
+anyhow = "1"
 approx = "0.3"
 atomic = "0.4"
 bitflags = "1"
@@ -17,7 +18,6 @@ byteorder = "1.2"
 chrono = "0.4"
 combine = "2"
 crossbeam = "0.7"
-failure = "0.1"
 image = "0.23"
 indicatif = "0.14"
 itertools = "0.9"

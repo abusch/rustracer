@@ -14,6 +14,7 @@ pub use self::oren_nayar::*;
 
 use std::cmp;
 
+use bitflags::bitflags;
 use light_arena::Allocator;
 
 use crate::interaction::SurfaceInteraction;
@@ -101,7 +102,8 @@ impl<'a> BSDF<'a> {
                 b.matches(flags)
                     && ((reflect && (b.get_type().contains(BxDFType::BSDF_REFLECTION)))
                         || (!reflect && (b.get_type().contains(BxDFType::BSDF_TRANSMISSION))))
-            }).fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
+            })
+            .fold(Spectrum::black(), |c, b| c + b.f(&wo, &wi))
     }
 
     pub fn pdf(&self, wo_w: &Vector3f, wi_w: &Vector3f, flags: BxDFType) -> f32 {
@@ -227,7 +229,8 @@ impl<'a> BSDF<'a> {
                 .filter(|b| {
                     (reflect && b.get_type().contains(BxDFType::BSDF_REFLECTION))
                         || (!reflect && b.get_type().contains(BxDFType::BSDF_TRANSMISSION))
-                }).fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
+                })
+                .fold(Spectrum::black(), |f, b| f + b.f(&wo, &wi));
         }
 
         // debug!(

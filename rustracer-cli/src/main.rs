@@ -1,17 +1,11 @@
 #![recursion_limit="128"]
-extern crate clap;
-extern crate failure;
-extern crate flexi_logger;
-extern crate log;
-extern crate num_cpus;
-extern crate rustracer_core as rt;
 
 mod argparse;
 
+use anyhow::Result;
 use clap::ArgMatches;
-use failure::Error;
 
-use rt::pbrt;
+use rustracer_core::{pbrt, init_stats, PbrtOptions};
 
 fn main() {
     println!("Rustracer 0.1 [Detected {} cores]", num_cpus::get());
@@ -19,12 +13,6 @@ fn main() {
     println!("Based on the original PBRTv3 code by Matt Pharr, Grep Humphreys, and Wenzel Jacob.");
     let matches = argparse::parse_args();
 
-    // configure logger
-    // let level = if matches.is_present("verbose") {
-    //     slog::Level::Debug
-    // } else {
-    //     slog::Level::Info
-    // };
     flexi_logger::Logger::with_str("rustracer=info,rustracer_core=info")
         .log_to_file()
         .suppress_timestamp()
@@ -39,13 +27,13 @@ fn main() {
     }
 }
 
-fn run(matches: &ArgMatches) -> Result<(), Error> {
-    rt::init_stats();
+fn run(matches: &ArgMatches) -> Result<()> {
+    init_stats();
     let nthreads = matches
         .value_of("nthreads")
         .and_then(|v| v.parse::<u8>().ok())
         .unwrap_or(0);
-    let mut opts = rt::PbrtOptions::default();
+    let mut opts = PbrtOptions::default();
     opts.num_threads = nthreads as u8;
     let filename = matches.value_of("INPUT").unwrap();
     pbrt::parse_scene(opts, filename)?;

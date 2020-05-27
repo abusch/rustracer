@@ -22,7 +22,8 @@ impl MinifbDisplayUpdater {
                 res.x as usize,
                 res.y as usize,
                 minifb::WindowOptions::default(),
-            ).expect("Unable to open a window"),
+            )
+            .expect("Unable to open a window"),
         }
     }
 

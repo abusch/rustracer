@@ -4,8 +4,8 @@ use std::ops::{
     Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
 
-use num::{Num, Zero};
 use crate::{Normal3, Point3};
+use num::{Num, Zero};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vector2<T> {

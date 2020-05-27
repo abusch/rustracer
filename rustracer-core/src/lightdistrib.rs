@@ -3,6 +3,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 use std::sync::Arc;
 
 use atomic::Atomic;
+use log::info;
 use num::Zero;
 
 use crate::bounds::Bounds3f;
@@ -272,7 +273,8 @@ impl LightDistribution for SpatialLightDistribution {
                         packed_pos,
                         Ordering::SeqCst,
                         Ordering::SeqCst,
-                    ).is_ok()
+                    )
+                    .is_ok()
                 {
                     // Success; we've claimed this position for this voxel's
                     // distribution. Now compute the sampling distribution and

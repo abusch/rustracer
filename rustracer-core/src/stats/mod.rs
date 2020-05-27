@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 
+use lazy_static::lazy_static;
 use parking_lot::Mutex;
 use state::Storage;
 

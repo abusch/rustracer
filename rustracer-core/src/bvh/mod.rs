@@ -2,8 +2,9 @@ use std::cmp::min;
 use std::mem::replace;
 use std::sync::Arc;
 
-use it;
+use itertools as it;
 use light_arena::Allocator;
+use log::{info, warn};
 
 use crate::bounds::{Axis, Bounds3f};
 use crate::interaction::SurfaceInteraction;
@@ -52,7 +53,8 @@ impl BVH {
                 };
                 let b: Arc<dyn Primitive> = Arc::new(prim);
                 b
-            }).collect();
+            })
+            .collect();
 
         BVH::new(1, &prims, SplitMethod::SAH)
     }
@@ -214,8 +216,8 @@ impl BVH {
 
                         // Initialize `BucketInfo` for SAH partition buckets
                         for i in start..end {
-                            let mut b = (N_BUCKETS as f32 * centroids_bounds
-                                .offset(&primitive_info[i].centroid)[dimension])
+                            let mut b = (N_BUCKETS as f32
+                                * centroids_bounds.offset(&primitive_info[i].centroid)[dimension])
                                 as usize;
                             if b == N_BUCKETS {
                                 b = N_BUCKETS - 1;
@@ -260,9 +262,8 @@ impl BVH {
                         // Either create leaf of split primitives at selected SAH bucket
                         let leaf_cost = n_primitives as f32;
                         if n_primitives > max_prims_per_node || min_cost < leaf_cost {
-                            mid = start + it::partition(
-                                primitive_info[start..end].iter_mut(),
-                                |pi| {
+                            mid = start
+                                + it::partition(primitive_info[start..end].iter_mut(), |pi| {
                                     let mut b = (N_BUCKETS as f32
                                         * centroids_bounds.offset(&pi.centroid)[dimension])
                                         as usize;
@@ -271,8 +272,7 @@ impl BVH {
                                     }
                                     assert!(b < N_BUCKETS);
                                     b <= min_cost_split_bucket
-                                },
-                            );
+                                });
                         } else {
                             // Create leaf `BVHBuildNode`
                             let first_prim_offset = ordered_prims.len();

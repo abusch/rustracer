@@ -1,15 +1,12 @@
-extern crate rand;
-extern crate rustracer_core as rt;
+use rand::{rngs::StdRng, Rng, SeedableRng};
 
-use rand::{Rng, SeedableRng, StdRng};
-
-use rt::efloat::EFloat;
-use rt::{next_float_down, next_float_up};
+use rustracer_core::efloat::EFloat;
+use rustracer_core::{next_float_down, next_float_up};
 
 const NUM_ITER: usize = 10_000;
 
+
 /// Return an exponentially distributed floating-point value
-#[cfg(test)]
 fn get_float<T: Rng>(rng: &mut T, min_exp: f32, max_exp: f32) -> EFloat {
     let logu: f32 = rng.gen_range(min_exp, max_exp);
     let val = (10.0_f32).powf(logu);
@@ -26,20 +23,19 @@ fn get_float<T: Rng>(rng: &mut T, min_exp: f32, max_exp: f32) -> EFloat {
             let offset: f32 = f32::from_bits(val.to_bits() + ulp_err);
             (offset - val).abs()
         }
-        3 => (4.0 * rng.next_f32()) * val.abs(),
+        3 => (4.0 * rng.gen::<f32>()) * val.abs(),
         _ => panic!("should not happen"),
     };
-    let sign = if rng.next_f32() < 0.5 { -1.0 } else { 1.0 };
+    let sign = if rng.gen::<f32>() < 0.5 { -1.0 } else { 1.0 };
     EFloat::new(sign * val, err)
 }
 
-#[cfg(test)]
 fn get_precise<T: Rng>(ef: &EFloat, rng: &mut T) -> f64 {
     match rng.gen_range(0, 3) {
         0 => f64::from(ef.lower_bound()),
         1 => f64::from(ef.upper_bound()),
         2 => {
-            let t = rng.next_f64();
+            let t: f64 = rng.gen();
             let p: f64 = (1.0 - t) * f64::from(ef.lower_bound()) + t * f64::from(ef.upper_bound());
             if p > f64::from(ef.upper_bound()) {
                 f64::from(ef.upper_bound())
@@ -55,9 +51,8 @@ fn get_precise<T: Rng>(ef: &EFloat, rng: &mut T) -> f64 {
 
 #[test]
 fn test_efloat_abs() {
-    let mut rng = StdRng::from_seed(&[0]);
     for trial in 0..NUM_ITER {
-        rng.reseed(&[trial]);
+        let mut rng = StdRng::seed_from_u64(trial as u64);
         let ef = get_float(&mut rng, -6.0, 6.0);
         let precise = get_precise(&ef, &mut rng);
 
@@ -71,9 +66,8 @@ fn test_efloat_abs() {
 
 #[test]
 fn test_efloat_sqrt() {
-    let mut rng = StdRng::from_seed(&[0]);
     for trial in 0..NUM_ITER {
-        rng.reseed(&[trial]);
+        let mut rng = StdRng::seed_from_u64(trial as u64);
         let ef = get_float(&mut rng, -6.0, 6.0);
         let precise = get_precise(&ef, &mut rng);
 
@@ -87,9 +81,8 @@ fn test_efloat_sqrt() {
 
 #[test]
 fn test_efloat_add() {
-    let mut rng = StdRng::from_seed(&[0]);
     for trial in 0..NUM_ITER {
-        rng.reseed(&[trial]);
+        let mut rng = StdRng::seed_from_u64(trial as u64);
         let a = get_float(&mut rng, -6.0, 6.0);
         let b = get_float(&mut rng, -6.0, 6.0);
         let ap = get_precise(&a, &mut rng);
@@ -105,9 +98,8 @@ fn test_efloat_add() {
 
 #[test]
 fn test_efloat_sub() {
-    let mut rng = StdRng::from_seed(&[0]);
     for trial in 0..NUM_ITER {
-        rng.reseed(&[trial]);
+        let mut rng = StdRng::seed_from_u64(trial as u64);
         let a = get_float(&mut rng, -6.0, 6.0);
         let b = get_float(&mut rng, -6.0, 6.0);
         let ap = get_precise(&a, &mut rng);
@@ -123,9 +115,8 @@ fn test_efloat_sub() {
 
 #[test]
 fn test_efloat_mul() {
-    let mut rng = StdRng::from_seed(&[0]);
     for trial in 0..NUM_ITER {
-        rng.reseed(&[trial]);
+        let mut rng = StdRng::seed_from_u64(trial as u64);
         let a = get_float(&mut rng, -6.0, 6.0);
         let b = get_float(&mut rng, -6.0, 6.0);
         let ap = get_precise(&a, &mut rng);
@@ -141,9 +132,8 @@ fn test_efloat_mul() {
 
 #[test]
 fn test_efloat_div() {
-    let mut rng = StdRng::from_seed(&[0]);
     for trial in 0..NUM_ITER {
-        rng.reseed(&[trial]);
+        let mut rng = StdRng::seed_from_u64(trial as u64);
         let a = get_float(&mut rng, -6.0, 6.0);
         let b = get_float(&mut rng, -6.0, 6.0);
         let ap = get_precise(&a, &mut rng);

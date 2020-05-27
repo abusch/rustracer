@@ -1,3 +1,5 @@
+use log::error;
+
 use crate::interaction::SurfaceInteraction;
 use crate::paramset::TextureParams;
 use crate::spectrum::Spectrum;

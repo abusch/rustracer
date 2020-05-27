@@ -1,8 +1,9 @@
 use std::f32;
 
+use light_arena::Allocator;
+
 use crate::bounds::Bounds2i;
 use crate::integrator::SamplerIntegrator;
-use crate::light_arena::Allocator;
 use crate::ray::Ray;
 use crate::sampler::Sampler;
 use crate::sampling::uniform_sample_sphere;

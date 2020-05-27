@@ -3,8 +3,9 @@ use std::fmt;
 use std::path::Path;
 use std::sync::Arc;
 
-use ndarray::prelude::*;
+use log::{info, warn};
 use ndarray::parallel::prelude::*;
+use ndarray::prelude::*;
 use num::Zero;
 use parking_lot::RwLock;
 

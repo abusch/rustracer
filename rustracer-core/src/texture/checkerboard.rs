@@ -2,6 +2,8 @@ use std::fmt::Debug;
 use std::ops::{Add, Mul};
 use std::sync::Arc;
 
+use log::{error, warn};
+
 use crate::interaction::SurfaceInteraction;
 use crate::paramset::TextureParams;
 use crate::spectrum::Spectrum;

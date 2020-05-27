@@ -3,6 +3,7 @@ macro_rules! stat_counter(
     ($d:expr, $x:ident) => (
         mod $x {
             use std::cell::Cell;
+            use lazy_static::lazy_static;
             use state::LocalStorage;
             use crate::stats::StatAccumulator;
 
@@ -36,6 +37,7 @@ macro_rules! stat_memory_counter(
     ($d:expr, $x:ident) => (
         mod $x {
             use std::cell::Cell;
+            use lazy_static::lazy_static;
             use state::LocalStorage;
             use crate::stats::StatAccumulator;
 
@@ -70,6 +72,7 @@ macro_rules! stat_int_distribution(
         mod $x {
             use std::cell::Cell;
             use std::u64;
+            use lazy_static::lazy_static;
             use state::LocalStorage;
             use crate::stats::StatAccumulator;
 
@@ -120,6 +123,7 @@ macro_rules! stat_percent(
     ($d:expr, $x:ident) => (
         mod $x {
             use std::cell::Cell;
+            use lazy_static::lazy_static;
             use state::LocalStorage;
             use crate::stats::StatAccumulator;
 
@@ -162,6 +166,7 @@ macro_rules! stat_ratio(
     ($d:expr, $x:ident) => (
         mod $x {
             use std::cell::Cell;
+            use lazy_static::lazy_static;
             use state::LocalStorage;
             use crate::stats::StatAccumulator;
 

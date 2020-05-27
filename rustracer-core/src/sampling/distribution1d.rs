@@ -93,6 +93,6 @@ fn test_discrete() {
     assert_eq!((1, 0.25), distrib.sample_discrete(0.24999));
     assert_eq!((3, 0.75), distrib.sample_discrete(0.250001));
     assert_eq!((3, 0.75), distrib.sample_discrete(0.625));
-    assert_eq!((3, 0.75), distrib.sample_discrete(::ONE_MINUS_EPSILON));
+    assert_eq!((3, 0.75), distrib.sample_discrete(crate::ONE_MINUS_EPSILON));
     assert_eq!((3, 0.75), distrib.sample_discrete(1.0));
 }
