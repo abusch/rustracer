@@ -6,6 +6,13 @@ Rustracer is a toy
 
 [![build status](https://travis-ci.org/abusch/rustracer.svg?branch=master)](https://travis-ci.org/abusch/rustracer)
 [![dependency status](https://deps.rs/repo/github/abusch/rustracer/status.svg)](https://deps.rs/repo/github/abusch/rustracer)
+
+> *Update (27/05/2020):* This project is not really developped anymore as I ran
+> out of steam and spare time. I'm doing a little bit of maintainance
+> occasionally, such as updating dependencies, to keep it from bitrotting but I
+> suggest you look at [rs_pbrt](https://github.com/wahn/rs_pbrt) for a more
+> full-featured port of `pbrt`.
+
 ## History
 
 It started as a little playground to play with raytracing concepts that I found
@@ -24,9 +31,6 @@ implementation is _very_ object-oriented, and doesn't always translate cleanly
 or idiomatically to Rust... I haven't really paid attention to performance yet,
 or number of allocations, so both are probably pretty bad :) That being said,
 feedback is more than welcome! 
-
-The code is on [Bitbucket](https://bitbucket.org/abusch/rustracer) and mirrored
-on [Github](https://github.com/abusch/rustracer) for convenience.
 
 ## Related projects
  * [tray_rust](http://github.com/TwinkleBear/tray_rust): if you want to see a
