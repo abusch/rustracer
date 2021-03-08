@@ -42,8 +42,8 @@ impl Scene {
             }
         }
 
-        ::std::mem::replace(&mut scene.lights, lights);
-        ::std::mem::replace(&mut scene.infinite_lights, infinite_lights);
+        scene.lights = lights;
+        scene.infinite_lights = infinite_lights;
 
         scene
     }

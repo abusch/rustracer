@@ -122,7 +122,7 @@ fn read_image_tga_png<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i
     let buf = image::open(path)?;
     let (width, height) = buf.dimensions();
 
-    let rgb = buf.to_rgb().into_raw();
+    let rgb = buf.to_rgb8().into_raw();
     let res = Point2i::new(width as i32, height as i32);
     let pixels: Vec<Spectrum> = rgb
         .par_chunks(3)
