@@ -6,7 +6,6 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use anyhow::*;
-use combine::State;
 
 use crate::api::{Api, RealApi};
 use crate::fileutil;
@@ -32,11 +31,10 @@ pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Tokens>> 
         .context("Failed to read content of scene file")?;
 
     // TODO handle errors
-    let tokens = lexer::tokenize(State::new(&file_content[..]))
+    let (_rest, tokens) = lexer::tokenize(&file_content[..])
         .map_err(|e| format_err!("Failed to tokenize scene file: {:?}", e))?;
     // strip comments
     let filtered_tokens = tokens
-        .0
         .into_iter()
         .filter(|x| *x != lexer::Tokens::COMMENT)
         .collect::<Vec<_>>();

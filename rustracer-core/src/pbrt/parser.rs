@@ -1,19 +1,40 @@
-use anyhow::*;
-use combine::char::{spaces, string};
-use combine::primitives::Error;
-use combine::{
-    between, choice, eof, many, many1, r#try, satisfy_map, token, value, ParseError, Parser, Stream,
-};
+use anyhow::{Result, format_err};
+use nom::{IResult, branch::alt, bytes::complete::tag, combinator::map_res, multi::many1, sequence::pair};
 use log::info;
 
 use super::lexer::Tokens;
 use crate::api::{Api, Array, ParamListEntry, ParamType};
 use crate::paramset::ParamSet;
 
-pub fn parse<I: Stream<Item = Tokens>, A: Api>(
+pub fn parse<'input, 'api, A: Api>(input: &'input [Tokens], api: &'api A) -> IResult<&'input [Tokens], ()> {
+    many1(
+        alt((
+            map_res(tag(Tokens::ATTRIBUTEBEGIN), |_| api.attribute_begin()),
+            map_res(tag(Tokens::ATTRIBUTEEND), |_| api.attribute_end()),
+            map_res(tag(Tokens::TRANSFORMBEGIN), |_| api.transform_begin()),
+            map_res(tag(Tokens::TRANSFORMEND), |_| api.transform_end()),
+            map_res(pair(tag(Tokens::OBJECTBEGIN), string_), |(_, name)| api.object_begin(name)),
+            map_res(tag(Tokens::OBJECTEND), |_| api.object_end()),
+        ))
+    )(input)
+}
+
+/**
+pub fn parse<I, A: Api>(
     input: I,
     api: &A,
-) -> ::std::result::Result<(Vec<()>, I), ParseError<I>> {
+) -> Result<(Vec<()>, I), easy::ParseError<I>>
+where
+  I: Stream<Token = Tokens, Error = easy::ParseError<I>>,
+  I::Position: Default,
+  I::Range: PartialEq,
+  I::Error: ParseError<
+    I::Token,
+    I::Range,
+    I::Position,
+    StreamError = Error<I::Token, I::Range>
+  >
+{
     let accelerator =
         (token(Tokens::ACCELERATOR), string_(), param_list()).and_then(|(_, typ, params)| {
             api.accelerator(typ, &params)
@@ -166,146 +187,193 @@ pub fn parse<I: Stream<Item = Tokens>, A: Api>(
             .map_err(|e| Error::Other(e.into()))
     });
 
-    let parsers = many1::<Vec<_>, _>(choice!(
-        r#try(accelerator),
-        r#try(attribute_begin),
-        r#try(attribute_end),
-        r#try(transform_begin),
-        r#try(transform_end),
-        r#try(object_begin),
-        r#try(object_end),
-        r#try(object_instance),
-        r#try(world_begin),
-        r#try(world_end),
-        r#try(look_at),
-        r#try(coordinate_system),
-        r#try(coord_sys_transform),
-        r#try(camera),
-        r#try(film),
-        r#try(filter),
-        r#try(include),
-        r#try(integrator),
-        r#try(arealightsource),
-        r#try(lightsource),
-        r#try(material),
-        r#try(texture),
-        r#try(make_named_material),
-        r#try(named_material),
-        r#try(sampler),
-        r#try(shape),
-        r#try(reverse_orientation),
-        r#try(scale),
-        r#try(rotate),
-        r#try(translate),
-        r#try(concat_transform),
-        r#try(transform)
+    let parsers = many1::<Vec<_>, _, _>(choice!(
+        attempt(accelerator),
+        attempt(attribute_begin),
+        attempt(attribute_end),
+        attempt(transform_begin),
+        attempt(transform_end),
+        attempt(object_begin),
+        attempt(object_end),
+        attempt(object_instance),
+        attempt(world_begin),
+        attempt(world_end),
+        attempt(look_at),
+        attempt(coordinate_system),
+        attempt(coord_sys_transform),
+        attempt(camera),
+        attempt(film),
+        attempt(filter),
+        attempt(include),
+        attempt(integrator),
+        attempt(arealightsource),
+        attempt(lightsource),
+        attempt(material),
+        attempt(texture),
+        attempt(make_named_material),
+        attempt(named_material),
+        attempt(sampler),
+        attempt(shape),
+        attempt(reverse_orientation),
+        attempt(scale),
+        attempt(rotate),
+        attempt(translate),
+        attempt(concat_transform),
+        attempt(transform)
     ));
     (parsers, eof()).map(|(res, _)| res).parse(input)
 }
+*/
 
-fn param_list<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = ParamSet> + 'a> {
+fn param_list<I>(
+) -> impl Parser<I, Output = ParamSet>
+where
+  I: Stream<Token = Tokens>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
     many(param_list_entry())
         .map(|x| {
             let mut ps = ParamSet::default();
             ps.init(x);
             ps
         })
-        .boxed()
 }
 
-fn param_type<'a, I: Stream<Item = char> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = ParamType> + 'a> {
+fn param_type<I>(
+) -> impl Parser<I, Output = ParamType>
+where
+  I: Stream<Token = char>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
     choice!(
-        r#try(string("integer").with(value(ParamType::Int))),
-        r#try(string("bool").with(value(ParamType::Bool))),
-        r#try(string("float").with(value(ParamType::Float))),
-        r#try(string("point2").with(value(ParamType::Point2))),
-        r#try(string("vector2").with(value(ParamType::Vector2))),
-        r#try(string("point3").with(value(ParamType::Point3))),
-        r#try(string("vector3").with(value(ParamType::Vector3))),
-        r#try(string("point").with(value(ParamType::Point3))),
-        r#try(string("vector").with(value(ParamType::Vector3))),
-        r#try(string("normal").with(value(ParamType::Normal))),
-        r#try(string("color").with(value(ParamType::Rgb))),
-        r#try(string("rgb").with(value(ParamType::Rgb))),
-        r#try(string("xyz").with(value(ParamType::Xyz))),
-        r#try(string("blackbody").with(value(ParamType::Blackbody))),
-        r#try(string("spectrum").with(value(ParamType::Spectrum))),
-        r#try(string("string").with(value(ParamType::String))),
-        r#try(string("texture").with(value(ParamType::Texture)))
+        attempt(string("integer").with(value(ParamType::Int))),
+        attempt(string("bool").with(value(ParamType::Bool))),
+        attempt(string("float").with(value(ParamType::Float))),
+        attempt(string("point2").with(value(ParamType::Point2))),
+        attempt(string("vector2").with(value(ParamType::Vector2))),
+        attempt(string("point3").with(value(ParamType::Point3))),
+        attempt(string("vector3").with(value(ParamType::Vector3))),
+        attempt(string("point").with(value(ParamType::Point3))),
+        attempt(string("vector").with(value(ParamType::Vector3))),
+        attempt(string("normal").with(value(ParamType::Normal))),
+        attempt(string("color").with(value(ParamType::Rgb))),
+        attempt(string("rgb").with(value(ParamType::Rgb))),
+        attempt(string("xyz").with(value(ParamType::Xyz))),
+        attempt(string("blackbody").with(value(ParamType::Blackbody))),
+        attempt(string("spectrum").with(value(ParamType::Spectrum))),
+        attempt(string("string").with(value(ParamType::String))),
+        attempt(string("texture").with(value(ParamType::Texture)))
     )
-    .boxed()
 }
 
-fn param_list_entry_header<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = (ParamType, String)> + 'a> {
-    string_()
+fn get_param_type(t: &str) -> Option<ParamType> {
+  match t {
+    "integer" => Some(ParamType::Int),
+    "bool" => Some(ParamType::Bool),
+    "float" => Some(ParamType::Float),
+    "point2" => Some(ParamType::Point2),
+    "vector2" => Some(ParamType::Vector2),
+    "point3" => Some(ParamType::Point3),
+    "vector3" => Some(ParamType::Vector3),
+    "point" => Some(ParamType::Point3),
+    "vector" => Some(ParamType::Vector3),
+    "normal" => Some(ParamType::Normal),
+    "color" => Some(ParamType::Rgb),
+    "rgb" => Some(ParamType::Rgb),
+    "xyz" => Some(ParamType::Xyz),
+    "blackbody" => Some(ParamType::Blackbody),
+    "spectrum" => Some(ParamType::Spectrum),
+    "string" => Some(ParamType::String),
+    "texture" => Some(ParamType::Texture),
+    _ => None,
+  }
+}
+
+fn param_list_entry_header<I>(
+) -> impl Parser<I, Output = (ParamType, String)>
+where
+  I: Stream<Token = Tokens>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
+    string_().and_then(|s| get_param_type(s).ok_or_else(||  )
+
         .and_then(|s| match param_type().skip(spaces()).parse(&s[..]) {
             Ok((t, n)) => Ok((t, n.to_owned())),
-            Err(error) => Err(Error::Message(
+            Err(error) => Err(easy::Error::Message(
                 format!("Invalid param list entry: {}", error).into(),
             )),
         })
-        .boxed()
 }
 
-fn param_list_entry<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = ParamListEntry> + 'a> {
+fn param_list_entry<I>(
+) -> impl Parser<I, Output = ParamListEntry>
+where
+  I: Stream<Token = Tokens>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
     (param_list_entry_header(), array())
         .map(|(header, array)| ParamListEntry::new(header.0, header.1, array))
-        .boxed()
 }
 
-fn array<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = Array> + 'a> {
+fn array<I>() -> impl Parser<I, Output = Array>
+where
+  I: Stream<Token = Tokens>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
     choice!(
-        r#try(string_array().map(Array::StrArray)),
-        r#try(num_array().map(Array::NumArray))
+        attempt(string_array().map(Array::StrArray)),
+        attempt(num_array().map(Array::NumArray))
     )
-    .boxed()
 }
 
-fn string_array<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = Vec<String>> + 'a> {
+fn string_array<I>(
+) -> impl Parser<I, Output = Vec<String>>
+where
+  I: Stream<Token = Tokens>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
     choice!(
-        r#try(between(
+        attempt(between(
             token(Tokens::LBRACK),
             token(Tokens::RBRACK),
-            many1::<Vec<_>, _>(string_())
+            many1::<Vec<_>, _, _>(string_())
         )),
-        r#try(string_().map(|x| vec![x]))
+        attempt(string_().map(|x| vec![x]))
     )
-    .boxed()
 }
 
-fn num_array<'a, I: Stream<Item = Tokens> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = Vec<f32>> + 'a> {
+fn num_array<I>(
+) -> impl Parser<I, Output = Vec<f32>>
+where
+  I: Stream<Token = Tokens>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
     choice!(
-        r#try(between(
+        attempt(between(
             token(Tokens::LBRACK),
             token(Tokens::RBRACK),
-            many1::<Vec<_>, _>(num())
+            many1::<Vec<_>, _, _>(num())
         )),
-        r#try(num().map(|x| vec![x]))
+        attempt(num().map(|x| vec![x]))
     )
-    .boxed()
 }
 
-fn num<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = f32> + 'a> {
+fn num<I>() -> impl Parser<I, Output = f32>
+where
+  I: Stream<Token = Tokens>,
+  I::Error: ParseError<I::Token, I::Range, I::Position>,
+{
     satisfy_map(|t| match t {
         Tokens::NUMBER(n) => Some(n),
         _ => None,
     })
-    .boxed()
 }
 
-fn string_<'a, I: Stream<Item = Tokens> + 'a>() -> Box<dyn Parser<Input = I, Output = String> + 'a>
-{
+fn string_(input: &[Tokens]) -> IResult<&[Tokens], ()> {
     satisfy_map(|t| match t {
         Tokens::STR(s) => Some(s),
         _ => None,
     })
-    .boxed()
 }
 
 // #[test]
