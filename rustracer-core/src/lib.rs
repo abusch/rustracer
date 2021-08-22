@@ -31,7 +31,6 @@ mod bsdf;
 pub mod bvh;
 pub mod camera;
 mod cie;
-pub mod display;
 pub mod efloat;
 mod fileutil;
 pub mod film;

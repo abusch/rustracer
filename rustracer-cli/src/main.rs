@@ -5,18 +5,18 @@ mod argparse;
 use anyhow::Result;
 use clap::ArgMatches;
 
+use flexi_logger::FileSpec;
 use rustracer_core::{init_stats, pbrt, PbrtOptions};
 
 fn main() {
     println!("Rustracer 0.1 [Detected {} cores]", num_cpus::get());
     println!("Copyright (c)2016-2018 Antoine Büsch.");
-    println!("Based on the original PBRTv3 code by Matt Pharr, Grep Humphreys, and Wenzel Jacob.");
+    println!("Based on the original PBRTv3 code by Matt Pharr, Greg Humphreys, and Wenzel Jacob.");
     let matches = argparse::parse_args();
 
-    flexi_logger::Logger::with_str("rustracer=info,rustracer_core=info")
-        .log_to_file()
-        .suppress_timestamp()
-        .directory("/tmp")
+    flexi_logger::Logger::try_with_str("rustracer=info,rustracer_core=info")
+        .unwrap()
+        .log_to_file(FileSpec::default().suppress_timestamp().directory("/tmp"))
         .format(flexi_logger::opt_format)
         .start()
         .unwrap_or_else(|e| panic!("Failed to initialize logger: {}", e));

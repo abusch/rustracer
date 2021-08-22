@@ -8,7 +8,7 @@ use rustracer_core::{Point2f, Point3f, Transform};
 
 fn pexp<T: Rng>(rng: &mut T, exp: f32) -> f32 {
     // let range = Range::new(-exp, exp);
-    let logu: f32 = rng.gen_range(-exp, exp); // range.ind_sample(rng);
+    let logu: f32 = rng.gen_range(-exp..=exp); // range.ind_sample(rng);
     let base = 10.0_f32;
     base.powf(logu)
 }

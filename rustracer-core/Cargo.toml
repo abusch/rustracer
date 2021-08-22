@@ -4,35 +4,30 @@ version = "0.1.0"
 authors = ["Antoine Büsch <antoine.busch@gmail.com>"]
 edition = "2018"
 
-[features]
-default = []
-display = ["minifb"]
-
 [dependencies]
 anyhow = "1"
-approx = "0.4"
+approx = "0.5"
 atomic = "0.5"
 bitflags = "1"
-byteorder = "1.2"
+byteorder = "1.4"
 chrono = "0.4"
 combine = "2"
 crossbeam = "0.8"
 exr = "1.3"
 image = "0.23"
-indicatif = "0.15"
+indicatif = "0.16"
 itertools = "0.10"
-lazy_static = "1.3"
+lazy_static = "1.4"
 light_arena = "1.0.1"
 log = "0.4"
-minifb = { version = "0.19", optional = true }
-ndarray = { version = "0.14", features = ["rayon"] }
+ndarray = { version = "0.15", features = ["rayon"] }
 num = "0.4"
 num_cpus = "1"
 parking_lot = "0.11"
 ply-rs = "0.1"
 rayon = "1"
-state = { version = "0.4", features = ["tls"]}
-thread-id = "3"
+state = { version = "0.5", features = ["tls"]}
+thread-id = "4"
 
 [dev-dependencies]
 rand = "0.8"

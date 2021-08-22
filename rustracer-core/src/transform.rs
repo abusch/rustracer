@@ -396,7 +396,7 @@ pub fn solve_linear_system2x2(A: &[[f32; 2]; 2], B: Vector2f) -> Option<(f32, f3
 #[cfg(test)]
 mod tests {
     use super::*;
-    use approx::relative_eq;
+    use approx::assert_relative_eq;
 
     #[test]
     fn test_normal_transform() {
@@ -409,8 +409,8 @@ mod tests {
         assert_eq!(v.dot(&n), 0.0);
 
         let v2 = &t * &v;
-        let n2 = t_inv.transform_normal(&Normal3f::from(n));
+        let n2 = t.transform_normal(&Normal3f::from(n));
         println!("v = {}, n = {}", v2, n2);
-        relative_eq!(v2.dotn(&n2), 0.0);
+        assert_relative_eq!(v2.dotn(&n2), 0.0);
     }
 }

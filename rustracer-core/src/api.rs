@@ -8,7 +8,6 @@ use log::{debug, error, info, warn};
 
 use crate::bvh::BVH;
 use crate::camera::{Camera, PerspectiveCamera};
-use crate::display::NoopDisplayUpdater;
 use crate::film::Film;
 use crate::filter::{BoxFilter, Filter, GaussianFilter, MitchellNetravali, TriangleFilter};
 use crate::geometry::Matrix4x4;
@@ -1008,7 +1007,6 @@ impl Api for RealApi {
             nthreads,
             sampler.as_mut(),
             16,
-            Box::new(NoopDisplayUpdater {}),
         )?;
         crate::stats::report_stats();
         let duration = start_time.elapsed();

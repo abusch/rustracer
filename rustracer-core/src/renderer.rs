@@ -7,7 +7,6 @@ use parking_lot::Mutex;
 
 use crate::bounds::Bounds2i;
 use crate::camera::Camera;
-use crate::display::DisplayUpdater;
 use crate::integrator::SamplerIntegrator;
 use crate::sampler::Sampler;
 use crate::scene::Scene;
@@ -27,7 +26,6 @@ pub fn render(
     num_threads: usize,
     sampler: &mut dyn Sampler,
     block_size: i32,
-    mut _display: Box<dyn DisplayUpdater + Send>,
 ) -> Result<()> {
     integrator.preprocess(Arc::clone(scene), sampler);
     let sample_bounds = camera.get_film().get_sample_bounds();

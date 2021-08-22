@@ -7,18 +7,18 @@ const NUM_ITER: usize = 10_000;
 
 /// Return an exponentially distributed floating-point value
 fn get_float<T: Rng>(rng: &mut T, min_exp: f32, max_exp: f32) -> EFloat {
-    let logu: f32 = rng.gen_range(min_exp, max_exp);
+    let logu: f32 = rng.gen_range(min_exp..max_exp);
     let val = (10.0_f32).powf(logu);
 
-    let err: f32 = match rng.gen_range(0, 4) {
+    let err: f32 = match rng.gen_range(0..4) {
         0 => 0.0,
         1 => {
-            let ulp_err: u32 = rng.gen_range(0, 1024);
+            let ulp_err: u32 = rng.gen_range(0..1024);
             let offset: f32 = f32::from_bits(val.to_bits() + ulp_err);
             (offset - val).abs()
         }
         2 => {
-            let ulp_err: u32 = rng.gen_range(0, 1024 * 1024);
+            let ulp_err: u32 = rng.gen_range(0..1024 * 1024);
             let offset: f32 = f32::from_bits(val.to_bits() + ulp_err);
             (offset - val).abs()
         }
@@ -30,7 +30,7 @@ fn get_float<T: Rng>(rng: &mut T, min_exp: f32, max_exp: f32) -> EFloat {
 }
 
 fn get_precise<T: Rng>(ef: &EFloat, rng: &mut T) -> f64 {
-    match rng.gen_range(0, 3) {
+    match rng.gen_range(0..3) {
         0 => f64::from(ef.lower_bound()),
         1 => f64::from(ef.upper_bound()),
         2 => {
