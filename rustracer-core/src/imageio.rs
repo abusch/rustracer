@@ -141,8 +141,14 @@ fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
             pixels[pos.y()][pos.x()] = Spectrum::rgb(r, g, b);
         },
     )?;
-    let pixels = 
-        image.layer_data.channel_data.pixels.iter().cloned().flatten().collect::<Vec<_>>();
+    let pixels = image
+        .layer_data
+        .channel_data
+        .pixels
+        .iter()
+        .cloned()
+        .flatten()
+        .collect::<Vec<_>>();
 
     Ok((
         pixels,

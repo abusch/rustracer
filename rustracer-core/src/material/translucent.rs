@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use crate::bsdf::{BSDF, BxDFHolder, LambertianReflection, LambertianTransmission, MicrofacetReflection, MicrofacetTransmission, TrowbridgeReitzDistribution, dielectric};
+use crate::bsdf::{
+    dielectric, BxDFHolder, LambertianReflection, LambertianTransmission, MicrofacetReflection,
+    MicrofacetTransmission, TrowbridgeReitzDistribution, BSDF,
+};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;

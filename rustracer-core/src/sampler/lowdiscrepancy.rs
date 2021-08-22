@@ -19,12 +19,7 @@ pub fn van_der_corput(
             rng,
         );
     }
-    shuffle(
-        samples,
-        n_pixel_samples,
-        n_samples_per_pixel_sample,
-        rng,
-    );
+    shuffle(samples, n_pixel_samples, n_samples_per_pixel_sample, rng);
 }
 
 pub fn sobol_2d(
@@ -51,12 +46,7 @@ pub fn sobol_2d(
             rng,
         );
     }
-    shuffle(
-        samples,
-        n_pixel_samples,
-        n_samples_per_pixel_sample,
-        rng,
-    );
+    shuffle(samples, n_pixel_samples, n_samples_per_pixel_sample, rng);
 }
 
 pub fn radical_inverse(base: u32, a: u64) -> f32 {

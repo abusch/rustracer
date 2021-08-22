@@ -323,7 +323,10 @@ impl FilmTile {
         assert!(
             p1.x >= p0.x && p1.y >= p0.y,
             "p_film={}, p0={}, p1={}, pixel_bounds={:?}",
-            p_film, p0, p1, self.pixel_bounds
+            p_film,
+            p0,
+            p1,
+            self.pixel_bounds
         );
 
         let filter_table_size = FILTER_SIZE as f32;
