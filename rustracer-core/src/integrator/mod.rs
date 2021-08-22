@@ -62,9 +62,11 @@ pub trait SamplerIntegrator: Send + Sync {
         if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
-                let mut rddiff = RayDifferential::default();
-                rddiff.rx_origin = isect.hit.p + isect.dpdx;
-                rddiff.ry_origin = isect.hit.p + isect.dpdy;
+                let mut rddiff = RayDifferential {
+                    rx_origin: isect.hit.p + isect.dpdx,
+                    ry_origin: isect.hit.p + isect.dpdy,
+                    ..RayDifferential::default()
+                };
                 // Compute differential reflected direction
                 let dndx = isect.shading.dndu * isect.dudx + isect.dndv * isect.dvdx;
                 let dndy = isect.shading.dndu * isect.dudy + isect.dndv * isect.dvdy;
@@ -103,9 +105,11 @@ pub trait SamplerIntegrator: Send + Sync {
         if pdf > 0.0 && !f.is_black() && wi.dotn(ns).abs() != 0.0 {
             let mut r = isect.spawn_ray(&wi);
             if let Some(diff) = ray.differential {
-                let mut rddiff = RayDifferential::default();
-                rddiff.rx_origin = isect.hit.p + isect.dpdx;
-                rddiff.ry_origin = isect.hit.p + isect.dpdy;
+                let mut rddiff = RayDifferential {
+                    rx_origin: isect.hit.p + isect.dpdx,
+                    ry_origin: isect.hit.p + isect.dpdy,
+                    ..RayDifferential::default()
+                };
 
                 let mut eta = bsdf.eta;
                 let w = -isect.hit.wo;

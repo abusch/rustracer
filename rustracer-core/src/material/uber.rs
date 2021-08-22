@@ -2,10 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use crate::bsdf::{
-    BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection, SpecularReflection,
-    SpecularTransmission, TrowbridgeReitzDistribution, BSDF,
-};
+use crate::bsdf::{BSDF, BxDFHolder, LambertianReflection, MicrofacetReflection, SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, dielectric};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -90,7 +87,7 @@ impl Material for UberMaterial {
 
         let ks = op * self.ks.evaluate(si).clamp();
         if !ks.is_black() {
-            let fresnel = arena.alloc(Fresnel::dielectric(1.0, e));
+            let fresnel = arena.alloc(dielectric(1.0, e));
             let mut roughu = self
                 .roughnessu
                 .as_ref()
@@ -111,7 +108,7 @@ impl Material for UberMaterial {
 
         let kr = op * self.kr.evaluate(si).clamp();
         if !kr.is_black() {
-            let fresnel = arena.alloc(Fresnel::dielectric(1.0, e));
+            let fresnel = arena.alloc(dielectric(1.0, e));
             bxdfs.add(arena.alloc(SpecularReflection::new(kr, fresnel)));
         }
 

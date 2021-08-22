@@ -2,10 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use crate::bsdf::{
-    BxDFHolder, Fresnel, LambertianReflection, LambertianTransmission, MicrofacetReflection,
-    MicrofacetTransmission, TrowbridgeReitzDistribution, BSDF,
-};
+use crate::bsdf::{BSDF, BxDFHolder, LambertianReflection, LambertianTransmission, MicrofacetReflection, MicrofacetTransmission, TrowbridgeReitzDistribution, dielectric};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -36,9 +33,9 @@ impl TranslucentMaterial {
         Arc::new(TranslucentMaterial {
             kd,
             ks,
+            roughness,
             reflect,
             transmit,
-            roughness,
             bumpmap,
             remap_roughness,
         })
@@ -81,7 +78,7 @@ impl Material for TranslucentMaterial {
                 }
                 let distrib = arena.alloc(TrowbridgeReitzDistribution::new(rough, rough));
                 if !r.is_black() {
-                    let fresnel = arena.alloc(Fresnel::dielectric(1.0, eta));
+                    let fresnel = arena.alloc(dielectric(1.0, eta));
                     bxdfs.add(arena.alloc(MicrofacetReflection::new(r * ks, distrib, fresnel)));
                 }
                 if !t.is_black() {

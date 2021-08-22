@@ -171,7 +171,7 @@ where
             let t_res = cmp::max(1, mipmap.pyramid[i - 1].v_size() / 2);
             let mut buf = Array2::zeros((t_res, s_res));
             // Filter 4 texels from finer level of pyramid
-            Zip::indexed(&mut buf).par_apply(|(t, s), p| {
+            Zip::indexed(&mut buf).par_for_each(|(t, s), p| {
                 let (si, ti) = (s as isize, t as isize);
                 *p = (*mipmap.texel(i - 1, 2 * si, 2 * ti)
                     + *mipmap.texel(i - 1, 2 * si + 1, 2 * ti)

@@ -164,7 +164,7 @@ impl ParamSet {
 
     pub fn find_one_filename(&self, name: &str, d: String) -> String {
         let filename = self.find_one_string(name, "".to_owned());
-        if filename == "" {
+        if filename.is_empty() {
             d
         } else {
             resolve_filename(&filename)
@@ -405,10 +405,10 @@ impl<'a> TextureParams<'a> {
 
     pub fn get_spectrum_texture(&self, n: &str, default: &Spectrum) -> Arc<dyn Texture<Spectrum>> {
         let mut name = self.geom_params.find_texture(n, "".to_owned());
-        if &name == "" {
+        if name.is_empty() {
             name = self.material_params.find_texture(n, "".to_owned());
         }
-        if &name != "" {
+        if !name.is_empty() {
             if let Some(tex) = self.spectrum_textures.get(&name) {
                 return Arc::clone(tex);
             } else {
@@ -426,10 +426,10 @@ impl<'a> TextureParams<'a> {
 
     pub fn get_float_texture(&self, n: &str, default: f32) -> Arc<dyn Texture<f32>> {
         let mut name = self.geom_params.find_texture(n, "".to_owned());
-        if &name == "" {
+        if name.is_empty() {
             name = self.material_params.find_texture(n, "".to_owned());
         }
-        if &name != "" {
+        if !name.is_empty() {
             if let Some(tex) = self.float_textures.get(&name) {
                 return Arc::clone(tex);
             } else {
@@ -444,10 +444,10 @@ impl<'a> TextureParams<'a> {
 
     pub fn get_float_texture_or_none(&self, n: &str) -> Option<Arc<dyn Texture<f32>>> {
         let mut name = self.geom_params.find_texture(n, "".to_owned());
-        if &name == "" {
+        if name.is_empty() {
             name = self.material_params.find_texture(n, "".to_owned());
         }
-        if &name != "" {
+        if !name.is_empty() {
             if let Some(tex) = self.float_textures.get(&name) {
                 return Some(Arc::clone(tex));
             } else {

@@ -22,10 +22,10 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
         .unwrap()
         .parent()
         .unwrap_or_else(|| {
-            panic!(format!(
+            panic!(
                 "Failed to get the parent directory of the input file {}",
                 path.display()
-            ))
+            )
         })
         .to_owned()
 }
@@ -33,7 +33,7 @@ pub fn directory_containing<P: AsRef<Path>>(path: P) -> PathBuf {
 pub fn resolve_filename(filename: &str) -> String {
     debug!("Resolving filename {}", filename);
     let search_directory = SEARCH_DIR.lock();
-    if search_directory.is_none() || filename == "" || Path::new(filename).is_absolute() {
+    if search_directory.is_none() || filename.is_empty() || Path::new(filename).is_absolute() {
         filename.to_owned()
     } else {
         let mut buf = (*search_directory).clone().unwrap(); //PathBuf::from(*search_directory);

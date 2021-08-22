@@ -51,7 +51,7 @@ impl Spectrum {
 
     /// Convert this linear RGB spectrum to non-linear sRGB and return the result as an array of
     /// bytes.
-    pub fn to_srgb(&self) -> [u8; 3] {
+    pub fn to_srgb(self) -> [u8; 3] {
         let a = 0.055f32;
         let b = 1f32 / 2.4;
         let mut srgb = [0; 3];
@@ -95,7 +95,7 @@ impl Spectrum {
         Spectrum::rgb(r, g, b)
     }
 
-    pub fn to_xyz(&self) -> [f32; 3] {
+    pub fn to_xyz(self) -> [f32; 3] {
         let mut xyz = [0.0, 0.0, 0.0];
 
         xyz[0] = 0.412453 * self.r + 0.357580 * self.g + 0.180423 * self.b;

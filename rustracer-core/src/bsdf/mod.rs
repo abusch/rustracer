@@ -23,11 +23,11 @@ use crate::{Normal3f, Point2f, Vector3f, ONE_MINUS_EPSILON};
 
 bitflags! {
     pub struct BxDFType: u32 {
-        const BSDF_REFLECTION   = 0b_00000001;
-        const BSDF_TRANSMISSION = 0b_00000010;
-        const BSDF_DIFFUSE      = 0b_00000100;
-        const BSDF_GLOSSY       = 0b_00001000;
-        const BSDF_SPECULAR     = 0b_00010000;
+        const BSDF_REFLECTION   = 0b00000001;
+        const BSDF_TRANSMISSION = 0b00000010;
+        const BSDF_DIFFUSE      = 0b00000100;
+        const BSDF_GLOSSY       = 0b00001000;
+        const BSDF_SPECULAR     = 0b00010000;
     }
 }
 

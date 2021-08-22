@@ -109,10 +109,11 @@ pub fn create<S: BuildHasher>(
                 warn!("plymesh: Ignoring face with {} vertices (only triangles and quads are supported!", f.vertex_indices.len());
                 Vec::new()
             } else {
-                let mut vec = Vec::new();
-                vec.push(f.vertex_indices[0] as usize);
-                vec.push(f.vertex_indices[1] as usize);
-                vec.push(f.vertex_indices[2] as usize);
+                let mut vec = vec![
+                    f.vertex_indices[0] as usize,
+                    f.vertex_indices[1] as usize,
+                    f.vertex_indices[2] as usize,
+                ];
                 if length == 4 {
                     // If it's a quad, split it into 2 triangles
                     vec.push(f.vertex_indices[3] as usize);
@@ -141,7 +142,7 @@ pub fn create<S: BuildHasher>(
 
     let mut alpha_mask = None;
     let alpha_tex_name = params.find_texture("alpha", String::from(""));
-    if &alpha_tex_name != "" {
+    if !alpha_tex_name.is_empty() {
         if let Some(tex) = float_textures.get(&alpha_tex_name) {
             alpha_mask = Some(tex.clone());
         } else {
@@ -153,7 +154,7 @@ pub fn create<S: BuildHasher>(
 
     let mut shadow_alpha_mask = None;
     let shadow_alpha_tex_name = params.find_texture("shadowalpha", String::from(""));
-    if &shadow_alpha_tex_name != "" {
+    if !shadow_alpha_tex_name.is_empty() {
         if let Some(tex) = float_textures.get(&shadow_alpha_tex_name) {
             shadow_alpha_mask = Some(tex.clone());
         } else {

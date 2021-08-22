@@ -33,8 +33,10 @@ fn run(matches: &ArgMatches) -> Result<()> {
         .value_of("nthreads")
         .and_then(|v| v.parse::<u8>().ok())
         .unwrap_or(0);
-    let mut opts = PbrtOptions::default();
-    opts.num_threads = nthreads as u8;
+    let opts = PbrtOptions {
+        num_threads: nthreads as u8,
+        ..PbrtOptions::default()
+    };
     let filename = matches.value_of("INPUT").unwrap();
     pbrt::parse_scene(opts, filename)?;
 

@@ -3,10 +3,7 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use log::info;
 
-use crate::bsdf::{
-    BxDF, BxDFHolder, Fresnel, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission,
-    SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, BSDF,
-};
+use crate::bsdf::{BSDF, BxDF, BxDFHolder, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission, SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, dielectric};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -78,7 +75,7 @@ impl Material for GlassMaterial {
                     v_rough = TrowbridgeReitzDistribution::roughness_to_alpha(v_rough);
                 }
                 if !r.is_black() {
-                    let fresnel = arena.alloc(Fresnel::dielectric(1.0, eta));
+                    let fresnel = arena.alloc(dielectric(1.0, eta));
                     let bxdf: &'b dyn BxDF = if is_specular {
                         arena.alloc(SpecularReflection::new(r, fresnel))
                     } else {

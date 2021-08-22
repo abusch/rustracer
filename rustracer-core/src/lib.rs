@@ -7,13 +7,10 @@
 #![allow(
     clippy::float_cmp,
     clippy::many_single_char_names,
-    clippy::unreadable_literal,
-    clippy::large_digit_groups,
-    clippy::ifs_same_cond,
     clippy::if_same_then_else,
-    clippy::match_same_arms,
     clippy::excessive_precision,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    clippy::suspicious_operation_groupings
 )]
 
 use std::f32;

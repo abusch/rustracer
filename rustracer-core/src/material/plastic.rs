@@ -3,10 +3,7 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use log::info;
 
-use crate::bsdf::{
-    BxDFHolder, Fresnel, LambertianReflection, MicrofacetReflection, TrowbridgeReitzDistribution,
-    BSDF,
-};
+use crate::bsdf::{BSDF, BxDFHolder, LambertianReflection, MicrofacetReflection, TrowbridgeReitzDistribution, dielectric};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -60,7 +57,7 @@ impl Material for Plastic {
             bxdfs.add(arena.alloc(LambertianReflection::new(kd)));
         }
         if !ks.is_black() {
-            let fresnel = arena.alloc(Fresnel::dielectric(1.5, 1.0));
+            let fresnel = arena.alloc(dielectric(1.5, 1.0));
             let mut roughness = self.roughness.evaluate(si);
             if self.remap_roughness {
                 roughness = TrowbridgeReitzDistribution::roughness_to_alpha(roughness);

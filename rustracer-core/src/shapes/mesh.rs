@@ -133,7 +133,7 @@ impl TriangleMesh {
         // TODO implement rest of the validation / sanity checking
         let mut alpha_mask = None;
         let alpha_tex_name = params.find_texture("alpha", String::from(""));
-        if &alpha_tex_name != "" {
+        if !alpha_tex_name.is_empty() {
             if let Some(tex) = float_textures.get(&alpha_tex_name) {
                 alpha_mask = Some(tex.clone());
             } else {
@@ -145,7 +145,7 @@ impl TriangleMesh {
 
         let mut shadow_alpha_mask = None;
         let shadow_alpha_tex_name = params.find_texture("shadowalpha", String::from(""));
-        if &shadow_alpha_tex_name != "" {
+        if !shadow_alpha_tex_name.is_empty() {
             if let Some(tex) = float_textures.get(&shadow_alpha_tex_name) {
                 shadow_alpha_mask = Some(tex.clone());
             } else {

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use crate::bsdf::{BxDFHolder, Fresnel, MicrofacetReflection, TrowbridgeReitzDistribution, BSDF};
+use crate::bsdf::{BSDF, BxDFHolder, MicrofacetReflection, TrowbridgeReitzDistribution, conductor};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{self, Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -64,7 +64,7 @@ impl Material for Metal {
             urough = TrowbridgeReitzDistribution::roughness_to_alpha(urough);
             vrough = TrowbridgeReitzDistribution::roughness_to_alpha(vrough);
         }
-        let fresnel = arena.alloc(Fresnel::conductor(
+        let fresnel = arena.alloc(conductor(
             Spectrum::white(),
             self.eta.evaluate(si),
             self.k.evaluate(si),

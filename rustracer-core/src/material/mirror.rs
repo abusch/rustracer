@@ -3,7 +3,7 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use log::info;
 
-use crate::bsdf::{BxDFHolder, Fresnel, SpecularReflection, BSDF};
+use crate::bsdf::{BSDF, BxDFHolder, SpecularReflection, no_op};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -40,7 +40,7 @@ impl Material for MirrorMaterial {
         let mut bxdfs = BxDFHolder::new(arena);
         let R = self.kr.evaluate(si).clamp();
         if !R.is_black() {
-            let fresnel = arena.alloc(Fresnel::no_op());
+            let fresnel = arena.alloc(no_op());
             bxdfs.add(arena.alloc(SpecularReflection::new(R, fresnel)));
         }
 

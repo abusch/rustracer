@@ -116,7 +116,7 @@ impl Film {
 
     pub fn create(ps: &ParamSet, filter: &dyn Filter) -> Box<Film> {
         let mut filename = ps.find_one_string("filename", "".into());
-        if filename == "" {
+        if filename.is_empty() {
             filename = "image.png".into();
         } else {
             filename = String::from("rt-") + &filename;
@@ -322,10 +322,8 @@ impl FilmTile {
 
         assert!(
             p1.x >= p0.x && p1.y >= p0.y,
-            format!(
-                "p_film={}, p0={}, p1={}, pixel_bounds={:?}",
-                p_film, p0, p1, self.pixel_bounds
-            )
+            "p_film={}, p0={}, p1={}, pixel_bounds={:?}",
+            p_film, p0, p1, self.pixel_bounds
         );
 
         let filter_table_size = FILTER_SIZE as f32;

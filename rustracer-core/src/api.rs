@@ -860,7 +860,7 @@ impl Api for RealApi {
             );
 
             let mat_name = mp.find_string("type", "");
-            if mat_name == "" {
+            if mat_name.is_empty() {
                 bail!("No parameter string \"type\" found in named_material");
             }
             make_material(&mat_name, &mp, &state.graphics_state.named_material)
@@ -931,7 +931,7 @@ impl Api for RealApi {
             None
         };
         for s in shapes {
-            let area = if state.graphics_state.area_light != "" {
+            let area = if !state.graphics_state.area_light.is_empty() {
                 let ps = state.graphics_state.area_light_params.clone();
                 let (area_light, light) = make_area_light(
                     &state.graphics_state.area_light,

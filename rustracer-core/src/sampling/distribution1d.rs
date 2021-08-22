@@ -35,8 +35,8 @@ impl Distribution1D {
         }
 
         Distribution1D {
-            cdf,
             func,
+            cdf,
             func_int,
         }
     }

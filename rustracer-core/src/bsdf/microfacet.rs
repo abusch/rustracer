@@ -1,7 +1,7 @@
 use std::f32::consts;
 use std::fmt::Debug;
 
-use crate::bsdf::fresnel::{Fresnel, FresnelDielectric};
+use crate::bsdf::fresnel::{self, Fresnel, FresnelDielectric};
 use crate::bsdf::{reflect, refract, BxDF, BxDFType};
 use crate::geometry::{
     abs_cos_theta, cos2_phi, cos2_theta, cos_phi, cos_theta, erf, erf_inv, same_hemisphere,
@@ -117,7 +117,7 @@ impl<'a> MicrofacetTransmission<'a> {
             distribution,
             eta_a,
             eta_b,
-            fresnel: Fresnel::dielectric(eta_a, eta_b),
+            fresnel: fresnel::dielectric(eta_a, eta_b),
             mode,
         }
     }
@@ -416,21 +416,17 @@ impl MicrofacetDistribution for BeckmannDistribution {
     fn sample_wh(&self, wo: &Vector3f, u: Point2f) -> Vector3f {
         if !self.sample_visible_area {
             // Sample full distribution of normals
+            let mut log_sample = u[0].ln();
+            if log_sample.is_infinite() {
+                log_sample = 0.0;
+            }
             let (tan_2_theta, phi) = if self.alpha_x == self.alpha_y {
-                let mut log_sample = u[0].ln();
-                if log_sample.is_infinite() {
-                    log_sample = 0.0;
-                }
                 (
                     -self.alpha_x * self.alpha_x * log_sample,
                     u[1] * 2.0 * consts::PI,
                 )
             } else {
                 // Compute tan_2_theta and phi for anisotropic Beckmann distribution
-                let mut log_sample = u[0].ln();
-                if log_sample.is_infinite() {
-                    log_sample = 0.0;
-                }
                 let mut phi = (self.alpha_y / self.alpha_x
                     * (2.0 * consts::PI * u[1] + consts::FRAC_PI_2).tan())
                 .atan();

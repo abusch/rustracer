@@ -86,18 +86,17 @@ pub trait Fresnel: Debug {
     fn evaluate(&self, cos_theta_i: f32) -> Spectrum;
 }
 
-impl dyn Fresnel {
-    pub fn conductor(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
-        FresnelConductor { eta_i, eta_t, k }
-    }
+// Factory functions to create Fresnel instances
+pub fn conductor(eta_i: Spectrum, eta_t: Spectrum, k: Spectrum) -> FresnelConductor {
+    FresnelConductor { eta_i, eta_t, k }
+}
 
-    pub fn dielectric(eta_i: f32, eta_t: f32) -> FresnelDielectric {
-        FresnelDielectric { eta_i, eta_t }
-    }
+pub fn dielectric(eta_i: f32, eta_t: f32) -> FresnelDielectric {
+    FresnelDielectric { eta_i, eta_t }
+}
 
-    pub fn no_op() -> FresnelNoOp {
-        FresnelNoOp {}
-    }
+pub fn no_op() -> FresnelNoOp {
+    FresnelNoOp {}
 }
 
 /// Fresnel for conductor materials
@@ -187,7 +186,7 @@ impl SpecularTransmission {
             t,
             eta_a,
             eta_b,
-            fresnel: Fresnel::dielectric(eta_a, eta_b),
+            fresnel: dielectric(eta_a, eta_b),
             mode,
         }
     }
