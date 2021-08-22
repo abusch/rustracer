@@ -3,10 +3,9 @@ use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
 
 use anyhow::*;
+use exr;
 use image::{self, hdr::HdrDecoder, GenericImageView};
 use log::info;
-#[cfg(feature = "exr")]
-use openexr::{FrameBuffer, FrameBufferMut, Header, InputFile, PixelType, ScanlineOutputFile};
 use rayon::prelude::*;
 
 use crate::bounds::Bounds2i;
@@ -74,17 +73,6 @@ fn write_image_png<P: AsRef<Path>>(
     Ok(())
 }
 
-#[cfg(not(feature = "exr"))]
-fn write_image_exr<P: AsRef<Path>>(
-    name: P,
-    rgb: &[f32],
-    output_bounds: &Bounds2i,
-    total_resolution: Point2i,
-) -> Result<(), Error> {
-    panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
-}
-
-#[cfg(feature = "exr")]
 fn write_image_exr<P: AsRef<Path>>(
     name: P,
     rgb: &[f32],
@@ -93,26 +81,12 @@ fn write_image_exr<P: AsRef<Path>>(
 ) -> Result<(), Error> {
     let path = name.as_ref();
     let resolution = output_bounds.diagonal();
-    let mut file = File::create(path)?;
-    let mut output_file = ScanlineOutputFile::new(
-        &mut file,
-        Header::new()
-            .set_resolution(resolution.x as u32, resolution.y as u32)
-            .add_channel("R", PixelType::FLOAT)
-            .add_channel("G", PixelType::FLOAT)
-            .add_channel("B", PixelType::FLOAT),
-    )?;
+    let (width, height) = (resolution.x as usize, resolution.y as usize);
 
-    // Create a `FrameBuffer` that points at our pixel data and describes it as
-    // RGB data.
-    let data: Vec<_> = rgb.chunks(3).map(|p| (p[0], p[1], p[2])).collect();
-    {
-        let mut fb = FrameBuffer::new(resolution.x as u32, resolution.y as u32);
-        fb.insert_channels(&["R", "G", "B"], &data[..]);
-
-        // Write pixel data to the file.
-        output_file.write_pixels(&fb)?;
-    }
+    exr::prelude::write_rgb_file(path, width, height, |x, y| {
+        let offset = y * width + x;
+        (rgb[offset * 3], rgb[offset * 3 + 1], rgb[offset * 3 + 2])
+    })?;
 
     Ok(())
 }
@@ -157,41 +131,26 @@ fn read_image_hdr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
     Ok((data, Point2i::new(meta.width as i32, meta.height as i32)))
 }
 
-#[cfg(not(feature = "exr"))]
-fn read_image_exr<P: AsRef<Path>>(_path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
-    panic!("EXR support is not compiled in. Please recompile with the \"exr\" feature.")
-}
-
-#[cfg(feature = "exr")]
 fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), Error> {
     info!("Loading EXR texture {}", path.as_ref().display());
-    let mut file = File::open(path.as_ref())?;
-    let mut exr_file = InputFile::new(&mut file).unwrap();
-    let (width, height) = {
-        let window = exr_file.header().data_window();
-        let width = window.max.x - window.min.x + 1;
-        let height = window.max.y - window.min.y + 1;
-        (width, height)
-    };
 
-    let mut pixel_data: Vec<(f32, f32, f32)> = vec![(0.0, 0.0, 0.0); (width * height) as usize];
+    let image = exr::prelude::read_first_rgba_layer_from_file(
+        path,
+        |resolution, _| vec![vec![Spectrum::black(); resolution.width()]; resolution.height()],
+        |pixels, pos, (r, g, b, _): (f32, f32, f32, f32)| {
+            pixels[pos.y()][pos.x()] = Spectrum::rgb(r, g, b);
+        },
+    )?;
+    let pixels = 
+        image.layer_data.channel_data.pixels.iter().cloned().flatten().collect::<Vec<_>>();
 
-    {
-        let mut fb = {
-            // Create the frame buffer
-            let mut fb = FrameBufferMut::new(width as u32, height as u32);
-            fb.insert_channels(&[("R", 0.0), ("G", 0.0), ("B", 0.0)], &mut pixel_data);
-            fb
-        };
-
-        exr_file.read_pixels(&mut fb).unwrap();
-    }
-
-    let pixels: Vec<Spectrum> = pixel_data
-        .par_iter()
-        .map(|&(r, g, b)| Spectrum::rgb(r, g, b))
-        .collect();
-    Ok((pixels, Point2i::new(width, height)))
+    Ok((
+        pixels,
+        Point2i::new(
+            image.attributes.display_window.size.width() as i32,
+            image.attributes.display_window.size.height() as i32,
+        ),
+    ))
 }
 
 fn is_whitespace(c: char) -> bool {
