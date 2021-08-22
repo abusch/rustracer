@@ -4,7 +4,7 @@ Rustracer is a toy
 [raytracer](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)) written in
 [Rust](http://rust-lang.org).
 
-[![build status](https://travis-ci.org/abusch/rustracer.svg?branch=master)](https://travis-ci.org/abusch/rustracer)
+[![Rust](https://github.com/abusch/rustracer/actions/workflows/rust.yml/badge.svg)](https://github.com/abusch/rustracer/actions/workflows/rust.yml)
 [![dependency status](https://deps.rs/repo/github/abusch/rustracer/status.svg)](https://deps.rs/repo/github/abusch/rustracer)
 
 > *Update (27/05/2020):* This project is not really developped anymore as I ran
