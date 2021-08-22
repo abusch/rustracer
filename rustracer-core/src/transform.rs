@@ -401,7 +401,6 @@ mod tests {
     #[test]
     fn test_normal_transform() {
         let t = Transform::rotate(36.0, Vector3f::new(4.0, 5.0, 6.0));
-        let t_inv = t.inverse();
 
         let v = Vector3f::x();
         let n = Vector3f::y();
