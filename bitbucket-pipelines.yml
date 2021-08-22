@@ -1,9 +1,0 @@
-image: rust:latest
-
-pipelines:
-  default:
-    - step:
-        script:
-          - echo "Installing nightly"; rustup default nightly
-          - echo "Build project"; cargo build --release --no-default-features
-          - echo "Running tests"; cargo test --release --no-default-features --all
