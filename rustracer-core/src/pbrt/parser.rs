@@ -1,5 +1,7 @@
 use std::ops::RangeFrom;
 
+use anyhow::format_err;
+use log::info;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take},
@@ -67,17 +69,15 @@ pub fn parse<'input, 'api, A: Api>(
         tuple((token(Token::FILM), string_, param_list)),
         |(_, typ, params)| api.film(typ, &params),
     );
-    // TODO include
-    /* let include = (token(Tokens::INCLUDE), string_()).and_then(|(_, name)| {
+    let include = map_res(pair(token(Token::INCLUDE), string_), |(_, name)| {
         info!("Parsing included file: {}", name);
         super::tokenize_file(&name)
             .and_then(|tokens| {
-                parse(&tokens[..], api)
+                parse(Tokens::new(&tokens[..]), api)
                     .map(|_| ())
                     .map_err(|e| format_err!("Failed to parse included file: {:?}", e))
             })
-            .map_err(|e| Error::Other(e.into()))
-    }); */
+    });
     let integrator = map_res(
         tuple((token(Token::INTEGRATOR), string_, param_list)),
         |(_, typ, params)| api.integrator(typ, &params),
@@ -164,12 +164,13 @@ pub fn parse<'input, 'api, A: Api>(
         coord_sys_transform,
         camera,
         film,
+        include,
         integrator,
         arealightsource,
         lightsource,
         material,
-        make_named_material,
         alt((
+            make_named_material,
             named_material,
             sampler,
             shape,
