@@ -1,25 +1,39 @@
-use anyhow::{Result, format_err};
-use nom::{IResult, branch::alt, bytes::complete::tag, combinator::map_res, multi::many1, sequence::pair};
-use log::info;
+use std::ops::RangeFrom;
 
-use super::lexer::Tokens;
+use nom::{
+    branch::alt,
+    bytes::complete::{tag, take},
+    character::complete::space1,
+    combinator::{map, map_res, value},
+    error::{Error, ErrorKind},
+    multi::many1,
+    sequence::{delimited, pair, tuple},
+    Finish, IResult,
+};
+
+use super::lexer::{Token, Tokens};
 use crate::api::{Api, Array, ParamListEntry, ParamType};
 use crate::paramset::ParamSet;
 
-pub fn parse<'input, 'api, A: Api>(input: &'input [Tokens], api: &'api A) -> IResult<&'input [Tokens], ()> {
-    many1(
-        alt((
-            map_res(tag(Tokens::ATTRIBUTEBEGIN), |_| api.attribute_begin()),
-            map_res(tag(Tokens::ATTRIBUTEEND), |_| api.attribute_end()),
-            map_res(tag(Tokens::TRANSFORMBEGIN), |_| api.transform_begin()),
-            map_res(tag(Tokens::TRANSFORMEND), |_| api.transform_end()),
-            map_res(pair(tag(Tokens::OBJECTBEGIN), string_), |(_, name)| api.object_begin(name)),
-            map_res(tag(Tokens::OBJECTEND), |_| api.object_end()),
-        ))
-    )(input)
+pub fn parse<'input, 'api, A: Api>(
+    input: Tokens<'input>,
+    api: &'api A,
+) -> IResult<Tokens<'input>, ()> {
+    let (rest, _) = many1(alt((
+        map_res(token(Token::ATTRIBUTEBEGIN), |_| api.attribute_begin()),
+        map_res(token(Token::ATTRIBUTEEND), |_| api.attribute_end()),
+        map_res(token(Token::TRANSFORMBEGIN), |_| api.transform_begin()),
+        map_res(token(Token::TRANSFORMEND), |_| api.transform_end()),
+        map_res(pair(token(Token::OBJECTBEGIN), string_), |(_, name)| {
+            api.object_begin(name)
+        }),
+        map_res(token(Token::OBJECTEND), |_| api.object_end()),
+    )))(input)?;
+
+    Ok((rest, ()))
 }
 
-/**
+/*
 pub fn parse<I, A: Api>(
     input: I,
     api: &A,
@@ -225,155 +239,126 @@ where
 }
 */
 
-fn param_list<I>(
-) -> impl Parser<I, Output = ParamSet>
-where
-  I: Stream<Token = Tokens>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    many(param_list_entry())
-        .map(|x| {
-            let mut ps = ParamSet::default();
-            ps.init(x);
-            ps
-        })
+fn param_list(input: Tokens<'_>) -> IResult<Tokens<'_>, ParamSet> {
+    map(many1(param_list_entry), |x| {
+        let mut ps = ParamSet::default();
+        ps.init(x);
+        ps
+    })(input)
 }
 
-fn param_type<I>(
-) -> impl Parser<I, Output = ParamType>
-where
-  I: Stream<Token = char>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    choice!(
-        attempt(string("integer").with(value(ParamType::Int))),
-        attempt(string("bool").with(value(ParamType::Bool))),
-        attempt(string("float").with(value(ParamType::Float))),
-        attempt(string("point2").with(value(ParamType::Point2))),
-        attempt(string("vector2").with(value(ParamType::Vector2))),
-        attempt(string("point3").with(value(ParamType::Point3))),
-        attempt(string("vector3").with(value(ParamType::Vector3))),
-        attempt(string("point").with(value(ParamType::Point3))),
-        attempt(string("vector").with(value(ParamType::Vector3))),
-        attempt(string("normal").with(value(ParamType::Normal))),
-        attempt(string("color").with(value(ParamType::Rgb))),
-        attempt(string("rgb").with(value(ParamType::Rgb))),
-        attempt(string("xyz").with(value(ParamType::Xyz))),
-        attempt(string("blackbody").with(value(ParamType::Blackbody))),
-        attempt(string("spectrum").with(value(ParamType::Spectrum))),
-        attempt(string("string").with(value(ParamType::String))),
-        attempt(string("texture").with(value(ParamType::Texture)))
-    )
+fn param_type(input: &str) -> IResult<&str, ParamType> {
+    alt((
+        value(ParamType::Int, tag("integer")),
+        value(ParamType::Bool, tag("bool")),
+        value(ParamType::Float, tag("float")),
+        value(ParamType::Point2, tag("point2")),
+        value(ParamType::Vector2, tag("vector2")),
+        value(ParamType::Point3, tag("point3")),
+        value(ParamType::Vector3, tag("vector3")),
+        value(ParamType::Point3, tag("point")),
+        value(ParamType::Vector3, tag("vector")),
+        value(ParamType::Normal, tag("normal")),
+        value(ParamType::Rgb, tag("color")),
+        value(ParamType::Rgb, tag("rgb")),
+        value(ParamType::Xyz, tag("xyz")),
+        value(ParamType::Blackbody, tag("blackbody")),
+        value(ParamType::Spectrum, tag("spectrum")),
+        value(ParamType::String, tag("string")),
+        value(ParamType::Texture, tag("texture")),
+    ))(input)
 }
 
 fn get_param_type(t: &str) -> Option<ParamType> {
-  match t {
-    "integer" => Some(ParamType::Int),
-    "bool" => Some(ParamType::Bool),
-    "float" => Some(ParamType::Float),
-    "point2" => Some(ParamType::Point2),
-    "vector2" => Some(ParamType::Vector2),
-    "point3" => Some(ParamType::Point3),
-    "vector3" => Some(ParamType::Vector3),
-    "point" => Some(ParamType::Point3),
-    "vector" => Some(ParamType::Vector3),
-    "normal" => Some(ParamType::Normal),
-    "color" => Some(ParamType::Rgb),
-    "rgb" => Some(ParamType::Rgb),
-    "xyz" => Some(ParamType::Xyz),
-    "blackbody" => Some(ParamType::Blackbody),
-    "spectrum" => Some(ParamType::Spectrum),
-    "string" => Some(ParamType::String),
-    "texture" => Some(ParamType::Texture),
-    _ => None,
-  }
-}
-
-fn param_list_entry_header<I>(
-) -> impl Parser<I, Output = (ParamType, String)>
-where
-  I: Stream<Token = Tokens>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    string_().and_then(|s| get_param_type(s).ok_or_else(||  )
-
-        .and_then(|s| match param_type().skip(spaces()).parse(&s[..]) {
-            Ok((t, n)) => Ok((t, n.to_owned())),
-            Err(error) => Err(easy::Error::Message(
-                format!("Invalid param list entry: {}", error).into(),
-            )),
-        })
-}
-
-fn param_list_entry<I>(
-) -> impl Parser<I, Output = ParamListEntry>
-where
-  I: Stream<Token = Tokens>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    (param_list_entry_header(), array())
-        .map(|(header, array)| ParamListEntry::new(header.0, header.1, array))
-}
-
-fn array<I>() -> impl Parser<I, Output = Array>
-where
-  I: Stream<Token = Tokens>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    choice!(
-        attempt(string_array().map(Array::StrArray)),
-        attempt(num_array().map(Array::NumArray))
-    )
-}
-
-fn string_array<I>(
-) -> impl Parser<I, Output = Vec<String>>
-where
-  I: Stream<Token = Tokens>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    choice!(
-        attempt(between(
-            token(Tokens::LBRACK),
-            token(Tokens::RBRACK),
-            many1::<Vec<_>, _, _>(string_())
-        )),
-        attempt(string_().map(|x| vec![x]))
-    )
-}
-
-fn num_array<I>(
-) -> impl Parser<I, Output = Vec<f32>>
-where
-  I: Stream<Token = Tokens>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    choice!(
-        attempt(between(
-            token(Tokens::LBRACK),
-            token(Tokens::RBRACK),
-            many1::<Vec<_>, _, _>(num())
-        )),
-        attempt(num().map(|x| vec![x]))
-    )
-}
-
-fn num<I>() -> impl Parser<I, Output = f32>
-where
-  I: Stream<Token = Tokens>,
-  I::Error: ParseError<I::Token, I::Range, I::Position>,
-{
-    satisfy_map(|t| match t {
-        Tokens::NUMBER(n) => Some(n),
+    match t {
+        "integer" => Some(ParamType::Int),
+        "bool" => Some(ParamType::Bool),
+        "float" => Some(ParamType::Float),
+        "point2" => Some(ParamType::Point2),
+        "vector2" => Some(ParamType::Vector2),
+        "point3" => Some(ParamType::Point3),
+        "vector3" => Some(ParamType::Vector3),
+        "point" => Some(ParamType::Point3),
+        "vector" => Some(ParamType::Vector3),
+        "normal" => Some(ParamType::Normal),
+        "color" => Some(ParamType::Rgb),
+        "rgb" => Some(ParamType::Rgb),
+        "xyz" => Some(ParamType::Xyz),
+        "blackbody" => Some(ParamType::Blackbody),
+        "spectrum" => Some(ParamType::Spectrum),
+        "string" => Some(ParamType::String),
+        "texture" => Some(ParamType::Texture),
         _ => None,
-    })
+    }
 }
 
-fn string_(input: &[Tokens]) -> IResult<&[Tokens], ()> {
-    satisfy_map(|t| match t {
-        Tokens::STR(s) => Some(s),
-        _ => None,
-    })
+fn param_list_entry_header(input: Tokens<'_>) -> IResult<Tokens<'_>, (ParamType, String)> {
+    let (rest, s) = string_(input)?;
+
+    let (name, (param_type, _)) = match tuple((param_type, space1))(&s).finish() {
+        Ok(res) => res,
+        Err(e) => return Err(nom::Err::Error(Error::new(rest, e.code))),
+    };
+
+    Ok((rest, (param_type, name.to_string())))
+}
+
+fn param_list_entry(input: Tokens<'_>) -> IResult<Tokens<'_>, ParamListEntry> {
+    map(
+        tuple((param_list_entry_header, array)),
+        |(header, array)| ParamListEntry::new(header.0, header.1, array),
+    )(input)
+}
+
+fn array(input: Tokens<'_>) -> IResult<Tokens<'_>, Array> {
+    alt((
+        map(string_array, Array::StrArray),
+        map(num_array, Array::NumArray),
+    ))(input)
+}
+
+fn string_array(input: Tokens<'_>) -> IResult<Tokens<'_>, Vec<String>> {
+    alt((
+        delimited(token(Token::LBRACK), many1(string_), token(Token::RBRACK)),
+        map(string_, |x| vec![x]),
+    ))(input)
+}
+
+fn num_array(input: Tokens<'_>) -> IResult<Tokens<'_>, Vec<f32>> {
+    alt((
+        delimited(token(Token::LBRACK), many1(num), token(Token::RBRACK)),
+        map(num, |x| vec![x]),
+    ))(input)
+}
+
+fn num(input: Tokens<'_>) -> IResult<Tokens<'_>, f32> {
+    let (i, ret) = take(1usize)(dbg!(input))?;
+
+    match ret[0] {
+        Token::NUMBER(n) => Ok((i, n)),
+        _ => Err(nom::Err::Error(Error::new(i, ErrorKind::Digit))),
+    }
+}
+
+fn string_(input: Tokens<'_>) -> IResult<Tokens<'_>, String> {
+    let (i, ret) = take(1usize)(input)?;
+    match ret[0] {
+        Token::STR(ref s) => Ok((i, s.clone())),
+        _ => Err(nom::Err::Error(Error::new(i, ErrorKind::Tag))),
+    }
+}
+
+fn token<'a, I>(t: Token) -> impl Fn(I) -> IResult<I, Token>
+where
+    I: nom::Slice<RangeFrom<usize>> + nom::InputIter<Item = &'a Token>,
+{
+    move |i: I| match (i).iter_elements().next().map(|tt| {
+        let b = *tt == t;
+        (&t, b)
+    }) {
+        Some((t, true)) => Ok((i.slice(1..), t.clone())),
+        _ => Err(nom::Err::Error(Error::new(i, nom::error::ErrorKind::Char))),
+    }
 }
 
 // #[test]
@@ -384,58 +369,71 @@ fn string_(input: &[Tokens]) -> IResult<&[Tokens], ()> {
 //     parse(&tokens[..], &api).unwrap();
 // }
 
-#[test]
-fn test_array() {
-    let p = vec![
-        Tokens::LBRACK,
-        Tokens::NUMBER(50.0),
-        Tokens::NUMBER(12.0),
-        Tokens::RBRACK,
-    ];
-    let foo = vec![];
+#[cfg(test)]
+mod tests {
+    use nom::{error::ParseError, Parser};
 
-    assert_eq!(
-        array().parse(&p[..]),
-        Ok((Array::NumArray(vec![50.0, 12.0]), &foo[..]))
-    );
-}
+    use super::*;
 
-#[test]
-fn test_num_array() {
-    let p = vec![Tokens::LBRACK, Tokens::NUMBER(50.0), Tokens::RBRACK];
-    let foo = vec![];
+    fn test_parse<'a, O, E>(input: &'a [Token], mut p: impl Parser<Tokens<'a>, O, E>, v: O)
+    where
+        O: std::fmt::Debug + PartialEq,
+        E: ParseError<Tokens<'a>> + std::fmt::Debug,
+    {
+        assert_eq!(p.parse(Tokens::new(input)).unwrap().1, v);
+    }
 
-    assert_eq!(num_array().parse(&p[..]), Ok((vec![50.0], &foo[..])));
-}
+    #[test]
+    fn test_array() {
+        let p = vec![
+            Token::LBRACK,
+            Token::NUMBER(50.0),
+            Token::NUMBER(12.0),
+            Token::RBRACK,
+        ];
 
-#[test]
-fn test_param_list_entry() {
-    let p = vec![
-        Tokens::STR("float fov".to_owned()),
-        Tokens::LBRACK,
-        Tokens::NUMBER(50.0),
-        Tokens::RBRACK,
-    ];
+        test_parse(&p, array, Array::NumArray(vec![50.0, 12.0]))
+    }
 
-    param_list_entry().parse(&p[..]).unwrap();
-}
+    #[test]
+    fn test_num_array() {
+        let p = vec![Token::LBRACK, Token::NUMBER(50.0), Token::RBRACK];
 
-#[test]
-fn test_param_type() {
-    let p = "float";
-    assert_eq!(param_type().parse(&p[..]), Ok((ParamType::Float, "")));
+        test_parse(&p, num_array, vec![50.0])
+    }
 
-    let q = "floatxxx";
-    assert_eq!(param_type().parse(&q[..]), Ok((ParamType::Float, "xxx")));
-}
+    #[test]
+    fn test_param_list_entry() {
+        let p = vec![
+            Token::STR("float fov".to_owned()),
+            Token::LBRACK,
+            Token::NUMBER(50.0),
+            Token::RBRACK,
+        ];
 
-#[test]
-fn test_param_list_entry_header() {
-    let p = vec![Tokens::STR("float fov".to_owned())];
-    let foo = vec![];
+        param_list_entry(Tokens::new(&p[..])).unwrap();
+    }
 
-    assert_eq!(
-        param_list_entry_header().parse(&p[..]),
-        Ok(((ParamType::Float, "fov".to_owned()), &foo[..]))
-    );
+    #[test]
+    fn test_param_type() {
+        let p = "float";
+
+        let res = param_type(&p).unwrap();
+        assert_eq!(res, ("", ParamType::Float));
+
+        let q = "floatxxx";
+        let res = param_type(&q).unwrap();
+        assert_eq!(res, ("xxx", ParamType::Float));
+    }
+
+    #[test]
+    fn test_param_list_entry_header() {
+        let p = vec![Token::STR("float fov".to_owned())];
+
+        test_parse(
+            &p,
+            param_list_entry_header,
+            (ParamType::Float, "fov".to_string()),
+        );
+    }
 }
