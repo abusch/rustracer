@@ -1,13 +1,25 @@
-use std::fmt;
+use std::{
+    fmt,
+    iter::Enumerate,
+    ops::{Index, Range, RangeFrom},
+    slice::Iter,
+};
 
-use combine::char::{char, digit, spaces, string};
-use combine::{
-    between, choice, eof, many, many1, none_of, optional, r#try, satisfy, skip_many, token,
-    ParseError, Parser, Stream,
+use nom::{
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{
+        alphanumeric1, char, line_ending, multispace0, none_of, not_line_ending,
+    },
+    combinator::{all_consuming, map, map_res, value},
+    multi::{many0, many1},
+    number::complete::float,
+    sequence::{delimited, preceded, terminated},
+    IResult, InputIter, InputLength, InputTake, Needed, Slice,
 };
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Tokens {
+pub enum Token {
     ACCELERATOR,
     ACTIVETRANSFORM,
     ALL,
@@ -55,152 +67,207 @@ pub enum Tokens {
     COMMENT,
 }
 
-impl fmt::Display for Tokens {
+impl Token {
+    pub fn as_str(&self) -> Option<&String> {
+        if let Self::STR(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_number(&self) -> Option<&f32> {
+        if let Self::NUMBER(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+}
+
+impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-pub fn tokenize<I: Stream<Item = char>>(input: I) -> Result<(Vec<Tokens>, I), ParseError<I>> {
-    // parsers for keywords
-    let mut parsers = vec![
-        token_parser("Accelerator", Tokens::ACCELERATOR),
-        token_parser("ActiveTransform", Tokens::ACTIVETRANSFORM),
-        token_parser("All", Tokens::ALL),
-        token_parser("AreaLightSource", Tokens::AREALIGHTSOURCE),
-        token_parser("AttributeBegin", Tokens::ATTRIBUTEBEGIN),
-        token_parser("AttributeEnd", Tokens::ATTRIBUTEEND),
-        token_parser("Camera", Tokens::CAMERA),
-        token_parser("ConcatTransform", Tokens::CONCATTRANSFORM),
-        token_parser("CoordinateSystem", Tokens::COORDINATESYSTEM),
-        token_parser("CoordSysTransform", Tokens::COORDSYSTRANSFORM),
-        token_parser("EndTime", Tokens::ENDTIME),
-        token_parser("Film", Tokens::FILM),
-        token_parser("Identity", Tokens::IDENTITY),
-        token_parser("Include", Tokens::INCLUDE),
-        token_parser("LightSource", Tokens::LIGHTSOURCE),
-        token_parser("LookAt", Tokens::LOOKAT),
-        token_parser("MakeNamedMedium", Tokens::MAKENAMEDMEDIUM),
-        token_parser("MakeNamedMaterial", Tokens::MAKENAMEDMATERIAL),
-        token_parser("Material", Tokens::MATERIAL),
-        token_parser("MediumInterface", Tokens::MEDIUMINTERFACE),
-        token_parser("NamedMaterial", Tokens::NAMEDMATERIAL),
-        token_parser("ObjectBegin", Tokens::OBJECTBEGIN),
-        token_parser("ObjectEnd", Tokens::OBJECTEND),
-        token_parser("ObjectInstance", Tokens::OBJECTINSTANCE),
-        token_parser("PixelFilter", Tokens::PIXELFILTER),
-        token_parser("ReverseOrientation", Tokens::REVERSEORIENTATION),
-        token_parser("Rotate", Tokens::ROTATE),
-        token_parser("Sampler", Tokens::SAMPLER),
-        token_parser("Scale", Tokens::SCALE),
-        token_parser("Shape", Tokens::SHAPE),
-        token_parser("StartTime", Tokens::STARTTIME),
-        token_parser("Integrator", Tokens::INTEGRATOR),
-        token_parser("Texture", Tokens::TEXTURE),
-        token_parser("TransformBegin", Tokens::TRANSFORMBEGIN),
-        token_parser("TransformEnd", Tokens::TRANSFORMEND),
-        token_parser("TransformTimes", Tokens::TRANSFORMTIMES),
-        token_parser("Transform", Tokens::TRANSFORM),
-        token_parser("Translate", Tokens::TRANSLATE),
-        token_parser("WorldBegin", Tokens::WORLDBEGIN),
-        token_parser("WorldEnd", Tokens::WORLDEND),
-        token_parser("[", Tokens::LBRACK),
-        token_parser("]", Tokens::RBRACK),
-    ]
-    .into_iter()
-    .map(r#try)
-    .collect::<Vec<_>>();
-
-    // Add parsers from num, strings, etc...
-    parsers.push(r#try(float_parser()));
-    parsers.push(r#try(string_parser()));
-    parsers.push(r#try(comment_parser()));
-
-    (spaces().with(many::<Vec<_>, _>(choice(parsers))), eof())
-        .map(|(res, _)| res)
-        .parse(input)
+#[derive(Debug, Clone)]
+pub struct Tokens<'a> {
+    tokens: &'a [Token],
+    start: usize,
+    end: usize,
 }
 
-fn token_parser<'a, I: Stream<Item = char> + 'a>(
-    s: &'static str,
-    t: Tokens,
-) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
-    string(s).skip(spaces()).map(move |_| t.clone()).boxed()
-}
-
-fn float_parser<'a, I: Stream<Item = char> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
-    (
-        optional(char('-').or(char('+'))),
-        optional(many::<Vec<_>, _>(digit())),
-        optional(char('.').with(many::<Vec<_>, _>(digit()))),
-        optional(char('e').or(char('E')).with((
-            optional(char('-').or(char('+'))),
-            many1::<Vec<_>, _>(digit()),
-        ))),
-    )
-        .skip(spaces())
-        .and_then(|(sign, int_part, frac_part, mantissa)| {
-            let mut buf = String::new();
-            if let Some(s) = sign {
-                buf.push(s);
-            }
-            if let Some(intpart) = int_part {
-                for c in intpart {
-                    buf.push(c);
-                }
-            } else {
-                buf.push('0');
-            }
-            if let Some(frac) = frac_part {
-                buf.push('.');
-                for c in frac {
-                    buf.push(c);
-                }
-            }
-            if let Some((mant_sign, mant)) = mantissa {
-                buf.push('e');
-                buf.push(mant_sign.unwrap_or('+'));
-                for c in mant {
-                    buf.push(c);
-                }
-            }
-
-            buf.parse::<f32>().map(Tokens::NUMBER)
-        })
-        .boxed()
-}
-
-fn string_parser<'a, I: Stream<Item = char> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
-    between(
-        token('"'),
-        token('"'),
-        many::<Vec<_>, _>(none_of("\"".chars())),
-    )
-    .skip(spaces())
-    .map(|chars| {
-        let mut buf = String::new();
-        for c in chars {
-            buf.push(c);
+impl<'a> Tokens<'a> {
+    pub fn new(tokens: &'a [Token]) -> Self {
+        Self {
+            tokens,
+            start: 0,
+            end: tokens.len(),
         }
-        Tokens::STR(buf)
-    })
-    .boxed()
+    }
 }
 
-fn comment_parser<'a, I: Stream<Item = char> + 'a>(
-) -> Box<dyn Parser<Input = I, Output = Tokens> + 'a> {
-    token('#')
-        .and(skip_many(satisfy(|c| c != '\n')))
-        .skip(spaces())
-        .map(|_| Tokens::COMMENT)
-        .boxed()
+impl<'a> Index<usize> for Tokens<'a> {
+    type Output = Token;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.tokens[index]
+    }
 }
 
-#[test]
-fn test_tokenize() {
-    let scene = r##"
+impl<'a> InputTake for Tokens<'a> {
+    fn take(&self, count: usize) -> Self {
+        Tokens::new(&self.tokens[0..count])
+    }
+
+    fn take_split(&self, count: usize) -> (Self, Self) {
+        let (first, second) = self.tokens.split_at(count);
+        (Tokens::new(second), Tokens::new(first))
+    }
+}
+
+impl<'a> InputLength for Tokens<'a> {
+    fn input_len(&self) -> usize {
+        self.tokens.len()
+    }
+}
+
+impl<'a> InputIter for Tokens<'a> {
+    type Item = &'a Token;
+
+    type Iter = Enumerate<Iter<'a, Token>>;
+
+    type IterElem = Iter<'a, Token>;
+
+    fn iter_indices(&self) -> Self::Iter {
+        self.tokens.iter().enumerate()
+    }
+
+    fn iter_elements(&self) -> Self::IterElem {
+        self.tokens.iter()
+    }
+
+    fn position<P>(&self, predicate: P) -> Option<usize>
+    where
+        P: Fn(Self::Item) -> bool,
+    {
+        self.tokens.iter().position(predicate)
+    }
+
+    fn slice_index(&self, count: usize) -> Result<usize, Needed> {
+        if self.tokens.len() >= count {
+            Ok(count)
+        } else {
+            Err(Needed::Unknown)
+        }
+    }
+}
+
+impl<'a> Slice<Range<usize>> for Tokens<'a> {
+    fn slice(&self, range: Range<usize>) -> Self {
+        {
+            let start = self.start + range.start;
+            let end = self.start + range.end;
+            let tokens: &'a [Token] = &self.tokens[range];
+            Self { tokens, start, end }
+        }
+    }
+}
+
+impl<'a> Slice<RangeFrom<usize>> for Tokens<'a> {
+    fn slice(&self, range: RangeFrom<usize>) -> Self {
+        self.slice(range.start..self.end - self.start)
+    }
+}
+
+pub fn tokenize(input: &str) -> IResult<&str, Vec<Token>> {
+    all_consuming(terminated(
+        many1(alt((
+            preceded(multispace0, keyword),
+            preceded(multispace0, float_parser),
+            preceded(multispace0, string_parser),
+            preceded(multispace0, comment_parser),
+        ))),
+        multispace0,
+    ))(input)
+}
+
+pub fn keyword(input: &str) -> IResult<&str, Token> {
+    map_res(
+        preceded(multispace0, alt((alphanumeric1, tag("["), tag("]")))),
+        |s| match s {
+            "Accelerator" => Ok(Token::ACCELERATOR),
+            "ActiveTransform" => Ok(Token::ACTIVETRANSFORM),
+            "All" => Ok(Token::ALL),
+            "AreaLightSource" => Ok(Token::AREALIGHTSOURCE),
+            "AttributeBegin" => Ok(Token::ATTRIBUTEBEGIN),
+            "AttributeEnd" => Ok(Token::ATTRIBUTEEND),
+            "Camera" => Ok(Token::CAMERA),
+            "ConcatTransform" => Ok(Token::CONCATTRANSFORM),
+            "CoordinateSystem" => Ok(Token::COORDINATESYSTEM),
+            "CoordSysTransform" => Ok(Token::COORDSYSTRANSFORM),
+            "EndTime" => Ok(Token::ENDTIME),
+            "Film" => Ok(Token::FILM),
+            "Identity" => Ok(Token::IDENTITY),
+            "Include" => Ok(Token::INCLUDE),
+            "LightSource" => Ok(Token::LIGHTSOURCE),
+            "LookAt" => Ok(Token::LOOKAT),
+            "MakeNamedMedium" => Ok(Token::MAKENAMEDMEDIUM),
+            "MakeNamedMaterial" => Ok(Token::MAKENAMEDMATERIAL),
+            "Material" => Ok(Token::MATERIAL),
+            "MediumInterface" => Ok(Token::MEDIUMINTERFACE),
+            "NamedMaterial" => Ok(Token::NAMEDMATERIAL),
+            "ObjectBegin" => Ok(Token::OBJECTBEGIN),
+            "ObjectEnd" => Ok(Token::OBJECTEND),
+            "ObjectInstance" => Ok(Token::OBJECTINSTANCE),
+            "PixelFilter" => Ok(Token::PIXELFILTER),
+            "ReverseOrientation" => Ok(Token::REVERSEORIENTATION),
+            "Rotate" => Ok(Token::ROTATE),
+            "Sampler" => Ok(Token::SAMPLER),
+            "Scale" => Ok(Token::SCALE),
+            "Shape" => Ok(Token::SHAPE),
+            "StartTime" => Ok(Token::STARTTIME),
+            "Integrator" => Ok(Token::INTEGRATOR),
+            "Texture" => Ok(Token::TEXTURE),
+            "TransformBegin" => Ok(Token::TRANSFORMBEGIN),
+            "TransformEnd" => Ok(Token::TRANSFORMEND),
+            "TransformTimes" => Ok(Token::TRANSFORMTIMES),
+            "Transform" => Ok(Token::TRANSFORM),
+            "Translate" => Ok(Token::TRANSLATE),
+            "WorldBegin" => Ok(Token::WORLDBEGIN),
+            "WorldEnd" => Ok(Token::WORLDEND),
+            "[" => Ok(Token::LBRACK),
+            "]" => Ok(Token::RBRACK),
+            _ => Err(format!("Invalid keyword found: {}", s)),
+        },
+    )(input)
+}
+
+pub fn float_parser(input: &str) -> IResult<&str, Token> {
+    map(float, Token::NUMBER)(input)
+}
+
+pub fn string_parser(input: &str) -> IResult<&str, Token> {
+    map(delimited(char('"'), many0(none_of("\"")), char('"')), |s| {
+        Token::STR(s.into_iter().collect())
+    })(input)
+}
+
+pub fn comment_parser(input: &str) -> IResult<&str, Token> {
+    value(
+        Token::COMMENT,
+        delimited(char('#'), not_line_ending, line_ending),
+    )(input)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tokenize() {
+        let scene = r##"
 LookAt 0 0 5 0 0 0 0 1 0
 Camera "perspective" "float fov" [50]
 
@@ -209,7 +276,6 @@ Film "image" "integer xresolution" [800] "integer yresolution" [600]
     "string filename" "test-whitted.tga"
 
 Integrator "whitted"
-#Integrator "directlighting"
 
 WorldBegin
   LightSource "distant" "point from" [0 1 5] "point to" [0 0 0]
@@ -235,18 +301,36 @@ WorldBegin
   AttributeEnd
 WorldEnd
         "##;
-    let result = tokenize(scene);
-    assert!(result.is_ok());
-    let (_tokens, rest) = result.unwrap();
-    assert_eq!(rest, "");
-}
+        let (rest, _tokens) = tokenize(scene).unwrap();
+        assert_eq!(rest, "");
+    }
 
-#[test]
-fn test_string_parser() {
-    let s = "\"this is a string\"";
-    let result = string_parser().parse(s);
-    assert_eq!(
-        result,
-        Ok((Tokens::STR("this is a string".to_string()), ""))
-    )
+    #[test]
+    fn test_float_parser() {
+        let s = "-1.23e2";
+        let result = float_parser(s);
+        assert_eq!(result, Ok(("", Token::NUMBER(-123.0))))
+    }
+
+    #[test]
+    fn test_string_parser() {
+        let s = "\"this is a string\"";
+        let result = string_parser(s);
+        assert_eq!(result, Ok(("", Token::STR("this is a string".to_string()))))
+    }
+
+    #[test]
+    fn test_keyword_parser() {
+        let s = "Accelerator";
+        assert_eq!(keyword(&s), Ok(("", Token::ACCELERATOR)));
+
+        let s = "[";
+        assert_eq!(keyword(&s), Ok(("", Token::LBRACK)));
+    }
+
+    #[test]
+    fn test_comment_parser() {
+        let s = "#foo\n";
+        assert_eq!(comment_parser(&s), Ok(("", Token::COMMENT)));
+    }
 }

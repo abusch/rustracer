@@ -6,10 +6,10 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use anyhow::*;
-use combine::State;
 
 use crate::api::{Api, RealApi};
 use crate::fileutil;
+use crate::pbrt::lexer::Tokens;
 use crate::PbrtOptions;
 
 pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<()> {
@@ -18,13 +18,13 @@ pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<()>
     fileutil::set_search_directory(fileutil::directory_containing(filename));
     let api = RealApi::with_options(opts);
     api.init()?;
-    parser::parse(&tokens[..], &api)
+    parser::parse(Tokens::new(&tokens[..]), &api)
         .map_err(|e| format_err!("Failed to parse scene file: {:?}", e))?;
 
     Ok(())
 }
 
-pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Tokens>> {
+pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Token>> {
     let resolved_filename = fileutil::resolve_filename(filename.as_ref().to_str().unwrap());
     let mut file = File::open(&resolved_filename).context("Failed to open scene file")?;
     let mut file_content = String::new();
@@ -32,13 +32,12 @@ pub fn tokenize_file<P: AsRef<Path>>(filename: P) -> Result<Vec<lexer::Tokens>> 
         .context("Failed to read content of scene file")?;
 
     // TODO handle errors
-    let tokens = lexer::tokenize(State::new(&file_content[..]))
+    let (_rest, tokens) = lexer::tokenize(&file_content[..])
         .map_err(|e| format_err!("Failed to tokenize scene file: {:?}", e))?;
     // strip comments
     let filtered_tokens = tokens
-        .0
         .into_iter()
-        .filter(|x| *x != lexer::Tokens::COMMENT)
+        .filter(|x| *x != lexer::Token::COMMENT)
         .collect::<Vec<_>>();
 
     Ok(filtered_tokens)
