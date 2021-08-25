@@ -49,10 +49,6 @@ More examples can be found in the [renders/](renders/) directory.
 
 ## How to build
 
-Rustracer depends on Rust nightly, due to some dependencies that require it (in
-particular light_arena). The easiest way is to install
-[rustup](https://www.rustup.rs/), then do `rustup default nightly`.
-
 To run the CLI, run `cargo run --release -p rustracer -- scene_file.pbrt`.
 
 ## Currently supported
