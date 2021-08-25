@@ -9,8 +9,8 @@ use anyhow::*;
 
 use crate::api::{Api, RealApi};
 use crate::fileutil;
-use crate::PbrtOptions;
 use crate::pbrt::lexer::Tokens;
+use crate::PbrtOptions;
 
 pub fn parse_scene<P: AsRef<Path>>(opts: PbrtOptions, filename: P) -> Result<()> {
     let filename = filename.as_ref();

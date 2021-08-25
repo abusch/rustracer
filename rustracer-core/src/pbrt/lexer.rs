@@ -5,9 +5,18 @@ use std::{
     slice::Iter,
 };
 
-use nom::{IResult, InputIter, InputLength, InputTake, Needed, Slice, branch::alt, bytes::complete::tag, character::complete::{
+use nom::{
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{
         alphanumeric1, char, line_ending, multispace0, none_of, not_line_ending,
-    }, combinator::{all_consuming, map, map_res, value}, multi::{many0, many1}, number::complete::float, sequence::{delimited, preceded, terminated}};
+    },
+    combinator::{all_consuming, map, map_res, value},
+    multi::{many0, many1},
+    number::complete::float,
+    sequence::{delimited, preceded, terminated},
+    IResult, InputIter, InputLength, InputTake, Needed, Slice,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Token {
@@ -173,17 +182,15 @@ impl<'a> Slice<RangeFrom<usize>> for Tokens<'a> {
 }
 
 pub fn tokenize(input: &str) -> IResult<&str, Vec<Token>> {
-    all_consuming(
-        terminated(
-            many1(alt((
-                preceded(multispace0, keyword),
-                preceded(multispace0, float_parser),
-                preceded(multispace0, string_parser),
-                preceded(multispace0, comment_parser),
-            ))),
-            multispace0
-        )
-    )(input)
+    all_consuming(terminated(
+        many1(alt((
+            preceded(multispace0, keyword),
+            preceded(multispace0, float_parser),
+            preceded(multispace0, string_parser),
+            preceded(multispace0, comment_parser),
+        ))),
+        multispace0,
+    ))(input)
 }
 
 pub fn keyword(input: &str) -> IResult<&str, Token> {

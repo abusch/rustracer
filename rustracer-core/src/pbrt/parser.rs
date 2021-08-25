@@ -4,9 +4,9 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take},
     character::complete::space1,
-    combinator::{map, map_res, value},
+    combinator::{all_consuming, map, map_res, value},
     error::{Error, ErrorKind},
-    multi::many1,
+    multi::{many0, many1},
     sequence::{delimited, pair, tuple},
     Finish, IResult,
 };
@@ -19,93 +19,56 @@ pub fn parse<'input, 'api, A: Api>(
     input: Tokens<'input>,
     api: &'api A,
 ) -> IResult<Tokens<'input>, ()> {
-    let (rest, _) = many1(alt((
-        map_res(token(Token::ATTRIBUTEBEGIN), |_| api.attribute_begin()),
-        map_res(token(Token::ATTRIBUTEEND), |_| api.attribute_end()),
-        map_res(token(Token::TRANSFORMBEGIN), |_| api.transform_begin()),
-        map_res(token(Token::TRANSFORMEND), |_| api.transform_end()),
-        map_res(pair(token(Token::OBJECTBEGIN), string_), |(_, name)| {
-            api.object_begin(name)
-        }),
-        map_res(token(Token::OBJECTEND), |_| api.object_end()),
-    )))(input)?;
-
-    Ok((rest, ()))
-}
-
-/*
-pub fn parse<I, A: Api>(
-    input: I,
-    api: &A,
-) -> Result<(Vec<()>, I), easy::ParseError<I>>
-where
-  I: Stream<Token = Tokens, Error = easy::ParseError<I>>,
-  I::Position: Default,
-  I::Range: PartialEq,
-  I::Error: ParseError<
-    I::Token,
-    I::Range,
-    I::Position,
-    StreamError = Error<I::Token, I::Range>
-  >
-{
-    let accelerator =
-        (token(Tokens::ACCELERATOR), string_(), param_list()).and_then(|(_, typ, params)| {
-            api.accelerator(typ, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let attribute_begin = token(Tokens::ATTRIBUTEBEGIN)
-        .and_then(|_| api.attribute_begin().map_err(|e| Error::Other(e.into())));
-    let attribute_end = token(Tokens::ATTRIBUTEEND)
-        .and_then(|_| api.attribute_end().map_err(|e| Error::Other(e.into())));
-    let transform_begin = token(Tokens::TRANSFORMBEGIN)
-        .and_then(|_| api.transform_begin().map_err(|e| Error::Other(e.into())));
-    let transform_end = token(Tokens::TRANSFORMEND)
-        .and_then(|_| api.transform_end().map_err(|e| Error::Other(e.into())));
-    let object_begin = (token(Tokens::OBJECTBEGIN), string_())
-        .and_then(|(_, name)| api.object_begin(name).map_err(|e| Error::Other(e.into())));
-    let object_end =
-        token(Tokens::OBJECTEND).and_then(|_| api.object_end().map_err(|e| Error::Other(e.into())));
-    let object_instance = (token(Tokens::OBJECTINSTANCE), string_()).and_then(|(_, name)| {
+    let accelerator = map_res(
+        tuple((token(Token::ACCELERATOR), string_, param_list)),
+        |(_, typ, params)| api.accelerator(typ, &params),
+    );
+    let attribute_begin = map_res(token(Token::ATTRIBUTEBEGIN), |_| api.attribute_begin());
+    let attribute_end = map_res(token(Token::ATTRIBUTEEND), |_| api.attribute_end());
+    let transform_begin = map_res(token(Token::TRANSFORMBEGIN), |_| api.transform_begin());
+    let transform_end = map_res(token(Token::TRANSFORMEND), |_| api.transform_end());
+    let object_begin = map_res(pair(token(Token::OBJECTBEGIN), string_), |(_, name)| {
+        api.object_begin(name)
+    });
+    let object_end = map_res(token(Token::OBJECTEND), |_| api.object_end());
+    let object_instance = map_res(pair(token(Token::OBJECTINSTANCE), string_), |(_, name)| {
         api.object_instance(name)
-            .map_err(|e| Error::Other(e.into()))
     });
-    let world_begin = token(Tokens::WORLDBEGIN)
-        .and_then(|_| api.world_begin().map_err(|e| Error::Other(e.into())));
-    let world_end =
-        token(Tokens::WORLDEND).and_then(|_| api.world_end().map_err(|e| Error::Other(e.into())));
-    let look_at = (
-        token(Tokens::LOOKAT),
-        num(),
-        num(),
-        num(),
-        num(),
-        num(),
-        num(),
-        num(),
-        num(),
-        num(),
-    )
-        .and_then(|(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| {
-            api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let coordinate_system = (token(Tokens::COORDINATESYSTEM), string_()).and_then(|(_, name)| {
-        api.coordinate_system(name)
-            .map_err(|e| Error::Other(e.into()))
-    });
-    let coord_sys_transform =
-        (token(Tokens::COORDSYSTRANSFORM), string_()).and_then(|(_, name)| {
-            api.coord_sys_transform(name)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let camera = (token(Tokens::CAMERA), string_(), param_list()).and_then(|(_, name, params)| {
-        api.camera(name, &params)
-            .map_err(|e| Error::Other(e.into()))
-    });
-    let film = (token(Tokens::FILM), string_(), param_list())
-        .and_then(|(_, name, params)| api.film(name, &params).map_err(|e| Error::Other(e.into())));
-    let include = (token(Tokens::INCLUDE), string_()).and_then(|(_, name)| {
+    let world_begin = map_res(token(Token::WORLDBEGIN), |_| api.world_begin());
+    let world_end = map_res(token(Token::WORLDEND), |_| api.world_end());
+    let look_at = map_res(
+        tuple((
+            token(Token::LOOKAT),
+            num,
+            num,
+            num,
+            num,
+            num,
+            num,
+            num,
+            num,
+            num,
+        )),
+        |(_, ex, ey, ez, lx, ly, lz, ux, uy, uz)| api.look_at(ex, ey, ez, lx, ly, lz, ux, uy, uz),
+    );
+    let coordinate_system = map_res(
+        pair(token(Token::COORDINATESYSTEM), string_),
+        |(_, name)| api.coordinate_system(name),
+    );
+    let coord_sys_transform = map_res(
+        pair(token(Token::COORDSYSTRANSFORM), string_),
+        |(_, name)| api.coord_sys_transform(name),
+    );
+    let camera = map_res(
+        tuple((token(Token::CAMERA), string_, param_list)),
+        |(_, typ, params)| api.camera(typ, &params),
+    );
+    let film = map_res(
+        tuple((token(Token::FILM), string_, param_list)),
+        |(_, typ, params)| api.film(typ, &params),
+    );
+    // TODO include
+    /* let include = (token(Tokens::INCLUDE), string_()).and_then(|(_, name)| {
         info!("Parsing included file: {}", name);
         super::tokenize_file(&name)
             .and_then(|tokens| {
@@ -114,133 +77,118 @@ where
                     .map_err(|e| format_err!("Failed to parse included file: {:?}", e))
             })
             .map_err(|e| Error::Other(e.into()))
-    });
-    let integrator =
-        (token(Tokens::INTEGRATOR), string_(), param_list()).and_then(|(_, name, params)| {
-            api.integrator(name, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let arealightsource =
-        (token(Tokens::AREALIGHTSOURCE), string_(), param_list()).and_then(|(_, name, params)| {
-            api.arealightsource(name, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let lightsource =
-        (token(Tokens::LIGHTSOURCE), string_(), param_list()).and_then(|(_, name, params)| {
-            api.lightsource(name, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let material =
-        (token(Tokens::MATERIAL), string_(), param_list()).and_then(|(_, name, params)| {
-            api.material(name, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let make_named_material = (token(Tokens::MAKENAMEDMATERIAL), string_(), param_list()).and_then(
-        |(_, name, params)| {
-            api.make_named_material(name, &params)
-                .map_err(|e| Error::Other(e.into()))
-        },
+    }); */
+    let integrator = map_res(
+        tuple((token(Token::INTEGRATOR), string_, param_list)),
+        |(_, typ, params)| api.integrator(typ, &params),
     );
-    let named_material = (token(Tokens::NAMEDMATERIAL), string_())
-        .and_then(|(_, name)| api.named_material(name).map_err(|e| Error::Other(e.into())));
-    let sampler =
-        (token(Tokens::SAMPLER), string_(), param_list()).and_then(|(_, name, params)| {
-            api.sampler(name, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let shape = (token(Tokens::SHAPE), string_(), param_list())
-        .and_then(|(_, name, params)| api.shape(name, &params).map_err(|e| Error::Other(e.into())));
-
-    let reverse_orientation = token(Tokens::REVERSEORIENTATION).and_then(|_| {
-        api.reverse_orientation()
-            .map_err(|e| Error::Other(e.into()))
+    let arealightsource = map_res(
+        tuple((token(Token::AREALIGHTSOURCE), string_, param_list)),
+        |(_, typ, params)| api.arealightsource(typ, &params),
+    );
+    let lightsource = map_res(
+        tuple((token(Token::LIGHTSOURCE), string_, param_list)),
+        |(_, typ, params)| api.lightsource(typ, &params),
+    );
+    let material = map_res(
+        tuple((token(Token::MATERIAL), string_, param_list)),
+        |(_, typ, params)| api.material(typ, &params),
+    );
+    let make_named_material = map_res(
+        tuple((token(Token::MAKENAMEDMATERIAL), string_, param_list)),
+        |(_, typ, params)| api.make_named_material(typ, &params),
+    );
+    let named_material = map_res(pair(token(Token::NAMEDMATERIAL), string_), |(_, name)| {
+        api.named_material(name)
     });
-    let filter =
-        (token(Tokens::PIXELFILTER), string_(), param_list()).and_then(|(_, name, params)| {
-            api.pixel_filter(name, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let scale = (token(Tokens::SCALE), num(), num(), num())
-        .and_then(|(_, sx, sy, sz)| api.scale(sx, sy, sz).map_err(|e| Error::Other(e.into())));
-    let rotate =
-        (token(Tokens::ROTATE), num(), num(), num(), num()).and_then(|(_, angle, dx, dy, dz)| {
-            api.rotate(angle, dx, dy, dz)
-                .map_err(|e| Error::Other(e.into()))
-        });
-
-    let texture = (
-        token(Tokens::TEXTURE),
-        string_(),
-        string_(),
-        string_(),
-        param_list(),
-    )
-        .and_then(|(_, name, typ, texname, params)| {
-            api.texture(name, typ, texname, &params)
-                .map_err(|e| Error::Other(e.into()))
-        });
-    let concat_transform =
-        (token::<I>(Tokens::CONCATTRANSFORM), num_array()).and_then(|(_, nums)| {
+    let sampler = map_res(
+        tuple((token(Token::SAMPLER), string_, param_list)),
+        |(_, typ, params)| api.sampler(typ, &params),
+    );
+    let shape = map_res(
+        tuple((token(Token::SHAPE), string_, param_list)),
+        |(_, typ, params)| api.shape(typ, &params),
+    );
+    let reverse_orientation = map_res(token(Token::REVERSEORIENTATION), |_| {
+        api.reverse_orientation()
+    });
+    let filter = map_res(
+        tuple((token(Token::PIXELFILTER), string_, param_list)),
+        |(_, typ, params)| api.pixel_filter(typ, &params),
+    );
+    let scale = map_res(
+        tuple((token(Token::SCALE), num, num, num)),
+        |(_, sx, sy, sz)| api.scale(sx, sy, sz),
+    );
+    let rotate = map_res(
+        tuple((token(Token::ROTATE), num, num, num, num)),
+        |(_, angle, dx, dy, dz)| api.rotate(angle, dx, dy, dz),
+    );
+    let texture = map_res(
+        tuple((token(Token::TEXTURE), string_, string_, string_, param_list)),
+        |(_, name, typ, texname, params)| api.texture(name, typ, texname, &params),
+    );
+    let concat_transform = map_res(
+        pair(token(Token::CONCATTRANSFORM), num_array),
+        |(_, nums)| {
             api.concat_transform(
                 nums[0], nums[1], nums[2], nums[3], nums[4], nums[5], nums[6], nums[7], nums[8],
                 nums[9], nums[10], nums[11], nums[12], nums[13], nums[14], nums[15],
             )
-            .map_err(|e| Error::Other(e.into()))
-        });
-
-    let transform = (token::<I>(Tokens::TRANSFORM), num_array()).and_then(|(_, nums)| {
+        },
+    );
+    let transform = map_res(pair(token(Token::TRANSFORM), num_array), |(_, nums)| {
         api.transform(
             nums[0], nums[1], nums[2], nums[3], nums[4], nums[5], nums[6], nums[7], nums[8],
             nums[9], nums[10], nums[11], nums[12], nums[13], nums[14], nums[15],
         )
-        .map_err(|e| Error::Other(e.into()))
     });
+    let translate = map_res(
+        tuple((token(Token::TRANSLATE), num, num, num)),
+        |(_, dx, dy, dz)| api.translate(dx, dy, dz),
+    );
 
-    let translate = (token(Tokens::TRANSLATE), num(), num(), num()).and_then(|(_, dx, dy, dz)| {
-        api.translate(dx, dy, dz)
-            .map_err(|e| Error::Other(e.into()))
-    });
+    let (rest, _) = all_consuming(many1(alt((
+        accelerator,
+        attribute_begin,
+        attribute_end,
+        transform_begin,
+        transform_end,
+        object_begin,
+        object_end,
+        object_instance,
+        world_begin,
+        world_end,
+        look_at,
+        coordinate_system,
+        coord_sys_transform,
+        camera,
+        film,
+        integrator,
+        arealightsource,
+        lightsource,
+        material,
+        make_named_material,
+        alt((
+            named_material,
+            sampler,
+            shape,
+            reverse_orientation,
+            filter,
+            scale,
+            rotate,
+            texture,
+            concat_transform,
+            transform,
+            translate,
+        )),
+    ))))(input)?;
 
-    let parsers = many1::<Vec<_>, _, _>(choice!(
-        attempt(accelerator),
-        attempt(attribute_begin),
-        attempt(attribute_end),
-        attempt(transform_begin),
-        attempt(transform_end),
-        attempt(object_begin),
-        attempt(object_end),
-        attempt(object_instance),
-        attempt(world_begin),
-        attempt(world_end),
-        attempt(look_at),
-        attempt(coordinate_system),
-        attempt(coord_sys_transform),
-        attempt(camera),
-        attempt(film),
-        attempt(filter),
-        attempt(include),
-        attempt(integrator),
-        attempt(arealightsource),
-        attempt(lightsource),
-        attempt(material),
-        attempt(texture),
-        attempt(make_named_material),
-        attempt(named_material),
-        attempt(sampler),
-        attempt(shape),
-        attempt(reverse_orientation),
-        attempt(scale),
-        attempt(rotate),
-        attempt(translate),
-        attempt(concat_transform),
-        attempt(transform)
-    ));
-    (parsers, eof()).map(|(res, _)| res).parse(input)
+    Ok((rest, ()))
 }
-*/
 
 fn param_list(input: Tokens<'_>) -> IResult<Tokens<'_>, ParamSet> {
-    map(many1(param_list_entry), |x| {
+    map(many0(param_list_entry), |x| {
         let mut ps = ParamSet::default();
         ps.init(x);
         ps
@@ -267,29 +215,6 @@ fn param_type(input: &str) -> IResult<&str, ParamType> {
         value(ParamType::String, tag("string")),
         value(ParamType::Texture, tag("texture")),
     ))(input)
-}
-
-fn get_param_type(t: &str) -> Option<ParamType> {
-    match t {
-        "integer" => Some(ParamType::Int),
-        "bool" => Some(ParamType::Bool),
-        "float" => Some(ParamType::Float),
-        "point2" => Some(ParamType::Point2),
-        "vector2" => Some(ParamType::Vector2),
-        "point3" => Some(ParamType::Point3),
-        "vector3" => Some(ParamType::Vector3),
-        "point" => Some(ParamType::Point3),
-        "vector" => Some(ParamType::Vector3),
-        "normal" => Some(ParamType::Normal),
-        "color" => Some(ParamType::Rgb),
-        "rgb" => Some(ParamType::Rgb),
-        "xyz" => Some(ParamType::Xyz),
-        "blackbody" => Some(ParamType::Blackbody),
-        "spectrum" => Some(ParamType::Spectrum),
-        "string" => Some(ParamType::String),
-        "texture" => Some(ParamType::Texture),
-        _ => None,
-    }
 }
 
 fn param_list_entry_header(input: Tokens<'_>) -> IResult<Tokens<'_>, (ParamType, String)> {
@@ -332,7 +257,7 @@ fn num_array(input: Tokens<'_>) -> IResult<Tokens<'_>, Vec<f32>> {
 }
 
 fn num(input: Tokens<'_>) -> IResult<Tokens<'_>, f32> {
-    let (i, ret) = take(1usize)(dbg!(input))?;
+    let (i, ret) = take(1usize)(input)?;
 
     match ret[0] {
         Token::NUMBER(n) => Ok((i, n)),
