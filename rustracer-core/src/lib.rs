@@ -2,6 +2,7 @@
 // Lints
 #![deny(unused_qualifications, unused_must_use)]
 #![warn(rust_2018_idioms)]
+#![warn(rust_2021_compatibility)]
 #![allow(non_snake_case)]
 // Clippy config
 #![allow(

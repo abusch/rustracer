@@ -38,7 +38,7 @@ impl Scene {
         for l in &lights {
             l.preprocess(&scene);
             if l.flags().contains(LightFlags::INFINITE) {
-                infinite_lights.push(Arc::clone(&l));
+                infinite_lights.push(Arc::clone(l));
             }
         }
 

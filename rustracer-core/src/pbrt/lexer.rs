@@ -322,15 +322,15 @@ WorldEnd
     #[test]
     fn test_keyword_parser() {
         let s = "Accelerator";
-        assert_eq!(keyword(&s), Ok(("", Token::ACCELERATOR)));
+        assert_eq!(keyword(s), Ok(("", Token::ACCELERATOR)));
 
         let s = "[";
-        assert_eq!(keyword(&s), Ok(("", Token::LBRACK)));
+        assert_eq!(keyword(s), Ok(("", Token::LBRACK)));
     }
 
     #[test]
     fn test_comment_parser() {
         let s = "#foo\n";
-        assert_eq!(comment_parser(&s), Ok(("", Token::COMMENT)));
+        assert_eq!(comment_parser(s), Ok(("", Token::COMMENT)));
     }
 }

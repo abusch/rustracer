@@ -499,11 +499,9 @@ mod tests {
             Point2i::new(0, 2),
             Point2i::new(1, 2),
         ];
-        let mut offset = 0;
-        for p in &b {
+        for (offset, p) in b.into_iter().enumerate() {
             assert!(offset < e.len());
             assert_eq!(e[offset], p);
-            offset += 1;
         }
     }
 

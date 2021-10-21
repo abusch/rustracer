@@ -344,11 +344,11 @@ mod tests {
     fn test_param_type() {
         let p = "float";
 
-        let res = param_type(&p).unwrap();
+        let res = param_type(p).unwrap();
         assert_eq!(res, ("", ParamType::Float));
 
         let q = "floatxxx";
-        let res = param_type(&q).unwrap();
+        let res = param_type(q).unwrap();
         assert_eq!(res, ("xxx", ParamType::Float));
     }
 
