@@ -2,7 +2,7 @@
 name = "rustracer"
 version = "0.1.0"
 authors = ["Antoine Büsch <antoine.busch@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 rustracer-core = { path = "../rustracer-core/"}
@@ -10,5 +10,5 @@ anyhow = "1"
 clap = "2"
 indicatif = "0.16"
 log = "0.4"
-flexi_logger = "0.18"
+flexi_logger = "0.19"
 num_cpus = "1"
