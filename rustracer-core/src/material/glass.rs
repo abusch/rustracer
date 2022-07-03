@@ -4,8 +4,8 @@ use light_arena::Allocator;
 use log::info;
 
 use crate::bsdf::{
-    dielectric, BxDF, BxDFHolder, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission,
-    SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, Bsdf,
+    dielectric, Bsdf, BxDF, BxDFHolder, FresnelSpecular, MicrofacetReflection,
+    MicrofacetTransmission, SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution,
 };
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};

@@ -3,8 +3,8 @@ use std::sync::Arc;
 use light_arena::Allocator;
 
 use crate::bsdf::{
-    dielectric, BxDFHolder, LambertianReflection, MicrofacetReflection, SpecularReflection,
-    SpecularTransmission, TrowbridgeReitzDistribution, Bsdf,
+    dielectric, Bsdf, BxDFHolder, LambertianReflection, MicrofacetReflection, SpecularReflection,
+    SpecularTransmission, TrowbridgeReitzDistribution,
 };
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};

@@ -71,12 +71,11 @@ pub fn parse<'input, 'api, A: Api>(
     );
     let include = map_res(pair(token(Token::INCLUDE), string_), |(_, name)| {
         info!("Parsing included file: {}", name);
-        super::tokenize_file(&name)
-            .and_then(|tokens| {
-                parse(Tokens::new(&tokens[..]), api)
-                    .map(|_| ())
-                    .map_err(|e| format_err!("Failed to parse included file: {:?}", e))
-            })
+        super::tokenize_file(&name).and_then(|tokens| {
+            parse(Tokens::new(&tokens[..]), api)
+                .map(|_| ())
+                .map_err(|e| format_err!("Failed to parse included file: {:?}", e))
+        })
     });
     let integrator = map_res(
         tuple((token(Token::INTEGRATOR), string_, param_list)),

@@ -6,9 +6,9 @@ use num::zero;
 
 use crate::bsdf::{fr_dielectric, reflect, Fresnel};
 use crate::bsdf::{
-    BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
+    Bsdf, BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
     MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
-    TrowbridgeReitzDistribution, Bsdf,
+    TrowbridgeReitzDistribution,
 };
 use crate::geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
 use crate::interaction::SurfaceInteraction;

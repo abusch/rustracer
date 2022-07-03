@@ -3,7 +3,7 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use log::info;
 
-use crate::bsdf::{BxDFHolder, LambertianReflection, OrenNayar, Bsdf};
+use crate::bsdf::{Bsdf, BxDFHolder, LambertianReflection, OrenNayar};
 use crate::clamp;
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};

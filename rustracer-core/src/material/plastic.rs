@@ -4,8 +4,8 @@ use light_arena::Allocator;
 use log::info;
 
 use crate::bsdf::{
-    dielectric, BxDFHolder, LambertianReflection, MicrofacetReflection,
-    TrowbridgeReitzDistribution, Bsdf,
+    dielectric, Bsdf, BxDFHolder, LambertianReflection, MicrofacetReflection,
+    TrowbridgeReitzDistribution,
 };
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};

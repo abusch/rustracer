@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use crate::bsdf::{BxDFHolder, FourierBSDF, FourierBSDFTable, Bsdf};
+use crate::bsdf::{Bsdf, BxDFHolder, FourierBSDF, FourierBSDFTable};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;

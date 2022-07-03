@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::{bail, format_err, Result, anyhow};
+use anyhow::{anyhow, bail, format_err, Result};
 use indicatif::HumanDuration;
 use log::{debug, error, info, warn};
 
