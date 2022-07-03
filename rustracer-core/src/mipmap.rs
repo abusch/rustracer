@@ -443,7 +443,7 @@ fn test_array2() {
 
     assert_eq!(image_array[(0, 0)], 0);
     assert_eq!(image_array[(0, 2)], 2);
-    assert_eq!(image_array[(2, 3)], 3);
+    assert_eq!(image_array[(2, 3)], 23);
 }
 
 #[test]
@@ -508,5 +508,5 @@ fn test_array2_blockedarray() {
 
     assert_eq!(ba[(0, 0)], 0);
     assert_eq!(ba[(2, 0)], 2);
-    assert_eq!(ba[(3, 2)], 3);
+    assert_eq!(ba[(3, 2)], 23);
 }
