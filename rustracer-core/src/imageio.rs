@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::*;
 use exr;
-use image::{self, hdr::HdrDecoder, GenericImageView};
+use image::{self, codecs::hdr::HdrDecoder, GenericImageView};
 use log::info;
 use rayon::prelude::*;
 

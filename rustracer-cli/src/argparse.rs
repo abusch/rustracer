@@ -1,6 +1,6 @@
 use clap::{App, Arg, ArgMatches};
 
-pub fn parse_args<'a>() -> ArgMatches<'a> {
+pub fn parse_args() -> ArgMatches {
     App::new("rustracer")
         .version("0.1")
         .author("Antoine Büsch")
@@ -8,25 +8,25 @@ pub fn parse_args<'a>() -> ArgMatches<'a> {
         .arg(
             Arg::with_name("output")
                 .long("output")
-                .short("o")
+                .short('o')
                 .help("Output file name")
                 .default_value("image.png"),
         )
         .arg(
             Arg::with_name("nthreads")
                 .long("nthreads")
-                .short("t")
+                .short('t')
                 .help("Number of worker threads")
                 .takes_value(true),
         )
         .arg(
             Arg::with_name("verbose")
-                .short("v")
+                .short('v')
                 .help("log debug information"),
         )
         .arg(
             Arg::with_name("display")
-                .short("p")
+                .short('p')
                 .help("Display image as it is rendered"),
         )
         .arg(
