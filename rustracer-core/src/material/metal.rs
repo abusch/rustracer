@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use crate::bsdf::{conductor, BxDFHolder, MicrofacetReflection, TrowbridgeReitzDistribution, BSDF};
+use crate::bsdf::{conductor, BxDFHolder, MicrofacetReflection, TrowbridgeReitzDistribution, Bsdf};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{self, Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -76,7 +76,7 @@ impl Material for Metal {
             fresnel,
         )));
 
-        let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
+        let bsdf = Bsdf::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

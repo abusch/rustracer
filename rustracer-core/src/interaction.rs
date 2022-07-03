@@ -3,7 +3,7 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use num::zero;
 
-use crate::bsdf::BSDF;
+use crate::bsdf::Bsdf;
 use crate::geometry::{face_forward_n, offset_ray_origin};
 use crate::material::TransportMode;
 use crate::primitive::Primitive;
@@ -100,7 +100,7 @@ pub struct SurfaceInteraction<'a, 'b> {
     /// Shading information
     pub shading: Shading,
     /// BSDF of the surface at the intersection point
-    pub bsdf: Option<Arc<BSDF<'b>>>,
+    pub bsdf: Option<Arc<Bsdf<'b>>>,
 }
 
 impl<'a, 'b> SurfaceInteraction<'a, 'b> {

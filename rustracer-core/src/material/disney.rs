@@ -8,7 +8,7 @@ use crate::bsdf::{fr_dielectric, reflect, Fresnel};
 use crate::bsdf::{
     BxDF, BxDFHolder, BxDFType, LambertianTransmission, MicrofacetDistribution,
     MicrofacetReflection, MicrofacetTransmission, SpecularTransmission,
-    TrowbridgeReitzDistribution, BSDF,
+    TrowbridgeReitzDistribution, Bsdf,
 };
 use crate::geometry::{abs_cos_theta, same_hemisphere, spherical_direction};
 use crate::interaction::SurfaceInteraction;
@@ -208,7 +208,7 @@ impl Material for DisneyMaterial {
             bxdfs.add(arena.alloc(LambertianTransmission::new(dt * c)));
         }
 
-        si.bsdf = Some(Arc::new(BSDF::new(si, 1.0, bxdfs.into_slice())));
+        si.bsdf = Some(Arc::new(Bsdf::new(si, 1.0, bxdfs.into_slice())));
     }
 }
 

@@ -18,6 +18,7 @@ use nom::{
     IResult, InputIter, InputLength, InputTake, Needed, Slice,
 };
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Token {
     ACCELERATOR,

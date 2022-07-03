@@ -61,7 +61,7 @@ impl<'a> BxDFHolder<'a> {
 
 /// Represents the Bidirectional Scattering Distribution Function.
 /// It represents the properties of a material at a given point.
-pub struct BSDF<'a> {
+pub struct Bsdf<'a> {
     /// Index of refraction of the surface
     pub eta: f32,
     /// Shading normal (i.e. potentially affected by bump-mapping)
@@ -73,14 +73,14 @@ pub struct BSDF<'a> {
     pub bxdfs: &'a [&'a dyn BxDF],
 }
 
-impl<'a> BSDF<'a> {
+impl<'a> Bsdf<'a> {
     pub fn new<'b>(
         isect: &'b SurfaceInteraction<'_, '_>,
         eta: f32,
         bxdfs: &'a [&'a dyn BxDF],
-    ) -> BSDF<'a> {
+    ) -> Bsdf<'a> {
         let ss = isect.shading.dpdu.normalize();
-        BSDF {
+        Bsdf {
             eta,
             ns: isect.shading.n,
             ng: isect.hit.n,

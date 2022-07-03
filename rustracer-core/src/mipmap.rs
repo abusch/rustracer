@@ -437,29 +437,29 @@ fn modulo(a: isize, b: isize) -> isize {
 #[test]
 fn test_array2() {
     // 5x3 image
-    let image = [00, 01, 02, 03, 04, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24];
+    let image = [0, 1, 2, 3, 4, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24];
 
     let image_array = ArrayView2::from_shape((3, 5), &image).unwrap();
 
-    assert_eq!(image_array[(0, 0)], 00);
-    assert_eq!(image_array[(0, 2)], 02);
-    assert_eq!(image_array[(2, 3)], 23);
+    assert_eq!(image_array[(0, 0)], 0);
+    assert_eq!(image_array[(0, 2)], 2);
+    assert_eq!(image_array[(2, 3)], 3);
 }
 
 #[test]
 fn test_array2_mut() {
     // 5x3 image
-    let image = [00, 01, 02, 03, 04, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24];
+    let image = [0, 1, 2, 3, 4, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24];
 
     let mut image_array = Array2::zeros((3, 5));
     {
         let mut row_iter = image_array.axis_iter_mut(Axis(0));
         let mut row1 = row_iter.next().unwrap();
-        row1[0] = 00;
-        row1[1] = 01;
-        row1[2] = 02;
-        row1[3] = 03;
-        row1[4] = 04;
+        row1[0] = 0;
+        row1[1] = 1;
+        row1[2] = 2;
+        row1[3] = 3;
+        row1[4] = 4;
         let mut row2 = row_iter.next().unwrap();
         row2[0] = 10;
         row2[1] = 11;
@@ -484,11 +484,11 @@ fn test_array2_blockedarray() {
     {
         let mut row_iter = image_array.axis_iter_mut(Axis(0));
         let mut row1 = row_iter.next().unwrap();
-        row1[0] = 00;
-        row1[1] = 01;
-        row1[2] = 02;
-        row1[3] = 03;
-        row1[4] = 04;
+        row1[0] = 0;
+        row1[1] = 1;
+        row1[2] = 2;
+        row1[3] = 3;
+        row1[4] = 4;
         let mut row2 = row_iter.next().unwrap();
         row2[0] = 10;
         row2[1] = 11;
@@ -506,7 +506,7 @@ fn test_array2_blockedarray() {
 
     let ba = BlockedArray::new_from(5, 3, image_array.view().to_slice().unwrap());
 
-    assert_eq!(ba[(0, 0)], 00);
-    assert_eq!(ba[(2, 0)], 02);
-    assert_eq!(ba[(3, 2)], 23);
+    assert_eq!(ba[(0, 0)], 0);
+    assert_eq!(ba[(2, 0)], 2);
+    assert_eq!(ba[(3, 2)], 3);
 }

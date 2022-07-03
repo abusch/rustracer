@@ -1,4 +1,4 @@
-use std::f32::consts;
+use std::f32::consts::{self, TAU};
 use std::fmt::Debug;
 
 use crate::bsdf::fresnel::{self, Fresnel, FresnelDielectric};
@@ -518,7 +518,7 @@ impl TrowbridgeReitzDistribution {
         // special case (normal incidence)
         if cos_theta > 0.9999 {
             let r = (u1 / (1.0 - u1)).sqrt();
-            let phi = 6.28318530718 * u2;
+            let phi = TAU * u2;
             return (r * phi.cos(), r * phi.sin());
         }
 

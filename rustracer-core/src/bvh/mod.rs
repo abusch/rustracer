@@ -36,6 +36,7 @@ pub enum SplitMethod {
 
 #[derive(Debug)]
 pub struct BVH {
+    #[allow(dead_code)]
     max_prims_per_node: usize,
     primitives: Vec<Arc<dyn Primitive>>,
     nodes: Vec<LinearBVHNode>,

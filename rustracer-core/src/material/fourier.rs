@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use light_arena::Allocator;
 
-use crate::bsdf::{BxDFHolder, FourierBSDF, FourierBSDFTable, BSDF};
+use crate::bsdf::{BxDFHolder, FourierBSDF, FourierBSDFTable, Bsdf};
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
 use crate::paramset::TextureParams;
@@ -40,7 +40,7 @@ impl Material for FourierMaterial {
             super::bump(bump, si);
         }
         bxdfs.add(arena.alloc(FourierBSDF::new(&self.bsdf_table, mode)));
-        let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
+        let bsdf = Bsdf::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

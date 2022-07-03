@@ -146,8 +146,8 @@ fn read_image_exr<P: AsRef<Path>>(path: P) -> Result<(Vec<Spectrum>, Point2i), E
         .channel_data
         .pixels
         .iter()
-        .cloned()
         .flatten()
+        .cloned()
         .collect::<Vec<_>>();
 
     Ok((

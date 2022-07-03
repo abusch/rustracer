@@ -3,7 +3,7 @@ use std::sync::Arc;
 use light_arena::Allocator;
 use log::info;
 
-use crate::bsdf::{BxDFHolder, LambertianReflection, OrenNayar, BSDF};
+use crate::bsdf::{BxDFHolder, LambertianReflection, OrenNayar, Bsdf};
 use crate::clamp;
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
@@ -57,7 +57,7 @@ impl Material for MatteMaterial {
             }
         }
 
-        let bsdf = BSDF::new(si, 1.0, bxdfs.into_slice());
+        let bsdf = Bsdf::new(si, 1.0, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

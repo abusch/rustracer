@@ -4,7 +4,7 @@ use light_arena::Allocator;
 
 use crate::bsdf::{
     dielectric, BxDFHolder, LambertianReflection, LambertianTransmission, MicrofacetReflection,
-    MicrofacetTransmission, TrowbridgeReitzDistribution, BSDF,
+    MicrofacetTransmission, TrowbridgeReitzDistribution, Bsdf,
 };
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
@@ -96,7 +96,7 @@ impl Material for TranslucentMaterial {
             }
         }
 
-        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.into_slice());
+        let bsdf: Bsdf<'b> = Bsdf::new(si, eta, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

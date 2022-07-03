@@ -4,7 +4,7 @@ use light_arena::Allocator;
 
 use crate::bsdf::{
     dielectric, BxDFHolder, LambertianReflection, MicrofacetReflection, SpecularReflection,
-    SpecularTransmission, TrowbridgeReitzDistribution, BSDF,
+    SpecularTransmission, TrowbridgeReitzDistribution, Bsdf,
 };
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
@@ -120,7 +120,7 @@ impl Material for UberMaterial {
             bxdfs.add(arena.alloc(SpecularTransmission::new(kt, 1.0, e, mode)));
         }
 
-        let bsdf: BSDF<'b> = BSDF::new(si, eta, bxdfs.into_slice());
+        let bsdf: Bsdf<'b> = Bsdf::new(si, eta, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }

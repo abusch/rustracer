@@ -5,7 +5,7 @@ use log::info;
 
 use crate::bsdf::{
     dielectric, BxDF, BxDFHolder, FresnelSpecular, MicrofacetReflection, MicrofacetTransmission,
-    SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, BSDF,
+    SpecularReflection, SpecularTransmission, TrowbridgeReitzDistribution, Bsdf,
 };
 use crate::interaction::SurfaceInteraction;
 use crate::material::{Material, TransportMode};
@@ -101,7 +101,7 @@ impl Material for GlassMaterial {
             }
         }
 
-        let bsdf = BSDF::new(si, eta, bxdfs.into_slice());
+        let bsdf = Bsdf::new(si, eta, bxdfs.into_slice());
         si.bsdf = Some(Arc::new(bsdf));
     }
 }
